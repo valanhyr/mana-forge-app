@@ -1,59 +1,65 @@
 package com.manaforge.api.model.mongo;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonAlias;
 import lombok.Data;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
-import org.springframework.data.mongodb.core.index.Indexed;
 
-import java.util.Map;
 import java.util.List;
+import java.util.Map;
 
 @Data
 @Document(collection = "cards")
-@JsonIgnoreProperties(ignoreUnknown = true) // Ignora los +50 campos extra de Scryfall
 public class Card {
-
     @Id
-    private String id; // El ID interno de MongoDB
+    private String id;
 
-    @Indexed(unique = true)
-    @JsonProperty("id")
-    private String scryfallId; // El UUID oficial de Scryfall
+    // @JsonAlias permite deserializar desde "id" (Scryfall) sin causar conflicto
+    // de serialización con el @Id de Mongo.
+    @JsonAlias("id")
+    private String scryfallId;
 
-    @Indexed
     private String name;
-
-    @JsonProperty("mana_cost")
-    private String manaCost;
-
-    private Double cmc;
-
-    @JsonProperty("type_line")
-    private String typeLine;
-
-    @JsonProperty("oracle_text")
-    private String oracleText;
-
-    private List<String> colors;
-
-    @JsonProperty("set_name")
-    private String setName;
-
-    private String rarity;
-
-    // Precios: Scryfall envía un objeto con usd, usd_foil, etc.
-    private Map<String, String> prices;
-
-    // Imágenes: Mapeamos el objeto image_uris de Scryfall
+    private String lang;
+    private String releasedAt;
+    private String uri;
+    private String scryfallUri;
+    private String layout;
+    private Boolean highresImage;
+    private String imageStatus;
     private Map<String, String> imageUris;
-
-    @JsonProperty("image_uris")
-    private void unpackImages(Map<String, String> image_uris) {
-        this.imageUris = image_uris;
-    }
-
-    // Legalidades (Fundamental para Premodern)
+    private String manaCost;
+    private Double cmc;
+    private String typeLine;
+    private String oracleText;
+    private String power;
+    private String toughness;
+    private List<String> colors;
+    private List<String> colorIdentity;
+    private List<String> keywords;
     private Map<String, String> legalities;
+    private List<String> games;
+    private Boolean reserved;
+    private Boolean foil;
+    private Boolean nonfoil;
+    private Boolean oversized;
+    private Boolean promo;
+    private Boolean reprint;
+    private Boolean variation;
+    private String setId;
+    private String set;
+    private String setName;
+    private String setType;
+    private String setUri;
+    private String setSearchUri;
+    private String scryfallSetUri;
+    private String rulingsUri;
+    private String printsSearchUri;
+    private String collectorNumber;
+    private Boolean digital;
+    private String rarity;
+    private String artist;
+    private Map<String, String> prices;
+    private Map<String, String> relatedUris;
+    private Map<String, String> purchaseUris;
 }
