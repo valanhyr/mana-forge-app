@@ -55,4 +55,22 @@ export const DeckService = {
     }
     return await response.json();
   },
+
+  analyzeDeck: async (payload: any) => {
+    // Usamos la constante API_URL que ya apunta a /api
+    const response = await fetch(`${API_URL}/decks/analyze`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        // Si usas autenticación, añade aquí tu header Authorization
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      throw new Error("Error al analizar el mazo con IA");
+    }
+
+    return response.json();
+  },
 };

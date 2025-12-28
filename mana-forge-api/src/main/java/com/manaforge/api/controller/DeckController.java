@@ -4,6 +4,7 @@ import com.manaforge.api.dtos.DeckRequestDTO;
 import com.manaforge.api.model.mongo.Deck;
 import com.manaforge.api.repository.DeckRepository;
 import com.manaforge.api.service.ScryfallService;
+import com.manaforge.api.service.AiService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,14 +16,17 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/decks")
+@CrossOrigin(origins = "http://localhost:5173")
 public class DeckController {
 
     private final DeckRepository deckRepository;
     private final ScryfallService scryfallService;
+    private final AiService aiService;
 
-    public DeckController(DeckRepository deckRepository, ScryfallService scryfallService) {
+    public DeckController(DeckRepository deckRepository, ScryfallService scryfallService, AiService aiService) {
         this.deckRepository = deckRepository;
         this.scryfallService = scryfallService;
+        this.aiService = aiService;
     }
 
     @PostMapping
@@ -103,6 +107,15 @@ public class DeckController {
         }).collect(Collectors.toList());
 
         return ResponseEntity.ok(updatedDecks);
+    }
+
+    /**
+     * Proxy para el análisis de mazos con IA.
+     * Recibe el payload del frontend y lo reenvía al motor de Python.
+     */
+    @PostMapping("/analyze")
+    public Map<String, Object> analyzeDeck(@RequestBody Map<String, Object> deckPayload) {
+        return aiService.analyzeDeck(deckPayload);
     }
 
     private void calculateAndSetDeckColors(Deck deck) {

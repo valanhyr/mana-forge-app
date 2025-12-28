@@ -3,9 +3,10 @@ import json
 import logging
 from typing import List, Optional
 from groq import Groq
-from schemas.deck_schemas import SideboardResponse, CardInput, DeckAnalysisResponse
+from schemas.deck_schemas import SideboardResponse, CardInput, DeckAnalysisResponse, RandomDeckResponse
 from prompts.sideboard_prompts import get_sideboard_system_prompt, get_sideboard_user_prompt
 from prompts.analysis_prompts import get_analysis_system_prompt, get_analysis_user_prompt
+from prompts.random_deck_prompts import get_random_deck_system_prompt, get_random_deck_user_prompt
 
 logger = logging.getLogger(__name__)
 
@@ -82,4 +83,28 @@ class AIService:
             
         except Exception as e:
             logger.error(f"Error calling Groq API for analysis: {str(e)}")
+            raise e
+
+    def generate_random_deck(self, locale: str, format_name: Optional[str] = None) -> RandomDeckResponse:
+        system_prompt = get_random_deck_system_prompt()
+        user_prompt = get_random_deck_user_prompt(locale, format_name)
+
+        try:
+            chat_completion = self.client.chat.completions.create(
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt}
+                ],
+                model=self.model,
+                temperature=0.8, # Temperatura más alta para mayor creatividad en la generación
+                response_format={"type": "json_object"},
+            )
+
+            content = chat_completion.choices[0].message.content
+            data = json.loads(content)
+            
+            return RandomDeckResponse(**data)
+            
+        except Exception as e:
+            logger.error(f"Error calling Groq API for random deck generation: {str(e)}")
             raise e

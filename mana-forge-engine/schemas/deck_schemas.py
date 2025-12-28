@@ -1,64 +1,70 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 from typing import List, Optional
 
 class CardInput(BaseModel):
     name: str
     quantity: int
 
-class SideboardRequest(BaseModel):
-    main_deck: List[CardInput]
-    format_name: str
-    locale: str = Field(default="en", description="Language for the analysis (e.g., 'es', 'en')")
-
-class Suggestion(BaseModel):
+# --- Schemas for Sideboard Suggestion ---
+class SideboardSuggestion(BaseModel):
     name: str
     quantity: int
     reason: str
 
 class SideboardResponse(BaseModel):
-    suggestions: List[Suggestion]
+    suggestions: List[SideboardSuggestion]
     analysis: str
-    
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "suggestions": [{"name": "Tormod's Crypt", "quantity": 2, "reason": "Graveyard hate"}],
-                "analysis": "This deck struggles against reanimator strategies..."
-            }
-        }
 
-# --- Nuevos Schemas para Análisis Completo ---
+class SideboardRequest(BaseModel):
+    main_deck: List[CardInput]
+    format_name: str
+    locale: str
 
-class SwapSuggestion(BaseModel):
+# --- Schemas for Deck Analysis ---
+class MatchupAnalysis(BaseModel):
+    archetype: str
+    win_rate_pre: int
+    win_rate_post: int
+    key_cards_opponent: List[str]
+    strategy: str
+    sideboard_in: List[CardInput]
+    sideboard_out: List[CardInput]
+
+class SuggestedChange(BaseModel):
     card_out: str
     card_in: str
     quantity: int
     reason: str
-
-class SideboardSwap(BaseModel):
-    card_name: str
-    quantity: int
-
-class MatchupAnalysis(BaseModel):
-    archetype: str
-    win_rate_pre: int = Field(description="Estimated win rate percentage pre-sideboard (0-100)")
-    win_rate_post: int = Field(description="Estimated win rate percentage post-sideboard (0-100)")
-    key_cards_opponent: List[str]
-    strategy: str
-    sideboard_in: List[SideboardSwap]
-    sideboard_out: List[SideboardSwap]
 
 class DeckAnalysisResponse(BaseModel):
     mana_curve_analysis: str
     strengths: List[str]
     weaknesses: List[str]
     matchups: List[MatchupAnalysis]
-    suggested_changes: List[SwapSuggestion]
+    suggested_changes: List[SuggestedChange]
     general_summary: str
 
 class DeckAnalysisRequest(BaseModel):
     main_deck: List[CardInput]
-    sideboard: List[CardInput]
+    sideboard: Optional[List[CardInput]] = None
     format_name: str
-    locale: str = Field(default="en", description="Language for the analysis")
-    meta_archetypes: Optional[List[str]] = Field(default=None, description="List of specific archetypes to analyze against")
+    locale: str
+    meta_archetypes: Optional[List[str]] = None
+
+# --- Schemas for Random Deck Generation ---
+class RandomDeckRequest(BaseModel):
+    locale: str
+    format_name: Optional[str] = None
+
+class CardOutput(BaseModel):
+    name: str
+    quantity: int
+
+class RandomDeckResponse(BaseModel):
+    deck_name: str
+    format_name: str
+    archetype: str
+    strategy_summary: str
+    brief_analysis: str
+    main_deck: List[CardOutput]
+    sideboard: List[CardOutput]

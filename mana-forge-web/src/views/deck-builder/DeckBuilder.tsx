@@ -99,7 +99,8 @@ const DeckBuilder = () => {
           const deck = await DeckService.getDeckById(deckId);
           setDeckName(deck.name);
           setSelectedFormatId(deck.formatId);
-          setIsPrivate(deck.isPrivate);
+          // Jackson serializa 'isPrivate' como 'private' por defecto
+          setIsPrivate((deck as any).private ?? deck.isPrivate ?? false);
 
           const format = formats.find((f) => f.id === deck.formatId) || null;
           setSelectedFormat(format);
@@ -448,16 +449,9 @@ const DeckBuilder = () => {
           analysisArchetypes.length > 0 ? analysisArchetypes : undefined,
       };
 
-      // Llamada directa al microservicio de Python (ajusta la URL si es necesario o usa un proxy)
-      const response = await fetch("http://localhost:8000/v1/ai/analyze-deck", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
+      // La llamada ahora pasa por nuestra API de backend, que actúa como proxy
+      const data = await DeckService.analyzeDeck(payload);
 
-      if (!response.ok) throw new Error("Error en el análisis de IA");
-
-      const data = await response.json();
       setAnalysisResult(data);
       setIsAnalysisModalOpen(true);
     } catch (error) {

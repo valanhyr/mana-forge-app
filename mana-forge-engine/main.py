@@ -3,7 +3,7 @@ import uvicorn
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
-from schemas.deck_schemas import SideboardRequest, SideboardResponse, DeckAnalysisRequest, DeckAnalysisResponse
+from schemas.deck_schemas import SideboardRequest, SideboardResponse, DeckAnalysisRequest, DeckAnalysisResponse, RandomDeckRequest, RandomDeckResponse
 from services.ai_service import AIService
 
 # Cargar variables de entorno
@@ -31,10 +31,28 @@ ai_service = AIService()
 
 @app.get("/health")
 def health_check():
+    """
+    Health check endpoint for the Mana Forge Engine.
+
+    Returns:
+        dict: A simple JSON object indicating the service is running.
+    """
     return {"status": "ok", "service": "mana-forge-engine"}
 
 @app.post("/v1/ai/suggest-sideboard", response_model=SideboardResponse)
 async def suggest_sideboard(request: SideboardRequest):
+    """
+    Endpoint to suggest a sideboard for a given main deck in a specific format.
+
+    Args:
+        request (SideboardRequest): Request body containing the main deck, format name, and locale.
+
+    Returns:
+        SideboardResponse: Suggested sideboard and reasoning provided by the AI.
+
+    Raises:
+        HTTPException: If AI sideboard suggestion fails or an internal error occurs.
+    """
     logger.info(f"Received sideboard request for format: {request.format_name} ({request.locale})")
     logger.info(f"Deck size: {sum(c.quantity for c in request.main_deck)} cards")
 
@@ -44,7 +62,6 @@ async def suggest_sideboard(request: SideboardRequest):
     except Exception as e:
         logger.error(f"Failed to generate sideboard: {str(e)}")
         raise HTTPException(status_code=500, detail="Error generating AI suggestions")
-
 @app.post("/v1/ai/analyze-deck", response_model=DeckAnalysisResponse)
 async def analyze_deck(request: DeckAnalysisRequest):
     logger.info(f"Received deck analysis request for format: {request.format_name} ({request.locale})")
@@ -64,3 +81,27 @@ async def analyze_deck(request: DeckAnalysisRequest):
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+
+@app.post("/v1/ai/generate-random-deck", response_model=RandomDeckResponse)
+async def generate_random_deck(request: RandomDeckRequest):
+    """
+    Endpoint to generate a complete, random, and competitive deck.
+    The AI can choose a format or build for a specified one.
+
+    Args:
+        request (RandomDeckRequest): Request body containing the locale and an optional format name.
+
+    Returns:
+        RandomDeckResponse: A complete deck with name, format, strategy, and analysis.
+
+    Raises:
+        HTTPException: If AI random deck generation fails or an internal error occurs.
+    """
+    logger.info(f"Received random deck request for format: {request.format_name or 'any'} ({request.locale})")
+    
+    try:
+        result = ai_service.generate_random_deck(locale=request.locale, format_name=request.format_name)
+        return result
+    except Exception as e:
+        logger.error(f"Failed to generate random deck: {str(e)}")
+        raise HTTPException(status_code=500, detail="Error generating AI random deck")
