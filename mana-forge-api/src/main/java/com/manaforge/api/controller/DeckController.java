@@ -2,12 +2,15 @@ package com.manaforge.api.controller;
 
 import com.manaforge.api.dtos.DeckRequestDTO;
 import com.manaforge.api.model.mongo.Deck;
+import com.manaforge.api.model.ai.DailyDeck;
 import com.manaforge.api.repository.DeckRepository;
+import com.manaforge.api.repository.DailyDeckRepository;
 import com.manaforge.api.service.ScryfallService;
 import com.manaforge.api.service.AiService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -22,11 +25,13 @@ public class DeckController {
     private final DeckRepository deckRepository;
     private final ScryfallService scryfallService;
     private final AiService aiService;
+    private final DailyDeckRepository dailyDeckRepository;
 
-    public DeckController(DeckRepository deckRepository, ScryfallService scryfallService, AiService aiService) {
+    public DeckController(DeckRepository deckRepository, ScryfallService scryfallService, AiService aiService, DailyDeckRepository dailyDeckRepository) {
         this.deckRepository = deckRepository;
         this.scryfallService = scryfallService;
         this.aiService = aiService;
+        this.dailyDeckRepository = dailyDeckRepository;
     }
 
     @PostMapping
@@ -121,10 +126,26 @@ public class DeckController {
     /**
      * Endpoint para generar un mazo aleatorio utilizando la IA.
      * Puede recibir parámetros como "locale" y "format_name".
+     * Ahora devuelve el mismo mazo durante todo el día (Daily Deck).
      */
     @PostMapping("/random")
     public Map<String, Object> generateRandomDeck(@RequestBody Map<String, Object> payload) {
-        return aiService.generateRandomDeck(payload);
+        LocalDate today = LocalDate.now();
+        
+        // Intentamos buscar el mazo de hoy
+        return dailyDeckRepository.findByDate(today)
+                .map(DailyDeck::getDeckData)
+                .orElseGet(() -> {
+                    // Si no existe, generamos uno nuevo con la IA
+                    Map<String, Object> newDeck = aiService.generateRandomDeck(payload);
+                    
+                    DailyDeck daily = new DailyDeck();
+                    daily.setDate(today);
+                    daily.setDeckData(newDeck);
+                    dailyDeckRepository.save(daily);
+                    
+                    return newDeck;
+                });
     }
 
     private void calculateAndSetDeckColors(Deck deck) {
