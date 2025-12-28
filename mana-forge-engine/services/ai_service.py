@@ -22,14 +22,12 @@ class AIService:
         api_key = os.environ.get("GROQ_API_KEY")
         if not api_key:
             logger.warning("GROQ_API_KEY not found in environment variables")
-        
         self.client = Groq(api_key=api_key)
         self.model = "llama-3.3-70b-versatile"
 
     def suggest_sideboard(self, main_deck: list[CardInput], format_name: str, locale: str) -> SideboardResponse:
         # Formatear la lista de cartas para el prompt
         deck_str = "\n".join([f"{c.quantity} {c.name}" for c in main_deck])
-        
         system_prompt = get_sideboard_system_prompt()
         user_prompt = get_sideboard_user_prompt(deck_str, format_name, locale)
 
@@ -50,7 +48,7 @@ class AIService:
             return SideboardResponse(**data)
             
         except Exception as e:
-            logger.error(f"Error calling Groq API: {str(e)}")
+            logger.error("Error calling Groq API: %s", str(e))
             raise e
 
     def analyze_deck(self, main_deck: list[CardInput], sideboard: list[CardInput], format_name: str, locale: str, meta_archetypes: Optional[List[str]] = None) -> DeckAnalysisResponse:
@@ -82,7 +80,7 @@ class AIService:
             return DeckAnalysisResponse(**data)
             
         except Exception as e:
-            logger.error(f"Error calling Groq API for analysis: {str(e)}")
+            logger.error("Error calling Groq API for analysis: %s", str(e))
             raise e
 
     def generate_random_deck(self, locale: str, format_name: Optional[str] = None) -> RandomDeckResponse:
@@ -106,5 +104,5 @@ class AIService:
             return RandomDeckResponse(**data)
             
         except Exception as e:
-            logger.error(f"Error calling Groq API for random deck generation: {str(e)}")
+            logger.error("Error calling Groq API for random deck generation: %s", str(e))
             raise e

@@ -35,4 +35,18 @@ public class AiService {
 
         return response;
     }
+
+    public Map<String, Object> generateRandomDeck(Map<String, Object> payload) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        HttpEntity<Map<String, Object>> request = new HttpEntity<>(payload, headers);
+
+        String url = engineUrl + "/generate-random-deck";
+
+        @SuppressWarnings("unchecked")
+        Map<String, Object> response = restTemplate.postForObject(url, request, Map.class);
+
+        return response;
+    }
 }

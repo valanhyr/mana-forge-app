@@ -53,18 +53,18 @@ async def suggest_sideboard(request: SideboardRequest):
     Raises:
         HTTPException: If AI sideboard suggestion fails or an internal error occurs.
     """
-    logger.info(f"Received sideboard request for format: {request.format_name} ({request.locale})")
-    logger.info(f"Deck size: {sum(c.quantity for c in request.main_deck)} cards")
+    logger.info("Received sideboard request for format: %s (%s)", request.format_name, request.locale)
+    logger.info("Deck size: %s cards", sum(c.quantity for c in request.main_deck))
 
     try:
         result = ai_service.suggest_sideboard(request.main_deck, request.format_name, request.locale)
         return result
     except Exception as e:
-        logger.error(f"Failed to generate sideboard: {str(e)}")
+        logger.error("Failed to generate sideboard: %s", str(e))
         raise HTTPException(status_code=500, detail="Error generating AI suggestions")
 @app.post("/v1/ai/analyze-deck", response_model=DeckAnalysisResponse)
 async def analyze_deck(request: DeckAnalysisRequest):
-    logger.info(f"Received deck analysis request for format: {request.format_name} ({request.locale})")
+    logger.info("Received deck analysis request for format: %s (%s)", request.format_name, request.locale)
     
     try:
         result = ai_service.analyze_deck(
@@ -76,7 +76,7 @@ async def analyze_deck(request: DeckAnalysisRequest):
         )
         return result
     except Exception as e:
-        logger.error(f"Failed to analyze deck: {str(e)}")
+        logger.error("Failed to analyze deck: %s", str(e))
         raise HTTPException(status_code=500, detail="Error generating AI analysis")
 
 if __name__ == "__main__":
@@ -97,11 +97,11 @@ async def generate_random_deck(request: RandomDeckRequest):
     Raises:
         HTTPException: If AI random deck generation fails or an internal error occurs.
     """
-    logger.info(f"Received random deck request for format: {request.format_name or 'any'} ({request.locale})")
+    logger.info("Received random deck request for format: %s (%s)", request.format_name or 'any', request.locale)
     
     try:
         result = ai_service.generate_random_deck(locale=request.locale, format_name=request.format_name)
         return result
     except Exception as e:
-        logger.error(f"Failed to generate random deck: {str(e)}")
+        logger.error("Failed to generate random deck: %s", str(e))
         raise HTTPException(status_code=500, detail="Error generating AI random deck")

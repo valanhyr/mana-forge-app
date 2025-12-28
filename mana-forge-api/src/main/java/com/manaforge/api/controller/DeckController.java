@@ -118,6 +118,15 @@ public class DeckController {
         return aiService.analyzeDeck(deckPayload);
     }
 
+    /**
+     * Endpoint para generar un mazo aleatorio utilizando la IA.
+     * Puede recibir parámetros como "locale" y "format_name".
+     */
+    @PostMapping("/random")
+    public Map<String, Object> generateRandomDeck(@RequestBody Map<String, Object> payload) {
+        return aiService.generateRandomDeck(payload);
+    }
+
     private void calculateAndSetDeckColors(Deck deck) {
         Set<String> deckColors = new HashSet<>();
         if (deck.getCards() != null) {
