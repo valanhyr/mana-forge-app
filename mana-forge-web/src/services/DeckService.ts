@@ -1,4 +1,17 @@
-const API_URL = "http://localhost:8080/api";
+import { API_BASE_URL } from "../config";
+
+const API_URL = `${API_BASE_URL}/api`;
+
+export interface DailyDeck {
+  deck_name: string;
+  format_name: string;
+  archetype: string;
+  strategy_summary: string;
+  brief_analysis: string;
+  main_deck: Array<{ name: string; quantity: number }>;
+  sideboard: Array<{ name: string; quantity: number }>;
+  cardArtUrl?: string; // Se añade dinámicamente después
+}
 
 // Esta interfaz coincide con el DeckRequestDTO en el backend
 interface DeckPayload {
@@ -14,6 +27,21 @@ interface DeckPayload {
 }
 
 export const DeckService = {
+  getDailyDeck: async (locale: string): Promise<DailyDeck> => {
+    const response = await fetch(`${API_URL}/decks/random`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ locale }),
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to fetch daily AI deck");
+    }
+    return response.json();
+  },
+
   saveDeck: async (payload: DeckPayload): Promise<any> => {
     const response = await fetch(`${API_URL}/decks`, {
       method: "POST",

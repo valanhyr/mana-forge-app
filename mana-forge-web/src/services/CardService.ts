@@ -19,8 +19,6 @@ export const CardService = {
 
   getCardByName: async (name: string): Promise<any> => {
     try {
-      // 1. Intentar búsqueda exacta primero (para "Forest", "Mountain", etc.)
-      // Esto soluciona que "Forest" devuelva "Deep Forest Hermit"
       const exactQuery = `!"${name}"`;
       const exactResponse = await fetch(
         `${API_URL}/cards/scryfall?q=${encodeURIComponent(exactQuery)}`

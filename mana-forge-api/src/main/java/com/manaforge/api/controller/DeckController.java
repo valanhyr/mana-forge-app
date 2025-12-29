@@ -9,6 +9,9 @@ import com.manaforge.api.service.ScryfallService;
 import com.manaforge.api.service.AiService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.dao.DuplicateKeyException;
+import org.springframework.dao.IncorrectResultSizeDataAccessException;
+import org.springframework.data.domain.Example;
 
 import java.time.LocalDate;
 import java.util.HashSet;
@@ -16,6 +19,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/decks")
@@ -132,20 +136,38 @@ public class DeckController {
     public Map<String, Object> generateRandomDeck(@RequestBody Map<String, Object> payload) {
         LocalDate today = LocalDate.now();
         
-        // Intentamos buscar el mazo de hoy
-        return dailyDeckRepository.findByDate(today)
-                .map(DailyDeck::getDeckData)
-                .orElseGet(() -> {
-                    // Si no existe, generamos uno nuevo con la IA
-                    Map<String, Object> newDeck = aiService.generateRandomDeck(payload);
-                    
-                    DailyDeck daily = new DailyDeck();
-                    daily.setDate(today);
-                    daily.setDeckData(newDeck);
-                    dailyDeckRepository.save(daily);
-                    
-                    return newDeck;
-                });
+        // 1. Intentamos buscar el mazo de hoy de forma segura (manejando duplicados)
+        Optional<DailyDeck> existing = getDailyDeckSafe(today);
+        if (existing.isPresent()) {
+            return existing.get().getDeckData();
+        }
+
+        // 2. Si no existe, generamos uno nuevo. Manejamos condiciones de carrera.
+        try {
+            Map<String, Object> newDeck = aiService.generateRandomDeck(payload);
+            DailyDeck daily = new DailyDeck();
+            daily.setDate(today);
+            daily.setDeckData(newDeck);
+            dailyDeckRepository.save(daily);
+            return newDeck;
+        } catch (DuplicateKeyException e) {
+            // Si otro hilo guardó el mazo mientras generábamos este, devolvemos el existente
+            return getDailyDeckSafe(today)
+                    .map(DailyDeck::getDeckData)
+                    .orElseThrow(() -> new RuntimeException("Error inesperado al recuperar el mazo diario."));
+        }
+    }
+
+    private Optional<DailyDeck> getDailyDeckSafe(LocalDate date) {
+        try {
+            return dailyDeckRepository.findByDate(date);
+        } catch (IncorrectResultSizeDataAccessException e) {
+            // En caso de duplicados en la BD, usamos Example para recuperar la lista y tomar el primero
+            DailyDeck probe = new DailyDeck();
+            probe.setDate(date);
+            List<DailyDeck> list = dailyDeckRepository.findAll(Example.of(probe));
+            return list.stream().findFirst();
+        }
     }
 
     private void calculateAndSetDeckColors(Deck deck) {

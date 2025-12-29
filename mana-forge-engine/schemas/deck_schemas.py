@@ -1,8 +1,9 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, ConfigDict
 from typing import List, Optional
 
 class CardInput(BaseModel):
-    name: str
+    model_config = ConfigDict(populate_by_name=True)
+    name: str = Field(alias="card_name")
     quantity: int
 
 # --- Schemas for Sideboard Suggestion ---

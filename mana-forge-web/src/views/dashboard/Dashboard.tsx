@@ -1,6 +1,18 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { ArrowRight, Sparkles, Zap, Users } from "lucide-react";
+import {
+  ArrowRight,
+  Sparkles,
+  Zap,
+  Users,
+  Loader2,
+  ServerCrash,
+  X,
+  Layers,
+  BookOpen,
+} from "lucide-react";
+import { DeckService, type DailyDeck } from "../../services/DeckService";
+import { ScryfallService } from "../../services/ScryfallService";
 
 // --- Mock Data ---
 
@@ -12,7 +24,7 @@ const newsItems = [
     link: "/articles/mh3-review",
     linkLabel: "Leer análisis",
     imageUrl:
-      "https://cards.scryfall.io/art_crop/front/7/1/71c6f927-951d-422b-a839-489e895a5922.jpg?1712484988", // Ugin's Labyrinth
+      "https://api.scryfall.com/cards/named?exact=Ugin%27s%20Labyrinth&format=image&version=art_crop", // Ugin's Labyrinth
   },
   {
     title: "Guía de Commander: Empezando con Urza",
@@ -21,7 +33,7 @@ const newsItems = [
     link: "/guides/urza-commander",
     linkLabel: "Ver guía",
     imageUrl:
-      "https://cards.scryfall.io/art_crop/front/8/0/800d2c03-2d88-4603-b151-3b9c39a2a4a2.jpg?1674421994", // Urza, Lord Protector
+      "https://api.scryfall.com/cards/named?exact=Urza%2C%20Lord%20Protector&format=image&version=art_crop", // Urza, Lord Protector
   },
   {
     title: "El Estado del Metajuego de Premodern",
@@ -30,7 +42,7 @@ const newsItems = [
     link: "/meta/premodern-state",
     linkLabel: "Explorar meta",
     imageUrl:
-      "https://cards.scryfall.io/art_crop/front/4/b/4b81167a-439b-4e4f-a4e6-7039a0c36936.jpg?1562906886", // Psychatog
+      "https://api.scryfall.com/cards/named?exact=Psychatog&format=image&version=art_crop", // Psychatog
   },
 ];
 
@@ -40,17 +52,8 @@ const deckOfTheDay = {
   format: "Legacy",
   archetype: "Tempo",
   cardArtUrl:
-    "https://cards.scryfall.io/art_crop/front/1/1/1165f435-de5b-4d2c-8de1-51f6e7f524a6.jpg?1626094284", // Delver of Secrets
+    "https://api.scryfall.com/cards/named?exact=Delver%20of%20Secrets&format=image&version=art_crop", // Delver of Secrets
   deckId: "some-public-deck-id",
-};
-
-const aiGeneratedDeck = {
-  name: "Goblins Tribales (IA)",
-  format: "Modern",
-  archetype: "Aggro",
-  cardArtUrl:
-    "https://cards.scryfall.io/art_crop/front/a/9/a9446d18-904f-4d4c-a1b6-5d7c2a3a55a8.jpg?1562925291", // Goblin Piledriver
-  deckId: "some-ai-deck-id",
 };
 
 // 3. Formatos Populares (Sugerencia)
@@ -58,26 +61,136 @@ const popularFormats = [
   {
     name: "Commander",
     description: "El formato multijugador por excelencia.",
-    link: "/decks/commander",
+    link: "/format/commander",
   },
   {
     name: "Modern",
     description: "Poder y consistencia con un amplio pool de cartas.",
-    link: "/decks/modern",
+    link: "/format/modern",
   },
   {
     name: "Pauper",
     description: "Construye mazos solo con cartas comunes.",
-    link: "/decks/pauper",
+    link: "/format/pauper",
   },
   {
     name: "Legacy",
     description: "Donde la historia de Magic cobra vida.",
-    link: "/decks/legacy",
+    link: "/format/legacy",
   },
 ];
 
 const Dashboard = () => {
+  const [dailyDeck, setDailyDeck] = useState<DailyDeck | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  useEffect(() => {
+    const fetchDailyDeck = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+
+        // 1. Obtener los datos del mazo de la API
+        const deckData = await DeckService.getDailyDeck("es");
+
+        // 2. Encontrar una carta representativa para la imagen (la primera que no sea tierra básica)
+        const basicLandNames = [
+          "plains",
+          "island",
+          "swamp",
+          "mountain",
+          "forest",
+          "wastes",
+        ];
+        const featureCard = deckData.main_deck.find(
+          (card: { name: string }) =>
+            !basicLandNames.includes(card.name.toLowerCase())
+        );
+
+        // Imagen por defecto si algo falla
+        let cardArtUrl =
+          "https://cards.scryfall.io/art_crop/front/a/9/a9446d18-904f-4d4c-a1b6-5d7c2a3a55a8.jpg?1562925291";
+
+        if (featureCard) {
+          // 3. Obtener la imagen de la carta desde nuestro proxy de Scryfall
+          const cardDetails = await ScryfallService.getCardByName(
+            featureCard.name
+          );
+          if (cardDetails && cardDetails.image_uris) {
+            cardArtUrl = cardDetails.image_uris.art_crop;
+          }
+        }
+
+        // 4. Guardar el mazo y la URL de la imagen en el estado
+        setDailyDeck({ ...deckData, cardArtUrl });
+      } catch (err) {
+        console.error("Error fetching daily AI deck:", err);
+        setError(
+          "No se pudo cargar el mazo del día. Inténtalo de nuevo más tarde."
+        );
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchDailyDeck();
+  }, []); // El array vacío asegura que se ejecute solo una vez al montar el componente
+
+  const AiDeckCard = () => {
+    if (isLoading) {
+      return (
+        <div className="group relative flex items-center justify-center h-80 p-6 text-white bg-zinc-900 rounded-2xl border border-zinc-800">
+          <div className="text-center">
+            <Loader2 className="mx-auto h-12 w-12 animate-spin text-indigo-400" />
+            <p className="mt-4 text-zinc-400">Generando mazo del día...</p>
+          </div>
+        </div>
+      );
+    }
+
+    if (error || !dailyDeck) {
+      return (
+        <div className="group relative flex items-center justify-center h-80 p-6 text-white bg-zinc-900 rounded-2xl border border-red-500/30">
+          <div className="text-center">
+            <ServerCrash className="mx-auto h-12 w-12 text-red-400" />
+            <p className="mt-4 text-red-400">{error || "Error desconocido."}</p>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div
+        onClick={() => setIsModalOpen(true)}
+        className="group relative block overflow-hidden rounded-2xl shadow-lg cursor-pointer"
+      >
+        <div className="absolute inset-0 z-0">
+          <img
+            src={dailyDeck.cardArtUrl}
+            alt={dailyDeck.deck_name}
+            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
+        </div>
+        <div className="relative z-10 flex flex-col justify-between h-80 p-6 text-white">
+          <div>
+            <span className="inline-flex items-center gap-2 rounded-full bg-black/60 px-3 py-1 text-xs font-medium text-indigo-400 border border-indigo-500/20 backdrop-blur-sm">
+              <Sparkles size={14} /> Mazo del Día (IA)
+            </span>
+          </div>
+          <div>
+            <h3 className="text-2xl font-bold">{dailyDeck.deck_name}</h3>
+            <p className="text-sm text-zinc-300 mt-1">
+              {dailyDeck.format_name} &middot; {dailyDeck.archetype}
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="max-w-7xl mx-auto mt-8 px-4 sm:px-6 lg:px-8 space-y-12 mb-12">
       {/* --- Sección de Noticias --- */}
@@ -144,32 +257,7 @@ const Dashboard = () => {
           </Link>
 
           {/* Mazo de IA */}
-          <Link
-            to={`/deck-viewer/${aiGeneratedDeck.deckId}`}
-            className="group relative block overflow-hidden rounded-2xl shadow-lg"
-          >
-            <div className="absolute inset-0 z-0">
-              <img
-                src={aiGeneratedDeck.cardArtUrl}
-                alt={aiGeneratedDeck.name}
-                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
-            </div>
-            <div className="relative z-10 flex flex-col justify-between h-80 p-6 text-white">
-              <div>
-                <span className="inline-flex items-center gap-2 rounded-full bg-indigo-500/10 px-3 py-1 text-xs font-medium text-indigo-400 border border-indigo-500/20">
-                  <Sparkles size={14} /> Generado por IA
-                </span>
-              </div>
-              <div>
-                <h3 className="text-2xl font-bold">{aiGeneratedDeck.name}</h3>
-                <p className="text-sm text-zinc-300 mt-1">
-                  {aiGeneratedDeck.format} &middot; {aiGeneratedDeck.archetype}
-                </p>
-              </div>
-            </div>
-          </Link>
+          <AiDeckCard />
         </div>
       </section>
 
@@ -202,6 +290,85 @@ const Dashboard = () => {
           ))}
         </div>
       </section>
+
+      {/* --- Modal del Mazo del Día --- */}
+      {isModalOpen && dailyDeck && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+          {/* 
+              Ajuste de anchura:
+              - w-full: Ocupa todo el ancho disponible (respetando max-w)
+              - md:max-w-4xl: En tablet es bastante ancho
+              - lg:max-w-6xl: En desktop es muy ancho (aprox 70-80% dependiendo de la resolución)
+          */}
+          <div className="relative w-full md:max-w-4xl lg:max-w-6xl bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl flex flex-col max-h-[90vh]">
+            {/* Header */}
+            <div className="flex items-center justify-between p-6 border-b border-zinc-800 shrink-0">
+              <div>
+                <h3 className="text-2xl font-bold text-white">
+                  {dailyDeck.deck_name}
+                </h3>
+                <p className="text-zinc-400">
+                  {dailyDeck.format_name} &middot; {dailyDeck.archetype}
+                </p>
+              </div>
+              <button
+                onClick={() => setIsModalOpen(false)}
+                className="p-2 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-lg transition-colors"
+              >
+                <X size={24} />
+              </button>
+            </div>
+
+            {/* Body (Scrollable) */}
+            <div className="p-6 overflow-y-auto">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                {/* Columna 1: Listado de Cartas */}
+                <div className="lg:col-span-1 space-y-6">
+                  <div>
+                    <h4 className="font-bold text-white mb-3 flex items-center gap-2">
+                      <Layers size={18} className="text-indigo-500" /> Main Deck
+                    </h4>
+                    <ul className="text-sm text-zinc-300 space-y-1 font-mono">
+                      {dailyDeck.main_deck.map((c, i) => (
+                        <li
+                          key={i}
+                          className="flex justify-between border-b border-zinc-800/50 pb-1 last:border-0"
+                        >
+                          <span>{c.name}</span>
+                          <span className="text-zinc-500">{c.quantity}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+
+                {/* Columna 2 y 3: Análisis y Estrategia */}
+                <div className="lg:col-span-2 space-y-6">
+                  <div className="bg-zinc-950/50 p-5 rounded-xl border border-zinc-800">
+                    <h4 className="font-bold text-white mb-3 flex items-center gap-2">
+                      <Zap size={18} className="text-orange-500" /> Estrategia
+                      Principal
+                    </h4>
+                    <p className="text-zinc-300 leading-relaxed">
+                      {dailyDeck.strategy_summary}
+                    </p>
+                  </div>
+
+                  <div className="bg-zinc-950/50 p-5 rounded-xl border border-zinc-800">
+                    <h4 className="font-bold text-white mb-3 flex items-center gap-2">
+                      <BookOpen size={18} className="text-blue-500" /> Análisis
+                      del Meta
+                    </h4>
+                    <p className="text-zinc-300 leading-relaxed">
+                      {dailyDeck.brief_analysis}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

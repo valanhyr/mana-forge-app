@@ -5,6 +5,8 @@ import Login from "./views/auth/Login";
 import { UserProvider } from "./services/UserContext";
 import MyDecks from "./views/my-decks/MyDecks";
 import DeckBuilder from "./views/deck-builder/DeckBuilder";
+import FormatDetail from "./views/formats/FormatDetail";
+import Profile from "./views/profile/Profile";
 
 function App() {
   return (
@@ -17,6 +19,8 @@ function App() {
             <Route path="my-decks" element={<MyDecks />} />
             <Route path="deck-builder" element={<DeckBuilder />} />
             <Route path="deck-builder/:deckId" element={<DeckBuilder />} />
+            <Route path="format/:formatName" element={<FormatDetail />} />
+            <Route path="profile" element={<Profile />} />
             {/* Aquí añadiremos más rutas como /deck-builder */}
           </Route>
         </Routes>

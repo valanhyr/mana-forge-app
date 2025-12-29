@@ -1,25 +1,64 @@
 package com.manaforge.api.model.mongo;
 
-import lombok.Data;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
-import java.util.Map;
 
-@Data
 @Document(collection = "formats")
 public class Format {
+
     @Id
     private String id;
-    
-    private Map<String, String> name;
-    private String scryfallKey;
-    private Config config;
-    private boolean isActive;
 
-    @Data
-    public static class Config {
-        private Integer minMainDeck;
-        private Integer maxSideboard;
-        private Integer maxCopies;
+    @Indexed(unique = true)
+    private String name;
+
+    @Indexed(unique = true)
+    private String slug;
+
+    private String scryfallKey; // Clave para validaciones contra API externa
+
+    private boolean isActive = true;
+
+    private FormatConfig config;
+
+    // Getters and Setters
+    public String getId() { return id; }
+    public void setId(String id) { this.id = id; }
+
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+
+    public String getSlug() { return slug; }
+    public void setSlug(String slug) { this.slug = slug; }
+
+    public String getScryfallKey() { return scryfallKey; }
+    public void setScryfallKey(String scryfallKey) { this.scryfallKey = scryfallKey; }
+
+    public boolean isActive() { return isActive; }
+    public void setActive(boolean active) { isActive = active; }
+
+    public FormatConfig getConfig() { return config; }
+    public void setConfig(FormatConfig config) { this.config = config; }
+
+    // Inner class para la configuración
+    public static class FormatConfig {
+        private int minDeckSize;
+        private Integer maxDeckSize; // Null si no hay límite superior (ej. Modern), valor si es fijo (ej. Commander = 100)
+        private int maxCopies;
+        private int sideboardSize;
+
+        // Getters and Setters
+        public int getMinDeckSize() { return minDeckSize; }
+        public void setMinDeckSize(int minDeckSize) { this.minDeckSize = minDeckSize; }
+
+        public Integer getMaxDeckSize() { return maxDeckSize; }
+        public void setMaxDeckSize(Integer maxDeckSize) { this.maxDeckSize = maxDeckSize; }
+
+        public int getMaxCopies() { return maxCopies; }
+        public void setMaxCopies(int maxCopies) { this.maxCopies = maxCopies; }
+
+        public int getSideboardSize() { return sideboardSize; }
+        public void setSideboardSize(int sideboardSize) { this.sideboardSize = sideboardSize; }
     }
 }
