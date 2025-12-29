@@ -21,8 +21,10 @@ class AIService:
     def __init__(self):
         api_key = os.environ.get("GROQ_API_KEY")
         if not api_key:
-            logger.warning("GROQ_API_KEY not found in environment variables")
-        self.client = Groq(api_key=api_key)
+            logger.error("GROQ_API_KEY not found in environment variables")
+            self.client = None
+        else:
+            self.client = Groq(api_key=api_key)
         self.model = "llama-3.3-70b-versatile"
 
     def suggest_sideboard(self, main_deck: list[CardInput], format_name: str, locale: str) -> SideboardResponse:
@@ -84,6 +86,9 @@ class AIService:
             raise e
 
     def generate_random_deck(self, locale: str, format_name: Optional[str] = None) -> RandomDeckResponse:
+        if not self.client:
+            raise ValueError("Groq client is not initialized. Check GROQ_API_KEY.")
+
         system_prompt = get_random_deck_system_prompt()
         user_prompt = get_random_deck_user_prompt(locale, format_name)
 
