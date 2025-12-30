@@ -79,7 +79,23 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
 
       try {
         // 1. Obtener los formatos (usará caché si ya están cargados)
-        const formats = await FormatService.getActiveFormats();
+        const formatsRaw = await FormatService.getActiveFormats();
+        const formats = formatsRaw.map((f: any) => {
+          let parsedName = f.name;
+          // Si el nombre viene como string JSON, lo parseamos
+          if (typeof f.name === "string" && f.name.startsWith("{")) {
+            try {
+              parsedName = JSON.parse(f.name);
+            } catch (e) {
+              console.error("Error parsing format name:", f.name);
+            }
+          }
+          return {
+            ...f,
+            id: f.id || f._id,
+            name: parsedName,
+          };
+        });
         const formatMap = new Map(formats.map((f) => [f.id, f]));
 
         // 2. Obtener los mazos del usuario
@@ -88,10 +104,13 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
         // 3. Mapear respuesta del backend a la interfaz de UI
         const mappedDecks: Deck[] = fetchedDecks.map((d: any) => {
           const format = formatMap.get(d.formatId);
+          // Preferir inglés (en), luego español (es), luego el ID si falla
+          const formatName = format?.name?.en || format?.name?.es || d.formatId;
+
           return {
             id: d.id,
             name: d.name,
-            format: format?.name.es || format?.name.en || d.formatId, // Usar el nombre del formato
+            format: formatName,
             colors: d.colors || [],
             lastUpdated: "Reciente", // TODO: Añadir campo timestamp en Deck.java
             isPrivate: d.private, // Jackson serializa 'isPrivate' como 'private' por defecto
