@@ -1,5 +1,6 @@
 export interface FormatConfig {
   minMainDeck: number;
+  maxMainDeck?: number;
   maxSideboard: number;
   maxCopies: number;
 }

@@ -30,7 +30,7 @@ const newsItems = [
     title: "Guía de Commander: Empezando con Urza",
     subtitle:
       "Aprende a construir un mazo poderoso alrededor de Urza, Lord Protector.",
-    link: "/guides/urza-commander",
+    link: "/articles/urza-commander",
     linkLabel: "Ver guía",
     imageUrl:
       "https://api.scryfall.com/cards/named?exact=Urza%2C%20Lord%20Protector&format=image&version=art_crop", // Urza, Lord Protector
@@ -39,7 +39,7 @@ const newsItems = [
     title: "El Estado del Metajuego de Premodern",
     subtitle:
       "Analizamos los mazos dominantes y las joyas ocultas del formato.",
-    link: "/meta/premodern-state",
+    link: "/articles/premodern-state",
     linkLabel: "Explorar meta",
     imageUrl:
       "https://api.scryfall.com/cards/named?exact=Psychatog&format=image&version=art_crop", // Psychatog

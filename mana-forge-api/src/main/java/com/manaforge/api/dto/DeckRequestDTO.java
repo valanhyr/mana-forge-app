@@ -1,4 +1,4 @@
-package com.manaforge.api.dtos;
+package com.manaforge.api.dto;
 
 import lombok.Data;
 import java.util.List;

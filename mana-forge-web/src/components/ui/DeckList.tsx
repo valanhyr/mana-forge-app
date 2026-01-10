@@ -8,6 +8,7 @@ import {
   Minus,
   MoreVertical,
   ArrowRightLeft,
+  Crown,
 } from "lucide-react";
 import { ManaSymbolService } from "../../services/ManaSymbolService";
 
@@ -21,7 +22,7 @@ export interface DeckCard {
   price?: number;
   inCollection?: boolean; // Para el icono de check
   isValid?: boolean; // Para marcar si es legal en el formato
-  board?: "main" | "side";
+  board?: "main" | "side" | "commander";
 }
 
 interface DeckListProps {
@@ -29,9 +30,13 @@ interface DeckListProps {
   onCardClick?: (id: string) => void;
   onUpdateQuantity?: (card: DeckCard, delta: number) => void;
   onRemove?: (card: DeckCard) => void;
-  onMoveToBoard?: (card: DeckCard, board: "main" | "side") => void;
+  onMoveToBoard?: (
+    card: DeckCard,
+    board: "main" | "side" | "commander"
+  ) => void;
   maxSideboardSize?: number;
   minMainDeckSize?: number;
+  isCommanderFormat?: boolean;
 }
 
 // Componente auxiliar para renderizar iconos de maná
@@ -81,6 +86,7 @@ const DeckList: React.FC<DeckListProps> = ({
   onMoveToBoard,
   maxSideboardSize,
   minMainDeckSize,
+  isCommanderFormat = false,
 }) => {
   const [activeCard, setActiveCard] = useState<DeckCard | null>(null);
   const [menuPos, setMenuPos] = useState({ top: 0, left: 0 });
@@ -112,7 +118,11 @@ const DeckList: React.FC<DeckListProps> = ({
 
   // Agrupar cartas por board (main/side) y luego por tipo
   const groupedAndSortedCards = useMemo(() => {
-    const boardOrder: Array<"main" | "side"> = ["main", "side"];
+    const boardOrder: Array<"commander" | "main" | "side"> = [
+      "commander",
+      "main",
+      "side",
+    ];
     const typeOrder = [
       "Commander",
       "Creature",
@@ -161,6 +171,7 @@ const DeckList: React.FC<DeckListProps> = ({
 
         const isMainDeck = boardName === "main";
         const isSideboard = boardName === "side";
+        const isCommander = boardName === "commander";
 
         const showMainDeckWarning =
           isMainDeck &&
@@ -173,17 +184,24 @@ const DeckList: React.FC<DeckListProps> = ({
           maxSideboardSize !== undefined &&
           totalBoardCards > maxSideboardSize;
 
+        // Si es formato Commander, ocultamos el sideboard si está vacío para no confundir,
+        // o mostramos un aviso si tiene cartas (ya que no debería).
+        if (isCommanderFormat && isSideboard && totalBoardCards === 0)
+          return null;
+
         return (
           <div key={boardName}>
             <div
               className={`flex items-center gap-2 mb-4 ${
-                isSideboard
+                isSideboard || isCommander
                   ? "mt-8 pt-4 border-t border-dashed border-zinc-700"
                   : ""
               }`}
             >
               <h3 className="text-xl font-bold text-orange-500">
-                {isMainDeck ? "Mazo Principal" : "Sideboard"}
+                {isCommander && "Comandante"}
+                {isMainDeck && "Mazo Principal"}
+                {isSideboard && "Sideboard"}
               </h3>
               <span className="text-zinc-400 font-mono text-lg">
                 ({totalBoardCards})
@@ -388,22 +406,49 @@ const DeckList: React.FC<DeckListProps> = ({
             </>
           )}
           {onMoveToBoard && (
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onMoveToBoard(
-                  activeCard,
-                  activeCard.board === "side" ? "main" : "side"
-                );
-                setActiveCard(null);
-              }}
-              className="w-full text-left px-4 py-2 text-sm text-zinc-300 hover:bg-zinc-800 hover:text-orange-500 flex items-center gap-2"
-            >
-              <ArrowRightLeft size={14} />
-              {activeCard.board === "side"
-                ? "Mover a Main"
-                : "Mover a Sideboard"}
-            </button>
+            <>
+              {isCommanderFormat && activeCard.board !== "commander" && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onMoveToBoard(activeCard, "commander");
+                    setActiveCard(null);
+                  }}
+                  className="w-full text-left px-4 py-2 text-sm text-zinc-300 hover:bg-zinc-800 hover:text-orange-500 flex items-center gap-2"
+                >
+                  <Crown size={14} />
+                  Hacer Comandante
+                </button>
+              )}
+
+              {activeCard.board !== "main" && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onMoveToBoard(activeCard, "main");
+                    setActiveCard(null);
+                  }}
+                  className="w-full text-left px-4 py-2 text-sm text-zinc-300 hover:bg-zinc-800 hover:text-orange-500 flex items-center gap-2"
+                >
+                  <ArrowRightLeft size={14} />
+                  Mover a Main
+                </button>
+              )}
+
+              {activeCard.board !== "side" && !isCommanderFormat && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onMoveToBoard(activeCard, "side");
+                    setActiveCard(null);
+                  }}
+                  className="w-full text-left px-4 py-2 text-sm text-zinc-300 hover:bg-zinc-800 hover:text-orange-500 flex items-center gap-2"
+                >
+                  <ArrowRightLeft size={14} />
+                  Mover a Sideboard
+                </button>
+              )}
+            </>
           )}
           {onRemove && (
             <button

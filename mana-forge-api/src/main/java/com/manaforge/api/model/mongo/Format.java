@@ -43,14 +43,14 @@ public class Format {
 
     // Inner class para la configuración
     public static class FormatConfig {
-        private int minDeckSize;
+        private int minMainDeck;
         private Integer maxDeckSize; // Null si no hay límite superior (ej. Modern), valor si es fijo (ej. Commander = 100)
         private int maxCopies;
-        private int sideboardSize;
+        private int maxSideboard;
 
         // Getters and Setters
-        public int getMinDeckSize() { return minDeckSize; }
-        public void setMinDeckSize(int minDeckSize) { this.minDeckSize = minDeckSize; }
+        public int getMinDeckSize() { return minMainDeck; }
+        public void setMinDeckSize(int minMainDeck) { this.minMainDeck = minMainDeck; }
 
         public Integer getMaxDeckSize() { return maxDeckSize; }
         public void setMaxDeckSize(Integer maxDeckSize) { this.maxDeckSize = maxDeckSize; }
@@ -58,7 +58,7 @@ public class Format {
         public int getMaxCopies() { return maxCopies; }
         public void setMaxCopies(int maxCopies) { this.maxCopies = maxCopies; }
 
-        public int getSideboardSize() { return sideboardSize; }
-        public void setSideboardSize(int sideboardSize) { this.sideboardSize = sideboardSize; }
+        public int getMaxSideboard() { return maxSideboard; }
+        public void setMaxSideboard(int maxSideboard) { this.maxSideboard = maxSideboard; }
     }
 }

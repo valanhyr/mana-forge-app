@@ -127,4 +127,36 @@ public class StrapiService {
         }
         return languages;
     }
+
+    @Cacheable(value = "formats", key = "#locale")
+    public List<StrapiFormatData> getFormats(String locale) throws JsonProcessingException {
+        StringBuilder query = new StringBuilder("populate[0]=rules&populate[1]=description");
+        if (locale != null) {
+            query.append("&locale=").append(locale);
+        }
+        JsonNode dataNode = fetchFromStrapi("formats", query.toString());
+
+        List<StrapiFormatData> formats = new ArrayList<>();
+        if (dataNode != null && dataNode.isArray()) {
+            for (JsonNode node : dataNode) {
+                formats.add(objectMapper.treeToValue(node, StrapiFormatData.class));
+            }
+        }
+        return formats;
+    }
+
+    @Cacheable(value = "format-detail", key = "#mongoId + '-' + #locale")
+    public StrapiFormatData getFormatByMongoId(String mongoId, String locale) throws JsonProcessingException {
+        StringBuilder query = new StringBuilder("filters[mongo_id][$eq]=").append(mongoId)
+                .append("&populate[0]=rules&populate[1]=description");
+        if (locale != null) {
+            query.append("&locale=").append(locale);
+        }
+        JsonNode dataNode = fetchFromStrapi("formats", query.toString());
+
+        if (dataNode != null && dataNode.isArray() && dataNode.size() > 0) {
+            return objectMapper.treeToValue(dataNode.get(0), StrapiFormatData.class);
+        }
+        return null;
+    }
 }

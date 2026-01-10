@@ -7,6 +7,7 @@ import MyDecks from "./views/my-decks/MyDecks";
 import DeckBuilder from "./views/deck-builder/DeckBuilder";
 import FormatDetail from "./views/formats/FormatDetail";
 import Profile from "./views/profile/Profile";
+import ArticleDetail from "./views/articles/articleDetail";
 
 function App() {
   return (
@@ -21,6 +22,7 @@ function App() {
             <Route path="deck-builder/:deckId" element={<DeckBuilder />} />
             <Route path="format/:formatName" element={<FormatDetail />} />
             <Route path="profile" element={<Profile />} />
+            <Route path="/articles/:articleId" element={<ArticleDetail />} />
             {/* Aquí añadiremos más rutas como /deck-builder */}
           </Route>
         </Routes>

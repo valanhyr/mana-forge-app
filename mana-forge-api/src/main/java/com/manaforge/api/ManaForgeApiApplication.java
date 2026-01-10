@@ -28,7 +28,11 @@ public class ManaForgeApiApplication {
     @Bean("scryfallCacheManager")
     @Primary
     public CacheManager scryfallCacheManager() {
-        return new ConcurrentMapCacheManager("scryfall_search", "scryfall_card", "scryfall_symbology", "scryfall_named", "scryfall_autocomplete");
+        return new ConcurrentMapCacheManager(
+                "scryfall_search", "scryfall_card", "scryfall_symbology", "scryfall_named", "scryfall_autocomplete",
+                // Strapi Caches
+                "footer", "footer-legal", "heros", "sections", "languages", "formats", "format-detail"
+        );
     }
 
     // Limpia la caché cada 30 minutos (1800000 ms) para liberar RAM

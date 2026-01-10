@@ -1,16 +1,25 @@
 package com.manaforge.api.config;
 
 import org.springframework.cache.CacheManager;
+import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cache.concurrent.ConcurrentMapCacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.util.List;
+
 @Configuration
+@EnableCaching
 public class CacheConfig {
 
     @Bean
     public CacheManager cacheManager() {
-        // Esto crea un almacén de caché simple en la memoria RAM del servidor
-        return new ConcurrentMapCacheManager("footer", "heros", "sections", "languages", "footer-legal");
+        ConcurrentMapCacheManager cacheManager = new ConcurrentMapCacheManager();
+        // Registramos explícitamente todas las cachés utilizadas en StrapiService
+        cacheManager.setCacheNames(List.of(
+                "footer", "footer-legal", "heros", "sections", "languages", 
+                "formats", "format-detail"
+        ));
+        return cacheManager;
     }
 }

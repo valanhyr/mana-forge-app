@@ -13,6 +13,7 @@ import {
   X,
   Save,
   Brain,
+  Crown,
 } from "lucide-react";
 import { type Format } from "../../core/models/Format";
 import { FormatService } from "../../services/FormatService";
@@ -129,7 +130,7 @@ const DeckBuilder = () => {
                 price: parseFloat(cardData.prices?.eur || "0"),
                 inCollection: false,
                 isValid: isValid,
-                board: entry.board || "main",
+                board: entry.board || "main", // Puede venir "commander" de la DB
                 image:
                   cardData.image_uris?.normal ||
                   cardData.card_faces?.[0]?.image_uris?.normal ||
@@ -172,6 +173,12 @@ const DeckBuilder = () => {
     const format = formats.find((f) => f.id === formatId) || null;
     setSelectedFormat(format);
   };
+
+  const isCommanderFormat = useMemo(() => {
+    if (!selectedFormat) return false;
+    const key = (selectedFormat.scryfallKey || "").toLowerCase();
+    return key === "commander" || key === "edh";
+  }, [selectedFormat]);
 
   const formatOptions = formats.map((f) => ({
     value: f.id,
@@ -223,7 +230,10 @@ const DeckBuilder = () => {
     });
   };
 
-  const handleMoveCard = (card: DeckCard, targetBoard: "main" | "side") => {
+  const handleMoveCard = (
+    card: DeckCard,
+    targetBoard: "main" | "side" | "commander"
+  ) => {
     setDeckCards((prev) => {
       // 1. Eliminar la carta de su ubicación actual
       const deckWithoutCard = prev.filter(
@@ -285,7 +295,7 @@ const DeckBuilder = () => {
         price: parseFloat(cardData.prices?.eur || "0"),
         inCollection: false,
         isValid: isValid,
-        board: "main", // Las cartas añadidas individualmente van al mazo principal
+        board: "main", // Por defecto al mazo principal
         image:
           cardData.image_uris?.normal ||
           cardData.card_faces?.[0]?.image_uris?.normal ||
@@ -367,19 +377,44 @@ const DeckBuilder = () => {
   const isDeckValid = useMemo(() => {
     if (!deckName.trim() || !selectedFormat) return false;
 
-    // 1. Validar tamaño del Main Deck
+    // Conteos por zona
     const mainDeckCount = deckCards
       .filter((c) => c.board === "main" || !c.board)
       .reduce((acc, c) => acc + c.quantity, 0);
 
-    if (mainDeckCount < selectedFormat.config.minMainDeck) return false;
-
-    // 2. Validar tamaño del Sideboard
     const sideboardCount = deckCards
       .filter((c) => c.board === "side")
       .reduce((acc, c) => acc + c.quantity, 0);
 
-    if (sideboardCount > selectedFormat.config.maxSideboard) return false;
+    const commanderCount = deckCards
+      .filter((c) => c.board === "commander")
+      .reduce((acc, c) => acc + c.quantity, 0);
+
+    // Reglas específicas para Commander
+    if (isCommanderFormat) {
+      // Debe tener exactamente 100 cartas (Main + Commander)
+      if (mainDeckCount + commanderCount !== 100) return false;
+      // Debe tener al menos 1 comandante (y máximo 2 por Partner, aunque aquí simplificamos a >0)
+      if (commanderCount < 1) return false;
+      // No debe tener sideboard (aunque técnicamente es opcional en reglas caseras, en estricto es 0)
+      if (sideboardCount > 0) return false;
+    } else {
+      // Reglas estándar
+      // 1. Validar tamaño del Main Deck
+      if (mainDeckCount < (selectedFormat.config as any).minDeckSize)
+        return false;
+
+      // Validar tamaño máximo si existe
+      if (
+        (selectedFormat.config as any).maxDeckSize &&
+        mainDeckCount > (selectedFormat.config as any).maxDeckSize
+      )
+        return false;
+
+      // 2. Validar tamaño del Sideboard
+      if (sideboardCount > (selectedFormat.config as any).maxSideboard)
+        return false;
+    }
 
     // 3. Validar legalidad de las cartas
     if (deckCards.some((c) => c.isValid === false)) return false;
@@ -398,7 +433,7 @@ const DeckBuilder = () => {
     }
 
     return true;
-  }, [deckName, selectedFormat, deckCards]);
+  }, [deckName, selectedFormat, deckCards, isCommanderFormat]);
 
   const handleSaveDeck = async () => {
     if (!isDeckValid || !user || !selectedFormat) return;
@@ -411,7 +446,7 @@ const DeckBuilder = () => {
       cards: deckCards.map((card) => ({
         id: card.id, // Este es el scryfallId
         quantity: card.quantity,
-        board: card.board || "main",
+        board: (card.board || "main") as any,
       })),
     };
 
@@ -500,15 +535,31 @@ const DeckBuilder = () => {
                 <span>
                   Mín. Cartas:{" "}
                   <span className="text-zinc-300">
-                    {selectedFormat.config.minMainDeck}
+                    {(selectedFormat.config as any).minDeckSize}
                   </span>
                 </span>
+                {(selectedFormat.config as any).maxDeckSize && (
+                  <span>
+                    Máx. Cartas:{" "}
+                    <span className="text-zinc-300">
+                      {(selectedFormat.config as any).maxDeckSize}
+                    </span>
+                  </span>
+                )}
                 <span>
                   Copias Máx:{" "}
                   <span className="text-zinc-300">
                     {selectedFormat.config.maxCopies}
                   </span>
                 </span>
+                {(selectedFormat.config as any).maxSideboard > 0 && (
+                  <span>
+                    Sideboard:{" "}
+                    <span className="text-zinc-300">
+                      {(selectedFormat.config as any).maxSideboard}
+                    </span>
+                  </span>
+                )}
               </div>
             )}
           </div>
@@ -648,8 +699,9 @@ const DeckBuilder = () => {
               onUpdateQuantity={handleUpdateQuantity}
               onRemove={handleRemoveCard}
               onMoveToBoard={handleMoveCard}
-              maxSideboardSize={selectedFormat?.config.maxSideboard}
-              minMainDeckSize={selectedFormat?.config.minMainDeck}
+              maxSideboardSize={(selectedFormat?.config as any)?.maxSideboard}
+              minMainDeckSize={(selectedFormat?.config as any)?.minDeckSize}
+              isCommanderFormat={isCommanderFormat}
             />
 
             {/* Footer con Estadísticas */}

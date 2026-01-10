@@ -1,7 +1,7 @@
 package com.manaforge.api.controller;
 
-import com.manaforge.api.dtos.DeckRequestDTO;
 import com.manaforge.api.model.mongo.Deck;
+import com.manaforge.api.dto.DeckRequestDTO;
 import com.manaforge.api.model.ai.DailyDeck;
 import com.manaforge.api.repository.DeckRepository;
 import com.manaforge.api.repository.DailyDeckRepository;
