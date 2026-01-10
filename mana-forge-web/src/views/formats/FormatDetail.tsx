@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { ArrowLeft, BookOpen, Ban, Layers } from "lucide-react";
+import { useTranslation } from "../../hooks/useTranslation";
 
 // --- Mock CMS Data Structure ---
 interface FormatCMSData {
@@ -105,6 +106,7 @@ const MOCK_CMS_DATA: Record<string, FormatCMSData> = {
 };
 
 const FormatDetail = () => {
+  const { t } = useTranslation();
   const { formatName } = useParams<{ formatName: string }>();
   const [data, setData] = useState<FormatCMSData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -134,16 +136,18 @@ const FormatDetail = () => {
     return (
       <div className="max-w-4xl mx-auto mt-12 text-center px-4">
         <h2 className="text-3xl font-bold text-white mb-4">
-          Formato no encontrado
+          {t("formatDetail.notFoundTitle")}
         </h2>
         <p className="text-zinc-400 mb-8">
-          Lo sentimos, no tenemos información sobre el formato "{formatName}".
+          {t("formatDetail.notFoundDescription", {
+            formatName: formatName || "",
+          })}
         </p>
         <Link
           to="/"
           className="inline-flex items-center gap-2 text-orange-500 hover:text-orange-400 transition-colors"
         >
-          <ArrowLeft size={20} /> Volver al inicio
+          <ArrowLeft size={20} /> {t("formatDetail.backToHome")}
         </Link>
       </div>
     );
@@ -166,7 +170,7 @@ const FormatDetail = () => {
             to="/"
             className="inline-flex items-center gap-2 text-zinc-300 hover:text-white mb-6 transition-colors bg-black/30 backdrop-blur-sm px-3 py-1 rounded-full border border-white/10 w-fit"
           >
-            <ArrowLeft size={16} /> Volver
+            <ArrowLeft size={16} /> {t("common.back")}
           </Link>
           <h1 className="text-5xl md:text-6xl font-bold text-white mb-2 tracking-tight">
             {data.title}
@@ -186,7 +190,9 @@ const FormatDetail = () => {
             <div className="bg-zinc-900/80 backdrop-blur-md border border-zinc-800 rounded-2xl p-8 shadow-xl">
               <div className="flex items-center gap-3 mb-4">
                 <BookOpen className="text-orange-500" size={24} />
-                <h2 className="text-2xl font-bold text-white">Descripción</h2>
+                <h2 className="text-2xl font-bold text-white">
+                  {t("common.description")}
+                </h2>
               </div>
               <div className="prose prose-invert max-w-none text-zinc-300 leading-relaxed">
                 <p>{data.description}</p>
@@ -198,7 +204,7 @@ const FormatDetail = () => {
               <div className="flex items-center gap-3 mb-4">
                 <Layers className="text-indigo-500" size={24} />
                 <h2 className="text-2xl font-bold text-white">
-                  Reglas Principales
+                  {t("formatDetail.mainRules")}
                 </h2>
               </div>
               <ul className="space-y-3">
@@ -220,25 +226,31 @@ const FormatDetail = () => {
             {/* Stats / Metadata */}
             <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 shadow-xl">
               <h3 className="text-lg font-bold text-white mb-4 border-b border-zinc-800 pb-2">
-                Estructura del Mazo
+                {t("formatDetail.deckStructure")}
               </h3>
               <div className="space-y-4">
                 <div className="flex justify-between items-center">
-                  <span className="text-zinc-400">Mazo Principal</span>
+                  <span className="text-zinc-400">{t("common.mainDeck")}</span>
                   <span className="text-white font-mono font-bold">
                     {data.metadata.minDeckSize}+
                   </span>
                 </div>
                 {data.metadata.sideboardSize > 0 && (
                   <div className="flex justify-between items-center">
-                    <span className="text-zinc-400">Sideboard</span>
+                    <span className="text-zinc-400">
+                      {t("common.sideboard")}
+                    </span>
                     <span className="text-white font-mono font-bold">
-                      Hasta {data.metadata.sideboardSize}
+                      {t("formatDetail.upTo", {
+                        count: data.metadata.sideboardSize,
+                      })}
                     </span>
                   </div>
                 )}
                 <div className="flex justify-between items-center">
-                  <span className="text-zinc-400">Máx. Copias</span>
+                  <span className="text-zinc-400">
+                    {t("formatDetail.maxCopies")}
+                  </span>
                   <span className="text-white font-mono font-bold">
                     {data.metadata.maxCopies}
                   </span>
@@ -251,15 +263,16 @@ const FormatDetail = () => {
               <div className="flex items-center gap-3 mb-3">
                 <Ban className="text-red-500" size={20} />
                 <h3 className="text-lg font-bold text-white">
-                  Cartas Prohibidas
+                  {t("formatDetail.bannedCards")}
                 </h3>
               </div>
               <p className="text-sm text-zinc-400 mb-4">
-                Consulta la lista oficial de cartas prohibidas y restringidas
-                para {data.title}.
+                {t("formatDetail.bannedCardsDescription", {
+                  formatTitle: data.title,
+                })}
               </p>
               <button className="w-full py-2 px-4 bg-zinc-800 hover:bg-zinc-700 text-white rounded-lg transition-colors text-sm font-medium border border-zinc-700">
-                Ver Banlist
+                {t("formatDetail.viewBanlist")}
               </button>
             </div>
           </div>

@@ -1,6 +1,5 @@
+import { api } from "./api";
 import { type Format } from "../core/models/Format";
-
-const API_URL = "http://localhost:8080/api";
 
 // Variable local para caché en memoria (Singleton del módulo)
 let cachedFormats: Format[] | null = null;
@@ -13,11 +12,8 @@ export const FormatService = {
     }
 
     try {
-      const response = await fetch(`${API_URL}/formats/active`);
-      if (!response.ok) {
-        throw new Error("Error al obtener los formatos");
-      }
-      const data = await response.json();
+      const response = await api.get<Format[]>("/formats/active");
+      const data = response.data;
       cachedFormats = data; // Guardamos en caché
       return data;
     } catch (error) {

@@ -11,6 +11,7 @@ import {
   Crown,
 } from "lucide-react";
 import { ManaSymbolService } from "../../services/ManaSymbolService";
+import { useTranslation } from "../../hooks/useTranslation";
 
 export interface DeckCard {
   id: string;
@@ -88,6 +89,7 @@ const DeckList: React.FC<DeckListProps> = ({
   minMainDeckSize,
   isCommanderFormat = false,
 }) => {
+  const { t } = useTranslation();
   const [activeCard, setActiveCard] = useState<DeckCard | null>(null);
   const [menuPos, setMenuPos] = useState({ top: 0, left: 0 });
   const [manaSymbols, setManaSymbols] = useState<Record<string, string>>({});
@@ -199,16 +201,18 @@ const DeckList: React.FC<DeckListProps> = ({
               }`}
             >
               <h3 className="text-xl font-bold text-orange-500">
-                {isCommander && "Comandante"}
-                {isMainDeck && "Mazo Principal"}
-                {isSideboard && "Sideboard"}
+                {isCommander && t("deckList.commander")}
+                {isMainDeck && t("common.mainDeck")}
+                {isSideboard && t("common.sideboard")}
               </h3>
               <span className="text-zinc-400 font-mono text-lg">
                 ({totalBoardCards})
               </span>
               {showMainDeckWarning && (
                 <div
-                  title={`Faltan cartas (Mín: ${minMainDeckSize})`}
+                  title={t("deckList.minCardsWarning", {
+                    count: minMainDeckSize || 0,
+                  })}
                   className="text-red-500 flex items-center gap-1 animate-pulse"
                 >
                   <AlertTriangle size={20} />
@@ -216,7 +220,9 @@ const DeckList: React.FC<DeckListProps> = ({
               )}
               {showSideboardWarning && (
                 <div
-                  title={`Límite excedido (Máx: ${maxSideboardSize})`}
+                  title={t("deckList.maxCardsWarning", {
+                    count: maxSideboardSize || 0,
+                  })}
                   className="text-red-500 flex items-center gap-1 animate-pulse"
                 >
                   <AlertTriangle size={20} />
@@ -392,7 +398,7 @@ const DeckList: React.FC<DeckListProps> = ({
                 }}
                 className="w-full text-left px-4 py-2 text-sm text-zinc-300 hover:bg-zinc-800 hover:text-orange-500 flex items-center gap-2"
               >
-                <Plus size={14} /> Añadir una
+                <Plus size={14} /> {t("deckList.addOne")}
               </button>
               <button
                 onClick={(e) => {
@@ -401,7 +407,7 @@ const DeckList: React.FC<DeckListProps> = ({
                 }}
                 className="w-full text-left px-4 py-2 text-sm text-zinc-300 hover:bg-zinc-800 hover:text-orange-500 flex items-center gap-2"
               >
-                <Minus size={14} /> Quitar una
+                <Minus size={14} /> {t("deckList.removeOne")}
               </button>
             </>
           )}
@@ -417,7 +423,7 @@ const DeckList: React.FC<DeckListProps> = ({
                   className="w-full text-left px-4 py-2 text-sm text-zinc-300 hover:bg-zinc-800 hover:text-orange-500 flex items-center gap-2"
                 >
                   <Crown size={14} />
-                  Hacer Comandante
+                  {t("deckList.makeCommander")}
                 </button>
               )}
 
@@ -431,7 +437,7 @@ const DeckList: React.FC<DeckListProps> = ({
                   className="w-full text-left px-4 py-2 text-sm text-zinc-300 hover:bg-zinc-800 hover:text-orange-500 flex items-center gap-2"
                 >
                   <ArrowRightLeft size={14} />
-                  Mover a Main
+                  {t("deckList.moveToMain")}
                 </button>
               )}
 
@@ -445,7 +451,7 @@ const DeckList: React.FC<DeckListProps> = ({
                   className="w-full text-left px-4 py-2 text-sm text-zinc-300 hover:bg-zinc-800 hover:text-orange-500 flex items-center gap-2"
                 >
                   <ArrowRightLeft size={14} />
-                  Mover a Sideboard
+                  {t("deckList.moveToSideboard")}
                 </button>
               )}
             </>
@@ -459,7 +465,7 @@ const DeckList: React.FC<DeckListProps> = ({
               }}
               className="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-red-500/10 hover:text-red-300 flex items-center gap-2 border-t border-zinc-800"
             >
-              <Trash2 size={14} /> Eliminar
+              <Trash2 size={14} /> {t("common.delete")}
             </button>
           )}
         </div>

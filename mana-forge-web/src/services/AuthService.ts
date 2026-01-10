@@ -1,5 +1,4 @@
 import { type User } from "../core/models/User";
-import { type Deck } from "../components/ui/DeckTable";
 
 const API_URL = "http://localhost:8080/api";
 

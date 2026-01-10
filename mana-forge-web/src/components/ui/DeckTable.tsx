@@ -9,6 +9,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { ManaSymbolService } from "../../services/ManaSymbolService";
+import { useTranslation } from "../../hooks/useTranslation";
 
 export interface Deck {
   id: string;
@@ -37,6 +38,7 @@ const DeckTable: React.FC<DeckTableProps> = ({
   onDuplicate,
   onDelete,
 }) => {
+  const { t } = useTranslation();
   const [activeDeckId, setActiveDeckId] = useState<string | null>(null);
   const [menuPos, setMenuPos] = useState({ top: 0, left: 0 });
   const [manaSymbols, setManaSymbols] = useState<Record<string, string>>({});
@@ -64,28 +66,28 @@ const DeckTable: React.FC<DeckTableProps> = ({
         <thead className="bg-zinc-900 text-xs uppercase text-zinc-500">
           <tr>
             <th scope="col" className="px-6 py-3 font-medium">
-              Nombre del Mazo
+              {t("myDecks.table.name")}
             </th>
             <th
               scope="col"
               className="hidden px-6 py-3 font-medium xl:table-cell"
             >
-              Colores
+              {t("myDecks.table.colors")}
             </th>
             <th
               scope="col"
               className="hidden px-6 py-3 font-medium xl:table-cell"
             >
-              Formato
+              {t("myDecks.table.format")}
             </th>
             <th
               scope="col"
               className="hidden px-6 py-3 font-medium lg:table-cell"
             >
-              Actualizado
+              {t("myDecks.table.updated")}
             </th>
             <th scope="col" className="px-6 py-3 text-right font-medium">
-              Acciones
+              {t("myDecks.table.actions")}
             </th>
           </tr>
         </thead>
@@ -94,12 +96,8 @@ const DeckTable: React.FC<DeckTableProps> = ({
             <tr>
               <td colSpan={5} className="px-6 py-12 text-center text-zinc-500">
                 <div className="flex flex-col items-center justify-center gap-2">
-                  <p className="text-lg font-medium">
-                    No tienes mazos guardados
-                  </p>
-                  <p className="text-sm">
-                    ¡Ve al Dashboard para forjar tu primer mazo!
-                  </p>
+                  <p className="text-lg font-medium">{t("myDecks.noDecks")}</p>
+                  <p className="text-sm">{t("myDecks.noDecksDescription")}</p>
                 </div>
               </td>
             </tr>
@@ -132,7 +130,8 @@ const DeckTable: React.FC<DeckTableProps> = ({
                         </span>
                         {deck.isPrivate && (
                           <span className="inline-flex items-center gap-1 rounded bg-zinc-800 px-1.5 py-0.5 text-[10px] font-medium text-zinc-400">
-                            <Shield size={10} /> PRIVADO
+                            <Shield size={10} />{" "}
+                            {t("common.private").toUpperCase()}
                           </span>
                         )}
                       </div>
@@ -174,7 +173,7 @@ const DeckTable: React.FC<DeckTableProps> = ({
                         onInfo && onInfo(deck.id);
                       }}
                       className="p-2 text-zinc-500 hover:text-zinc-300 transition-colors"
-                      title="Información"
+                      title={t("common.info")}
                     >
                       <Info size={18} />
                     </button>
@@ -216,20 +215,20 @@ const DeckTable: React.FC<DeckTableProps> = ({
             onClick={() => onEdit && onEdit(activeDeckId)}
             className="w-full text-left px-4 py-2.5 text-sm text-zinc-300 hover:bg-zinc-800 hover:text-orange-500 flex items-center gap-2 transition-colors"
           >
-            <Edit size={14} /> Editar
+            <Edit size={14} /> {t("common.edit")}
           </button>
           <button
             onClick={() => onDuplicate && onDuplicate(activeDeckId)}
             className="w-full text-left px-4 py-2.5 text-sm text-zinc-300 hover:bg-zinc-800 hover:text-orange-500 flex items-center gap-2 transition-colors"
           >
-            <Copy size={14} /> Duplicar
+            <Copy size={14} /> {t("common.duplicate")}
           </button>
           <div className="border-t border-zinc-800 my-1"></div>
           <button
             onClick={() => onDelete && onDelete(activeDeckId)}
             className="w-full text-left px-4 py-2.5 text-sm text-red-400 hover:bg-red-500/10 hover:text-red-300 flex items-center gap-2 transition-colors"
           >
-            <Trash2 size={14} /> Eliminar
+            <Trash2 size={14} /> {t("common.delete")}
           </button>
         </div>
       )}

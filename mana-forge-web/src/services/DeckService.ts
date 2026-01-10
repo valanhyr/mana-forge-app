@@ -1,6 +1,4 @@
-import { API_BASE_URL } from "../config";
-
-const API_URL = `${API_BASE_URL}/api`;
+import { api } from "./api";
 
 export interface DailyDeck {
   deck_name: string;
@@ -28,77 +26,28 @@ interface DeckPayload {
 
 export const DeckService = {
   getDailyDeck: async (locale: string): Promise<DailyDeck> => {
-    const response = await fetch(`${API_URL}/decks/random`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ locale }),
-    });
-
-    if (!response.ok) {
-      throw new Error("Failed to fetch daily AI deck");
-    }
-    return response.json();
+    // Enviamos el locale tanto en el body (para el engine) como en el header (por el interceptor)
+    const response = await api.post<DailyDeck>("/decks/random", { locale });
+    return response.data;
   },
 
   saveDeck: async (payload: DeckPayload): Promise<any> => {
-    const response = await fetch(`${API_URL}/decks`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(payload),
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || "Error al guardar el mazo");
-    }
-
-    return await response.json();
+    const response = await api.post("/decks", payload);
+    return response.data;
   },
 
   updateDeck: async (id: string, payload: DeckPayload): Promise<any> => {
-    const response = await fetch(`${API_URL}/decks/${id}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(payload),
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || "Error al actualizar el mazo");
-    }
-
-    return await response.json();
+    const response = await api.put(`/decks/${id}`, payload);
+    return response.data;
   },
 
   getDeckById: async (id: string): Promise<any> => {
-    const response = await fetch(`${API_URL}/decks/${id}`);
-    if (!response.ok) {
-      throw new Error("Error fetching deck");
-    }
-    return await response.json();
+    const response = await api.get(`/decks/${id}`);
+    return response.data;
   },
 
   analyzeDeck: async (payload: any) => {
-    // Usamos la constante API_URL que ya apunta a /api
-    const response = await fetch(`${API_URL}/decks/analyze`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        // Si usas autenticación, añade aquí tu header Authorization
-      },
-      body: JSON.stringify(payload),
-    });
-
-    if (!response.ok) {
-      throw new Error("Error al analizar el mazo con IA");
-    }
-
-    return response.json();
+    const response = await api.post("/decks/analyze", payload);
+    return response.data;
   },
 };

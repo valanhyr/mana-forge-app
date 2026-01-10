@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { Link, Outlet } from "react-router-dom";
 import { Sword, ChevronDown, LogOut, User, Settings, Book } from "lucide-react";
 import { useUser } from "../../services/UserContext";
+import LanguageSelector from "../ui/LanguageSelector";
 
 const Layout = () => {
   const { user, isAuthenticated, logout } = useUser();
@@ -32,10 +33,12 @@ const Layout = () => {
           </h1>
         </Link>
 
-        <nav className="flex gap-6 text-zinc-400 font-medium">
+        <nav className="flex gap-6 text-zinc-400 font-medium items-center">
           <Link to="/" className="hover:text-orange-500 transition-colors">
             Dashboard
           </Link>
+
+          <LanguageSelector />
 
           {isAuthenticated && user ? (
             <div className="relative" ref={menuRef}>

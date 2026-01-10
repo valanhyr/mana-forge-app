@@ -1,8 +1,15 @@
-import React, { createContext, useContext, useState, useCallback } from "react";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useCallback,
+  useRef,
+} from "react";
 import { type User } from "../core/models/User";
 import { AuthService } from "../services/AuthService";
 import { FormatService } from "../services/FormatService";
 import { type Deck } from "../components/ui/DeckTable";
+import { useTranslation } from "../hooks/useTranslation";
 
 const STORAGE_KEY = "mana_forge_session";
 
@@ -20,6 +27,7 @@ const UserContext = createContext<UserContextType | undefined>(undefined);
 export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
+  const { t, locale } = useTranslation();
   const [user, setUser] = useState<User | null>(() => {
     // Recuperar sesión al iniciar la app
     const stored = localStorage.getItem(STORAGE_KEY);
@@ -39,6 +47,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
     return null;
   });
   const [decks, setDecks] = useState<Deck[]>([]);
+  const lastLoadedLocale = useRef<string>(locale);
 
   const login = async (username: string, password: string) => {
     try {
@@ -71,11 +80,15 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
     async (force = false) => {
       if (!user) return;
 
-      // Si ya tenemos datos y no forzamos actualización, usamos caché
-      if (decks.length > 0 && !force) {
+      // Verificar si cambió el idioma para invalidar caché
+      const localeChanged = lastLoadedLocale.current !== locale;
+
+      // Si ya tenemos datos, no forzamos y no cambió el idioma, usamos caché
+      if (decks.length > 0 && !force && !localeChanged) {
         console.log("Usando mazos en caché (UserContext)");
         return;
       }
+      lastLoadedLocale.current = locale;
 
       try {
         // 1. Obtener los formatos (usará caché si ya están cargados)
@@ -104,15 +117,19 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
         // 3. Mapear respuesta del backend a la interfaz de UI
         const mappedDecks: Deck[] = fetchedDecks.map((d: any) => {
           const format = formatMap.get(d.formatId);
-          // Preferir inglés (en), luego español (es), luego el ID si falla
-          const formatName = format?.name?.en || format?.name?.es || d.formatId;
+          // Usar el idioma actual, fallback a inglés, luego español, luego ID
+          const formatName =
+            format?.name?.[locale] ||
+            format?.name?.en ||
+            format?.name?.es ||
+            d.formatId;
 
           return {
             id: d.id,
             name: d.name,
             format: formatName,
             colors: d.colors || [],
-            lastUpdated: "Reciente", // TODO: Añadir campo timestamp en Deck.java
+            lastUpdated: t("common.recent"), // TODO: Añadir campo timestamp en Deck.java
             isPrivate: d.private, // Jackson serializa 'isPrivate' como 'private' por defecto
             isPinned: false,
           };
@@ -123,7 +140,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
         console.error("Error cargando mazos:", error);
       }
     },
-    [user, decks.length]
+    [user, decks.length, locale, t]
   );
 
   return (

@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { DeckService, type DailyDeck } from "../../services/DeckService";
 import { ScryfallService } from "../../services/ScryfallService";
+import { useTranslation } from "../../hooks/useTranslation";
 
 // --- Mock Data ---
 
@@ -56,35 +57,36 @@ const deckOfTheDay = {
   deckId: "some-public-deck-id",
 };
 
-// 3. Formatos Populares (Sugerencia)
-const popularFormats = [
-  {
-    name: "Commander",
-    description: "El formato multijugador por excelencia.",
-    link: "/format/commander",
-  },
-  {
-    name: "Modern",
-    description: "Poder y consistencia con un amplio pool de cartas.",
-    link: "/format/modern",
-  },
-  {
-    name: "Pauper",
-    description: "Construye mazos solo con cartas comunes.",
-    link: "/format/pauper",
-  },
-  {
-    name: "Legacy",
-    description: "Donde la historia de Magic cobra vida.",
-    link: "/format/legacy",
-  },
-];
-
 const Dashboard = () => {
+  const { t, locale } = useTranslation();
   const [dailyDeck, setDailyDeck] = useState<DailyDeck | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // 3. Formatos Populares (Movido dentro para usar t())
+  const popularFormats = [
+    {
+      name: "Commander",
+      description: t("dashboard.formatDescriptions.commander"),
+      link: "/format/commander",
+    },
+    {
+      name: "Modern",
+      description: t("dashboard.formatDescriptions.modern"),
+      link: "/format/modern",
+    },
+    {
+      name: "Pauper",
+      description: t("dashboard.formatDescriptions.pauper"),
+      link: "/format/pauper",
+    },
+    {
+      name: "Legacy",
+      description: t("dashboard.formatDescriptions.legacy"),
+      link: "/format/legacy",
+    },
+  ];
 
   useEffect(() => {
     const fetchDailyDeck = async () => {
@@ -93,7 +95,7 @@ const Dashboard = () => {
         setError(null);
 
         // 1. Obtener los datos del mazo de la API
-        const deckData = await DeckService.getDailyDeck("es");
+        const deckData = await DeckService.getDailyDeck(locale);
 
         // 2. Encontrar una carta representativa para la imagen (la primera que no sea tierra básica)
         const basicLandNames = [
@@ -136,7 +138,7 @@ const Dashboard = () => {
     };
 
     fetchDailyDeck();
-  }, []); // El array vacío asegura que se ejecute solo una vez al montar el componente
+  }, [locale]); // Recargar si cambia el idioma
 
   const AiDeckCard = () => {
     if (isLoading) {
@@ -144,7 +146,9 @@ const Dashboard = () => {
         <div className="group relative flex items-center justify-center h-80 p-6 text-white bg-zinc-900 rounded-2xl border border-zinc-800">
           <div className="text-center">
             <Loader2 className="mx-auto h-12 w-12 animate-spin text-indigo-400" />
-            <p className="mt-4 text-zinc-400">Generando mazo del día...</p>
+            <p className="mt-4 text-zinc-400">
+              {t("dashboard.generatingDeck")}
+            </p>
           </div>
         </div>
       );
@@ -155,7 +159,9 @@ const Dashboard = () => {
         <div className="group relative flex items-center justify-center h-80 p-6 text-white bg-zinc-900 rounded-2xl border border-red-500/30">
           <div className="text-center">
             <ServerCrash className="mx-auto h-12 w-12 text-red-400" />
-            <p className="mt-4 text-red-400">{error || "Error desconocido."}</p>
+            <p className="mt-4 text-red-400">
+              {error || t("common.unknownError")}
+            </p>
           </div>
         </div>
       );
@@ -177,7 +183,7 @@ const Dashboard = () => {
         <div className="relative z-10 flex flex-col justify-between h-80 p-6 text-white">
           <div>
             <span className="inline-flex items-center gap-2 rounded-full bg-black/60 px-3 py-1 text-xs font-medium text-indigo-400 border border-indigo-500/20 backdrop-blur-sm">
-              <Sparkles size={14} /> Mazo del Día (IA)
+              <Sparkles size={14} /> {t("dashboard.aiDeckOfTheDay")}
             </span>
           </div>
           <div>
@@ -195,7 +201,9 @@ const Dashboard = () => {
     <div className="max-w-7xl mx-auto mt-8 px-4 sm:px-6 lg:px-8 space-y-12 mb-12">
       {/* --- Sección de Noticias --- */}
       <section>
-        <h2 className="text-3xl font-bold text-white mb-6">Últimas Noticias</h2>
+        <h2 className="text-3xl font-bold text-white mb-6">
+          {t("dashboard.newsTitle")}
+        </h2>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {newsItems.map((item, index) => (
             <Link
@@ -226,7 +234,9 @@ const Dashboard = () => {
 
       {/* --- Sección Mazo del Día --- */}
       <section>
-        <h2 className="text-3xl font-bold text-white mb-6">Mazos Destacados</h2>
+        <h2 className="text-3xl font-bold text-white mb-6">
+          {t("dashboard.featuredDecks")}
+        </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {/* Mazo de la Comunidad */}
           <Link
@@ -244,7 +254,7 @@ const Dashboard = () => {
             <div className="relative z-10 flex flex-col justify-between h-80 p-6 text-white">
               <div>
                 <span className="inline-flex items-center gap-2 rounded-full bg-orange-500/10 px-3 py-1 text-xs font-medium text-orange-400 border border-orange-500/20">
-                  <Zap size={14} /> Mazo del Día
+                  <Zap size={14} /> {t("dashboard.deckOfTheDay")}
                 </span>
               </div>
               <div>
@@ -264,12 +274,14 @@ const Dashboard = () => {
       {/* --- Sección Formatos Populares (Sugerencia) --- */}
       <section>
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-3xl font-bold text-white">Explora Formatos</h2>
+          <h2 className="text-3xl font-bold text-white">
+            {t("dashboard.exploreFormats")}
+          </h2>
           <Link
             to="/decks"
             className="text-sm font-medium text-orange-500 hover:underline flex items-center gap-1"
           >
-            Ver todos <ArrowRight size={16} />
+            {t("common.viewAll")} <ArrowRight size={16} />
           </Link>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -326,7 +338,8 @@ const Dashboard = () => {
                 <div className="lg:col-span-1 space-y-6">
                   <div>
                     <h4 className="font-bold text-white mb-3 flex items-center gap-2">
-                      <Layers size={18} className="text-indigo-500" /> Main Deck
+                      <Layers size={18} className="text-indigo-500" />{" "}
+                      {t("common.mainDeck")}
                     </h4>
                     <ul className="text-sm text-zinc-300 space-y-1 font-mono">
                       {dailyDeck.main_deck.map((c, i) => (
@@ -346,8 +359,8 @@ const Dashboard = () => {
                 <div className="lg:col-span-2 space-y-6">
                   <div className="bg-zinc-950/50 p-5 rounded-xl border border-zinc-800">
                     <h4 className="font-bold text-white mb-3 flex items-center gap-2">
-                      <Zap size={18} className="text-orange-500" /> Estrategia
-                      Principal
+                      <Zap size={18} className="text-orange-500" />{" "}
+                      {t("dashboard.mainStrategy")}
                     </h4>
                     <p className="text-zinc-300 leading-relaxed">
                       {dailyDeck.strategy_summary}
@@ -356,8 +369,8 @@ const Dashboard = () => {
 
                   <div className="bg-zinc-950/50 p-5 rounded-xl border border-zinc-800">
                     <h4 className="font-bold text-white mb-3 flex items-center gap-2">
-                      <BookOpen size={18} className="text-blue-500" /> Análisis
-                      del Meta
+                      <BookOpen size={18} className="text-blue-500" />{" "}
+                      {t("dashboard.metaAnalysis")}
                     </h4>
                     <p className="text-zinc-300 leading-relaxed">
                       {dailyDeck.brief_analysis}

@@ -22,6 +22,7 @@ import { DeckService } from "../../services/DeckService";
 import Modal from "../../components/ui/Modal";
 import TextAreaInput from "../../components/ui/TextAreaInput";
 import { useUser } from "../../services/UserContext";
+import { useTranslation } from "../../hooks/useTranslation";
 
 // Extendemos DeckCard localmente para incluir la imagen hasta que se actualice la definición base
 type DeckCardWithImage = DeckCard & { image: string };
@@ -62,6 +63,7 @@ const ARCHETYPES_DB: Record<string, string[]> = {
 
 const DeckBuilder = () => {
   const { user } = useUser();
+  const { t, locale } = useTranslation();
   const navigate = useNavigate();
   const { deckId } = useParams();
   const [deckName, setDeckName] = useState("");
@@ -479,7 +481,7 @@ const DeckBuilder = () => {
           .filter((c) => c.board === "side")
           .map((c) => ({ name: c.name, quantity: c.quantity })),
         format_name: selectedFormat.name.en || selectedFormat.scryfallKey,
-        locale: "es", // Podrías hacerlo dinámico según el usuario
+        locale: locale,
         meta_archetypes:
           analysisArchetypes.length > 0 ? analysisArchetypes : undefined,
       };
@@ -501,7 +503,9 @@ const DeckBuilder = () => {
     <div className="max-w-6xl mx-auto mt-8">
       <div className="flex items-center gap-3 mb-6">
         <Settings className="text-orange-500" size={28} />
-        <h2 className="text-2xl font-bold text-white">Forja de Mazo</h2>
+        <h2 className="text-2xl font-bold text-white">
+          {t("deckBuilder.title")}
+        </h2>
       </div>
 
       {/* Panel de Configuración */}
@@ -510,13 +514,13 @@ const DeckBuilder = () => {
           {/* Nombre */}
           <div>
             <label className="block text-sm font-medium text-zinc-500 mb-2 uppercase tracking-wider">
-              Nombre del Mazo
+              {t("deckBuilder.deckNameLabel")}
             </label>
             <input
               type="text"
               value={deckName}
               onChange={(e) => setDeckName(e.target.value)}
-              placeholder="Ej: Goblin Aggro"
+              placeholder={t("deckBuilder.deckNamePlaceholder")}
               className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-orange-500/50 transition-all placeholder-zinc-600"
             />
           </div>
@@ -524,37 +528,37 @@ const DeckBuilder = () => {
           {/* Formato */}
           <div>
             <DropdownInput
-              label="Formato"
+              label={t("deckBuilder.formatLabel")}
               options={formatOptions}
               value={selectedFormatId}
               onChange={handleFormatChange}
-              placeholder="Selecciona un formato..."
+              placeholder={t("deckBuilder.formatPlaceholder")}
             />
             {selectedFormat && (
               <div className="mt-2 text-xs text-zinc-500 flex gap-4 px-1">
                 <span>
-                  Mín. Cartas:{" "}
+                  {t("deckBuilder.minCardsLabel")}{" "}
                   <span className="text-zinc-300">
                     {(selectedFormat.config as any).minDeckSize}
                   </span>
                 </span>
                 {(selectedFormat.config as any).maxDeckSize && (
                   <span>
-                    Máx. Cartas:{" "}
+                    {t("deckBuilder.maxCardsLabel")}{" "}
                     <span className="text-zinc-300">
                       {(selectedFormat.config as any).maxDeckSize}
                     </span>
                   </span>
                 )}
                 <span>
-                  Copias Máx:{" "}
+                  {t("deckBuilder.maxCopiesLabel")}{" "}
                   <span className="text-zinc-300">
                     {selectedFormat.config.maxCopies}
                   </span>
                 </span>
                 {(selectedFormat.config as any).maxSideboard > 0 && (
                   <span>
-                    Sideboard:{" "}
+                    {t("deckBuilder.sideboardLabel")}{" "}
                     <span className="text-zinc-300">
                       {(selectedFormat.config as any).maxSideboard}
                     </span>
@@ -578,13 +582,13 @@ const DeckBuilder = () => {
             >
               {isPrivate ? <Shield size={18} /> : <ShieldAlert size={18} />}
               <span className="font-medium">
-                {isPrivate ? "Privado" : "Público"}
+                {isPrivate ? t("deckBuilder.private") : t("deckBuilder.public")}
               </span>
             </button>
             <span className="text-xs text-zinc-600 hidden sm:inline">
               {isPrivate
-                ? "Solo tú podrás ver este mazo."
-                : "Visible para la comunidad."}
+                ? t("deckBuilder.privateDescription")
+                : t("deckBuilder.publicDescription")}
             </span>
           </div>
           <div className="flex gap-3">
@@ -598,7 +602,9 @@ const DeckBuilder = () => {
               }`}
             >
               <Brain size={20} className={isAnalyzing ? "animate-pulse" : ""} />
-              {isAnalyzing ? "Analizando..." : "Analizar IA"}
+              {isAnalyzing
+                ? t("deckBuilder.analyzing")
+                : t("deckBuilder.analyzeAI")}
             </button>
           </div>{" "}
           <button
@@ -611,7 +617,7 @@ const DeckBuilder = () => {
             }`}
           >
             <Save size={20} />
-            {deckId ? "Actualizar Mazo" : "Guardar Mazo"}
+            {deckId ? t("deckBuilder.updateDeck") : t("deckBuilder.saveDeck")}
           </button>
         </div>
       </div>
@@ -622,10 +628,10 @@ const DeckBuilder = () => {
           <div className="absolute inset-0 flex flex-col items-center justify-center text-zinc-500">
             <Settings size={48} className="mb-4 opacity-20" />
             <p className="text-lg font-medium">
-              Configura el formato para comenzar
+              {t("deckBuilder.configureFormatTitle")}
             </p>
             <p className="text-sm opacity-60">
-              Debes seleccionar un formato de juego antes de añadir cartas.
+              {t("deckBuilder.configureFormatDescription")}
             </p>
           </div>
         ) : (
@@ -634,11 +640,11 @@ const DeckBuilder = () => {
               <div className="flex gap-3 items-start">
                 <div className="flex-1 relative">
                   <SearchInput
-                    label="Añadir Cartas"
-                    placeholder="Empieza a escribir el nombre de una carta..."
+                    label={t("deckBuilder.addCardsLabel")}
+                    placeholder={t("deckBuilder.addCardsPlaceholder")}
                     value={searchQuery}
                     onChange={handleSearchChange}
-                    hint="Escribe al menos 3 caracteres para ver sugerencias"
+                    hint={t("deckBuilder.addCardsHint")}
                   />
 
                   {suggestions.length > 0 && (
@@ -659,7 +665,7 @@ const DeckBuilder = () => {
                 <button
                   onClick={() => setIsImportModalOpen(true)}
                   className="mt-7 p-3 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white rounded-xl border border-zinc-700 transition-all shadow-lg"
-                  title="Importar lista de cartas"
+                  title={t("deckBuilder.importDeckButton")}
                 >
                   <Upload size={24} />
                 </button>
@@ -681,7 +687,9 @@ const DeckBuilder = () => {
                     />
                     <div>
                       <h4 className="text-red-500 font-bold text-sm mb-1">
-                        No se pudieron importar {importErrors.length} cartas
+                        {t("deckBuilder.importErrorTitle", {
+                          count: importErrors.length,
+                        })}
                       </h4>
                       <ul className="text-red-400/80 text-xs list-disc list-inside space-y-0.5 max-h-32 overflow-y-auto">
                         {importErrors.map((line, i) => (
@@ -714,20 +722,20 @@ const DeckBuilder = () => {
       <Modal
         isOpen={isImportModalOpen}
         onClose={() => setIsImportModalOpen(false)}
-        title="Importar Lista de Mazo"
+        title={t("deckBuilder.importModalTitle")}
       >
         <TextAreaInput
           value={importText}
           onChange={setImportText}
-          placeholder={`4 Lightning Bolt\n1 Sol Ring\n\nSideboard\n15 Relic of Progenitus`}
+          placeholder={t("deckBuilder.importModalPlaceholder")}
           minHeight="200px"
-          hint="Pega tu lista aquí. Formato: 'Cantidad Nombre' por línea."
+          hint={t("deckBuilder.importModalHint")}
         />
         <button
           onClick={handleImportDeck}
           className="w-full bg-orange-600 hover:bg-orange-500 text-white font-bold py-3 rounded-xl shadow-lg shadow-orange-900/20 transition-all active:scale-95 mt-4"
         >
-          Importar Cartas
+          {t("deckBuilder.importButton")}
         </button>
       </Modal>
 
@@ -735,20 +743,22 @@ const DeckBuilder = () => {
       <Modal
         isOpen={isAnalysisModalOpen}
         onClose={() => setIsAnalysisModalOpen(false)}
-        title="Análisis Estratégico de IA"
+        title={t("deckBuilder.analysisModalTitle")}
       >
         {analysisResult && (
           <div className="space-y-6 text-zinc-300 max-h-[70vh] overflow-y-auto pr-2">
             <div className="bg-zinc-800/50 p-4 rounded-xl border border-zinc-700">
               <h4 className="text-orange-500 font-bold mb-2">
-                Resumen General
+                {t("deckBuilder.generalSummary")}
               </h4>
               <p className="text-sm">{analysisResult.general_summary}</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="bg-green-900/10 p-4 rounded-xl border border-green-900/30">
-                <h4 className="text-green-500 font-bold mb-2">Fortalezas</h4>
+                <h4 className="text-green-500 font-bold mb-2">
+                  {t("deckBuilder.strengths")}
+                </h4>
                 <ul className="list-disc list-inside text-sm space-y-1">
                   {analysisResult.strengths.map((s: string, i: number) => (
                     <li key={i}>{s}</li>
@@ -756,7 +766,9 @@ const DeckBuilder = () => {
                 </ul>
               </div>
               <div className="bg-red-900/10 p-4 rounded-xl border border-red-900/30">
-                <h4 className="text-red-500 font-bold mb-2">Debilidades</h4>
+                <h4 className="text-red-500 font-bold mb-2">
+                  {t("deckBuilder.weaknesses")}
+                </h4>
                 <ul className="list-disc list-inside text-sm space-y-1">
                   {analysisResult.weaknesses.map((w: string, i: number) => (
                     <li key={i}>{w}</li>
@@ -767,7 +779,7 @@ const DeckBuilder = () => {
 
             <div>
               <h4 className="text-white font-bold mb-3">
-                Enfrentamientos Clave (Matchups)
+                {t("deckBuilder.matchups")}
               </h4>
               <div className="space-y-3">
                 {analysisResult.matchups.map((match: any, idx: number) => (
@@ -780,7 +792,9 @@ const DeckBuilder = () => {
                         {match.archetype}
                       </span>
                       <div className="text-xs font-mono">
-                        <span className="text-zinc-500">Win Rate: </span>
+                        <span className="text-zinc-500">
+                          {t("deckBuilder.winRate")}{" "}
+                        </span>
                         <span
                           className={
                             match.win_rate_post > 50

@@ -8,26 +8,29 @@ import DeckBuilder from "./views/deck-builder/DeckBuilder";
 import FormatDetail from "./views/formats/FormatDetail";
 import Profile from "./views/profile/Profile";
 import ArticleDetail from "./views/articles/articleDetail";
+import { LanguageProvider } from "./services/LanguageContext";
 
 function App() {
   return (
-    <UserProvider>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Layout />}>
-            <Route index element={<Dashboard />} />
-            <Route path="login" element={<Login />} />
-            <Route path="my-decks" element={<MyDecks />} />
-            <Route path="deck-builder" element={<DeckBuilder />} />
-            <Route path="deck-builder/:deckId" element={<DeckBuilder />} />
-            <Route path="format/:formatName" element={<FormatDetail />} />
-            <Route path="profile" element={<Profile />} />
-            <Route path="/articles/:articleId" element={<ArticleDetail />} />
-            {/* Aquí añadiremos más rutas como /deck-builder */}
-          </Route>
-        </Routes>
-      </BrowserRouter>
-    </UserProvider>
+    <LanguageProvider>
+      <UserProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Layout />}>
+              <Route index element={<Dashboard />} />
+              <Route path="login" element={<Login />} />
+              <Route path="my-decks" element={<MyDecks />} />
+              <Route path="deck-builder" element={<DeckBuilder />} />
+              <Route path="deck-builder/:deckId" element={<DeckBuilder />} />
+              <Route path="format/:formatName" element={<FormatDetail />} />
+              <Route path="profile" element={<Profile />} />
+              <Route path="/articles/:articleId" element={<ArticleDetail />} />
+              {/* Aquí añadiremos más rutas como /deck-builder */}
+            </Route>
+          </Routes>
+        </BrowserRouter>
+      </UserProvider>
+    </LanguageProvider>
   );
 }
 
