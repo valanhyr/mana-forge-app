@@ -105,6 +105,19 @@
       "makeCommander": "Hacer Comandante",
       "moveToMain": "Mover a Main",
       "moveToSideboard": "Mover a Sideboard"
+    },
+    "footer": {
+      "description": "La herramienta definitiva para la construcción y análisis de mazos de Magic: The Gathering impulsada por IA.",
+      "product": "Producto",
+      "resources": "Recursos",
+      "legal": "Legal",
+      "documentation": "Documentación",
+      "api": "API",
+      "status": "Estado del Sistema",
+      "privacy": "Privacidad",
+      "terms": "Términos",
+      "cookies": "Cookies",
+      "rightsReserved": "Todos los derechos reservados."
     }
   },
   "en": {
@@ -213,6 +226,19 @@
       "makeCommander": "Make Commander",
       "moveToMain": "Move to Main",
       "moveToSideboard": "Move to Sideboard"
+    },
+    "footer": {
+      "description": "The ultimate AI-powered Magic: The Gathering deck building and analysis tool.",
+      "product": "Product",
+      "resources": "Resources",
+      "legal": "Legal",
+      "documentation": "Documentation",
+      "api": "API",
+      "status": "System Status",
+      "privacy": "Privacy",
+      "terms": "Terms",
+      "cookies": "Cookies",
+      "rightsReserved": "All rights reserved."
     }
   }
 }
