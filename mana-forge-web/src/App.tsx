@@ -22,7 +22,8 @@ function App() {
               <Route path="my-decks" element={<MyDecks />} />
               <Route path="deck-builder" element={<DeckBuilder />} />
               <Route path="deck-builder/:deckId" element={<DeckBuilder />} />
-              <Route path="format/:formatName" element={<FormatDetail />} />
+              <Route path="formats/all-formats" element={<FormatDetail />} />
+              <Route path="formats/:formatName" element={<FormatDetail />} />
               <Route path="profile" element={<Profile />} />
               <Route path="/articles/:articleId" element={<ArticleDetail />} />
               {/* Aquí añadiremos más rutas como /deck-builder */}

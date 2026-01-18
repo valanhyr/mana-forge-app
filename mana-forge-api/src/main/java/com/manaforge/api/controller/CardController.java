@@ -4,6 +4,7 @@ import com.manaforge.api.model.mongo.Card;
 import com.manaforge.api.repository.CardRepository;
 import com.manaforge.api.service.ScryfallService;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -53,6 +54,12 @@ public class CardController extends BaseMongoController<Card, String> {
             @Parameter(description = "Fuzzy card name") @RequestParam(required = false) String fuzzy,
             @Parameter(description = "Set code") @RequestParam(required = false) String set) {
         return ResponseEntity.ok(scryfallService.getCardNamed(exact, fuzzy, set));
+    }
+
+    @Operation(summary = "Get banned cards by format", description = "Returns a list of banned cards for a specific format from Scryfall.")
+    @GetMapping("/banned/{format}")
+    public ResponseEntity<Map<String, Object>> getBannedCardsByFormat(@Parameter(description = "Format name (e.g. 'modern', 'pauper')") @PathVariable String format) {
+        return ResponseEntity.ok(scryfallService.getBannedCardsByFormat(format));
     }
 
     @GetMapping("/autocomplete")

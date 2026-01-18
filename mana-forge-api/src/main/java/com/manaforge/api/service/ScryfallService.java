@@ -97,6 +97,11 @@ public class ScryfallService {
         }
     }
 
+    @Cacheable(value = "scryfall_search", cacheManager = "scryfallCacheManager")
+    public Map<String, Object> getBannedCardsByFormat(String format) {
+        return searchCards(Map.of("q", "banned:" + format));
+    }
+
     @Cacheable(value = "scryfall_autocomplete", cacheManager = "scryfallCacheManager")
     public Map<String, Object> getAutocomplete(String query) {
         try {

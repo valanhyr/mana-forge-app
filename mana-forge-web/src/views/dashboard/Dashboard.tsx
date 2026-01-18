@@ -5,7 +5,6 @@ import {
   Sparkles,
   Zap,
   Users,
-  Loader2,
   ServerCrash,
   X,
   Layers,
@@ -13,6 +12,7 @@ import {
 } from "lucide-react";
 import { DeckService, type DailyDeck } from "../../services/DeckService";
 import { ScryfallService } from "../../services/ScryfallService";
+import ForgeSpinner from "../../components/ui/ForgeSpinner";
 import { useTranslation } from "../../hooks/useTranslation";
 
 // --- Mock Data ---
@@ -69,22 +69,22 @@ const Dashboard = () => {
     {
       name: "Commander",
       description: t("dashboard.formatDescriptions.commander"),
-      link: "/format/commander",
+      link: "/formats/commander",
     },
     {
       name: "Modern",
       description: t("dashboard.formatDescriptions.modern"),
-      link: "/format/modern",
+      link: "/formats/modern",
     },
     {
       name: "Pauper",
       description: t("dashboard.formatDescriptions.pauper"),
-      link: "/format/pauper",
+      link: "/formats/pauper",
     },
     {
       name: "Legacy",
       description: t("dashboard.formatDescriptions.legacy"),
-      link: "/format/legacy",
+      link: "/formats/legacy",
     },
   ];
 
@@ -145,7 +145,7 @@ const Dashboard = () => {
       return (
         <div className="group relative flex items-center justify-center h-80 p-6 text-white bg-zinc-900 rounded-2xl border border-zinc-800">
           <div className="text-center">
-            <Loader2 className="mx-auto h-12 w-12 animate-spin text-indigo-400" />
+            <ForgeSpinner className="mx-auto text-indigo-400" size={128} />
             <p className="mt-4 text-zinc-400">
               {t("dashboard.generatingDeck")}
             </p>
@@ -278,7 +278,7 @@ const Dashboard = () => {
             {t("dashboard.exploreFormats")}
           </h2>
           <Link
-            to="/decks"
+            to="/formats/all-formats"
             className="text-sm font-medium text-orange-500 hover:underline flex items-center gap-1"
           >
             {t("common.viewAll")} <ArrowRight size={16} />

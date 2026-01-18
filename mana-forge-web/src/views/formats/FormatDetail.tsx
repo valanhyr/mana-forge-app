@@ -1,7 +1,18 @@
 import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { ArrowLeft, BookOpen, Ban, Layers } from "lucide-react";
+import {
+  ArrowLeft,
+  BookOpen,
+  Ban,
+  Layers,
+  Users,
+  ArrowRight,
+  LayoutGrid,
+  List,
+} from "lucide-react";
 import { useTranslation } from "../../hooks/useTranslation";
+import ForgeSpinner from "../../components/ui/ForgeSpinner";
+import Modal from "../../components/ui/Modal";
 
 // --- Mock CMS Data Structure ---
 interface FormatCMSData {
@@ -103,6 +114,26 @@ const MOCK_CMS_DATA: Record<string, FormatCMSData> = {
       sideboardSize: 15,
     },
   },
+  premodern: {
+    slug: "premodern",
+    title: "Premodern",
+    subtitle: "Magic como solía ser (1995-2003)",
+    description:
+      "Premodern es un formato construido por la comunidad que consiste en cartas impresas entre la Cuarta Edición (1995) y Azote (2003). El formato busca capturar la sensación de Magic de esa época, permitiendo solo cartas con el marco antiguo pero utilizando las reglas actuales.",
+    rules: [
+      "Cartas impresas entre 4th Edition y Scourge",
+      "Mínimo 60 cartas en el mazo principal",
+      "Hasta 15 cartas en el banquillo",
+      "Máximo 4 copias de cada carta",
+    ],
+    imageUrl:
+      "https://api.scryfall.com/cards/named?exact=Spiritmonger&format=image&version=art_crop", // Spiritmonger
+    metadata: {
+      minDeckSize: 60,
+      maxCopies: 4,
+      sideboardSize: 15,
+    },
+  },
 };
 
 const FormatDetail = () => {
@@ -110,24 +141,108 @@ const FormatDetail = () => {
   const { formatName } = useParams<{ formatName: string }>();
   const [data, setData] = useState<FormatCMSData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isBanlistModalOpen, setIsBanlistModalOpen] = useState(false);
+  const [bannedCards, setBannedCards] = useState<any[]>([]);
+  const [loadingBanlist, setLoadingBanlist] = useState(false);
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+
+  const handleViewBanlist = async () => {
+    setIsBanlistModalOpen(true);
+    if (data?.slug && bannedCards.length === 0) {
+      setLoadingBanlist(true);
+      try {
+        const response = await fetch(
+          `http://localhost:8080/api/cards/banned/${data.slug}`
+        );
+        if (response.ok) {
+          const result = await response.json();
+          // Aseguramos que sea un array, manejando posibles envoltorios
+          if (Array.isArray(result)) {
+            setBannedCards(result);
+          } else {
+            setBannedCards(result?.data || result?.cards || []);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching banlist:", error);
+      } finally {
+        setLoadingBanlist(false);
+      }
+    }
+  };
+
+  const isAllFormats = !formatName || formatName === "all-formats";
 
   useEffect(() => {
     // Simular fetch al CMS
     setLoading(true);
+    setBannedCards([]);
     setTimeout(() => {
-      if (formatName && MOCK_CMS_DATA[formatName.toLowerCase()]) {
+      if (isAllFormats) {
+        setData(null); // No necesitamos datos específicos para la vista de lista
+      } else if (formatName && MOCK_CMS_DATA[formatName.toLowerCase()]) {
         setData(MOCK_CMS_DATA[formatName.toLowerCase()]);
       } else {
         setData(null);
       }
       setLoading(false);
     }, 300);
-  }, [formatName]);
+  }, [formatName, isAllFormats]);
 
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-[50vh]">
-        <Loader2 className="animate-spin text-orange-500" size={48} />
+        <ForgeSpinner className="text-orange-500" size={128} />
+      </div>
+    );
+  }
+
+  if (isAllFormats) {
+    return (
+      <div className="max-w-7xl mx-auto mt-8 px-4 sm:px-6 lg:px-8 mb-12">
+        <div className="flex items-center gap-3 mb-8">
+          <div className="bg-orange-600 p-2 rounded-lg">
+            <Users className="text-white" size={24} />
+          </div>
+          <h1 className="text-3xl font-bold text-white">
+            {t("dashboard.exploreFormats")}
+          </h1>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {Object.values(MOCK_CMS_DATA).map((format) => (
+            <Link
+              to={`/formats/${format.slug}`}
+              key={format.slug}
+              className="group bg-zinc-900 border border-zinc-800 rounded-2xl p-6 hover:border-orange-500/50 hover:bg-zinc-800/50 transition-all flex flex-col h-full"
+            >
+              <div className="flex items-center justify-between mb-4">
+                <div className="bg-zinc-950 p-3 rounded-xl border border-zinc-700 group-hover:border-orange-500/30 transition-colors">
+                  <Layers size={24} className="text-orange-500" />
+                </div>
+                <ArrowRight
+                  className="text-zinc-600 group-hover:text-orange-500 transition-colors"
+                  size={20}
+                />
+              </div>
+
+              <h3 className="text-xl font-bold text-white mb-2 group-hover:text-orange-400 transition-colors">
+                {format.title}
+              </h3>
+              <p className="text-sm text-zinc-400 mb-6 flex-grow leading-relaxed">
+                {format.subtitle}
+              </p>
+
+              <div className="pt-4 border-t border-zinc-800 flex items-center justify-between text-xs font-mono text-zinc-500">
+                <span>{format.metadata.minDeckSize}+ Cards</span>
+                <span>
+                  Max {format.metadata.maxCopies}{" "}
+                  {format.metadata.maxCopies === 1 ? "Copy" : "Copies"}
+                </span>
+              </div>
+            </Link>
+          ))}
+        </div>
       </div>
     );
   }
@@ -271,34 +386,118 @@ const FormatDetail = () => {
                   formatTitle: data.title,
                 })}
               </p>
-              <button className="w-full py-2 px-4 bg-zinc-800 hover:bg-zinc-700 text-white rounded-lg transition-colors text-sm font-medium border border-zinc-700">
+              <button
+                onClick={handleViewBanlist}
+                className="w-full py-2 px-4 bg-zinc-800 hover:bg-zinc-700 text-white rounded-lg transition-colors text-sm font-medium border border-zinc-700"
+              >
                 {t("formatDetail.viewBanlist")}
               </button>
             </div>
           </div>
         </div>
       </div>
+
+      <Modal
+        isOpen={isBanlistModalOpen}
+        onClose={() => setIsBanlistModalOpen(false)}
+        title={t("formatDetail.bannedCards")}
+        maxWidth="max-w-6xl"
+      >
+        {loadingBanlist ? (
+          <div className="flex justify-center p-8">
+            <ForgeSpinner size={64} className="text-orange-500" />
+          </div>
+        ) : (
+          <>
+            {bannedCards.length > 0 && (
+              <div className="flex justify-end px-4 mb-4">
+                <div className="flex bg-zinc-950 rounded-lg p-1 border border-zinc-800">
+                  <button
+                    onClick={() => setViewMode("grid")}
+                    className={`p-2 rounded-md transition-colors ${
+                      viewMode === "grid"
+                        ? "bg-zinc-800 text-white"
+                        : "text-zinc-500 hover:text-zinc-300"
+                    }`}
+                  >
+                    <LayoutGrid size={20} />
+                  </button>
+                  <button
+                    onClick={() => setViewMode("list")}
+                    className={`p-2 rounded-md transition-colors ${
+                      viewMode === "list"
+                        ? "bg-zinc-800 text-white"
+                        : "text-zinc-500 hover:text-zinc-300"
+                    }`}
+                  >
+                    <List size={20} />
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {bannedCards.length > 0 ? (
+              viewMode === "grid" ? (
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6 max-h-[70vh] overflow-y-auto p-2">
+                  {bannedCards.map((card: any, idx: number) => (
+                    <div key={idx} className="flex flex-col items-center group">
+                      <div className="relative rounded-lg overflow-hidden aspect-[2.5/3.5] w-full mb-2 bg-zinc-800">
+                        {card.image_uris?.normal ? (
+                          <img
+                            src={card.image_uris.normal}
+                            alt={card.name}
+                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                            loading="lazy"
+                          />
+                        ) : (
+                          <div className="flex items-center justify-center h-full text-zinc-500 text-xs p-2 text-center">
+                            {card.name}
+                          </div>
+                        )}
+                      </div>
+                      <span className="text-xs text-center text-zinc-300 font-medium leading-tight">
+                        {card.name}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="max-h-[70vh] overflow-y-auto p-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                    {bannedCards.map((card: any, idx: number) => (
+                      <div
+                        key={idx}
+                        className="flex items-center p-3 bg-zinc-900 border border-zinc-800 rounded-lg hover:border-zinc-700 transition-colors"
+                      >
+                        <span className="text-zinc-300 font-medium">
+                          {card.name}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )
+            ) : (
+              <div className="col-span-full text-center text-zinc-400 py-8">
+                <p className="mb-4">
+                  {t("common.info")}: Banlist visual not available for this
+                  format yet.
+                </p>
+                <a
+                  href="https://magic.wizards.com/en/banned-restricted-list"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-orange-500 hover:underline"
+                >
+                  Visit Official Banlist
+                </a>
+              </div>
+            )}
+          </>
+        )}
+      </Modal>
     </div>
   );
 };
-
-function Loader2({ className, size }: { className?: string; size?: number }) {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width={size}
-      height={size}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-    >
-      <path d="M21 12a9 9 0 1 1-6.219-8.56" />
-    </svg>
-  );
-}
 
 export default FormatDetail;

@@ -7,9 +7,13 @@ import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cache.concurrent.ConcurrentMapCacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
+import org.springframework.http.MediaType;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.client.RestTemplate;
+
+import java.util.List;
 
 @SpringBootApplication
 @EnableCaching
@@ -22,7 +26,11 @@ public class ManaForgeApiApplication {
 
     @Bean
     public RestTemplate restTemplate() {
-        return new RestTemplate();
+        RestTemplate restTemplate = new RestTemplate();
+        MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
+        converter.setSupportedMediaTypes(List.of(MediaType.APPLICATION_JSON, MediaType.TEXT_HTML));
+        restTemplate.getMessageConverters().add(0, converter);
+        return restTemplate;
     }
 
     @Bean("scryfallCacheManager")
@@ -31,7 +39,7 @@ public class ManaForgeApiApplication {
         return new ConcurrentMapCacheManager(
                 "scryfall_search", "scryfall_card", "scryfall_symbology", "scryfall_named", "scryfall_autocomplete",
                 // Strapi Caches
-                "footer", "footer-legal", "heros", "sections", "languages", "formats", "format-detail"
+                "footer", "footer-legal", "heros", "sections", "languages", "formats", "format-detail", "premodern_banned"
         );
     }
 
