@@ -13,6 +13,7 @@ import {
 import { DeckService, type DailyDeck } from "../../services/DeckService";
 import { ScryfallService } from "../../services/ScryfallService";
 import ForgeSpinner from "../../components/ui/ForgeSpinner";
+import { FormatService } from "../../services/FormatService";
 import { useTranslation } from "../../hooks/useTranslation";
 
 // --- Mock Data ---
@@ -57,36 +58,21 @@ const deckOfTheDay = {
   deckId: "some-public-deck-id",
 };
 
+interface FormatSummary {
+  mongoId: string;
+  slug: string;
+  title: string;
+  subtitle: string;
+  imageUrl: string;
+}
+
 const Dashboard = () => {
   const { t, locale } = useTranslation();
   const [dailyDeck, setDailyDeck] = useState<DailyDeck | null>(null);
+  const [popularFormats, setPopularFormats] = useState<FormatSummary[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-
-  // 3. Formatos Populares (Movido dentro para usar t())
-  const popularFormats = [
-    {
-      name: "Commander",
-      description: t("dashboard.formatDescriptions.commander"),
-      link: "/formats/commander",
-    },
-    {
-      name: "Modern",
-      description: t("dashboard.formatDescriptions.modern"),
-      link: "/formats/modern",
-    },
-    {
-      name: "Pauper",
-      description: t("dashboard.formatDescriptions.pauper"),
-      link: "/formats/pauper",
-    },
-    {
-      name: "Legacy",
-      description: t("dashboard.formatDescriptions.legacy"),
-      link: "/formats/legacy",
-    },
-  ];
 
   useEffect(() => {
     const fetchDailyDeck = async () => {
@@ -138,6 +124,18 @@ const Dashboard = () => {
     };
 
     fetchDailyDeck();
+
+    const fetchFormats = async () => {
+      try {
+        const result = await FormatService.getCMSAllFormats();
+        if (Array.isArray(result)) {
+          setPopularFormats(result as any);
+        }
+      } catch (error) {
+        console.error("Error fetching formats:", error);
+      }
+    };
+    fetchFormats();
   }, [locale]); // Recargar si cambia el idioma
 
   const AiDeckCard = () => {
@@ -287,17 +285,17 @@ const Dashboard = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {popularFormats.map((format) => (
             <Link
-              to={format.link}
-              key={format.name}
+              to={`/formats/${format.slug}`}
+              key={format.mongoId}
               className="group bg-zinc-900 p-6 rounded-2xl border border-zinc-800 hover:border-orange-500/50 hover:bg-zinc-800/50 transition-all"
             >
               <div className="flex items-center gap-4 mb-3">
                 <div className="bg-zinc-950 p-2 rounded-lg border border-zinc-700">
                   <Users size={20} className="text-orange-500" />
                 </div>
-                <h3 className="text-lg font-bold text-white">{format.name}</h3>
+                <h3 className="text-lg font-bold text-white">{format.title}</h3>
               </div>
-              <p className="text-sm text-zinc-400">{format.description}</p>
+              <p className="text-sm text-zinc-400 line-clamp-3">{format.subtitle}</p>
             </Link>
           ))}
         </div>

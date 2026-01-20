@@ -13,16 +13,30 @@ import {
 import { useTranslation } from "../../hooks/useTranslation";
 import ForgeSpinner from "../../components/ui/ForgeSpinner";
 import Modal from "../../components/ui/Modal";
+import { FormatService } from "../../services/FormatService";
+import { CardService } from "../../services/CardService";
 
-// --- Mock CMS Data Structure ---
+// --- CMS Data Structure ---
+interface FormatRule {
+  id: number;
+  text: string;
+}
+
+interface FormatSection {
+  name: string;
+  title: string;
+  description: string;
+  rules: FormatRule[];
+}
+
 interface FormatCMSData {
   slug: string;
   title: string;
   subtitle: string;
-  description: string;
-  rules: string[];
   imageUrl: string;
-  metadata: {
+  description: FormatSection;
+  rules: FormatSection;
+  metadata?: {
     minDeckSize: number;
     maxDeckSize?: number;
     maxCopies: number;
@@ -30,116 +44,19 @@ interface FormatCMSData {
   };
 }
 
-// Simulación de contenido que vendría de un CMS (Contentful, Strapi, etc.)
-const MOCK_CMS_DATA: Record<string, FormatCMSData> = {
-  commander: {
-    slug: "commander",
-    title: "Commander (EDH)",
-    subtitle: "El formato multijugador definitivo",
-    description:
-      "Commander es una forma emocionante y única de jugar a Magic que se centra en criaturas legendarias impresionantes, grandes jugadas y batallas contra tus amigos en partidas multijugador todos contra todos. Cada jugador elige una criatura legendaria como comandante y construye un mazo en torno a su identidad de color.",
-    rules: [
-      "1 carta de Comandante (Criatura Legendaria)",
-      "99 cartas en el mazo principal",
-      "Solo una copia de cada carta (excepto tierras básicas)",
-      "Todas las cartas deben compartir la identidad de color del comandante",
-      "Las partidas suelen ser de 4 jugadores todos contra todos",
-      "Empiezas con 40 vidas",
-    ],
-    imageUrl:
-      "https://api.scryfall.com/cards/named?exact=Urza%2C%20Lord%20Protector&format=image&version=art_crop", // Urza
-    metadata: {
-      minDeckSize: 100,
-      maxCopies: 1,
-      sideboardSize: 0,
-    },
-  },
-  modern: {
-    slug: "modern",
-    title: "Modern",
-    subtitle: "Un formato sin rotación desde la Octava Edición",
-    description:
-      "Modern es un formato construido que permite cartas desde la Octava Edición (2003) hasta la actualidad. Es conocido por su diversidad de mazos y su alto nivel de poder sin llegar a los extremos de Legacy o Vintage. Es uno de los formatos competitivos más populares del mundo.",
-    rules: [
-      "Mínimo 60 cartas en el mazo principal",
-      "Hasta 15 cartas en el banquillo (Sideboard)",
-      "Máximo 4 copias de cada carta (excepto tierras básicas)",
-      "No hay rotación de sets, pero existe una lista de prohibidas",
-    ],
-    imageUrl:
-      "https://api.scryfall.com/cards/named?exact=Ugin%27s%20Labyrinth&format=image&version=art_crop", // Ugin's Labyrinth
-    metadata: {
-      minDeckSize: 60,
-      maxCopies: 4,
-      sideboardSize: 15,
-    },
-  },
-  pauper: {
-    slug: "pauper",
-    title: "Pauper",
-    subtitle: "Solo cartas comunes",
-    description:
-      "En Pauper, solo se permiten cartas que hayan sido impresas con rareza común en algún momento de la historia de Magic (físico o digital). Es un formato accesible económicamente pero con un nivel de estrategia sorprendentemente profundo y un metajuego vibrante.",
-    rules: [
-      "Solo cartas con rareza Común",
-      "Mínimo 60 cartas en el mazo principal",
-      "Hasta 15 cartas en el banquillo",
-      "Máximo 4 copias de cada carta",
-    ],
-    imageUrl:
-      "https://api.scryfall.com/cards/named?exact=Psychatog&format=image&version=art_crop", // Psychatog
-    metadata: {
-      minDeckSize: 60,
-      maxCopies: 4,
-      sideboardSize: 15,
-    },
-  },
-  legacy: {
-    slug: "legacy",
-    title: "Legacy",
-    subtitle: "Toda la historia de Magic",
-    description:
-      "Legacy permite cartas de todas las expansiones legales en torneos. Es un formato de alto poder donde se pueden jugar algunas de las cartas más icónicas y poderosas de la historia del juego, como las Dual Lands originales y Force of Will.",
-    rules: [
-      "Mínimo 60 cartas en el mazo principal",
-      "Hasta 15 cartas en el banquillo",
-      "Máximo 4 copias de cada carta",
-      "Lista de prohibidas específica para mantener el equilibrio",
-    ],
-    imageUrl:
-      "https://api.scryfall.com/cards/named?exact=Delver%20of%20Secrets&format=image&version=art_crop", // Delver
-    metadata: {
-      minDeckSize: 60,
-      maxCopies: 4,
-      sideboardSize: 15,
-    },
-  },
-  premodern: {
-    slug: "premodern",
-    title: "Premodern",
-    subtitle: "Magic como solía ser (1995-2003)",
-    description:
-      "Premodern es un formato construido por la comunidad que consiste en cartas impresas entre la Cuarta Edición (1995) y Azote (2003). El formato busca capturar la sensación de Magic de esa época, permitiendo solo cartas con el marco antiguo pero utilizando las reglas actuales.",
-    rules: [
-      "Cartas impresas entre 4th Edition y Scourge",
-      "Mínimo 60 cartas en el mazo principal",
-      "Hasta 15 cartas en el banquillo",
-      "Máximo 4 copias de cada carta",
-    ],
-    imageUrl:
-      "https://api.scryfall.com/cards/named?exact=Spiritmonger&format=image&version=art_crop", // Spiritmonger
-    metadata: {
-      minDeckSize: 60,
-      maxCopies: 4,
-      sideboardSize: 15,
-    },
-  },
-};
+interface FormatSummary {
+  mongoId: string;
+  slug: string;
+  title: string;
+  subtitle: string;
+  imageUrl: string;
+}
 
 const FormatDetail = () => {
   const { t } = useTranslation();
   const { formatName } = useParams<{ formatName: string }>();
   const [data, setData] = useState<FormatCMSData | null>(null);
+  const [allFormats, setAllFormats] = useState<FormatSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [isBanlistModalOpen, setIsBanlistModalOpen] = useState(false);
   const [bannedCards, setBannedCards] = useState<any[]>([]);
@@ -151,9 +68,7 @@ const FormatDetail = () => {
     if (data?.slug && bannedCards.length === 0) {
       setLoadingBanlist(true);
       try {
-        const response = await fetch(
-          `http://localhost:8080/api/cards/banned/${data.slug}`
-        );
+        const response = await CardService.getBannedcards(data.slug);
         if (response.ok) {
           const result = await response.json();
           // Aseguramos que sea un array, manejando posibles envoltorios
@@ -174,19 +89,44 @@ const FormatDetail = () => {
   const isAllFormats = !formatName || formatName === "all-formats";
 
   useEffect(() => {
-    // Simular fetch al CMS
-    setLoading(true);
-    setBannedCards([]);
-    setTimeout(() => {
-      if (isAllFormats) {
-        setData(null); // No necesitamos datos específicos para la vista de lista
-      } else if (formatName && MOCK_CMS_DATA[formatName.toLowerCase()]) {
-        setData(MOCK_CMS_DATA[formatName.toLowerCase()]);
-      } else {
-        setData(null);
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        // 1. Siempre obtenemos todos los formatos primero para resolver el slug
+        const allFormatsResult = await FormatService.getCMSAllFormats();
+        let formatsList: FormatSummary[] = [];
+
+        if (Array.isArray(allFormatsResult)) {
+          formatsList = allFormatsResult as any;
+          setAllFormats(formatsList);
+        }
+
+        if (isAllFormats) {
+          setData(null);
+        } else if (formatName) {
+          // 2. Buscamos el formato por slug (o mongoId por si acaso) en la lista cargada
+          const formatSummary = formatsList.find(
+            (f) => f.slug === formatName || f.mongoId === formatName
+          );
+
+          if (formatSummary) {
+            // 3. Usamos el mongoId para obtener el detalle
+            const result = await FormatService.getCMSFormatDetail(
+              formatSummary.mongoId
+            );
+            if (result) {
+              setData(result as any);
+            }
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching format data:", error);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
-    }, 300);
+    };
+
+    fetchData();
   }, [formatName, isAllFormats]);
 
   if (loading) {
@@ -210,10 +150,10 @@ const FormatDetail = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {Object.values(MOCK_CMS_DATA).map((format) => (
+          {allFormats.map((format) => (
             <Link
               to={`/formats/${format.slug}`}
-              key={format.slug}
+              key={format.mongoId}
               className="group bg-zinc-900 border border-zinc-800 rounded-2xl p-6 hover:border-orange-500/50 hover:bg-zinc-800/50 transition-all flex flex-col h-full"
             >
               <div className="flex items-center justify-between mb-4">
@@ -229,17 +169,9 @@ const FormatDetail = () => {
               <h3 className="text-xl font-bold text-white mb-2 group-hover:text-orange-400 transition-colors">
                 {format.title}
               </h3>
-              <p className="text-sm text-zinc-400 mb-6 flex-grow leading-relaxed">
+              <p className="text-sm text-zinc-400 mb-6 grow leading-relaxed line-clamp-3">
                 {format.subtitle}
               </p>
-
-              <div className="pt-4 border-t border-zinc-800 flex items-center justify-between text-xs font-mono text-zinc-500">
-                <span>{format.metadata.minDeckSize}+ Cards</span>
-                <span>
-                  Max {format.metadata.maxCopies}{" "}
-                  {format.metadata.maxCopies === 1 ? "Copy" : "Copies"}
-                </span>
-              </div>
             </Link>
           ))}
         </div>
@@ -278,7 +210,7 @@ const FormatDetail = () => {
             alt={data.title}
             className="w-full h-full object-cover"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/60 to-transparent"></div>
+          <div className="absolute inset-0 bg-linear-to-t from-zinc-950 via-zinc-950/60 to-transparent"></div>
         </div>
         <div className="absolute bottom-0 left-0 right-0 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
           <Link
@@ -302,76 +234,84 @@ const FormatDetail = () => {
           {/* Main Column */}
           <div className="lg:col-span-2 space-y-8">
             {/* Description */}
-            <div className="bg-zinc-900/80 backdrop-blur-md border border-zinc-800 rounded-2xl p-8 shadow-xl">
-              <div className="flex items-center gap-3 mb-4">
-                <BookOpen className="text-orange-500" size={24} />
-                <h2 className="text-2xl font-bold text-white">
-                  {t("common.description")}
-                </h2>
+            {data.description && (
+              <div className="bg-zinc-900/80 backdrop-blur-md border border-zinc-800 rounded-2xl p-8 shadow-xl">
+                <div className="flex items-center gap-3 mb-4">
+                  <BookOpen className="text-orange-500" size={24} />
+                  <h2 className="text-2xl font-bold text-white">
+                    {data.description.title || t("common.description")}
+                  </h2>
+                </div>
+                <div className="prose prose-invert max-w-none text-zinc-300 leading-relaxed">
+                  <p>{data.description.description}</p>
+                </div>
               </div>
-              <div className="prose prose-invert max-w-none text-zinc-300 leading-relaxed">
-                <p>{data.description}</p>
-              </div>
-            </div>
+            )}
 
             {/* Rules */}
-            <div className="bg-zinc-900/80 backdrop-blur-md border border-zinc-800 rounded-2xl p-8 shadow-xl">
-              <div className="flex items-center gap-3 mb-4">
-                <Layers className="text-indigo-500" size={24} />
-                <h2 className="text-2xl font-bold text-white">
-                  {t("formatDetail.mainRules")}
-                </h2>
+            {data.rules && (
+              <div className="bg-zinc-900/80 backdrop-blur-md border border-zinc-800 rounded-2xl p-8 shadow-xl">
+                <div className="flex items-center gap-3 mb-4">
+                  <Layers className="text-indigo-500" size={24} />
+                  <h2 className="text-2xl font-bold text-white">
+                    {data.rules.title || t("formatDetail.mainRules")}
+                  </h2>
+                </div>
+                <ul className="space-y-3">
+                  {data.rules.rules?.map((rule, index) => (
+                    <li
+                      key={rule.id || index}
+                      className="flex items-start gap-3 text-zinc-300"
+                    >
+                      <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-indigo-500 shrink-0"></span>
+                      <span>{rule.text}</span>
+                    </li>
+                  ))}
+                </ul>
               </div>
-              <ul className="space-y-3">
-                {data.rules.map((rule, index) => (
-                  <li
-                    key={index}
-                    className="flex items-start gap-3 text-zinc-300"
-                  >
-                    <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-indigo-500 shrink-0"></span>
-                    <span>{rule}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
+            )}
           </div>
 
           {/* Sidebar */}
           <div className="space-y-6">
             {/* Stats / Metadata */}
-            <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 shadow-xl">
-              <h3 className="text-lg font-bold text-white mb-4 border-b border-zinc-800 pb-2">
-                {t("formatDetail.deckStructure")}
-              </h3>
-              <div className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <span className="text-zinc-400">{t("common.mainDeck")}</span>
-                  <span className="text-white font-mono font-bold">
-                    {data.metadata.minDeckSize}+
-                  </span>
-                </div>
-                {data.metadata.sideboardSize > 0 && (
+            {data.metadata && (
+              <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 shadow-xl">
+                <h3 className="text-lg font-bold text-white mb-4 border-b border-zinc-800 pb-2">
+                  {t("formatDetail.deckStructure")}
+                </h3>
+                <div className="space-y-4">
                   <div className="flex justify-between items-center">
                     <span className="text-zinc-400">
-                      {t("common.sideboard")}
+                      {t("common.mainDeck")}
                     </span>
                     <span className="text-white font-mono font-bold">
-                      {t("formatDetail.upTo", {
-                        count: data.metadata.sideboardSize,
-                      })}
+                      {data.metadata.minDeckSize}+
                     </span>
                   </div>
-                )}
-                <div className="flex justify-between items-center">
-                  <span className="text-zinc-400">
-                    {t("formatDetail.maxCopies")}
-                  </span>
-                  <span className="text-white font-mono font-bold">
-                    {data.metadata.maxCopies}
-                  </span>
+                  {data.metadata.sideboardSize > 0 && (
+                    <div className="flex justify-between items-center">
+                      <span className="text-zinc-400">
+                        {t("common.sideboard")}
+                      </span>
+                      <span className="text-white font-mono font-bold">
+                        {t("formatDetail.upTo", {
+                          count: data.metadata.sideboardSize,
+                        })}
+                      </span>
+                    </div>
+                  )}
+                  <div className="flex justify-between items-center">
+                    <span className="text-zinc-400">
+                      {t("formatDetail.maxCopies")}
+                    </span>
+                    <span className="text-white font-mono font-bold">
+                      {data.metadata.maxCopies}
+                    </span>
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
 
             {/* Banlist Link (Mock) */}
             <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 shadow-xl">

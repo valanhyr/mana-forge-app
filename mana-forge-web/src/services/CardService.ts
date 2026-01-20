@@ -61,4 +61,21 @@ export const CardService = {
       throw error;
     }
   },
+  
+ /**
+ * Obtiene la lista de cartas prohibidas según el formato de juego.
+ * @param {string} format - El formato de cartas (ej: 'standard', 'modern', 'commander').
+ * @returns {Promise<Card[]>} Una promesa que resuelve a un array de objetos tipo Card.
+ * @throws {Error} Si la respuesta de la red no es exitosa o la carta no existe.
+ */
+  getBannedcards: async (format: string): Promise<any> => {
+    try {
+      const response = await fetch(`${API_URL}/cards/banned/${format}`);
+      if (!response.ok) throw new Error("Card not found");
+      return await response.json();
+    } catch (error) {
+      console.error("GetCardById error:", error);
+      throw error;
+    }
+  }
 };

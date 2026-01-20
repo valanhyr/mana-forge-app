@@ -8,4 +8,5 @@ import lombok.Data;
 public class ComponentDto {
     private String title;
     private String description;
+    
 }

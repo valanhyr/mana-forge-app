@@ -1,6 +1,5 @@
 package com.manaforge.api.service;
 
-import com.manaforge.api.dto.ComponentDto;
 import com.manaforge.api.dto.FormatDetailDto;
 import com.manaforge.api.dto.FormatSummaryDto;
 import com.manaforge.api.model.strapi.StrapiComponent;
@@ -53,36 +52,52 @@ public class FormatService {
     }
 
     private FormatSummaryDto mapToSummary(StrapiFormatData data) {
-        // Para el resumen, extraemos el texto del primer componente de descripción si existe
-        String descriptionText = "";
-        if (data.getDescription() != null && !data.getDescription().isEmpty()) {
-            descriptionText = data.getDescription().get(0).getDescription();
-        }
+        String descriptionText = data.getSection().stream()
+                .filter(c -> "description".equals(c.getName()))
+                .findFirst()
+                .map(StrapiComponent::getDescription)
+                .orElse("");
 
         return FormatSummaryDto.builder()
                 .mongoId(data.getMongoId())
                 .title(data.getTitle())
-                .description(descriptionText)
+                .subtitle(data.getSubtitle())
+                .imageUrl(data.getImageUrl())
+                .slug(data.getSlug())
                 .build();
     }
 
     private FormatDetailDto mapToDetail(StrapiFormatData data) {
+        FormatDetailDto.FormatSectionDto descriptionSection = data.getSection().stream()
+                .filter(c -> "description".equals(c.getName()))
+                .findFirst()
+                .map(this::mapToSectionDto)
+                .orElse(null);
+
+        FormatDetailDto.FormatSectionDto rulesSection = data.getSection().stream()
+                .filter(c -> "rules".equals(c.getName()))
+                .findFirst()
+                .map(this::mapToSectionDto)
+                .orElse(null);
+
         return FormatDetailDto.builder()
-                .mongoId(data.getMongoId())
+                .slug(data.getSlug())
                 .title(data.getTitle())
                 .subtitle(data.getSubtitle())
-                .description(mapComponents(data.getDescription()))
-                .rules(mapComponents(data.getRules()))
+                .imageUrl(data.getImageUrl())
+                .description(descriptionSection)
+                .rules(rulesSection)
                 .build();
     }
 
-    private List<ComponentDto> mapComponents(List<StrapiComponent> components) {
-        if (components == null) return Collections.emptyList();
-        return components.stream()
-                .map(c -> ComponentDto.builder()
-                        .title(c.getTitle())
-                        .description(c.getDescription())
-                        .build())
-                .collect(Collectors.toList());
+    private FormatDetailDto.FormatSectionDto mapToSectionDto(StrapiComponent component) {
+        return FormatDetailDto.FormatSectionDto.builder()
+                .name(component.getName())
+                .title(component.getTitle())
+                .description(component.getDescription())
+                .rules(component.getRules() == null ? Collections.emptyList() : component.getRules().stream()
+                        .map(r -> FormatDetailDto.FormatRuleDto.builder().id(r.getId()).text(r.getText()).build())
+                        .collect(Collectors.toList()))
+                .build();
     }
 }

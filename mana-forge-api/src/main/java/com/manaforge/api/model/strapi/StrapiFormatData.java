@@ -12,9 +12,11 @@ public class StrapiFormatData {
     
     @JsonProperty("mongo_id")
     private String mongoId;
-    
+    private String slug;
     private String title;
     private String subtitle;
-    private List<StrapiComponent> description;
-    private List<StrapiComponent> rules;
+    private String locale;
+    private String imageUrl;
+    @JsonProperty("section")
+    private List<StrapiComponent> section;
 }

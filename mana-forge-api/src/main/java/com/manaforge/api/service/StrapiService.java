@@ -184,7 +184,7 @@ public class StrapiService {
     @Cacheable(value = "format-detail", key = "#mongoId + '-' + #locale")
     public StrapiFormatData getFormatByMongoId(String mongoId, String locale) throws JsonProcessingException {
         StringBuilder query = new StringBuilder("filters[mongo_id][$eq]=").append(mongoId)
-                .append("&populate*");
+                .append("&populate[section][populate]=rules");
         if (locale != null) {
             query.append("&locale=").append(locale);
         }

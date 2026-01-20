@@ -8,6 +8,7 @@ import lombok.Data;
 public class FormatSummaryDto {
     private String mongoId;
     private String title;
-    // Para el resumen, tomaremos el texto de la primera descripción para simplificar
-    private String description;
+    private String subtitle;
+    private String imageUrl;
+    private String slug;
 }
