@@ -15,6 +15,12 @@
       "private": "Privado",
       "forging": "Forjando"
     },
+    "articles":{
+      "writtenBy":"Escrito por {0]",
+      "notFoundTitle": "Artículo no encontrado",
+      "notFoundDescription": "Lo sentimos, no pudimos encontrar el artículo que buscas.",
+      "backToHome": "Volver al inicio"
+    },
     "deckBuilder": {
       "title": "Forja de Mazo",
       "deckNameLabel": "Nombre del Mazo",
@@ -66,6 +72,7 @@
     "dashboard": {
       "newsTitle": "Últimas Noticias",
       "readAnalysis": "Leer análisis",
+      "readNews": "Leer noticia",
       "viewGuide": "Ver guía",
       "exploreMeta": "Explorar meta",
       "featuredDecks": "Mazos Destacados",
@@ -137,6 +144,12 @@
       "private": "Private",
       "forging": "Forging"
     },
+    "articles":{
+      "writtenBy":"Written by {0]",
+      "notFoundTitle": "Article not found",
+      "notFoundDescription": "Sorry, we couldn't find the article you're looking for.",
+      "backToHome": "Back to home"
+    },
     "deckBuilder": {
       "title": "Deck Forge",
       "deckNameLabel": "Deck Name",
@@ -187,6 +200,7 @@
     },
     "dashboard": {
       "newsTitle": "Latest News",
+      "readNews": "Red news",
       "readAnalysis": "Read analysis",
       "viewGuide": "View guide",
       "exploreMeta": "Explore meta",

@@ -39,7 +39,8 @@ public class ManaForgeApiApplication {
         return new ConcurrentMapCacheManager(
                 "scryfall_search", "scryfall_card", "scryfall_symbology", "scryfall_named", "scryfall_autocomplete",
                 // Strapi Caches
-                "footer", "footer-legal", "heros", "sections", "languages", "formats", "format-detail", "premodern_banned"
+                "footer", "footer-legal", "heros", "sections", "languages", "formats", "format-detail", "premodern_banned",
+                "article-detail", "articles-latest"
         );
     }
 

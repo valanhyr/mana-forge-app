@@ -15,38 +15,10 @@ import { ScryfallService } from "../../services/ScryfallService";
 import ForgeSpinner from "../../components/ui/ForgeSpinner";
 import { FormatService } from "../../services/FormatService";
 import { useTranslation } from "../../hooks/useTranslation";
+import { ArticleService } from "../../services/ArticleService";
+import { type Article } from "../../core/models/Article";
 
 // --- Mock Data ---
-
-// 1. Noticias
-const newsItems = [
-  {
-    title: "Nueva Expansión: Horizontes de Modern 3",
-    subtitle: "Descubre las cartas que cambiarán el formato para siempre.",
-    link: "/articles/mh3-review",
-    linkLabel: "Leer análisis",
-    imageUrl:
-      "https://api.scryfall.com/cards/named?exact=Ugin%27s%20Labyrinth&format=image&version=art_crop", // Ugin's Labyrinth
-  },
-  {
-    title: "Guía de Commander: Empezando con Urza",
-    subtitle:
-      "Aprende a construir un mazo poderoso alrededor de Urza, Lord Protector.",
-    link: "/articles/urza-commander",
-    linkLabel: "Ver guía",
-    imageUrl:
-      "https://api.scryfall.com/cards/named?exact=Urza%2C%20Lord%20Protector&format=image&version=art_crop", // Urza, Lord Protector
-  },
-  {
-    title: "El Estado del Metajuego de Premodern",
-    subtitle:
-      "Analizamos los mazos dominantes y las joyas ocultas del formato.",
-    link: "/articles/premodern-state",
-    linkLabel: "Explorar meta",
-    imageUrl:
-      "https://api.scryfall.com/cards/named?exact=Psychatog&format=image&version=art_crop", // Psychatog
-  },
-];
 
 // 2. Mazos del Día
 const deckOfTheDay = {
@@ -70,6 +42,7 @@ const Dashboard = () => {
   const { t, locale } = useTranslation();
   const [dailyDeck, setDailyDeck] = useState<DailyDeck | null>(null);
   const [popularFormats, setPopularFormats] = useState<FormatSummary[]>([]);
+  const [articles, setArticles] = useState<Article[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -124,6 +97,12 @@ const Dashboard = () => {
     };
 
     fetchDailyDeck();
+
+    const fetchArticles = async () => {
+      const fetchedArticles = await ArticleService.getLastArticles();
+      setArticles(fetchedArticles);
+    };
+    fetchArticles();
 
     const fetchFormats = async () => {
       try {
@@ -203,16 +182,16 @@ const Dashboard = () => {
           {t("dashboard.newsTitle")}
         </h2>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {newsItems.map((item, index) => (
+          {articles.map((item) => (
             <Link
-              to={item.link}
-              key={index}
+              to={`/articles/${item.documentId}`}
+              key={`${item.documentId}`}
               className="group relative block overflow-hidden rounded-2xl shadow-lg"
             >
               <div className="absolute inset-0 z-0">
                 <img
-                  src={item.imageUrl}
-                  alt={item.title}
+                  src={`${item.imageUrl}`}
+                  alt={`${item.title}`}
                   className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent"></div>
@@ -221,7 +200,7 @@ const Dashboard = () => {
                 <h3 className="text-xl font-bold">{item.title}</h3>
                 <p className="text-sm text-zinc-300 mt-1">{item.subtitle}</p>
                 <div className="mt-4 inline-flex items-center gap-2 text-orange-500 font-semibold text-sm group-hover:underline">
-                  {item.linkLabel}
+                  Leer más
                   <ArrowRight size={16} />
                 </div>
               </div>

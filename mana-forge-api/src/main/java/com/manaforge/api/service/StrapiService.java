@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.manaforge.api.model.strapi.*;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
@@ -39,7 +40,7 @@ public class StrapiService {
 
         SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
         requestFactory.setConnectTimeout(10000); // 10 segundos para conectar
-        requestFactory.setReadTimeout(30000);    // 30 segundos para leer datos (Strapi Cloud puede ser lento al despertar)
+        requestFactory.setReadTimeout(60000);    // 60 segundos para leer datos (Strapi Cloud puede ser lento al despertar)
 
         // Inicialización moderna del RestClient (Stack 2025)
         this.restClient = builder
@@ -90,7 +91,17 @@ public class StrapiService {
      */
     private JsonNode extractAttributes(JsonNode node) {
         if (node != null && node.has("attributes")) {
-            return node.get("attributes");
+            JsonNode attributes = node.get("attributes");
+            if (attributes instanceof ObjectNode) {
+                ObjectNode objNode = (ObjectNode) attributes;
+                if (node.has("id")) {
+                    objNode.set("id", node.get("id"));
+                }
+                if (node.has("documentId")) {
+                    objNode.set("documentId", node.get("documentId"));
+                }
+            }
+            return attributes;
         }
         return node;
     }
@@ -192,6 +203,31 @@ public class StrapiService {
 
         if (dataNode != null && dataNode.isArray() && dataNode.size() > 0) {
             return objectMapper.treeToValue(extractAttributes(dataNode.get(0)), StrapiFormatData.class);
+        }
+        return null;
+    }
+
+    @Cacheable(value = "articles-latest", key = "#locale + '-' + #limit")
+    public List<StrapiArticleData> getLatestArticles(String locale, int limit) throws JsonProcessingException {
+        String query = "locale=" + locale + "&populate=*&sort[0]=createdAt:desc&pagination[limit]=" + limit;
+        JsonNode dataNode = fetchFromStrapi("articles", query);
+
+        List<StrapiArticleData> articles = new ArrayList<>();
+        if (dataNode != null && dataNode.isArray()) {
+            for (JsonNode node : dataNode) {
+                articles.add(objectMapper.treeToValue(extractAttributes(node), StrapiArticleData.class));
+            }
+        }
+        return articles;
+    }
+
+    @Cacheable(value = "article-detail", key = "#documentId + '-' + #locale")
+    public StrapiArticleData getArticleByDocumentId(String documentId, String locale) throws JsonProcessingException {
+        String query = "populate=*&locale=" + locale;
+        JsonNode dataNode = fetchFromStrapi("articles/" + documentId, query);
+
+        if (dataNode != null && !dataNode.isArray()) {
+            return objectMapper.treeToValue(extractAttributes(dataNode), StrapiArticleData.class);
         }
         return null;
     }
