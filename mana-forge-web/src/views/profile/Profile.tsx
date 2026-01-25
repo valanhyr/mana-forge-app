@@ -1,16 +1,20 @@
 import React from "react";
 import { User, Mail, Shield, Settings, Save, LogOut, Lock } from "lucide-react";
+import { useUser } from "../../services/UserContext";
 
 const Profile = () => {
-  // Mock user data - En el futuro conectar con UserContext
-  const user = {
-    name: "Valanhyr",
-    email: "valanhyr@manaforge.com",
-    role: "Planeswalker (Admin)",
-    avatarUrl:
-      "https://api.scryfall.com/cards/named?exact=Jace%2C%20the%20Mind%20Sculptor&format=image&version=art_crop",
-    bio: "Blue mage at heart. Control decks are my passion.",
-  };
+  const { user } = useUser();
+  
+  // Mock avatar fijo como se solicitó
+  const avatarUrl = "https://api.scryfall.com/cards/named?exact=Jace%2C%20the%20Mind%20Sculptor&format=image&version=art_crop";
+
+  if (!user) {
+    return (
+      <div className="flex justify-center items-center min-h-[50vh] text-white">
+        <p>Cargando perfil...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-4xl mx-auto mt-8 px-4 sm:px-6 lg:px-8 pb-12">
@@ -22,15 +26,15 @@ const Profile = () => {
           <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 text-center shadow-lg">
             <div className="relative w-32 h-32 mx-auto mb-4 rounded-full overflow-hidden border-4 border-zinc-800 shadow-inner">
               <img
-                src={user.avatarUrl}
-                alt={user.name}
+                src={avatarUrl}
+                alt={user.username}
                 className="w-full h-full object-cover"
               />
             </div>
-            <h2 className="text-xl font-bold text-white">{user.name}</h2>
+            <h2 className="text-xl font-bold text-white">{user.username}</h2>
             <p className="text-zinc-400 text-sm">{user.email}</p>
             <div className="mt-4 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 text-indigo-400 text-xs font-medium border border-indigo-500/20">
-              <Shield size={12} /> {user.role}
+              <Shield size={12} /> Planeswalker
             </div>
           </div>
 
@@ -70,7 +74,7 @@ const Profile = () => {
                     />
                     <input
                       type="text"
-                      defaultValue={user.name}
+                      defaultValue={user.username}
                       className="w-full bg-zinc-950 border border-zinc-800 rounded-lg py-2.5 pl-10 pr-4 text-white focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-all placeholder:text-zinc-600"
                     />
                   </div>
@@ -99,7 +103,7 @@ const Profile = () => {
                   Biografía
                 </label>
                 <textarea
-                  defaultValue={user.bio}
+                  defaultValue={user.biography}
                   rows={4}
                   className="w-full bg-zinc-950 border border-zinc-800 rounded-lg p-4 text-white focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-all resize-none placeholder:text-zinc-600"
                 ></textarea>

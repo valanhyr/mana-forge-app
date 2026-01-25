@@ -1,19 +1,18 @@
 package com.manaforge.api.controller;
 
-import com.manaforge.api.model.mongo.User;
-import com.manaforge.api.repository.UserRepository;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-import java.util.HashMap;
-import java.util.Map;
+import com.manaforge.api.dto.UserDto;
+import com.manaforge.api.model.mongo.User;
+import com.manaforge.api.repository.UserRepository;
 
 @RestController
 @RequestMapping("/api/users")
@@ -43,10 +42,14 @@ public class UserController extends BaseMongoController<User, String> {
                             .path("/")
                             .build();
 
-                    Map<String, String> response = new HashMap<>();
-                    response.put("userId", user.getId());
-                    response.put("username", user.getUsername());
-                    response.put("email", user.getEmail());
+                    UserDto response = UserDto.builder()
+                            .userId(user.getId())
+                            .name(user.getName())
+                            .username(user.getUsername())
+                            .email(user.getEmail())
+                            .biography(user.getBiography())
+                            .friends(user.getFriends())
+                            .build();
 
                     return ResponseEntity.ok()
                             .header(HttpHeaders.SET_COOKIE, cookie.toString())
