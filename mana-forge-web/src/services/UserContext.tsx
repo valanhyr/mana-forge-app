@@ -2,6 +2,7 @@ import React, {
   createContext,
   useContext,
   useState,
+  useEffect,
   useCallback,
   useRef,
 } from "react";
@@ -74,6 +75,17 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
     document.cookie =
       "isLoged=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;";
   };
+
+  // Verificar si la sesión es válida en el servidor al cargar la app
+  useEffect(() => {
+    AuthService.checkSession()
+      .then((userData) => {
+        setUser(userData);
+      })
+      .catch(() => {
+        logout(); // Si falla (401), limpiamos el estado local y localStorage
+      });
+  }, []);
 
   // Lógica de caché inteligente para mazos
   const loadDecks = useCallback(

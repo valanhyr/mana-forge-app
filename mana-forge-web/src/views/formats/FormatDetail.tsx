@@ -69,14 +69,18 @@ const FormatDetail = () => {
       setLoadingBanlist(true);
       try {
         const response = await CardService.getBannedcards(data.slug);
-        if (response.ok) {
-          const result = await response.json();
-          // Aseguramos que sea un array, manejando posibles envoltorios
-          if (Array.isArray(result)) {
-            setBannedCards(result);
-          } else {
-            setBannedCards(result?.data || result?.cards || []);
-          }
+        
+        // Manejar si el servicio devuelve Response (fetch) o ya el JSON parseado directamente
+        let result = response;
+        if (response && typeof response.json === "function") {
+          if (!response.ok) throw new Error("Failed to fetch banlist");
+          result = await response.json();
+        }
+
+        if (Array.isArray(result)) {
+          setBannedCards(result);
+        } else {
+          setBannedCards(result?.data || result?.cards || []);
         }
       } catch (error) {
         console.error("Error fetching banlist:", error);

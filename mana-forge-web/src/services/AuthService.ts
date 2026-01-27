@@ -9,6 +9,7 @@ export const AuthService = {
       headers: {
         "Content-Type": "application/json",
       },
+      credentials: "include", // CRÍTICO: Permite recibir y guardar las cookies (JSESSIONID, isLoged) del backend
       body: JSON.stringify({ username, password }),
     });
 
@@ -16,6 +17,18 @@ export const AuthService = {
       throw new Error("Error en las credenciales");
     }
 
+    return response.json();
+  },
+
+  checkSession: async (): Promise<User> => {
+    const response = await fetch(`${API_URL}/users/me`, {
+      method: "GET",
+      credentials: "include", // Envía la cookie JSESSIONID para validar la sesión
+    });
+
+    if (!response.ok) {
+      throw new Error("Sesión inválida o expirada");
+    }
     return response.json();
   },
 
