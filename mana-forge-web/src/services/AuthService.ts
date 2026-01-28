@@ -20,6 +20,24 @@ export const AuthService = {
     return response.json();
   },
 
+  register: async (username: string, email: string, password: string): Promise<User> => {
+    const response = await fetch(`${API_URL}/users`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ username, email, password }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      // Spring Boot devuelve el mensaje en 'message', fallback a 'error' o texto genérico
+      throw new Error(errorData.message || errorData.error || "Error en el registro");
+    }
+
+    return response.json();
+  },
+
   checkSession: async (): Promise<User> => {
     const response = await fetch(`${API_URL}/users/me`, {
       method: "GET",
@@ -30,6 +48,14 @@ export const AuthService = {
       throw new Error("Sesión inválida o expirada");
     }
     return response.json();
+  },
+
+  logout: async (): Promise<void> => {
+    // Llamada al backend para invalidar la sesión y borrar la cookie HttpOnly
+    await fetch(`${API_URL}/users/logout`, {
+      method: "POST",
+      credentials: "include",
+    });
   },
 
   // Simulación de fetch de mazos (conectaremos con el backend real luego)

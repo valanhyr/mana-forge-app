@@ -17,6 +17,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.http.HttpStatus;
 
 import com.manaforge.api.dto.UserDto;
 import com.manaforge.api.model.mongo.User;
@@ -24,6 +26,7 @@ import com.manaforge.api.repository.UserRepository;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+
 
 @RestController
 @RequestMapping("/api/users")
@@ -70,7 +73,15 @@ public class UserController extends BaseMongoController<User, String> {
 
     @Override
     @PostMapping
-    public User create(@RequestBody User user) {
+    public ResponseEntity<User> create(@RequestBody User user) {
+        if (userRepository.findByUsername(user.getUsername()).isPresent()) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "El nombre de usuario ya está en uso");
+        }
+        // Asumiendo que UserRepository tiene findByEmail, si no, añádelo a la interfaz
+        if (userRepository.findByEmail(user.getEmail()).isPresent()) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "El correo electrónico ya está registrado");
+        }
+
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         return super.create(user);
     }
@@ -89,7 +100,7 @@ public class UserController extends BaseMongoController<User, String> {
                     SecurityContextHolder.setContext(context);
                     securityContextRepository.saveContext(context, request, response); // Esto genera la cookie JSESSIONID
 
-                    ResponseCookie cookie = ResponseCookie.from("isLoged", "true")
+                    ResponseCookie cookie = ResponseCookie.from("isLogged", "true")
                             .maxAge(30L * 24 * 60 * 60) // 30 días en segundos
                             .path("/")
                             .build();
@@ -119,7 +130,7 @@ public class UserController extends BaseMongoController<User, String> {
             session.invalidate();
         }
         // 2. Limpiar tu cookie manual
-        ResponseCookie cookie = ResponseCookie.from("isLoged", "").maxAge(0).path("/").build();
+        ResponseCookie cookie = ResponseCookie.from("isLogged", "").maxAge(0).path("/").build();
         return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, cookie.toString()).build();
     }
 

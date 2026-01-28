@@ -1,10 +1,15 @@
 package com.manaforge.api.controller;
 
+import java.util.List;
+
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 
 /**
  * Controlador base genérico para entidades de MongoDB.
@@ -34,8 +39,8 @@ public abstract class BaseMongoController<T, ID> {
     }
 
     @PostMapping
-    public T create(@RequestBody T entity) {
-        return repository.save(entity);
+    public ResponseEntity<T> create(@RequestBody T entity) {
+        return ResponseEntity.ok(repository.save(entity));
     }
 
     @PutMapping("/{id}")

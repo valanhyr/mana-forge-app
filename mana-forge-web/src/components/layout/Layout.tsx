@@ -4,10 +4,12 @@ import { Sword, ChevronDown, LogOut, User, Settings, Book } from "lucide-react";
 import { useUser } from "../../services/UserContext";
 import LanguageSelector from "../ui/LanguageSelector";
 import Footer from "./Footer";
+import AuthModal from "../../views/auth/Login";
 
 const Layout = () => {
   const { user, isAuthenticated, logout } = useUser();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
   // Cerrar menú al hacer clic fuera
@@ -104,12 +106,12 @@ const Layout = () => {
                 )}
               </div>
             ) : (
-              <Link
-                to="/login"
+              <button
+                onClick={() => setIsAuthModalOpen(true)}
                 className="bg-zinc-800 hover:bg-zinc-700 text-white px-5 py-2 rounded-lg transition-all text-sm font-bold shadow-lg hover:shadow-orange-900/10"
               >
                 Iniciar Sesión
-              </Link>
+              </button>
             )}
           </nav>
         </header>
@@ -119,6 +121,7 @@ const Layout = () => {
         </main>
       </div>
       <Footer />
+      <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
     </div>
   );
 };

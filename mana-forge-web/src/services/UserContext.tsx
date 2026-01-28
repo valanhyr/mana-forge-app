@@ -19,6 +19,7 @@ interface UserContextType {
   decks: Deck[];
   isAuthenticated: boolean;
   login: (username: string, password: string) => Promise<void>;
+  register: (username: string, email: string, password: string) => Promise<void>;
   logout: () => void;
   loadDecks: (force?: boolean) => Promise<void>;
 }
@@ -67,13 +68,28 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
-  const logout = () => {
+  const register = async (username: string, email: string, password: string) => {
+    try {
+      await AuthService.register(username, email, password);
+      await login(username, password); // Auto-login tras registro exitoso
+    } catch (error) {
+      console.error("Register error:", error);
+      throw error;
+    }
+  };
+
+  const logout = async () => {
+    try {
+      await AuthService.logout();
+    } catch (error) {
+      console.error("Error al cerrar sesión en el servidor:", error);
+    }
     setUser(null);
     setDecks([]);
     localStorage.removeItem(STORAGE_KEY);
-    // Intentar borrar la cookie isLoged (si no es HttpOnly)
-    document.cookie =
-      "isLoged=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;";
+    // Intentar borrar las cookies (isLoged no suele ser HttpOnly, JSESSIONID sí lo es)
+    document.cookie = "isLogged=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;";
+    document.cookie = "JSESSIONID=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;";
   };
 
   // Verificar si la sesión es válida en el servidor al cargar la app
@@ -162,6 +178,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
         decks,
         isAuthenticated: !!user,
         login,
+        register,
         logout,
         loadDecks,
       }}
