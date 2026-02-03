@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import { useUser } from "../../services/UserContext";
 import DeckTable from "../../components/ui/DeckTable";
 import { Plus } from "lucide-react";

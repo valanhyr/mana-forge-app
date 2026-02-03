@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import {
   ArrowRight,
@@ -274,7 +274,9 @@ const Dashboard = () => {
                 </div>
                 <h3 className="text-lg font-bold text-white">{format.title}</h3>
               </div>
-              <p className="text-sm text-zinc-400 line-clamp-3">{format.subtitle}</p>
+              <p className="text-sm text-zinc-400 line-clamp-3">
+                {format.subtitle}
+              </p>
             </Link>
           ))}
         </div>

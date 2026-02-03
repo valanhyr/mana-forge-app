@@ -1,4 +1,4 @@
-import React, {
+import {
   createContext,
   useContext,
   useState,
@@ -19,7 +19,11 @@ interface UserContextType {
   decks: Deck[];
   isAuthenticated: boolean;
   login: (username: string, password: string) => Promise<void>;
-  register: (username: string, email: string, password: string) => Promise<void>;
+  register: (
+    username: string,
+    email: string,
+    password: string
+  ) => Promise<void>;
   logout: () => void;
   loadDecks: (force?: boolean) => Promise<void>;
 }
@@ -68,7 +72,11 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
-  const register = async (username: string, email: string, password: string) => {
+  const register = async (
+    username: string,
+    email: string,
+    password: string
+  ) => {
     try {
       await AuthService.register(username, email, password);
       await login(username, password); // Auto-login tras registro exitoso
@@ -88,8 +96,10 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
     setDecks([]);
     localStorage.removeItem(STORAGE_KEY);
     // Intentar borrar las cookies (isLoged no suele ser HttpOnly, JSESSIONID sí lo es)
-    document.cookie = "isLogged=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;";
-    document.cookie = "JSESSIONID=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;";
+    document.cookie =
+      "isLogged=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;";
+    document.cookie =
+      "JSESSIONID=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;";
   };
 
   // Verificar si la sesión es válida en el servidor al cargar la app

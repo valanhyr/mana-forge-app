@@ -1,0 +1,35 @@
+services:
+  web:
+    build:
+      context: ./mana-forge-web
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+    depends_on:
+      - api
+    restart: always
+
+  api:
+    build:
+      context: ./mana-forge-api
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - SERVICES_PYTHON-ENGINE_URL=http://engine:8000
+      - STRAPI_API_URL=${STRAPI_API_URL}
+      - STRAPI_API_TOKEN=${STRAPI_API_TOKEN}
+      - SPRING_DATA_MONGODB_URI=${MONGODB_URI}
+    depends_on:
+      - engine
+    restart: always
+
+  engine:
+    build:
+      context: ./mana-forge-engine
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - GROQ_API_KEY=${GROQ_API_KEY}
+    restart: always

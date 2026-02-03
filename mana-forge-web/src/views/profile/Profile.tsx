@@ -1,12 +1,12 @@
-import React from "react";
 import { User, Mail, Shield, Settings, Save, LogOut, Lock } from "lucide-react";
 import { useUser } from "../../services/UserContext";
 
 const Profile = () => {
   const { user } = useUser();
-  
+
   // Mock avatar fijo como se solicitó
-  const avatarUrl = "https://api.scryfall.com/cards/named?exact=Jace%2C%20the%20Mind%20Sculptor&format=image&version=art_crop";
+  const avatarUrl =
+    "https://api.scryfall.com/cards/named?exact=Jace%2C%20the%20Mind%20Sculptor&format=image&version=art_crop";
 
   if (!user) {
     return (

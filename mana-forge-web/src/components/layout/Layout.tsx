@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link, Outlet } from "react-router-dom";
 import { Sword, ChevronDown, LogOut, User, Settings, Book } from "lucide-react";
 import { useUser } from "../../services/UserContext";
@@ -121,7 +121,10 @@ const Layout = () => {
         </main>
       </div>
       <Footer />
-      <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+      />
     </div>
   );
 };

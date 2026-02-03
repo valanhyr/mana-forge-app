@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { ArrowLeft, Calendar, User, Loader2 } from "lucide-react";
 import { ArticleService } from "../../services/ArticleService";
@@ -27,7 +27,10 @@ const ArticleDetail = () => {
         return;
       }
       setLoading(true);
-      const fetchedArticle = await ArticleService.getArticle(documentId as string, locale);
+      const fetchedArticle = await ArticleService.getArticle(
+        documentId as string,
+        locale
+      );
       setArticle(fetchedArticle);
       setLoading(false);
     };

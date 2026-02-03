@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import {
   ArrowLeft,
@@ -69,7 +69,7 @@ const FormatDetail = () => {
       setLoadingBanlist(true);
       try {
         const response = await CardService.getBannedcards(data.slug);
-        
+
         // Manejar si el servicio devuelve Response (fetch) o ya el JSON parseado directamente
         let result = response;
         if (response && typeof response.json === "function") {

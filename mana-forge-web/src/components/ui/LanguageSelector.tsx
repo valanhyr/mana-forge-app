@@ -1,5 +1,5 @@
 // src/components/ui/LanguageSelector.tsx
-import React, { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Globe, ChevronDown, Check } from "lucide-react";
 import { useLanguage, type Locale } from "../../services/LanguageContext";
 

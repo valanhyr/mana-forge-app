@@ -1,4 +1,3 @@
-import React from "react";
 import { Link } from "react-router-dom";
 import { Sword, Github, Twitter, Linkedin } from "lucide-react";
 import { useTranslation } from "../../hooks/useTranslation";
