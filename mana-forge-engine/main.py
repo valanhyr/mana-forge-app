@@ -1,3 +1,4 @@
+"""Mana Forge Engine API"""
 import logging
 import uvicorn
 from fastapi import FastAPI, HTTPException
@@ -68,9 +69,9 @@ async def analyze_deck(request: DeckAnalysisRequest):
     
     try:
         result = ai_service.analyze_deck(
-            request.main_deck, 
-            request.sideboard, 
-            request.format_name, 
+            request.main_deck,
+            request.sideboard,
+            request.format_name,
             request.locale,
             request.meta_archetypes
         )

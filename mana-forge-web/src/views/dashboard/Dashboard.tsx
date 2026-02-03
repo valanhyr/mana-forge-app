@@ -332,6 +332,26 @@ const Dashboard = () => {
                       ))}
                     </ul>
                   </div>
+
+                  {dailyDeck.sideboard && dailyDeck.sideboard.length > 0 && (
+                    <div>
+                      <h4 className="font-bold text-white mb-3 flex items-center gap-2">
+                        <Layers size={18} className="text-zinc-500" />{" "}
+                        {t("common.sideboard")}
+                      </h4>
+                      <ul className="text-sm text-zinc-300 space-y-1 font-mono">
+                        {dailyDeck.sideboard.map((c, i) => (
+                          <li
+                            key={i}
+                            className="flex justify-between border-b border-zinc-800/50 pb-1 last:border-0"
+                          >
+                            <span>{c.name}</span>
+                            <span className="text-zinc-500">{c.quantity}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
                 </div>
 
                 {/* Columna 2 y 3: Análisis y Estrategia */}
