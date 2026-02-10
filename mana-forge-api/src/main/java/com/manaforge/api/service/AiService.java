@@ -47,7 +47,7 @@ public class AiService {
 
     public Map<String, Object> generateRandomDeck(Map<String, Object> payload) {
         String url = engineUrl + "/generate-random-deck";
-        logger.info("Calling AI Engine (Random): {}", url);
+        logger.info("Calling AI Engine (Random): {} [Thread: {}]", url, Thread.currentThread().getName());
 
         try {
             HttpHeaders headers = new HttpHeaders();
@@ -57,10 +57,17 @@ public class AiService {
 
             @SuppressWarnings("unchecked")
             Map<String, Object> response = restTemplate.postForObject(url, request, Map.class);
-            return response != null ? response : Collections.emptyMap();
+            
+            if (response == null || response.containsKey("error")) {
+                logger.warn("AI Engine returned invalid response for random deck: {}", response);
+                return null;
+            }
+            
+            logger.info("AI Engine returned a valid deck response.");
+            return response;
         } catch (Exception e) {
             logger.error("Error generating random deck with AI: {}", e.getMessage());
-            return Map.of("error", "AI Service unavailable", "details", e.getMessage());
+            return null;
         }
     }
 }

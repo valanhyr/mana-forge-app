@@ -1,6 +1,7 @@
 package com.manaforge.api.controller;
 
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -9,6 +10,7 @@ import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,7 +20,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
-import org.springframework.http.HttpStatus;
 
 import com.manaforge.api.dto.UserDto;
 import com.manaforge.api.model.mongo.User;
@@ -57,8 +58,17 @@ public class UserController extends BaseMongoController<User, String> {
             return ResponseEntity.status(401).build();
         }
 
-        String username = (String) authentication.getPrincipal();
-        return userRepository.findByUsername(username)
+        Object principal = authentication.getPrincipal();
+        String identifier;
+
+        if (principal instanceof OAuth2User oAuth2User) {
+            identifier = oAuth2User.getAttribute("email");
+        } else {
+            identifier = principal.toString();
+        }
+
+        return userRepository.findByUsername(identifier)
+                .or(() -> userRepository.findByEmail(identifier))
                 .map(user -> UserDto.builder()
                         .userId(user.getId())
                         .name(user.getName())

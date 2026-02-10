@@ -1,7 +1,8 @@
 package com.manaforge.api;
 
-import io.swagger.v3.oas.models.OpenAPI;
-import io.swagger.v3.oas.models.info.Info;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cache.CacheManager;
@@ -12,15 +13,17 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.MediaType;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.http.converter.AbstractHttpMessageConverter;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.List;
+import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.info.Info;
 
 @SpringBootApplication
 @EnableCaching
@@ -34,19 +37,27 @@ public class ManaForgeApiApplication {
     @Bean
     public RestTemplate restTemplate() {
         RestTemplate restTemplate = new RestTemplate();
-        MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
-        converter.setSupportedMediaTypes(List.of(MediaType.APPLICATION_JSON, MediaType.TEXT_HTML));
-        restTemplate.getMessageConverters().add(0, converter);
+        restTemplate.getMessageConverters().stream()
+                .filter(c -> c.getSupportedMediaTypes().contains(MediaType.APPLICATION_JSON))
+                .filter(c -> c instanceof AbstractHttpMessageConverter)
+                .map(c -> (AbstractHttpMessageConverter<?>) c)
+                .findFirst()
+                .ifPresent(c -> {
+                    List<MediaType> types = new ArrayList<>(c.getSupportedMediaTypes());
+                    types.add(MediaType.TEXT_HTML);
+                    c.setSupportedMediaTypes(types);
+                });
         return restTemplate;
     }
 
     @Bean
     @Order(Ordered.HIGHEST_PRECEDENCE)
-    public SecurityFilterChain publicSecurityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain publicSecurityFilterChain(HttpSecurity http, AuthenticationSuccessHandler successHandler) throws Exception {
         http
-            .securityMatcher("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/api/**")
+            .securityMatcher("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/api/**", "/oauth2/**", "/login/**")
             .csrf(AbstractHttpConfigurer::disable)
-            .authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
+            .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
+            .oauth2Login(oauth2 -> oauth2.successHandler(successHandler));
         return http.build();
     }
 
