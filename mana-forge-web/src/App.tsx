@@ -9,12 +9,14 @@ import FormatDetail from "./views/formats/FormatDetail";
 import Profile from "./views/profile/Profile";
 import ArticleDetail from "./views/articles/articleDetail";
 import { LanguageProvider } from "./services/LanguageContext";
+import ScrollToTop from "./components/layout/ScrollToTop";
 
 function App() {
   return (
     <LanguageProvider>
       <UserProvider>
         <BrowserRouter>
+          <ScrollToTop />
           <Routes>
             <Route path="/" element={<Layout />}>
               <Route index element={<Dashboard />} />
