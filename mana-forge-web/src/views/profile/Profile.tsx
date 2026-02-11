@@ -1,7 +1,9 @@
 import { User, Mail, Shield, Settings, Save, LogOut, Lock } from "lucide-react";
 import { useUser } from "../../services/UserContext";
+import { useTranslation } from "../../hooks/useTranslation";
 
 const Profile = () => {
+  const { t } = useTranslation();
   const { user } = useUser();
 
   // Mock avatar fijo como se solicitó
@@ -11,14 +13,16 @@ const Profile = () => {
   if (!user) {
     return (
       <div className="flex justify-center items-center min-h-[50vh] text-white">
-        <p>Cargando perfil...</p>
+        <p>{t("profile.loadingProfile")}</p>
       </div>
     );
   }
 
   return (
     <div className="max-w-4xl mx-auto mt-8 px-4 sm:px-6 lg:px-8 pb-12">
-      <h1 className="text-3xl font-bold text-white mb-8">Mi Perfil</h1>
+      <h1 className="text-3xl font-bold text-white mb-8">
+        {t("profile.title")}
+      </h1>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Sidebar / User Card */}
@@ -41,13 +45,13 @@ const Profile = () => {
           <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-2 shadow-lg">
             <nav className="space-y-1">
               <button className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-white bg-zinc-800 rounded-xl transition-colors shadow-sm">
-                <User size={18} /> Información Personal
+                <User size={18} /> {t("profile.personalInfo")}
               </button>
               <button className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-zinc-400 hover:text-white hover:bg-zinc-800/50 rounded-xl transition-colors">
-                <Settings size={18} /> Preferencias
+                <Settings size={18} /> {t("profile.preferences")}
               </button>
               <button className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-xl transition-colors">
-                <LogOut size={18} /> Cerrar Sesión
+                <LogOut size={18} /> {t("userOptions.logout")}
               </button>
             </nav>
           </div>
@@ -58,14 +62,15 @@ const Profile = () => {
           {/* Personal Info */}
           <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-8 shadow-lg">
             <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
-              <User size={20} className="text-orange-500" /> Editar Perfil
+              <User size={20} className="text-orange-500" />{" "}
+              {t("profile.editProfile")}
             </h3>
 
             <form className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-zinc-300">
-                    Nombre de Usuario
+                    {t("profile.username")}
                   </label>
                   <div className="relative">
                     <User
@@ -82,7 +87,7 @@ const Profile = () => {
 
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-zinc-300">
-                    Correo Electrónico
+                    {t("profile.email")}
                   </label>
                   <div className="relative">
                     <Mail
@@ -100,7 +105,7 @@ const Profile = () => {
 
               <div className="space-y-2">
                 <label className="text-sm font-medium text-zinc-300">
-                  Biografía
+                  {t("profile.biography")}
                 </label>
                 <textarea
                   defaultValue={user.biography}
@@ -108,7 +113,7 @@ const Profile = () => {
                   className="w-full bg-zinc-950 border border-zinc-800 rounded-lg p-4 text-white focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-all resize-none placeholder:text-zinc-600"
                 ></textarea>
                 <p className="text-xs text-zinc-500">
-                  Breve descripción sobre ti y tus mazos favoritos.
+                  {t("profile.biographyDescription")}
                 </p>
               </div>
 
@@ -117,7 +122,7 @@ const Profile = () => {
                   type="button"
                   className="flex items-center gap-2 bg-orange-600 hover:bg-orange-500 text-white px-6 py-2.5 rounded-lg font-medium transition-colors shadow-lg shadow-orange-900/20"
                 >
-                  <Save size={18} /> Guardar Cambios
+                  <Save size={18} /> {t("profile.editProfileButton")}
                 </button>
               </div>
             </form>
@@ -125,16 +130,17 @@ const Profile = () => {
 
           {/* Security (Visual only for now) */}
           <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-8 shadow-lg opacity-75 hover:opacity-100 transition-opacity">
-            <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
-              <Lock size={20} className="text-indigo-500" /> Seguridad
+            <h3 className="text-xl font-bold text-white mb-6 flex items-center g  ap-2">
+              <Lock size={20} className="text-indigo-500" />{" "}
+              {t("profile.security")}
             </h3>
             <div className="space-y-4">
               <button className="text-sm text-indigo-400 hover:text-indigo-300 font-medium">
-                Cambiar Contraseña
+                {t("profile.changePassword")}
               </button>
               <div className="h-px bg-zinc-800"></div>
               <button className="text-sm text-red-400 hover:text-red-300 font-medium">
-                Eliminar Cuenta
+                {t("profile.deleteAccount")}
               </button>
             </div>
           </div>

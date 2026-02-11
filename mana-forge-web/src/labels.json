@@ -15,30 +15,58 @@
       "private": "Privado",
       "forging": "Forjando"
     },
-    "articles":{
-      "writtenBy":"Escrito por {0]",
+    "articles": {
+      "writtenBy": "Escrito por {0]",
       "notFoundTitle": "Artículo no encontrado",
       "notFoundDescription": "Lo sentimos, no pudimos encontrar el artículo que buscas.",
       "backToHome": "Volver al inicio"
     },
     "auth": {
-    "loginTab": "Iniciar Sesión",
-    "registerTab": "Registrarse",
-    "welcomeBack": "Bienvenido de nuevo",
-    "createAccount": "Crea tu cuenta",
-    "username": "Usuario",
-    "usernamePlaceholder": "Tu nombre de usuario",
-    "email": "Email",
-    "emailPlaceholder": "tu@email.com",
-    "password": "Contraseña",
-    "passwordPlaceholder": "••••••••",
-    "loginButton": "Entrar",
-    "registerButton": "Registrarse",
-    "error": {
-      "credentials": "Usuario o contraseña incorrectos",
-      "notImplemented": "Registro no implementado aún"
-    }
-  },
+      "loginTab": "Iniciar Sesión",
+      "registerTab": "Registrarse",
+      "welcomeBack": "Bienvenido de nuevo",
+      "createAccount": "Crea tu cuenta",
+      "username": "Usuario",
+      "usernamePlaceholder": "Tu nombre de usuario",
+      "email": "Email",
+      "emailPlaceholder": "tu@email.com",
+      "password": "Contraseña",
+      "passwordPlaceholder": "••••••••",
+      "loginButton": "Entrar",
+      "registerButton": "Registrarse",
+      "continueWith": "O continuar con",
+      "error": {
+        "credentials": "Usuario o contraseña incorrectos",
+        "notImplemented": "Registro no implementado aún"
+      }
+    },
+    "userOptions": {
+      "connectedAs": "Conectado como",
+      "myDecks": "Mis Mazos",
+      "myProfile": "Mi Perfil",
+      "mySettings": "Mis Configuraciones",
+      "myNotifications": "Mis Notificaciones",
+      "myMessages": "Mis Mensajes",
+      "myFriends": "Mis Amigos",
+      "myAchievements": "Mis Logros",
+      "logout": "Cerrar Sesión",
+      "login": "Iniciar Sesión"
+    },
+    "profile": {
+      "title": "Mi Perfil",
+      "editProfile": "Editar Perfil",
+      "personalInfo": "Información Personal",
+      "preferences": "Preferencias",
+      "username": "Nombre de Usuario",
+      "email": "Correo Electrónico",
+      "biography": "Biografía",
+      "biographyDescription": "Breve descripción sobre ti y tus mazos favoritos.",
+      "editProfileButton": "Guardar Cambios",
+      "changePassword": "Cambiar Contraseña",
+      "security": "Seguridad",
+      "deleteAccount": "Eliminar Cuenta",
+      "loadingProfile": "Cargando perfil..."
+    },
     "deckBuilder": {
       "title": "Forja de Mazo",
       "deckNameLabel": "Nombre del Mazo",
@@ -162,29 +190,57 @@
       "private": "Private",
       "forging": "Forging"
     },
-    "articles":{
-      "writtenBy":"Written by {0]",
+    "articles": {
+      "writtenBy": "Written by {0]",
       "notFoundTitle": "Article not found",
       "notFoundDescription": "Sorry, we couldn't find the article you're looking for.",
       "backToHome": "Back to home"
     },
     "auth": {
-    "loginTab": "Login",
-    "registerTab": "Sign Up",
-    "welcomeBack": "Welcome Back",
-    "createAccount": "Create Account",
-    "username": "Username",
-    "usernamePlaceholder": "Your username",
-    "email": "Email",
-    "emailPlaceholder": "you@email.com",
-    "password": "Password",
-    "passwordPlaceholder": "••••••••",
-    "loginButton": "Log In",
-    "registerButton": "Sign Up",
-    "error": {
-      "credentials": "Incorrect username or password",
-      "notImplemented": "Registration not implemented yet"
+      "loginTab": "Login",
+      "registerTab": "Sign Up",
+      "welcomeBack": "Welcome Back",
+      "createAccount": "Create Account",
+      "username": "Username",
+      "usernamePlaceholder": "Your username",
+      "email": "Email",
+      "emailPlaceholder": "you@email.com",
+      "password": "Password",
+      "passwordPlaceholder": "••••••••",
+      "loginButton": "Log In",
+      "registerButton": "Sign Up",
+      "continueWith": "Or continue with",
+      "error": {
+        "credentials": "Incorrect username or password",
+        "notImplemented": "Registration not implemented yet"
       }
+    },
+    "userOptions": {
+      "connectedAs": "Connected as",
+      "myDecks": "My Decks",
+      "myProfile": "My Profile",
+      "mySettings": "My Settings",
+      "myNotifications": "My Notifications",
+      "myMessages": "My Messages",
+      "myFriends": "My Friends",
+      "myAchievements": "My Achievements",
+      "logout": "Logout",
+      "login": "Login"
+    },
+    "profile": {
+      "title": "My Profile",
+      "editProfile": "Edit Profile",
+      "personalInfo": "Personal Info",
+      "preferences": "Preferences",
+      "username": "Username",
+      "email": "Email",
+      "biography": "Biography",
+      "biographyDescription": "Brief description about you and your favorite decks.",
+      "editProfileButton": "Save Changes",
+      "changePassword": "Change Password",
+      "security": "Security",
+      "deleteAccount": "Delete Account",
+      "loadingProfile": "Loading profile..."
     },
     "deckBuilder": {
       "title": "Deck Forge",

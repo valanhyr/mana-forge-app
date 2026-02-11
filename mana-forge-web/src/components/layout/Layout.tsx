@@ -5,8 +5,10 @@ import { useUser } from "../../services/UserContext";
 import LanguageSelector from "../ui/LanguageSelector";
 import Footer from "./Footer";
 import AuthModal from "../../views/auth/Login";
+import { useTranslation } from "../../hooks/useTranslation";
 
 const Layout = () => {
+  const { t } = useTranslation();
   const { user, isAuthenticated, logout } = useUser();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
@@ -65,7 +67,7 @@ const Layout = () => {
                   <div className="absolute right-0 mt-3 w-56 bg-zinc-900 border border-zinc-800 rounded-xl shadow-2xl py-2 z-50 overflow-hidden">
                     <div className="px-4 py-3 border-b border-zinc-800 mb-2 bg-zinc-900/50">
                       <p className="text-xs text-zinc-500 uppercase tracking-wider">
-                        Conectado como
+                        {t("userOptions.connectedAs")}
                       </p>
                       <p className="text-sm text-white truncate font-medium">
                         {user.email}
@@ -76,19 +78,19 @@ const Layout = () => {
                       to="/my-decks"
                       className="flex items-center gap-2 px-4 py-2 text-sm text-zinc-300 hover:bg-zinc-800 hover:text-orange-500 transition-colors"
                     >
-                      <Book size={16} /> Mis Mazos
+                      <Book size={16} /> {t("userOptions.myDecks")}
                     </Link>
                     <Link
                       to="/profile"
                       className="flex items-center gap-2 px-4 py-2 text-sm text-zinc-300 hover:bg-zinc-800 hover:text-orange-500 transition-colors"
                     >
-                      <User size={16} /> Mi Perfil
+                      <User size={16} /> {t("userOptions.myProfile")}
                     </Link>
                     <Link
                       to="/settings"
                       className="flex items-center gap-2 px-4 py-2 text-sm text-zinc-300 hover:bg-zinc-800 hover:text-orange-500 transition-colors"
                     >
-                      <Settings size={16} /> Configuración
+                      <Settings size={16} /> {t("userOptions.mySettings")}
                     </Link>
 
                     <div className="border-t border-zinc-800 my-2"></div>
@@ -100,7 +102,7 @@ const Layout = () => {
                       }}
                       className="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-colors flex items-center gap-2"
                     >
-                      <LogOut size={16} /> Cerrar Sesión
+                      <LogOut size={16} /> {t("userOptions.logout")}
                     </button>
                   </div>
                 )}
@@ -110,7 +112,7 @@ const Layout = () => {
                 onClick={() => setIsAuthModalOpen(true)}
                 className="bg-zinc-800 hover:bg-zinc-700 text-white px-5 py-2 rounded-lg transition-all text-sm font-bold shadow-lg hover:shadow-orange-900/10"
               >
-                Iniciar Sesión
+                {t("userOptions.login")}
               </button>
             )}
           </nav>

@@ -135,7 +135,7 @@ const AuthModal = ({ isOpen = true, onClose }: AuthModalProps) => {
               </div>
               <div className="relative flex justify-center text-sm">
                 <span className="px-2 bg-zinc-900 text-zinc-500">
-                  O continuar con
+                  {t("auth.continueWith")}
                 </span>
               </div>
             </div>
