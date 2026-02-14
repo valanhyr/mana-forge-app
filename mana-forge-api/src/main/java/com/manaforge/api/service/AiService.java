@@ -19,10 +19,11 @@ public class AiService {
     private final RestTemplate restTemplate;
     private final String engineUrl;
 
-    public AiService(RestTemplate restTemplate, @Value("${manaforge.engine.url:http://localhost:8000/v1/ai}") String engineUrl) {
+    public AiService(RestTemplate restTemplate, @Value("${services.python-engine.url:http://localhost:8000}") String engineUrl) {
         this.restTemplate = restTemplate;
-        // Asegurar que no haya doble barra al concatenar
-        this.engineUrl = engineUrl.endsWith("/") ? engineUrl.substring(0, engineUrl.length() - 1) : engineUrl;
+        // Asegurar que no haya doble barra al concatenar y que termine en /v1/ai
+        String baseUrl = engineUrl.endsWith("/") ? engineUrl.substring(0, engineUrl.length() - 1) : engineUrl;
+        this.engineUrl = baseUrl.endsWith("/v1/ai") ? baseUrl : baseUrl + "/v1/ai";
     }
 
     public Map<String, Object> analyzeDeck(Map<String, Object> deckPayload) {

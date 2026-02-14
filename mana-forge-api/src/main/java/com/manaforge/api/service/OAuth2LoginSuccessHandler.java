@@ -3,6 +3,7 @@ package com.manaforge.api.service;
 import java.io.IOException;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
@@ -20,6 +21,9 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Value("${services.frontend.url}")
+    private String frontendUrl;
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
@@ -47,6 +51,6 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
 
         // 3. Redirección final (ej. a tu aplicación frontend)
         // Podrías generar un JWT aquí y pasarlo como query param si tu frontend es separado
-        response.sendRedirect("http://localhost:5173/profile"); 
+        response.sendRedirect(frontendUrl + "/profile"); 
     }
 }
