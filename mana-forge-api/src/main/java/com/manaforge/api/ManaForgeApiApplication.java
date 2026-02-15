@@ -19,7 +19,6 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.web.client.RestTemplate;
 
 import io.swagger.v3.oas.models.OpenAPI;
@@ -52,7 +51,7 @@ public class ManaForgeApiApplication {
 
     @Bean
     @Order(Ordered.HIGHEST_PRECEDENCE)
-    public SecurityFilterChain publicSecurityFilterChain(HttpSecurity http, AuthenticationSuccessHandler successHandler) throws Exception {
+    public SecurityFilterChain publicSecurityFilterChain(HttpSecurity http) throws Exception {
         http
             .securityMatcher("/**") // Al estar bajo /api, esto significa realmente /api/**
             .csrf(csrf -> csrf.disable())
@@ -63,9 +62,7 @@ public class ManaForgeApiApplication {
                 .anyRequest().authenticated()
             )
             .requiresChannel(channel -> channel.anyRequest().requiresSecure())
-            .oauth2Login(oauth -> oauth
-                .successHandler(successHandler)
-            );
+            .oauth2Login(Customizer.withDefaults());
         return http.build();
     }
 
