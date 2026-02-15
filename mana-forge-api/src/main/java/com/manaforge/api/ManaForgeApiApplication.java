@@ -62,6 +62,7 @@ public class ManaForgeApiApplication {
                 .requestMatchers("/oauth2/**", "/login/**", "/decks/**", "/cards/**").permitAll()
                 .anyRequest().authenticated()
             )
+            .requiresChannel(channel -> channel.anyRequest().requiresSecure())
             .oauth2Login(oauth -> oauth
                 .successHandler(successHandler)
             );

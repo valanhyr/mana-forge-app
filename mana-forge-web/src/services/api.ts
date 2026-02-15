@@ -1,6 +1,7 @@
 import axios from "axios";
 
-export const API_URL = import.meta.env.VITE_API_URL || "/api";
+export const API_URL =
+  import.meta.env.VITE_API_URL || "https://mana-forge.com/api";
 // Crear instancia base de Axios
 export const api = axios.create({
   baseURL: API_URL,
