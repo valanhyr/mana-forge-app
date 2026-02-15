@@ -55,9 +55,15 @@ public class ManaForgeApiApplication {
     public SecurityFilterChain publicSecurityFilterChain(HttpSecurity http, AuthenticationSuccessHandler successHandler) throws Exception {
         http
             .securityMatcher("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/api/**", "/oauth2/**", "/login/**")
+            .cors(cors -> cors.configure(http)) // Asegura que use la config de CORS
             .csrf(AbstractHttpConfigurer::disable)
-            .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
-            .oauth2Login(oauth2 -> oauth2.successHandler(successHandler));
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/api/oauth2/**", "/api/login/**", "/oauth2/**", "/login/**").permitAll() // Permiso explícito
+                .anyRequest().permitAll()
+            )
+            .oauth2Login(oauth2 -> oauth2
+                .successHandler(successHandler)
+            );
         return http.build();
     }
 
