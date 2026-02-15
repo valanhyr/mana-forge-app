@@ -7,6 +7,12 @@ COPY package*.json ./
 RUN npm install
 
 COPY . .
+
+# --- ESTAS DOS LÍNEAS SON EL PUENTE ---
+ARG VITE_API_URL
+ENV VITE_API_URL=$VITE_API_URL
+# -------------------------------------
+
 RUN npm run build
 
 # Stage 2: Serve
