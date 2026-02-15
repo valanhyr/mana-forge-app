@@ -10,8 +10,6 @@ import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cache.concurrent.ConcurrentMapCacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
-import org.springframework.core.Ordered;
-import org.springframework.core.annotation.Order;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.AbstractHttpMessageConverter;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -50,14 +48,12 @@ public class ManaForgeApiApplication {
     }
 
     @Bean
-    @Order(Ordered.HIGHEST_PRECEDENCE)
     public SecurityFilterChain publicSecurityFilterChain(HttpSecurity http, AuthenticationSuccessHandler successHandler) throws Exception {
         http
-            .securityMatcher("/**") // Captura todo lo que le mande Nginx
-            .csrf(csrf -> csrf.disable()) // Desactiva CSRF para evitar el 403 en el redireccionamiento
+            .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
-                // Permitimos explícitamente las rutas de login con y sin el prefijo /api
-                .requestMatchers("/api/oauth2/**", "/api/login/**", "/oauth2/**", "/login/**").permitAll()
+                // Abrimos todas las rutas que Google y Spring usan para el handshake
+                .requestMatchers("/login/**", "/oauth2/**", "/api/login/**", "/api/oauth2/**").permitAll()
                 .anyRequest().permitAll()
             )
             .oauth2Login(oauth2 -> oauth2
