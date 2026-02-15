@@ -1,8 +1,10 @@
 import axios from "axios";
 
+export const API_URL =
+  import.meta.env.VITE_API_URL || "http://localhost:8080/api";
 // Crear instancia base de Axios
 export const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "http://localhost:8080/api",
+  baseURL: API_URL,
 });
 
 // Interceptor de Solicitud: Inyecta el idioma en cada petición
@@ -17,5 +19,5 @@ api.interceptors.request.use(
   },
   (error) => {
     return Promise.reject(error);
-  }
+  },
 );

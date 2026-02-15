@@ -1,4 +1,4 @@
-const API_URL = "http://localhost:8080/api";
+import { API_URL } from "./api";
 
 export const CardService = {
   autocomplete: async (query: string): Promise<string[]> => {
@@ -6,7 +6,7 @@ export const CardService = {
 
     try {
       const response = await fetch(
-        `${API_URL}/cards/autocomplete?q=${encodeURIComponent(query)}`
+        `${API_URL}/cards/autocomplete?q=${encodeURIComponent(query)}`,
       );
       if (!response.ok) return [];
       const json = await response.json();
@@ -21,7 +21,7 @@ export const CardService = {
     try {
       const exactQuery = `!"${name}"`;
       const exactResponse = await fetch(
-        `${API_URL}/cards/scryfall?q=${encodeURIComponent(exactQuery)}`
+        `${API_URL}/cards/scryfall?q=${encodeURIComponent(exactQuery)}`,
       );
 
       if (exactResponse.ok) {
@@ -33,7 +33,7 @@ export const CardService = {
 
       // 2. Si falla (ej. nombres en español "Bosque"), intentar búsqueda general
       const response = await fetch(
-        `${API_URL}/cards/scryfall?q=${encodeURIComponent(name)}`
+        `${API_URL}/cards/scryfall?q=${encodeURIComponent(name)}`,
       );
       if (!response.ok) throw new Error("Card not found");
 
@@ -61,13 +61,13 @@ export const CardService = {
       throw error;
     }
   },
-  
- /**
- * Obtiene la lista de cartas prohibidas según el formato de juego.
- * @param {string} format - El formato de cartas (ej: 'standard', 'modern', 'commander').
- * @returns {Promise<Card[]>} Una promesa que resuelve a un array de objetos tipo Card.
- * @throws {Error} Si la respuesta de la red no es exitosa o la carta no existe.
- */
+
+  /**
+   * Obtiene la lista de cartas prohibidas según el formato de juego.
+   * @param {string} format - El formato de cartas (ej: 'standard', 'modern', 'commander').
+   * @returns {Promise<Card[]>} Una promesa que resuelve a un array de objetos tipo Card.
+   * @throws {Error} Si la respuesta de la red no es exitosa o la carta no existe.
+   */
   getBannedcards: async (format: string): Promise<any> => {
     try {
       const response = await fetch(`${API_URL}/cards/banned/${format}`);
@@ -77,5 +77,5 @@ export const CardService = {
       console.error("GetCardById error:", error);
       throw error;
     }
-  }
+  },
 };

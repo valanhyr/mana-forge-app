@@ -1,6 +1,5 @@
 import { type User } from "../core/models/User";
-
-const API_URL = "http://localhost:8080/api";
+import { API_URL } from "./api";
 
 export const AuthService = {
   login: async (username: string, password: string): Promise<User> => {
@@ -20,7 +19,11 @@ export const AuthService = {
     return response.json();
   },
 
-  register: async (username: string, email: string, password: string): Promise<User> => {
+  register: async (
+    username: string,
+    email: string,
+    password: string,
+  ): Promise<User> => {
     const response = await fetch(`${API_URL}/users`, {
       method: "POST",
       headers: {
@@ -32,7 +35,9 @@ export const AuthService = {
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
       // Spring Boot devuelve el mensaje en 'message', fallback a 'error' o texto genérico
-      throw new Error(errorData.message || errorData.error || "Error en el registro");
+      throw new Error(
+        errorData.message || errorData.error || "Error en el registro",
+      );
     }
 
     return response.json();
