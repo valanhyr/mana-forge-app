@@ -17,7 +17,6 @@ import org.springframework.http.converter.AbstractHttpMessageConverter;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.web.client.RestTemplate;
@@ -54,27 +53,16 @@ public class ManaForgeApiApplication {
     @Order(Ordered.HIGHEST_PRECEDENCE)
     public SecurityFilterChain publicSecurityFilterChain(HttpSecurity http, AuthenticationSuccessHandler successHandler) throws Exception {
         http
-            // 1. Aplicamos esto a todas las rutas que entran por /api
+            // Ya no necesitamos poner /api/ en cada matcher porque el context-path lo cubre
             .securityMatcher("/**") 
-            
-            // 2. DESACTIVAR CSRF (Obligatorio para APIs y Proxies)
-            .csrf(AbstractHttpConfigurer::disable)
-            
-            // 3. Configurar CORS para que acepte tu dominio
-            .cors(cors -> cors.disable()) 
-            
+            .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
-                // 4. Permitir explícitamente el login y endpoints públicos
-                .requestMatchers("/api/oauth2/**", "/oauth2/**", "/api/login/**", "/login/**").permitAll()
-                .requestMatchers("/api/decks/random", "/api/cards/**").permitAll()
+                .requestMatchers("/oauth2/**", "/login/**").permitAll()
                 .anyRequest().permitAll()
             )
-            
-            // 5. OAuth2 con el handler de éxito que ya tienes
             .oauth2Login(oauth2 -> oauth2
                 .successHandler(successHandler)
             );
-            
         return http.build();
     }
 
