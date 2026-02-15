@@ -17,7 +17,6 @@ import org.springframework.http.converter.AbstractHttpMessageConverter;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.web.client.RestTemplate;
@@ -54,11 +53,11 @@ public class ManaForgeApiApplication {
     @Order(Ordered.HIGHEST_PRECEDENCE)
     public SecurityFilterChain publicSecurityFilterChain(HttpSecurity http, AuthenticationSuccessHandler successHandler) throws Exception {
         http
-            .securityMatcher("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/api/**", "/oauth2/**", "/login/**")
-            .cors(cors -> cors.configure(http)) // Asegura que use la config de CORS
-            .csrf(AbstractHttpConfigurer::disable)
+            .securityMatcher("/**") // Captura todo lo que le mande Nginx
+            .csrf(csrf -> csrf.disable()) // Desactiva CSRF para evitar el 403 en el redireccionamiento
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/oauth2/**", "/api/login/**", "/oauth2/**", "/login/**").permitAll() // Permiso explícito
+                // Permitimos explícitamente las rutas de login con y sin el prefijo /api
+                .requestMatchers("/api/oauth2/**", "/api/login/**", "/oauth2/**", "/login/**").permitAll()
                 .anyRequest().permitAll()
             )
             .oauth2Login(oauth2 -> oauth2
