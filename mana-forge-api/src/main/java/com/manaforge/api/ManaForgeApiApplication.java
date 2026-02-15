@@ -60,7 +60,7 @@ public class ManaForgeApiApplication {
             .authorizeHttpRequests(auth -> auth
                 // Spring ya sabe que está en /api, así que aquí no hace falta ponerlo
                 .requestMatchers("/oauth2/**", "/login/**", "/decks/**", "/cards/**").permitAll()
-                .anyRequest().permitAll()
+                .anyRequest().authenticated()
             )
             .oauth2Login(oauth -> oauth
                 .successHandler(successHandler)
