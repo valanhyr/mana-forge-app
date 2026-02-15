@@ -16,6 +16,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.converter.AbstractHttpMessageConverter;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
@@ -53,14 +54,15 @@ public class ManaForgeApiApplication {
     @Order(Ordered.HIGHEST_PRECEDENCE)
     public SecurityFilterChain publicSecurityFilterChain(HttpSecurity http, AuthenticationSuccessHandler successHandler) throws Exception {
         http
-            // Ya no necesitamos poner /api/ en cada matcher porque el context-path lo cubre
-            .securityMatcher("/**") 
+            .securityMatcher("/**") // Al estar bajo /api, esto significa realmente /api/**
             .csrf(csrf -> csrf.disable())
+            .cors(Customizer.withDefaults()) // Si tienes config de CORS, actívala
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/oauth2/**", "/login/**").permitAll()
+                // Spring ya sabe que está en /api, así que aquí no hace falta ponerlo
+                .requestMatchers("/oauth2/**", "/login/**", "/decks/**", "/cards/**").permitAll()
                 .anyRequest().permitAll()
             )
-            .oauth2Login(oauth2 -> oauth2
+            .oauth2Login(oauth -> oauth
                 .successHandler(successHandler)
             );
         return http.build();
