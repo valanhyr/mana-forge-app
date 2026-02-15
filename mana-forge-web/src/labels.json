@@ -57,6 +57,12 @@
       "editProfile": "Editar Perfil",
       "personalInfo": "Información Personal",
       "preferences": "Preferencias",
+      "preferencesTitle": "Configuración de Preferencias",
+      "language": "Idioma",
+      "languageDescription": "Selecciona el idioma de la interfaz.",
+      "newsletter": "Boletín de Noticias",
+      "newsletterDescription": "Recibe las últimas noticias y actualizaciones de Mana Forge.",
+      "subscribe": "Suscribirse al boletín",
       "username": "Nombre de Usuario",
       "email": "Correo Electrónico",
       "biography": "Biografía",
@@ -171,7 +177,8 @@
       "privacy": "Privacidad",
       "terms": "Términos",
       "cookies": "Cookies",
-      "rightsReserved": "Todos los derechos reservados."
+      "rightsReserved": "Todos los derechos reservados.",
+      "builtBy": "Desarrollado por: "
     }
   },
   "en": {
@@ -232,6 +239,12 @@
       "editProfile": "Edit Profile",
       "personalInfo": "Personal Info",
       "preferences": "Preferences",
+      "preferencesTitle": "Preferences Settings",
+      "language": "Language",
+      "languageDescription": "Select the interface language.",
+      "newsletter": "Newsletter",
+      "newsletterDescription": "Receive the latest news and updates from Mana Forge.",
+      "subscribe": "Subscribe to newsletter",
       "username": "Username",
       "email": "Email",
       "biography": "Biography",
@@ -346,7 +359,8 @@
       "privacy": "Privacy",
       "terms": "Terms",
       "cookies": "Cookies",
-      "rightsReserved": "All rights reserved."
+      "rightsReserved": "All rights reserved.",
+      "builtBy": "Built by: "
     }
   }
 }

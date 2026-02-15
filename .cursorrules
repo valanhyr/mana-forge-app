@@ -1,9 +1,0 @@
-# Mana Forge Context
-- Main Entry: Java Spring Boot (mana-forge-api)
-- Analysis Engine: Python FastAPI (mana-forge-engine)
-- Frontend: React TypeScript (mana-forge-web)
-- External Services: Strapi CMS (on Debian Server)
-- Rules:
-  - Java orchestrates all calls. 
-  - Python is stateless (receives deck, returns analysis).
-  - Use absolute types for MTG Premodern cards (4th Ed to Scourge).
