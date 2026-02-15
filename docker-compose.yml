@@ -3,6 +3,8 @@ services:
     build:
       context: ./mana-forge-web
       dockerfile: Dockerfile
+      args:
+        - VITE_API_URL=http://api.mana-forge.com:8080/api
     ports:
       - "80:80"
     depends_on:
