@@ -53,10 +53,12 @@ public class ManaForgeApiApplication {
     @Order(Ordered.HIGHEST_PRECEDENCE)
     public SecurityFilterChain publicSecurityFilterChain(HttpSecurity http, AuthenticationSuccessHandler successHandler) throws Exception {
         http
-            // Este matcher le dice a Spring: "Yo me encargo de estas rutas"
-            .securityMatcher("/api/**", "/login/**", "/oauth2/**") 
-            .csrf(csrf -> csrf.disable())
+            .securityMatcher("/api/**", "/login/**", "/oauth2/**")
+            .csrf(csrf -> csrf.disable()) // Vital
+            .cors(cors -> cors.disable()) // Para descartar bloqueos de origen
             .authorizeHttpRequests(auth -> auth
+                // Abrimos los endpoints de OAuth2 de par en par
+                .requestMatchers("/api/oauth2/**", "/oauth2/**", "/api/login/**", "/login/**").permitAll()
                 .anyRequest().permitAll()
             )
             .oauth2Login(oauth2 -> oauth2
