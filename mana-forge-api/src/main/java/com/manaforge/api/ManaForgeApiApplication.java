@@ -56,13 +56,12 @@ public class ManaForgeApiApplication {
     @Order(Ordered.HIGHEST_PRECEDENCE)
     public SecurityFilterChain publicSecurityFilterChain(HttpSecurity http) throws Exception {
         http
-            .securityMatcher("/**") // Al estar bajo /api, esto significa realmente /api/**
+            .securityMatcher("/**") 
             .csrf(csrf -> csrf.disable())
-            .cors(Customizer.withDefaults()) // Si tienes config de CORS, actívala
+            .cors(Customizer.withDefaults())
             .authorizeHttpRequests(auth -> auth
-                // Spring ya sabe que está en /api, así que aquí no hace falta ponerlo
-                // Restauramos la configuración permisiva para eliminar los 401 en endpoints públicos
-                .requestMatchers("/oauth2/**", "/login/**", "/decks/**", "/cards/**", "/formats/**").permitAll()
+                // Volvemos a poner /api/ porque ahora Java no lo pone automático
+                .requestMatchers("/api/**", "/login/**", "/oauth2/**").permitAll()
                 .anyRequest().permitAll()
             )
             // IMPORTANTE: Devuelve 401 en lugar de redirigir a Google si no hay sesión.
