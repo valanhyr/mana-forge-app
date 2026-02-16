@@ -61,7 +61,7 @@ public class ManaForgeApiApplication {
                 .requestMatchers("/oauth2/**", "/login/**", "/decks/**", "/cards/**").permitAll()
                 .anyRequest().authenticated()
             )
-            .requiresChannel(channel -> channel.anyRequest().requiresSecure())
+            // .requiresChannel(channel -> channel.anyRequest().requiresSecure()) // Desactivado temporalmente para diagnosticar el 502.
             .oauth2Login(Customizer.withDefaults());
         return http.build();
     }
