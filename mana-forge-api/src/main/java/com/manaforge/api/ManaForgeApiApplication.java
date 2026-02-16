@@ -12,6 +12,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.AbstractHttpMessageConverter;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -19,6 +20,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.web.client.RestTemplate;
 
 import io.swagger.v3.oas.models.OpenAPI;
@@ -58,11 +60,17 @@ public class ManaForgeApiApplication {
             .cors(Customizer.withDefaults()) // Si tienes config de CORS, actívala
             .authorizeHttpRequests(auth -> auth
                 // Spring ya sabe que está en /api, así que aquí no hace falta ponerlo
-                .requestMatchers("/oauth2/**", "/login/**", "/decks/**", "/cards/**").permitAll()
+                .requestMatchers("/oauth2/**", "/login/**", "/decks/**", "/cards/**", "/formats/**").permitAll()
                 .anyRequest().authenticated()
             )
+            // IMPORTANTE: Devuelve 401 en lugar de redirigir a Google si no hay sesión.
+            // Esto evita los errores de CORS en el frontend.
+            .exceptionHandling(e -> e
+                .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
+            )
             // .requiresChannel(channel -> channel.anyRequest().requiresSecure()) // Desactivado temporalmente para diagnosticar el 502.
-            .oauth2Login(Customizer.withDefaults());
+            .oauth2Login(Customizer.withDefaults())
+            .logout(logout -> logout.logoutSuccessHandler((req, res, auth) -> res.setStatus(200)));
         return http.build();
     }
 
