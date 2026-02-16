@@ -54,24 +54,21 @@ public class ManaForgeApiApplication {
     @Order(Ordered.HIGHEST_PRECEDENCE)
     public SecurityFilterChain publicSecurityFilterChain(HttpSecurity http) throws Exception {
         http
-            .securityMatcher("/**") 
             .csrf(csrf -> csrf.disable())
             .cors(Customizer.withDefaults())
+            // Usamos una configuración más abierta para diagnosticar
             .authorizeHttpRequests(auth -> auth
-                // Volvemos a poner /api/ porque ahora Java no lo pone automático
-                .requestMatchers("/api/**", "/login/**", "/oauth2/**").permitAll()
-                .anyRequest().permitAll()
+                // IMPORTANTE: Asegúrate de que estas rutas coincidan con lo que pide el navegador
+                .requestMatchers("/api/users/me", "/api/decks/**", "/api/cards/**", "/api/formats/**").permitAll()
+                .requestMatchers("/", "/login/**", "/oauth2/**", "/api/login/**").permitAll()
+                .anyRequest().permitAll() 
             )
-            // IMPORTANTE: Devuelve 401 en lugar de redirigir a Google si no hay sesión.
-            // Esto evita los errores de CORS en el frontend.
-           /*  .exceptionHandling(e -> e
-                .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
-            )*/
-            // .requiresChannel(channel -> channel.anyRequest().requiresSecure()) // Desactivado temporalmente para diagnosticar el 502.
+            // Eliminamos el entryPoint que forzaba el 401
             .oauth2Login(oauth -> oauth
                 .successHandler(new SimpleUrlAuthenticationSuccessHandler("https://mana-forge.com"))
             )
             .logout(logout -> logout.logoutSuccessHandler((req, res, auth) -> res.setStatus(200)));
+            
         return http.build();
     }
 
