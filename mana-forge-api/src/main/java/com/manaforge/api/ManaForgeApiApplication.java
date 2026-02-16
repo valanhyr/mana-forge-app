@@ -20,7 +20,6 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.web.client.RestTemplate;
@@ -55,7 +54,7 @@ public class ManaForgeApiApplication {
 
     @Bean
     @Order(Ordered.HIGHEST_PRECEDENCE)
-    public SecurityFilterChain publicSecurityFilterChain(HttpSecurity http, AuthenticationSuccessHandler successHandler) throws Exception {
+    public SecurityFilterChain publicSecurityFilterChain(HttpSecurity http) throws Exception {
         http
             .securityMatcher("/**") // Al estar bajo /api, esto significa realmente /api/**
             .csrf(csrf -> csrf.disable())
@@ -73,18 +72,10 @@ public class ManaForgeApiApplication {
             )
             // .requiresChannel(channel -> channel.anyRequest().requiresSecure()) // Desactivado temporalmente para diagnosticar el 502.
             .oauth2Login(oauth -> oauth
-                .successHandler(successHandler)
+                .successHandler(new SimpleUrlAuthenticationSuccessHandler("https://mana-forge.com"))
             )
             .logout(logout -> logout.logoutSuccessHandler((req, res, auth) -> res.setStatus(200)));
         return http.build();
-    }
-
-    // Este Bean es necesario para evitar el error 502 al inyectar successHandler
-    @Bean
-    public AuthenticationSuccessHandler authenticationSuccessHandler() {
-        // Redirige al frontend tras un login exitoso. 
-        // Más adelante aquí generaremos el JWT.
-        return new SimpleUrlAuthenticationSuccessHandler("https://mana-forge.com");
     }
 
     @Bean
