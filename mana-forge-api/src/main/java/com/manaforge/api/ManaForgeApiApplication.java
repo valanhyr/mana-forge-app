@@ -12,7 +12,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.AbstractHttpMessageConverter;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -20,7 +19,6 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.web.client.RestTemplate;
 
@@ -66,9 +64,9 @@ public class ManaForgeApiApplication {
             )
             // IMPORTANTE: Devuelve 401 en lugar de redirigir a Google si no hay sesión.
             // Esto evita los errores de CORS en el frontend.
-            .exceptionHandling(e -> e
+           /*  .exceptionHandling(e -> e
                 .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
-            )
+            )*/
             // .requiresChannel(channel -> channel.anyRequest().requiresSecure()) // Desactivado temporalmente para diagnosticar el 502.
             .oauth2Login(oauth -> oauth
                 .successHandler(new SimpleUrlAuthenticationSuccessHandler("https://mana-forge.com"))
