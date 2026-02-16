@@ -54,21 +54,22 @@ public class ManaForgeApiApplication {
     @Order(Ordered.HIGHEST_PRECEDENCE)
     public SecurityFilterChain publicSecurityFilterChain(HttpSecurity http) throws Exception {
         http
+            .securityMatcher("/**") 
             .csrf(csrf -> csrf.disable())
             .cors(Customizer.withDefaults())
-            // Usamos una configuración más abierta para diagnosticar
             .authorizeHttpRequests(auth -> auth
-                // IMPORTANTE: Asegúrate de que estas rutas coincidan con lo que pide el navegador
-                .requestMatchers("/api/users/me", "/api/decks/**", "/api/cards/**", "/api/formats/**").permitAll()
-                .requestMatchers("/", "/login/**", "/oauth2/**", "/api/login/**").permitAll()
-                .anyRequest().permitAll() 
+                // Añadimos explícitamente el endpoint /me para que el front no se asuste al arrancar
+                .requestMatchers("/api/users/me", "/api/**", "/login/**", "/oauth2/**").permitAll()
+                .anyRequest().permitAll()
             )
-            // Eliminamos el entryPoint que forzaba el 401
+            // Mantenemos el comentario en exceptionHandling para evitar el 401 forzado
+            /* .exceptionHandling(e -> e
+                .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
+            ) */
             .oauth2Login(oauth -> oauth
                 .successHandler(new SimpleUrlAuthenticationSuccessHandler("https://mana-forge.com"))
             )
             .logout(logout -> logout.logoutSuccessHandler((req, res, auth) -> res.setStatus(200)));
-            
         return http.build();
     }
 
