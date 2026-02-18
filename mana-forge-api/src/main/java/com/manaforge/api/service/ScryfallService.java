@@ -27,7 +27,7 @@ public class ScryfallService {
         this.restTemplate = restTemplate;
     }
 
-    @Cacheable(value = "scryfall_search", cacheManager = "scryfallCacheManager")
+    @Cacheable(value = "scryfall_search")
     public Map<String, Object> searchCards(Map<String, String> params) {
         try {
             MultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>();
@@ -50,7 +50,7 @@ public class ScryfallService {
         }
     }
 
-    @Cacheable(value = "scryfall_card", cacheManager = "scryfallCacheManager")
+    @Cacheable(value = "scryfall_card")
     public Map<String, Object> getCardById(String id) {
         try {
             URI uri = UriComponentsBuilder.fromUriString(SCRYFALL_CARD_BY_ID_URL)
@@ -66,7 +66,7 @@ public class ScryfallService {
         }
     }
 
-    @Cacheable(value = "scryfall_symbology", cacheManager = "scryfallCacheManager")
+    @Cacheable(value = "scryfall_symbology")
     public Map<String, Object> getSymbology() {
         try {
             return restTemplate.getForObject(SCRYFALL_SYMBOLOGY_URL, Map.class);
@@ -76,7 +76,7 @@ public class ScryfallService {
         }
     }
 
-    @Cacheable(value = "scryfall_named", cacheManager = "scryfallCacheManager")
+    @Cacheable(value = "scryfall_named")
     public Map<String, Object> getCardNamed(String exact, String fuzzy, String set) {
         try {
             UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(SCRYFALL_NAMED_URL);
@@ -102,7 +102,7 @@ public class ScryfallService {
         return searchCards(Map.of("q", "banned:" + format));
     }
 
-    @Cacheable(value = "scryfall_autocomplete", cacheManager = "scryfallCacheManager")
+    @Cacheable(value = "scryfall_autocomplete")
     public Map<String, Object> getAutocomplete(String query) {
         try {
             URI uri = UriComponentsBuilder.fromUriString(SCRYFALL_AUTOCOMPLETE_URL)

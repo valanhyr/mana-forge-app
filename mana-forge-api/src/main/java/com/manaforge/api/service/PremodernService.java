@@ -31,7 +31,7 @@ public class PremodernService {
      * Obtiene la lista de cartas prohibidas de Premodern y las enriquece con datos de Scryfall.
      * Se cachea el resultado. Configurar el TTL de "premodern_banned" para 1 mes en el CacheManager.
      */
-    @Cacheable(value = "premodern_banned", cacheManager = "scryfallCacheManager")
+    @Cacheable(value = "premodern_banned")
     public List<Map<String, Object>> getBannedCards() {
         try {
             HttpHeaders headers = new HttpHeaders();

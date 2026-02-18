@@ -89,6 +89,28 @@
 		<artifactId>spring-boot-starter-oauth2-client</artifactId>
 	</dependency>
 
+	<!-- Couchbase for distributed caching -->
+	<dependency>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-cache</artifactId>
+	</dependency>
+
+	<dependency>
+		<groupId>com.couchbase.client</groupId>
+		<artifactId>java-client</artifactId>
+	</dependency>
+
+	<dependency>
+		<groupId>org.springframework.data</groupId>
+		<artifactId>spring-data-couchbase</artifactId>
+		<exclusions>
+			<exclusion>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-starter-data-mongodb</artifactId>
+			</exclusion>
+		</exclusions>
+	</dependency>
+
 
 </dependencies>
 
