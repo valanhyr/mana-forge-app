@@ -63,6 +63,17 @@ export const AuthService = {
     });
   },
 
+  changePassword: async (currentPassword: string, newPassword: string): Promise<void> => {
+    const response = await fetch(`${API_URL}/users/me/password`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ currentPassword, newPassword }),
+    });
+    if (response.status === 401) throw new Error("wrongPassword");
+    if (!response.ok) throw new Error("changePasswordFailed");
+  },
+
   // Simulación de fetch de mazos (conectaremos con el backend real luego)
   getUserDecks: async (userId: string): Promise<any[]> => {
     const response = await fetch(`${API_URL}/decks/user/${userId}`);

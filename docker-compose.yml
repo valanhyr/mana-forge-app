@@ -33,6 +33,7 @@ services:
       - SPRING_DATA_MONGODB_URI=${MONGODB_URI:-mongodb+srv://valanhyr_db_user:0wtjeXsiAAEKkYGH@cluster0.3jvqdu6.mongodb.net/production?appName=Cluster0}
       - SPRING_DATA_REDIS_HOST=redis
       - SPRING_DATA_REDIS_PORT=6379
+      - SESSION_STORE_TYPE=redis
     depends_on:
       engine:
         condition: service_started
@@ -60,6 +61,8 @@ services:
   redis:
     image: redis:7-alpine
     container_name: mana-forge-cache-1
+    ports:
+      - "6379:6379"
     restart: always
     networks:
       - mana-forge-network

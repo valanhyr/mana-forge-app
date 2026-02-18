@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, Outlet } from "react-router-dom";
-import { Sword, ChevronDown, LogOut, User, Settings, Book, Menu, X } from "lucide-react";
+import { Sword, ChevronDown, LogOut, User, Settings, Book, Menu, X, Users } from "lucide-react";
 import { useUser } from "../../services/UserContext";
 import LanguageSelector from "../ui/LanguageSelector";
 import Footer from "./Footer";
@@ -92,6 +92,13 @@ const Layout = () => {
                       className="flex items-center gap-2 px-4 py-2 text-sm text-zinc-300 hover:bg-zinc-800 hover:text-orange-500 transition-colors"
                     >
                       <User size={16} /> {t("userOptions.myProfile")}
+                    </Link>
+                    <Link
+                      to="/friends"
+                      onClick={() => setIsMenuOpen(false)}
+                      className="flex items-center gap-2 px-4 py-2 text-sm text-zinc-300 hover:bg-zinc-800 hover:text-orange-500 transition-colors"
+                    >
+                      <Users size={16} /> {t("userOptions.myFriends")}
                     </Link>
                     <Link
                       to="/settings"
@@ -202,6 +209,13 @@ const Layout = () => {
                 className="flex items-center gap-3 px-3 py-3 rounded-lg text-zinc-300 hover:bg-zinc-800 hover:text-orange-500 transition-colors"
               >
                 <User size={16} /> {t("userOptions.myProfile")}
+              </Link>
+              <Link
+                to="/friends"
+                onClick={() => setIsSidebarOpen(false)}
+                className="flex items-center gap-3 px-3 py-3 rounded-lg text-zinc-300 hover:bg-zinc-800 hover:text-orange-500 transition-colors"
+              >
+                <Users size={16} /> {t("userOptions.myFriends")}
               </Link>
               <Link
                 to="/settings"

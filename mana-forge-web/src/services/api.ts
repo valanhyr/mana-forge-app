@@ -5,6 +5,7 @@ export const API_URL =
 // Crear instancia base de Axios
 export const api = axios.create({
   baseURL: API_URL,
+  withCredentials: true,
 });
 
 // Interceptor de Solicitud: Inyecta el idioma en cada petición

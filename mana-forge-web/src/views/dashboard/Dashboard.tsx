@@ -200,7 +200,7 @@ const Dashboard = () => {
                 <h3 className="text-xl font-bold">{item.title}</h3>
                 <p className="text-sm text-zinc-300 mt-1">{item.subtitle}</p>
                 <div className="mt-4 inline-flex items-center gap-2 text-orange-500 font-semibold text-sm group-hover:underline">
-                  Leer más
+                  {t("common.readMore")}
                   <ArrowRight size={16} />
                 </div>
               </div>

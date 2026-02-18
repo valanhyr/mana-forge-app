@@ -1,0 +1,12 @@
+# Perfil de desarrollo local — sesiones en memoria, sin Redis requerido
+# Usar con: -Dspring.profiles.active=dev  (VM options en IntelliJ/Run Config)
+#   o bien: export SPRING_PROFILES_ACTIVE=dev  antes de ./mvnw spring-boot:run
+spring:
+  session:
+    store-type: none
+
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.redis.RedisReactiveAutoConfiguration
+      - org.springframework.boot.autoconfigure.session.RedisSessionConfiguration

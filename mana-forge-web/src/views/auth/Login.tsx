@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useUser } from "../../services/UserContext";
 import { useTranslation } from "../../hooks/useTranslation";
 import { API_URL } from "../../services/api";
+import { Loader2 } from "lucide-react";
 
 interface AuthModalProps {
   isOpen?: boolean;
@@ -16,25 +17,56 @@ const AuthModal = ({ isOpen = true, onClose }: AuthModalProps) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   if (!isOpen) return null;
 
+  const validate = (): string => {
+    if (!username.trim()) return t("auth.error.usernameRequired");
+    if (!password) return t("auth.error.passwordRequired");
+    if (password.length < 6) return t("auth.error.passwordMinLength");
+    if (!isLogin) {
+      if (!email.trim()) return t("auth.error.emailRequired");
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
+        return t("auth.error.emailInvalid");
+    }
+    return "";
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const validationError = validate();
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
+    setError("");
+    setIsLoading(true);
     try {
       if (isLogin) {
         await login(username, password);
-        onClose?.();
       } else {
         await register(username, email, password);
-        onClose?.();
       }
+      onClose?.();
     } catch (err: any) {
       setError(
         err.message ||
-          (isLogin ? t("auth.error.credentials") : "Error al crear la cuenta"),
+          (isLogin
+            ? t("auth.error.credentials")
+            : t("auth.error.notImplemented")),
       );
+    } finally {
+      setIsLoading(false);
     }
+  };
+
+  const handleTabSwitch = (toLogin: boolean) => {
+    setIsLogin(toLogin);
+    setError("");
+    setUsername("");
+    setEmail("");
+    setPassword("");
   };
 
   return (
@@ -53,10 +85,7 @@ const AuthModal = ({ isOpen = true, onClose }: AuthModalProps) => {
                 ? "text-orange-500 border-b-2 border-orange-500 bg-zinc-800/50"
                 : "text-zinc-400 hover:text-white hover:bg-zinc-800/30"
             }`}
-            onClick={() => {
-              setIsLogin(true);
-              setError("");
-            }}
+            onClick={() => handleTabSwitch(true)}
           >
             {t("auth.loginTab")}
           </button>
@@ -66,10 +95,7 @@ const AuthModal = ({ isOpen = true, onClose }: AuthModalProps) => {
                 ? "text-orange-500 border-b-2 border-orange-500 bg-zinc-800/50"
                 : "text-zinc-400 hover:text-white hover:bg-zinc-800/30"
             }`}
-            onClick={() => {
-              setIsLogin(false);
-              setError("");
-            }}
+            onClick={() => handleTabSwitch(false)}
           >
             {t("auth.registerTab")}
           </button>
@@ -79,17 +105,21 @@ const AuthModal = ({ isOpen = true, onClose }: AuthModalProps) => {
           <h2 className="text-2xl font-bold text-white mb-6 text-center">
             {isLogin ? t("auth.welcomeBack") : t("auth.createAccount")}
           </h2>
-          <form className="space-y-4" onSubmit={handleSubmit}>
+          <form className="space-y-4" onSubmit={handleSubmit} noValidate>
             <div>
               <label className="block text-sm font-medium text-zinc-500 mb-2">
                 {t("auth.username")}
               </label>
               <input
                 type="text"
-                className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-orange-500/50 transition-all"
+                className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-orange-500/50 transition-all disabled:opacity-50"
                 placeholder={t("auth.usernamePlaceholder")}
                 value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                onChange={(e) => {
+                  setUsername(e.target.value);
+                  setError("");
+                }}
+                disabled={isLoading}
               />
             </div>
 
@@ -100,10 +130,14 @@ const AuthModal = ({ isOpen = true, onClose }: AuthModalProps) => {
                 </label>
                 <input
                   type="email"
-                  className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-orange-500/50 transition-all"
+                  className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-orange-500/50 transition-all disabled:opacity-50"
                   placeholder={t("auth.emailPlaceholder")}
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    setError("");
+                  }}
+                  disabled={isLoading}
                 />
               </div>
             )}
@@ -114,10 +148,14 @@ const AuthModal = ({ isOpen = true, onClose }: AuthModalProps) => {
               </label>
               <input
                 type="password"
-                className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-orange-500/50 transition-all"
+                className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-orange-500/50 transition-all disabled:opacity-50"
                 placeholder={t("auth.passwordPlaceholder")}
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  setError("");
+                }}
+                disabled={isLoading}
               />
             </div>
 
@@ -125,8 +163,10 @@ const AuthModal = ({ isOpen = true, onClose }: AuthModalProps) => {
 
             <button
               type="submit"
-              className="w-full bg-orange-600 hover:bg-orange-500 text-white font-bold py-3 rounded-xl shadow-lg shadow-orange-900/20 transition-all active:scale-95 mt-4"
+              disabled={isLoading}
+              className="w-full bg-orange-600 hover:bg-orange-500 disabled:opacity-60 disabled:cursor-not-allowed text-white font-bold py-3 rounded-xl shadow-lg shadow-orange-900/20 transition-all active:scale-95 mt-4 flex items-center justify-center gap-2"
             >
+              {isLoading && <Loader2 size={18} className="animate-spin" />}
               {isLogin ? t("auth.loginButton") : t("auth.registerButton")}
             </button>
 

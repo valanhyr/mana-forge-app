@@ -3,6 +3,7 @@
     "common": {
       "back": "Volver",
       "viewAll": "Ver todos",
+      "readMore": "Leer más",
       "description": "Descripción",
       "mainDeck": "Mazo Principal",
       "sideboard": "Sideboard",
@@ -11,12 +12,17 @@
       "info": "Información",
       "edit": "Editar",
       "duplicate": "Duplicar",
+      "cancel": "Cancelar",
+      "saving": "Guardando...",
+      "loading": "Cargando...",
       "delete": "Eliminar",
       "private": "Privado",
       "forging": "Forjando"
     },
     "articles": {
-      "writtenBy": "Escrito por {0]",
+      "writtenBy": "Escrito por",
+      "anonymous": "Anónimo",
+      "contributor": "Colaborador de Mana Forge",
       "notFoundTitle": "Artículo no encontrado",
       "notFoundDescription": "Lo sentimos, no pudimos encontrar el artículo que buscas.",
       "backToHome": "Volver al inicio"
@@ -37,7 +43,12 @@
       "continueWith": "O continuar con",
       "error": {
         "credentials": "Usuario o contraseña incorrectos",
-        "notImplemented": "Registro no implementado aún"
+        "notImplemented": "Registro no implementado aún",
+        "usernameRequired": "El nombre de usuario es obligatorio",
+        "passwordRequired": "La contraseña es obligatoria",
+        "passwordMinLength": "La contraseña debe tener al menos 6 caracteres",
+        "emailRequired": "El email es obligatorio",
+        "emailInvalid": "Introduce un email válido"
       }
     },
     "userOptions": {
@@ -69,6 +80,12 @@
       "biographyDescription": "Breve descripción sobre ti y tus mazos favoritos.",
       "editProfileButton": "Guardar Cambios",
       "changePassword": "Cambiar Contraseña",
+      "currentPassword": "Contraseña Actual",
+      "newPassword": "Nueva Contraseña",
+      "confirmPassword": "Confirmar Nueva Contraseña",
+      "passwordChanged": "Contraseña actualizada correctamente",
+      "passwordMismatch": "Las contraseñas nuevas no coinciden",
+      "passwordWrong": "La contraseña actual es incorrecta",
       "security": "Seguridad",
       "deleteAccount": "Eliminar Cuenta",
       "loadingProfile": "Cargando perfil..."
@@ -77,6 +94,7 @@
       "title": "Forja de Mazo",
       "deckNameLabel": "Nombre del Mazo",
       "deckNamePlaceholder": "Ej: Goblin Aggro",
+      "deckNameRequired": "El nombre del mazo no puede estar vacío.",
       "formatLabel": "Formato",
       "formatPlaceholder": "Selecciona un formato...",
       "minCardsLabel": "Mín. Cartas:",
@@ -91,6 +109,10 @@
       "analyzeAI": "Analizar IA",
       "updateDeck": "Actualizar Mazo",
       "saveDeck": "Guardar Mazo",
+      "deckUpdated": "¡Mazo actualizado con éxito!",
+      "deckSaved": "¡Mazo guardado con éxito!",
+      "saveDeckError": "Error al guardar el mazo. Inténtalo de nuevo.",
+      "manaCurve": "Curva de Maná",
       "configureFormatTitle": "Configura el formato para comenzar",
       "configureFormatDescription": "Debes seleccionar un formato de juego antes de añadir cartas.",
       "addCardsLabel": "Añadir Cartas",
@@ -179,12 +201,47 @@
       "cookies": "Cookies",
       "rightsReserved": "Todos los derechos reservados.",
       "builtBy": "Desarrollado por: "
+    },
+    "notFound": {
+      "title": "Página no encontrada",
+      "description": "La ruta que buscas no existe o ha sido movida.",
+      "goHome": "Ir al inicio",
+      "goBack": "Volver atrás"
+    },
+    "friends": {
+      "subtitle": "Gestiona tus amigos y solicitudes de amistad",
+      "searchPlaceholder": "Buscar usuarios por nombre...",
+      "noResults": "No se encontraron usuarios",
+      "tab": {
+        "friends": "Mis Amigos",
+        "requests": "Solicitudes"
+      },
+      "addFriend": "Añadir",
+      "alreadyFriend": "Ya sois amigos",
+      "pending": "Pendiente",
+      "noFriends": "Aún no tienes amigos. ¡Busca usuarios para añadirlos!",
+      "remove": "Eliminar",
+      "received": "Recibidas",
+      "sent": "Enviadas",
+      "noReceived": "No tienes solicitudes pendientes",
+      "noSent": "No has enviado solicitudes",
+      "accept": "Aceptar",
+      "reject": "Rechazar",
+      "cancel": "Cancelar",
+      "requestSent": "Solicitud de amistad enviada",
+      "requestAccepted": "¡Ahora sois amigos!",
+      "requestRejected": "Solicitud rechazada",
+      "friendRemoved": "Amigo eliminado",
+      "alreadyExists": "Ya existe una solicitud pendiente",
+      "requestError": "Error al procesar la solicitud",
+      "loadError": "Error al cargar los datos"
     }
   },
   "en": {
     "common": {
       "back": "Back",
       "viewAll": "View all",
+      "readMore": "Read more",
       "description": "Description",
       "mainDeck": "Main Deck",
       "sideboard": "Sideboard",
@@ -193,12 +250,17 @@
       "info": "Info",
       "edit": "Edit",
       "duplicate": "Duplicate",
+      "cancel": "Cancel",
+      "saving": "Saving...",
+      "loading": "Loading...",
       "delete": "Delete",
       "private": "Private",
       "forging": "Forging"
     },
     "articles": {
-      "writtenBy": "Written by {0]",
+      "writtenBy": "Written by",
+      "anonymous": "Anonymous",
+      "contributor": "Mana Forge Contributor",
       "notFoundTitle": "Article not found",
       "notFoundDescription": "Sorry, we couldn't find the article you're looking for.",
       "backToHome": "Back to home"
@@ -219,7 +281,12 @@
       "continueWith": "Or continue with",
       "error": {
         "credentials": "Incorrect username or password",
-        "notImplemented": "Registration not implemented yet"
+        "notImplemented": "Registration not implemented yet",
+        "usernameRequired": "Username is required",
+        "passwordRequired": "Password is required",
+        "passwordMinLength": "Password must be at least 6 characters",
+        "emailRequired": "Email is required",
+        "emailInvalid": "Please enter a valid email"
       }
     },
     "userOptions": {
@@ -251,6 +318,12 @@
       "biographyDescription": "Brief description about you and your favorite decks.",
       "editProfileButton": "Save Changes",
       "changePassword": "Change Password",
+      "currentPassword": "Current Password",
+      "newPassword": "New Password",
+      "confirmPassword": "Confirm New Password",
+      "passwordChanged": "Password updated successfully",
+      "passwordMismatch": "New passwords do not match",
+      "passwordWrong": "Current password is incorrect",
       "security": "Security",
       "deleteAccount": "Delete Account",
       "loadingProfile": "Loading profile..."
@@ -259,6 +332,7 @@
       "title": "Deck Forge",
       "deckNameLabel": "Deck Name",
       "deckNamePlaceholder": "Ex: Goblin Aggro",
+      "deckNameRequired": "Deck name cannot be empty.",
       "formatLabel": "Format",
       "formatPlaceholder": "Select a format...",
       "minCardsLabel": "Min Cards:",
@@ -273,6 +347,10 @@
       "analyzeAI": "AI Analyze",
       "updateDeck": "Update Deck",
       "saveDeck": "Save Deck",
+      "deckUpdated": "Deck updated successfully!",
+      "deckSaved": "Deck saved successfully!",
+      "saveDeckError": "Failed to save the deck. Please try again.",
+      "manaCurve": "Mana Curve",
       "configureFormatTitle": "Configure format to start",
       "configureFormatDescription": "You must select a game format before adding cards.",
       "addCardsLabel": "Add Cards",
@@ -361,6 +439,40 @@
       "cookies": "Cookies",
       "rightsReserved": "All rights reserved.",
       "builtBy": "Built by: "
+    },
+    "notFound": {
+      "title": "Page not found",
+      "description": "The route you're looking for doesn't exist or has been moved.",
+      "goHome": "Go home",
+      "goBack": "Go back"
+    },
+    "friends": {
+      "subtitle": "Manage your friends and friend requests",
+      "searchPlaceholder": "Search users by name...",
+      "noResults": "No users found",
+      "tab": {
+        "friends": "My Friends",
+        "requests": "Requests"
+      },
+      "addFriend": "Add",
+      "alreadyFriend": "Already friends",
+      "pending": "Pending",
+      "noFriends": "You have no friends yet. Search for users to add them!",
+      "remove": "Remove",
+      "received": "Received",
+      "sent": "Sent",
+      "noReceived": "No pending requests",
+      "noSent": "No sent requests",
+      "accept": "Accept",
+      "reject": "Reject",
+      "cancel": "Cancel",
+      "requestSent": "Friend request sent",
+      "requestAccepted": "You are now friends!",
+      "requestRejected": "Request rejected",
+      "friendRemoved": "Friend removed",
+      "alreadyExists": "A pending request already exists",
+      "requestError": "Error processing the request",
+      "loadError": "Error loading data"
     }
   }
 }

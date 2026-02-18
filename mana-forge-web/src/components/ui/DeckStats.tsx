@@ -1,11 +1,13 @@
 import { useMemo } from "react";
 import { type DeckCard } from "./DeckList";
+import { useTranslation } from "../../hooks/useTranslation";
 
 interface DeckStatsProps {
   cards: DeckCard[];
 }
 
 const DeckStats: React.FC<DeckStatsProps> = ({ cards }) => {
+  const { t } = useTranslation();
   const stats = useMemo(() => {
     // Filtramos solo cartas del mazo principal y que no sean tierras
     const mainDeckSpells = cards.filter(
@@ -36,7 +38,7 @@ const DeckStats: React.FC<DeckStatsProps> = ({ cards }) => {
   return (
     <div className="mt-6 pt-6 border-t border-zinc-800">
       <h3 className="text-sm font-bold text-zinc-400 uppercase tracking-wider mb-4">
-        Curva de Maná
+        {t("deckBuilder.manaCurve")}
       </h3>
       <div className="bg-zinc-950/50 border border-zinc-800 rounded-xl p-6">
         <div className="flex items-end justify-between h-32 gap-3">

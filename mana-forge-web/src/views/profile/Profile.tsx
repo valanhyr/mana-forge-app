@@ -1,8 +1,9 @@
-import { User, Mail, Shield, Settings, Save, LogOut, Lock, Globe, Bell } from "lucide-react";
+import { User, Mail, Shield, Settings, Save, LogOut, Lock, Globe, Bell, Loader2, CheckCircle, EyeOff, Eye } from "lucide-react";
 import { useUser } from "../../services/UserContext";
 import { useTranslation } from "../../hooks/useTranslation";
 import { useLanguage } from "../../services/LanguageContext";
 import { useState } from "react";
+import { AuthService } from "../../services/AuthService";
 
 const Profile = () => {
   const { t } = useTranslation();
@@ -10,6 +11,51 @@ const Profile = () => {
   const { user } = useUser();
   const [activeTab, setActiveTab] = useState<"personalInfo" | "preferences">("personalInfo");
   const [newsletter, setNewsletter] = useState(true);
+
+  // Password change state
+  const [showPasswordForm, setShowPasswordForm] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showCurrent, setShowCurrent] = useState(false);
+  const [showNew, setShowNew] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [passwordLoading, setPasswordLoading] = useState(false);
+  const [passwordError, setPasswordError] = useState("");
+  const [passwordSuccess, setPasswordSuccess] = useState(false);
+
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newPassword !== confirmPassword) {
+      setPasswordError(t("profile.passwordMismatch"));
+      return;
+    }
+    if (newPassword.length < 6) {
+      setPasswordError(t("auth.error.passwordMinLength"));
+      return;
+    }
+    setPasswordError("");
+    setPasswordLoading(true);
+    try {
+      await AuthService.changePassword(currentPassword, newPassword);
+      setPasswordSuccess(true);
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+      setTimeout(() => {
+        setPasswordSuccess(false);
+        setShowPasswordForm(false);
+      }, 2000);
+    } catch (err: any) {
+      setPasswordError(
+        err.message === "wrongPassword"
+          ? t("profile.passwordWrong")
+          : t("auth.error.credentials")
+      );
+    } finally {
+      setPasswordLoading(false);
+    }
+  };
 
   // Mock avatar fijo como se solicitó
   const avatarUrl =
@@ -149,18 +195,102 @@ const Profile = () => {
                 </form>
               </div>
 
-              {/* Security (Visual only for now) */}
-              <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-8 shadow-lg opacity-75 hover:opacity-100 transition-opacity">
+              {/* Security */}
+              <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-8 shadow-lg">
                 <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
                   <Lock size={20} className="text-indigo-500" />{" "}
                   {t("profile.security")}
                 </h3>
                 <div className="space-y-4">
-                  <button className="text-sm text-indigo-400 hover:text-indigo-300 font-medium">
+                  <button
+                    onClick={() => { setShowPasswordForm(!showPasswordForm); setPasswordError(""); setPasswordSuccess(false); }}
+                    className="text-sm text-indigo-400 hover:text-indigo-300 font-medium transition-colors"
+                  >
                     {t("profile.changePassword")}
                   </button>
+
+                  {showPasswordForm && (
+                    <form onSubmit={handleChangePassword} className="space-y-4 pt-2" noValidate>
+                      {/* Current password */}
+                      <div className="space-y-1">
+                        <label className="text-sm font-medium text-zinc-400">{t("profile.currentPassword")}</label>
+                        <div className="relative">
+                          <input
+                            type={showCurrent ? "text" : "password"}
+                            value={currentPassword}
+                            onChange={(e) => { setCurrentPassword(e.target.value); setPasswordError(""); }}
+                            disabled={passwordLoading}
+                            className="w-full bg-zinc-950 border border-zinc-800 rounded-lg py-2.5 px-4 pr-10 text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all disabled:opacity-50"
+                          />
+                          <button type="button" onClick={() => setShowCurrent(!showCurrent)} className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300">
+                            {showCurrent ? <EyeOff size={16} /> : <Eye size={16} />}
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* New password */}
+                      <div className="space-y-1">
+                        <label className="text-sm font-medium text-zinc-400">{t("profile.newPassword")}</label>
+                        <div className="relative">
+                          <input
+                            type={showNew ? "text" : "password"}
+                            value={newPassword}
+                            onChange={(e) => { setNewPassword(e.target.value); setPasswordError(""); }}
+                            disabled={passwordLoading}
+                            className="w-full bg-zinc-950 border border-zinc-800 rounded-lg py-2.5 px-4 pr-10 text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all disabled:opacity-50"
+                          />
+                          <button type="button" onClick={() => setShowNew(!showNew)} className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300">
+                            {showNew ? <EyeOff size={16} /> : <Eye size={16} />}
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Confirm password */}
+                      <div className="space-y-1">
+                        <label className="text-sm font-medium text-zinc-400">{t("profile.confirmPassword")}</label>
+                        <div className="relative">
+                          <input
+                            type={showConfirm ? "text" : "password"}
+                            value={confirmPassword}
+                            onChange={(e) => { setConfirmPassword(e.target.value); setPasswordError(""); }}
+                            disabled={passwordLoading}
+                            className="w-full bg-zinc-950 border border-zinc-800 rounded-lg py-2.5 px-4 pr-10 text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all disabled:opacity-50"
+                          />
+                          <button type="button" onClick={() => setShowConfirm(!showConfirm)} className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300">
+                            {showConfirm ? <EyeOff size={16} /> : <Eye size={16} />}
+                          </button>
+                        </div>
+                      </div>
+
+                      {passwordError && <p className="text-red-400 text-sm">{passwordError}</p>}
+                      {passwordSuccess && (
+                        <p className="text-green-400 text-sm flex items-center gap-1">
+                          <CheckCircle size={14} /> {t("profile.passwordChanged")}
+                        </p>
+                      )}
+
+                      <div className="flex gap-3 pt-2">
+                        <button
+                          type="submit"
+                          disabled={passwordLoading}
+                          className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-60 disabled:cursor-not-allowed text-white px-5 py-2 rounded-lg text-sm font-medium transition-colors"
+                        >
+                          {passwordLoading ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
+                          {t("profile.editProfileButton")}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => { setShowPasswordForm(false); setPasswordError(""); }}
+                          className="px-5 py-2 rounded-lg text-sm font-medium text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors"
+                        >
+                        {t("common.cancel")}
+                        </button>
+                      </div>
+                    </form>
+                  )}
+
                   <div className="h-px bg-zinc-800"></div>
-                  <button className="text-sm text-red-400 hover:text-red-300 font-medium">
+                  <button className="text-sm text-red-400 hover:text-red-300 font-medium transition-colors">
                     {t("profile.deleteAccount")}
                   </button>
                 </div>

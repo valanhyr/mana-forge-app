@@ -82,7 +82,7 @@ const ArticleDetail = () => {
             to="/"
             className="inline-flex items-center gap-2 text-zinc-300 hover:text-white mb-6 transition-colors bg-black/30 backdrop-blur-sm px-3 py-1 rounded-full border border-white/10 w-fit"
           >
-            <ArrowLeft size={16} /> Volver
+            <ArrowLeft size={16} /> {t("common.back")}
           </Link>
           <div className="flex items-center gap-3 mb-3">
             <span className="flex items-center gap-1 text-zinc-400 text-sm bg-black/40 px-2 py-0.5 rounded-md backdrop-blur-sm">
@@ -110,9 +110,9 @@ const ArticleDetail = () => {
             </div>
             <div>
               <p className="text-white font-medium">
-                Escrito por {article.author || "Anónimo"}
+                {t("articles.writtenBy")} {article.author || t("articles.anonymous")}
               </p>
-              <p className="text-zinc-500 text-xs">Colaborador de Mana Forge</p>
+              <p className="text-zinc-500 text-xs">{t("articles.contributor")}</p>
             </div>
           </div>
 

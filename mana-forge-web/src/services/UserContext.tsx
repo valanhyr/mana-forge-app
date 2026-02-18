@@ -18,6 +18,7 @@ interface UserContextType {
   user: User | null;
   decks: Deck[];
   isAuthenticated: boolean;
+  isSessionLoading: boolean;
   login: (username: string, password: string) => Promise<void>;
   register: (
     username: string,
@@ -53,6 +54,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
     return null;
   });
   const [decks, setDecks] = useState<Deck[]>([]);
+  const [isSessionLoading, setIsSessionLoading] = useState(true);
   const lastLoadedLocale = useRef<string>(locale);
 
   const login = async (username: string, password: string) => {
@@ -109,7 +111,10 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
         setUser(userData);
       })
       .catch(() => {
-        logout(); // Si falla (401), limpiamos el estado local y localStorage
+        logout();
+      })
+      .finally(() => {
+        setIsSessionLoading(false);
       });
   }, []);
 
@@ -187,6 +192,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
         user,
         decks,
         isAuthenticated: !!user,
+        isSessionLoading,
         login,
         register,
         logout,

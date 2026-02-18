@@ -8,30 +8,49 @@ import DeckBuilder from "./views/deck-builder/DeckBuilder";
 import FormatDetail from "./views/formats/FormatDetail";
 import Profile from "./views/profile/Profile";
 import ArticleDetail from "./views/articles/articleDetail";
+import Friends from "./views/friends/Friends";
+import NotFound from "./views/errors/NotFound";
 import { LanguageProvider } from "./services/LanguageContext";
 import ScrollToTop from "./components/layout/ScrollToTop";
+import ProtectedRoute from "./components/layout/ProtectedRoute";
+import { ToastProvider } from "./services/ToastContext";
 
 function App() {
   return (
     <LanguageProvider>
       <UserProvider>
-        <BrowserRouter>
-          <ScrollToTop />
-          <Routes>
-            <Route path="/" element={<Layout />}>
-              <Route index element={<Dashboard />} />
-              <Route path="login" element={<Login />} />
-              <Route path="my-decks" element={<MyDecks />} />
-              <Route path="deck-builder" element={<DeckBuilder />} />
-              <Route path="deck-builder/:deckId" element={<DeckBuilder />} />
-              <Route path="formats/all-formats" element={<FormatDetail />} />
-              <Route path="formats/:formatName" element={<FormatDetail />} />
-              <Route path="profile" element={<Profile />} />
-              <Route path="/articles/:articleId" element={<ArticleDetail />} />
-              {/* Aquí añadiremos más rutas como /deck-builder */}
-            </Route>
-          </Routes>
-        </BrowserRouter>
+        <ToastProvider>
+          <BrowserRouter>
+            <ScrollToTop />
+            <Routes>
+              <Route path="/" element={<Layout />}>
+                <Route index element={<Dashboard />} />
+                <Route path="login" element={<Login />} />
+                <Route path="formats/all-formats" element={<FormatDetail />} />
+                <Route path="formats/:formatName" element={<FormatDetail />} />
+                <Route
+                  path="/articles/:articleId"
+                  element={<ArticleDetail />}
+                />
+
+                {/* Rutas protegidas — requieren autenticación */}
+                <Route element={<ProtectedRoute />}>
+                  <Route path="my-decks" element={<MyDecks />} />
+                  <Route path="deck-builder" element={<DeckBuilder />} />
+                  <Route
+                    path="deck-builder/:deckId"
+                    element={<DeckBuilder />}
+                  />
+                  <Route path="profile" element={<Profile />} />
+                  <Route path="friends" element={<Friends />} />
+                </Route>
+
+                {/* 404 */}
+                <Route path="*" element={<NotFound />} />
+              </Route>
+            </Routes>
+          </BrowserRouter>
+        </ToastProvider>
       </UserProvider>
     </LanguageProvider>
   );

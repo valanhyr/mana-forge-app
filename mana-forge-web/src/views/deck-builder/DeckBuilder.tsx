@@ -1,9 +1,10 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import DropdownInput from "../../components/ui/DropdownInput";
 import SearchInput from "../../components/ui/SearchInput";
 import DeckList, { type DeckCard } from "../../components/ui/DeckList";
 import DeckStats from "../../components/ui/DeckStats";
+import { useToast } from "../../services/ToastContext";
 import {
   Shield,
   ShieldAlert,
@@ -13,6 +14,7 @@ import {
   X,
   Save,
   Brain,
+  Loader2,
 } from "lucide-react";
 import { type Format } from "../../core/models/Format";
 import { FormatService } from "../../services/FormatService";
@@ -63,9 +65,11 @@ const ARCHETYPES_DB: Record<string, string[]> = {
 const DeckBuilder = () => {
   const { user } = useUser();
   const { t, locale } = useTranslation();
+  const { showToast } = useToast();
   const navigate = useNavigate();
   const { deckId } = useParams();
   const [deckName, setDeckName] = useState("");
+  const [deckNameTouched, setDeckNameTouched] = useState(false);
   const [selectedFormatId, setSelectedFormatId] = useState<string>("");
   const [selectedFormat, setSelectedFormat] = useState<Format | null>(null);
   const [isPrivate, setIsPrivate] = useState(false);
@@ -74,6 +78,7 @@ const DeckBuilder = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [deckCards, setDeckCards] = useState<DeckCardWithImage[]>([]);
+  const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [importText, setImportText] = useState("");
@@ -81,6 +86,7 @@ const DeckBuilder = () => {
 
   const [analysisArchetypes, setAnalysisArchetypes] = useState<string[]>([]);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [analysisResult, setAnalysisResult] = useState<any>(null);
   const [isAnalysisModalOpen, setIsAnalysisModalOpen] = useState(false);
 
@@ -186,11 +192,14 @@ const DeckBuilder = () => {
     label: f.name.es || f.name.en || f.scryfallKey,
   }));
 
-  const handleSearchChange = async (val: string) => {
+  const handleSearchChange = (val: string) => {
     setSearchQuery(val);
+    if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
     if (val.length >= 3) {
-      const results = await CardService.autocomplete(val);
-      setSuggestions(results);
+      searchDebounceRef.current = setTimeout(async () => {
+        const results = await CardService.autocomplete(val);
+        setSuggestions(results);
+      }, 300);
     } else {
       setSuggestions([]);
     }
@@ -437,7 +446,12 @@ const DeckBuilder = () => {
   }, [deckName, selectedFormat, deckCards, isCommanderFormat]);
 
   const handleSaveDeck = async () => {
-    if (!isDeckValid || !user || !selectedFormat) return;
+    if (!user || !selectedFormat) return;
+    if (!deckName.trim()) {
+      setDeckNameTouched(true);
+      return;
+    }
+    if (!isDeckValid) return;
 
     const payload = {
       name: deckName,
@@ -445,25 +459,27 @@ const DeckBuilder = () => {
       userId: user.userId,
       isPrivate: isPrivate,
       cards: deckCards.map((card) => ({
-        id: card.id, // Este es el scryfallId
+        id: card.id,
         quantity: card.quantity,
         board: (card.board || "main") as any,
       })),
     };
 
+    setIsSaving(true);
     try {
       if (deckId) {
         await DeckService.updateDeck(deckId, payload);
-        console.log("Mazo actualizado con éxito");
+        showToast(t("deckBuilder.deckUpdated"), "success");
       } else {
-        const savedDeck = await DeckService.saveDeck(payload);
-        console.log("Mazo guardado con éxito:", savedDeck);
+        await DeckService.saveDeck(payload);
+        showToast(t("deckBuilder.deckSaved"), "success");
       }
-      // TODO: Añadir una notificación de éxito
-      navigate("/my-decks"); // Redirigir a la lista de mazos
+      navigate("/my-decks");
     } catch (error) {
       console.error("Error al guardar el mazo:", error);
-      // TODO: Añadir una notificación de error
+      showToast(t("deckBuilder.saveDeckError"), "error");
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -519,9 +535,17 @@ const DeckBuilder = () => {
               type="text"
               value={deckName}
               onChange={(e) => setDeckName(e.target.value)}
+              onBlur={() => setDeckNameTouched(true)}
               placeholder={t("deckBuilder.deckNamePlaceholder")}
-              className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-orange-500/50 transition-all placeholder-zinc-600"
+              className={`w-full bg-zinc-950 border rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 transition-all placeholder-zinc-600 ${
+                deckNameTouched && !deckName.trim()
+                  ? "border-red-500 focus:ring-red-500/50"
+                  : "border-zinc-800 focus:ring-orange-500/50"
+              }`}
             />
+            {deckNameTouched && !deckName.trim() && (
+              <p className="mt-1 text-xs text-red-400">{t("deckBuilder.deckNameRequired")}</p>
+            )}
           </div>
 
           {/* Formato */}
@@ -608,15 +632,23 @@ const DeckBuilder = () => {
           </div>{" "}
           <button
             onClick={handleSaveDeck}
-            disabled={!isDeckValid}
+            disabled={!isDeckValid || isSaving}
             className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold transition-all ${
-              isDeckValid
+              isDeckValid && !isSaving
                 ? "bg-green-600 hover:bg-green-500 text-white shadow-lg shadow-green-900/20 active:scale-95"
                 : "bg-zinc-800 text-zinc-500 cursor-not-allowed"
             }`}
           >
-            <Save size={20} />
-            {deckId ? t("deckBuilder.updateDeck") : t("deckBuilder.saveDeck")}
+            {isSaving ? (
+              <Loader2 size={20} className="animate-spin" />
+            ) : (
+              <Save size={20} />
+            )}
+            {isSaving
+              ? t("common.saving")
+              : deckId
+              ? t("deckBuilder.updateDeck")
+              : t("deckBuilder.saveDeck")}
           </button>
         </div>
       </div>
