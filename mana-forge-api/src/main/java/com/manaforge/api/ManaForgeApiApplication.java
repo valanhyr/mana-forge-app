@@ -15,8 +15,9 @@ import org.springframework.http.converter.AbstractHttpMessageConverter;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.web.client.RestTemplate;
+
+import com.manaforge.api.service.OAuth2LoginSuccessHandler;
 
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
@@ -26,6 +27,9 @@ public class ManaForgeApiApplication {
 
     @Autowired
     private CacheManager cacheManager;
+
+    @Autowired
+    private OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
 
     public static void main(String[] args) {
         SpringApplication.run(ManaForgeApiApplication.class, args);
@@ -64,7 +68,13 @@ public class ManaForgeApiApplication {
                 .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
             ) */
             .oauth2Login(oauth -> oauth
-                .successHandler(new SimpleUrlAuthenticationSuccessHandler("https://mana-forge.com"))
+                .authorizationEndpoint(auth -> auth
+                    .baseUri("/api/oauth2/authorization")
+                )
+                .redirectionEndpoint(redirect -> redirect
+                    .baseUri("/api/login/oauth2/code/*")
+                )
+                .successHandler(oAuth2LoginSuccessHandler)
             )
             .logout(logout -> logout.logoutSuccessHandler((req, res, auth) -> res.setStatus(200)));
         return http.build();
