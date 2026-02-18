@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, Outlet } from "react-router-dom";
-import { Sword, ChevronDown, LogOut, User, Settings, Book } from "lucide-react";
+import { Sword, ChevronDown, LogOut, User, Settings, Book, Menu, X } from "lucide-react";
 import { useUser } from "../../services/UserContext";
 import LanguageSelector from "../ui/LanguageSelector";
 import Footer from "./Footer";
@@ -12,9 +12,10 @@ const Layout = () => {
   const { user, isAuthenticated, logout } = useUser();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  // Cerrar menú al hacer clic fuera
+  // Cerrar menú desplegable al hacer clic fuera
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
@@ -24,6 +25,12 @@ const Layout = () => {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  // Bloquear scroll del body cuando el sidebar está abierto
+  useEffect(() => {
+    document.body.style.overflow = isSidebarOpen ? "hidden" : "";
+    return () => { document.body.style.overflow = ""; };
+  }, [isSidebarOpen]);
 
   return (
     <div className="min-h-screen bg-zinc-950 flex flex-col">
@@ -39,7 +46,8 @@ const Layout = () => {
             </h1>
           </Link>
 
-          <nav className="flex gap-6 text-zinc-400 font-medium items-center">
+          {/* Nav desktop */}
+          <nav className="hidden md:flex gap-6 text-zinc-400 font-medium items-center">
             <Link to="/" className="hover:text-orange-500 transition-colors">
               Dashboard
             </Link>
@@ -57,9 +65,7 @@ const Layout = () => {
                   </span>
                   <ChevronDown
                     size={16}
-                    className={`transition-transform ${
-                      isMenuOpen ? "rotate-180" : ""
-                    }`}
+                    className={`transition-transform ${isMenuOpen ? "rotate-180" : ""}`}
                   />
                 </button>
 
@@ -73,33 +79,30 @@ const Layout = () => {
                         {user.email}
                       </p>
                     </div>
-
                     <Link
                       to="/my-decks"
+                      onClick={() => setIsMenuOpen(false)}
                       className="flex items-center gap-2 px-4 py-2 text-sm text-zinc-300 hover:bg-zinc-800 hover:text-orange-500 transition-colors"
                     >
                       <Book size={16} /> {t("userOptions.myDecks")}
                     </Link>
                     <Link
                       to="/profile"
+                      onClick={() => setIsMenuOpen(false)}
                       className="flex items-center gap-2 px-4 py-2 text-sm text-zinc-300 hover:bg-zinc-800 hover:text-orange-500 transition-colors"
                     >
                       <User size={16} /> {t("userOptions.myProfile")}
                     </Link>
                     <Link
                       to="/settings"
+                      onClick={() => setIsMenuOpen(false)}
                       className="flex items-center gap-2 px-4 py-2 text-sm text-zinc-300 hover:bg-zinc-800 hover:text-orange-500 transition-colors"
                     >
                       <Settings size={16} /> {t("userOptions.mySettings")}
                     </Link>
-
                     <div className="border-t border-zinc-800 my-2"></div>
-
                     <button
-                      onClick={() => {
-                        logout();
-                        setIsMenuOpen(false);
-                      }}
+                      onClick={() => { logout(); setIsMenuOpen(false); }}
                       className="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-colors flex items-center gap-2"
                     >
                       <LogOut size={16} /> {t("userOptions.logout")}
@@ -116,6 +119,15 @@ const Layout = () => {
               </button>
             )}
           </nav>
+
+          {/* Botón hamburguesa (solo mobile) */}
+          <button
+            className="md:hidden text-zinc-300 hover:text-white transition-colors"
+            onClick={() => setIsSidebarOpen(true)}
+            aria-label="Abrir menú"
+          >
+            <Menu size={28} />
+          </button>
         </header>
 
         <main className="max-w-6xl mx-auto">
@@ -123,6 +135,100 @@ const Layout = () => {
         </main>
       </div>
       <Footer />
+
+      {/* Overlay sidebar mobile */}
+      {isSidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/60 z-40 md:hidden"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+
+      {/* Sidebar mobile */}
+      <aside
+        className={`fixed top-0 right-0 h-full w-72 bg-zinc-900 border-l border-zinc-800 z-50 flex flex-col transition-transform duration-300 md:hidden ${
+          isSidebarOpen ? "translate-x-0" : "translate-x-full"
+        }`}
+      >
+        <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-800">
+          <span className="text-white font-bold text-lg">
+            MANA<span className="text-orange-500">FORGE</span>
+          </span>
+          <button
+            onClick={() => setIsSidebarOpen(false)}
+            className="text-zinc-400 hover:text-white transition-colors"
+            aria-label="Cerrar menú"
+          >
+            <X size={24} />
+          </button>
+        </div>
+
+        <nav className="flex flex-col gap-1 px-3 py-4 flex-1 overflow-y-auto">
+          <Link
+            to="/"
+            onClick={() => setIsSidebarOpen(false)}
+            className="flex items-center gap-3 px-3 py-3 rounded-lg text-zinc-300 hover:bg-zinc-800 hover:text-orange-500 transition-colors font-medium"
+          >
+            Dashboard
+          </Link>
+
+          <div className="px-3 py-2">
+            <LanguageSelector />
+          </div>
+
+          <div className="border-t border-zinc-800 my-2" />
+
+          {isAuthenticated && user ? (
+            <>
+              <div className="px-3 py-2">
+                <p className="text-xs text-zinc-500 uppercase tracking-wider">
+                  {t("userOptions.connectedAs")}
+                </p>
+                <p className="text-sm text-orange-500 font-semibold truncate mt-0.5">
+                  {user.username}
+                </p>
+                <p className="text-xs text-zinc-400 truncate">{user.email}</p>
+              </div>
+              <Link
+                to="/my-decks"
+                onClick={() => setIsSidebarOpen(false)}
+                className="flex items-center gap-3 px-3 py-3 rounded-lg text-zinc-300 hover:bg-zinc-800 hover:text-orange-500 transition-colors"
+              >
+                <Book size={16} /> {t("userOptions.myDecks")}
+              </Link>
+              <Link
+                to="/profile"
+                onClick={() => setIsSidebarOpen(false)}
+                className="flex items-center gap-3 px-3 py-3 rounded-lg text-zinc-300 hover:bg-zinc-800 hover:text-orange-500 transition-colors"
+              >
+                <User size={16} /> {t("userOptions.myProfile")}
+              </Link>
+              <Link
+                to="/settings"
+                onClick={() => setIsSidebarOpen(false)}
+                className="flex items-center gap-3 px-3 py-3 rounded-lg text-zinc-300 hover:bg-zinc-800 hover:text-orange-500 transition-colors"
+              >
+                <Settings size={16} /> {t("userOptions.mySettings")}
+              </Link>
+              <div className="border-t border-zinc-800 my-2" />
+              <button
+                onClick={() => { logout(); setIsSidebarOpen(false); }}
+                className="flex items-center gap-3 px-3 py-3 rounded-lg text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-colors w-full text-left"
+              >
+                <LogOut size={16} /> {t("userOptions.logout")}
+              </button>
+            </>
+          ) : (
+            <button
+              onClick={() => { setIsSidebarOpen(false); setIsAuthModalOpen(true); }}
+              className="mx-3 mt-2 bg-orange-600 hover:bg-orange-500 text-white px-5 py-2.5 rounded-lg transition-all text-sm font-bold"
+            >
+              {t("userOptions.login")}
+            </button>
+          )}
+        </nav>
+      </aside>
+
       <AuthModal
         isOpen={isAuthModalOpen}
         onClose={() => setIsAuthModalOpen(false)}
