@@ -5,21 +5,20 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
-import org.springframework.cache.concurrent.ConcurrentMapCacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.couchbase.CouchbaseClientFactory;
-import org.springframework.data.couchbase.SimpleCouchbaseClientFactory;
-import org.springframework.data.couchbase.cache.CouchbaseCacheConfiguration;
-import org.springframework.data.couchbase.cache.CouchbaseCacheManager;
-
-import com.couchbase.client.java.Cluster;
-import com.couchbase.client.java.ClusterOptions;
+import org.springframework.data.redis.cache.RedisCacheConfiguration;
+import org.springframework.data.redis.cache.RedisCacheManager;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.serializer.RedisSerializationContext;
+import org.springframework.data.redis.serializer.RedisSerializer;
+import org.springframework.data.redis.serializer.SerializationException;
 
 @Configuration
 @EnableCaching
@@ -27,95 +26,81 @@ public class CacheConfig {
 
     private static final Logger logger = LoggerFactory.getLogger(CacheConfig.class);
 
-    @Value("${spring.couchbase.connection-string:}")
-    private String connectionString;
-
-    @Value("${spring.couchbase.username:}")
-    private String username;
-
-    @Value("${spring.couchbase.password:}")
-    private String password;
-
-    @Value("${spring.couchbase.bucket-name:manaforge-cache}")
-    private String bucketName;
-
     @Bean
-    public CacheManager cacheManager() {
-        // Intentar conectar a Couchbase, con fallback a cache simple en memoria
-        try {
-            if (connectionString != null && !connectionString.isEmpty()) {
-                logger.info("🔄 Attempting to connect to Couchbase at: {}", connectionString);
-                
-                Cluster cluster = Cluster.connect(
-                    connectionString,
-                    ClusterOptions.clusterOptions(username, password)
-                );
-                
-                CouchbaseClientFactory clientFactory = new SimpleCouchbaseClientFactory(cluster, bucketName, "_default");
-                
-                logger.info("✅ Successfully connected to Couchbase bucket: {}", bucketName);
-                
-                return createCouchbaseCacheManager(clientFactory);
+    public CacheManager cacheManager(RedisConnectionFactory connectionFactory) {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.activateDefaultTyping(
+            mapper.getPolymorphicTypeValidator(),
+            ObjectMapper.DefaultTyping.NON_FINAL,
+            JsonTypeInfo.As.PROPERTY
+        );
+
+        RedisSerializer<Object> serializer = new RedisSerializer<>() {
+            @Override
+            public byte[] serialize(Object value) throws SerializationException {
+                if (value == null) return new byte[0];
+                try {
+                    return mapper.writeValueAsBytes(value);
+                } catch (Exception e) {
+                    throw new SerializationException("Could not serialize object", e);
+                }
             }
-        } catch (Exception e) {
-            logger.error("❌ Failed to connect to Couchbase: {}. Falling back to in-memory cache.", e.getMessage());
-        }
-        
-        // Fallback a caché en memoria si Couchbase falla o no está configurado
-        logger.warn("⚠️ Using in-memory cache instead of Couchbase");
-        return createSimpleCacheManager();
-    }
+            @Override
+            public Object deserialize(byte[] bytes) throws SerializationException {
+                if (bytes == null || bytes.length == 0) return null;
+                try {
+                    return mapper.readValue(bytes, Object.class);
+                } catch (Exception e) {
+                    throw new SerializationException("Could not deserialize bytes", e);
+                }
+            }
+        };
 
-    private CacheManager createCouchbaseCacheManager(CouchbaseClientFactory clientFactory) {
-        CouchbaseCacheConfiguration defaultConfig = CouchbaseCacheConfiguration
-                .defaultCacheConfig()
-                .entryExpiry(Duration.ofHours(1));
+        RedisCacheConfiguration defaultConfig = RedisCacheConfiguration.defaultCacheConfig()
+                .entryTtl(Duration.ofHours(1))
+                .serializeValuesWith(
+                    RedisSerializationContext.SerializationPair.fromSerializer(serializer)
+                );
 
-        Map<String, CouchbaseCacheConfiguration> cacheConfigurations = new HashMap<>();
-        
+        Map<String, RedisCacheConfiguration> cacheConfigurations = new HashMap<>();
+
         // Caché de Strapi - 6 horas
         addCacheConfig(cacheConfigurations, List.of(
-            "footer", "footer-legal", "heros", "sections", "languages", 
+            "footer", "footer-legal", "heros", "sections", "languages",
             "formats", "format-detail"
-        ), Duration.ofHours(6));
-        
+        ), Duration.ofHours(6), serializer);
+
         // Caché de artículos - 2 horas
         addCacheConfig(cacheConfigurations, List.of(
             "articles-latest", "article-detail"
-        ), Duration.ofHours(2));
-        
+        ), Duration.ofHours(2), serializer);
+
         // Caché de Scryfall - 24 horas
         addCacheConfig(cacheConfigurations, List.of(
-            "scryfall_search", "scryfall_card", "scryfall_symbology", 
+            "scryfall_search", "scryfall_card", "scryfall_symbology",
             "scryfall_named", "scryfall_autocomplete"
-        ), Duration.ofHours(24));
-        
-        // Caché de Premodern - 24 horas
-        addCacheConfig(cacheConfigurations, List.of("premodern_banned"), Duration.ofHours(24));
+        ), Duration.ofHours(24), serializer);
 
-        CouchbaseCacheManager cacheManager = CouchbaseCacheManager.builder(clientFactory)
+        // Caché de Premodern - 24 horas
+        addCacheConfig(cacheConfigurations, List.of("premodern_banned"), Duration.ofHours(24), serializer);
+
+        logger.info("✅ RedisCacheManager created with {} cache configurations", cacheConfigurations.size());
+
+        return RedisCacheManager.builder(connectionFactory)
                 .cacheDefaults(defaultConfig)
                 .withInitialCacheConfigurations(cacheConfigurations)
                 .build();
-        
-        logger.info("✅ CouchbaseCacheManager created with {} cache configurations", cacheConfigurations.size());
-        return cacheManager;
     }
 
-    private void addCacheConfig(Map<String, CouchbaseCacheConfiguration> configs, List<String> cacheNames, Duration ttl) {
+    private void addCacheConfig(Map<String, RedisCacheConfiguration> configs, List<String> cacheNames,
+                                Duration ttl, RedisSerializer<Object> serializer) {
+        RedisCacheConfiguration config = RedisCacheConfiguration.defaultCacheConfig()
+                .entryTtl(ttl)
+                .serializeValuesWith(
+                    RedisSerializationContext.SerializationPair.fromSerializer(serializer)
+                );
         for (String cacheName : cacheNames) {
-            configs.put(cacheName, CouchbaseCacheConfiguration.defaultCacheConfig().entryExpiry(ttl));
+            configs.put(cacheName, config);
         }
-    }
-
-    private CacheManager createSimpleCacheManager() {
-        ConcurrentMapCacheManager cacheManager = new ConcurrentMapCacheManager();
-        cacheManager.setCacheNames(List.of(
-            "footer", "footer-legal", "heros", "sections", "languages", 
-            "formats", "format-detail", "articles-latest", "article-detail",
-            "scryfall_search", "scryfall_card", "scryfall_symbology", 
-            "scryfall_named", "scryfall_autocomplete", "premodern_banned"
-        ));
-        return cacheManager;
     }
 }

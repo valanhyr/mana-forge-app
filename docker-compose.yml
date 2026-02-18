@@ -31,14 +31,13 @@ services:
       - STRAPI_API_URL=${STRAPI_API_URL:-https://original-book-1bf186e2ab.strapiapp.com/api}
       - STRAPI_API_TOKEN=${STRAPI_API_TOKEN:-a6a6f1ccc517498711021dff78c51290ab57bfc2379d69a393dfb0d3156b5501b7fff3149987c92ecacc03022b926594cff6f4ef4a718b48129fcac2c854b11113a16f1b3238f3547dc527cc65dd67101a3d0a46a4ba28161e39be9390beb52726f92d36d6c1291e7bb2692b0340b0cd0efc4819fa410d7d6b4e5e5a6ad90964}
       - SPRING_DATA_MONGODB_URI=${MONGODB_URI:-mongodb+srv://valanhyr_db_user:0wtjeXsiAAEKkYGH@cluster0.3jvqdu6.mongodb.net/production?appName=Cluster0}
-      - SPRING_COUCHBASE_CONNECTION_STRING=couchbase://couchbase:11210
-      - SPRING_COUCHBASE_USERNAME=Administrator
-      - SPRING_COUCHBASE_PASSWORD=${COUCHBASE_PASSWORD:-123456}
+      - SPRING_DATA_REDIS_HOST=redis
+      - SPRING_DATA_REDIS_PORT=6379
     depends_on:
       engine:
         condition: service_started
-      couchbase:
-        condition: service_healthy
+      redis:
+        condition: service_started
     restart: always
     networks:
       - mana-forge-network
@@ -57,24 +56,10 @@ services:
     networks:
       - mana-forge-network
 
-  # CACHE: Couchbase para cachear respuestas de Strapi/Scryfall/DB
-  couchbase:
-    image: couchbase/server:community-7.6.1
+  # CACHE: Redis para cachear respuestas de Strapi/Scryfall/DB
+  redis:
+    image: redis:7-alpine
     container_name: mana-forge-cache-1
-    ports:
-      - "8091-8096:8091-8096"  # Admin UI y APIs
-      - "11210:11210"           # Cliente SDK
-    environment:
-      - COUCHBASE_ADMINISTRATOR_USERNAME=Administrator
-      - COUCHBASE_ADMINISTRATOR_PASSWORD=${COUCHBASE_PASSWORD:-123456}
-    volumes:
-      - couchbase_data:/opt/couchbase/var
-    healthcheck:
-      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8091/pools"]
-      interval: 15s
-      timeout: 10s
-      retries: 12
-      start_period: 60s
     restart: always
     networks:
       - mana-forge-network
@@ -83,6 +68,3 @@ services:
 networks:
   mana-forge-network:
     driver: bridge
-
-volumes:
-  couchbase_data:
