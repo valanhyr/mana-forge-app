@@ -25,6 +25,7 @@ import org.springframework.web.server.ResponseStatusException;
 import com.manaforge.api.dto.UserDto;
 import com.manaforge.api.model.mongo.User;
 import com.manaforge.api.repository.UserRepository;
+import com.manaforge.api.service.EmailService;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -35,12 +36,14 @@ import jakarta.servlet.http.HttpServletResponse;
 public class UserController extends BaseMongoController<User, String> {
 
     private final UserRepository userRepository;
+    private final EmailService emailService;
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
     private final SecurityContextRepository securityContextRepository = new HttpSessionSecurityContextRepository();
 
-    public UserController(UserRepository repository) {
+    public UserController(UserRepository repository, EmailService emailService) {
         super(repository);
         this.userRepository = repository;
+        this.emailService = emailService;
     }
 
     @GetMapping("/username/{username}")
@@ -94,7 +97,11 @@ public class UserController extends BaseMongoController<User, String> {
         }
 
         user.setPassword(passwordEncoder.encode(user.getPassword()));
-        return super.create(user);
+        ResponseEntity<User> response = super.create(user);
+        if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
+            emailService.sendWelcomeEmail(response.getBody());
+        }
+        return response;
     }
 
     @PostMapping("/login")

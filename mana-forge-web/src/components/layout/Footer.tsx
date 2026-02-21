@@ -1,10 +1,17 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Sword, Github, Twitter, Linkedin } from "lucide-react";
+import { Sword, Github, Twitter, Linkedin, ChevronDown } from "lucide-react";
 import { useTranslation } from "../../hooks/useTranslation";
+
+type AccordionSection = "product" | "resources" | "legal";
 
 const Footer = () => {
   const { t } = useTranslation();
   const currentYear = new Date().getFullYear();
+  const [openSection, setOpenSection] = useState<AccordionSection | null>(null);
+
+  const toggle = (section: AccordionSection) =>
+    setOpenSection((prev) => (prev === section ? null : section));
 
   return (
     <footer className="border-t border-zinc-800 bg-zinc-950 mt-auto">
@@ -26,9 +33,25 @@ const Footer = () => {
           </div>
 
           {/* Product Links */}
-          <div>
-            <h4 className="text-white font-bold mb-4">{t("footer.product")}</h4>
-            <ul className="space-y-2 text-sm text-zinc-400">
+          <div className="border-t border-zinc-800 md:border-none">
+            <button
+              className="flex w-full items-center justify-between py-3 md:py-0 md:cursor-default text-white font-bold"
+              onClick={() => toggle("product")}
+              aria-expanded={openSection === "product"}
+            >
+              {t("footer.product")}
+              <ChevronDown
+                size={18}
+                className={`md:hidden transition-transform duration-200 ${openSection === "product" ? "rotate-180" : ""}`}
+              />
+            </button>
+            <ul
+              className={`space-y-2 text-sm text-zinc-400 overflow-hidden transition-all duration-300 md:!max-h-none md:!opacity-100 md:mb-0 ${
+                openSection === "product"
+                  ? "max-h-40 opacity-100 mb-3"
+                  : "max-h-0 opacity-0 md:max-h-none"
+              }`}
+            >
               <li>
                 <Link
                   to="/deck-builder"
@@ -56,12 +79,26 @@ const Footer = () => {
             </ul>
           </div>
 
-          {/* Resources Links (Mocks) */}
-          <div>
-            <h4 className="text-white font-bold mb-4">
+          {/* Resources Links */}
+          <div className="border-t border-zinc-800 md:border-none">
+            <button
+              className="flex w-full items-center justify-between py-3 md:py-0 md:cursor-default text-white font-bold"
+              onClick={() => toggle("resources")}
+              aria-expanded={openSection === "resources"}
+            >
               {t("footer.resources")}
-            </h4>
-            <ul className="space-y-2 text-sm text-zinc-400">
+              <ChevronDown
+                size={18}
+                className={`md:hidden transition-transform duration-200 ${openSection === "resources" ? "rotate-180" : ""}`}
+              />
+            </button>
+            <ul
+              className={`space-y-2 text-sm text-zinc-400 overflow-hidden transition-all duration-300 md:!max-h-none md:!opacity-100 md:mb-0 ${
+                openSection === "resources"
+                  ? "max-h-40 opacity-100 mb-3"
+                  : "max-h-0 opacity-0 md:max-h-none"
+              }`}
+            >
               <li>
                 <a href="#" className="hover:text-orange-500 transition-colors">
                   {t("footer.documentation")}
@@ -80,10 +117,26 @@ const Footer = () => {
             </ul>
           </div>
 
-          {/* Legal Links (Mocks) */}
-          <div>
-            <h4 className="text-white font-bold mb-4">{t("footer.legal")}</h4>
-            <ul className="space-y-2 text-sm text-zinc-400">
+          {/* Legal Links */}
+          <div className="border-t border-zinc-800 md:border-none">
+            <button
+              className="flex w-full items-center justify-between py-3 md:py-0 md:cursor-default text-white font-bold"
+              onClick={() => toggle("legal")}
+              aria-expanded={openSection === "legal"}
+            >
+              {t("footer.legal")}
+              <ChevronDown
+                size={18}
+                className={`md:hidden transition-transform duration-200 ${openSection === "legal" ? "rotate-180" : ""}`}
+              />
+            </button>
+            <ul
+              className={`space-y-2 text-sm text-zinc-400 overflow-hidden transition-all duration-300 md:!max-h-none md:!opacity-100 md:mb-0 ${
+                openSection === "legal"
+                  ? "max-h-40 opacity-100 mb-3"
+                  : "max-h-0 opacity-0 md:max-h-none"
+              }`}
+            >
               <li>
                 <a href="#" className="hover:text-orange-500 transition-colors">
                   {t("footer.privacy")}

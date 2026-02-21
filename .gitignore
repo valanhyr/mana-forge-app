@@ -1,0 +1,7 @@
+# Secrets — never commit
+.env
+.env.local
+.env.production
+
+# Engine secrets
+mana-forge-engine/.env
