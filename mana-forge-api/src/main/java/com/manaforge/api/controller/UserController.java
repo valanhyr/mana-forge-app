@@ -4,6 +4,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.AuthorityUtils;
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -30,7 +32,12 @@ import com.manaforge.api.service.EmailService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
+import java.net.URI;
+import java.util.UUID;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @RestController
 @RequestMapping("/api/users")
 public class UserController extends BaseMongoController<User, String> {
@@ -39,6 +46,9 @@ public class UserController extends BaseMongoController<User, String> {
     private final EmailService emailService;
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
     private final SecurityContextRepository securityContextRepository = new HttpSessionSecurityContextRepository();
+
+    @Value("${services.frontend.url}")
+    private String frontendUrl;
 
     public UserController(UserRepository repository, EmailService emailService) {
         super(repository);
@@ -97,11 +107,28 @@ public class UserController extends BaseMongoController<User, String> {
         }
 
         user.setPassword(passwordEncoder.encode(user.getPassword()));
+        user.setValidated(false);
+        user.setVerificationToken(UUID.randomUUID().toString());
         ResponseEntity<User> response = super.create(user);
         if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
-            emailService.sendWelcomeEmail(response.getBody());
+            emailService.sendVerificationEmail(response.getBody());
         }
         return response;
+    }
+
+    @GetMapping("/verify")
+    public ResponseEntity<Void> verifyEmail(@RequestParam String token) {
+        log.info("Verifying token: {}", token);
+        var userOpt = userRepository.findByVerificationToken(token);
+        log.info("User found: {}", userOpt.isPresent());
+        if (userOpt.isPresent()) {
+            var user = userOpt.get();
+            user.setValidated(true);
+            user.setVerificationToken(null);
+            userRepository.save(user);
+            return ResponseEntity.<Void>ok().build();
+        }
+        return ResponseEntity.<Void>notFound().build();
     }
 
     @PostMapping("/login")
@@ -109,6 +136,10 @@ public class UserController extends BaseMongoController<User, String> {
         return userRepository.findByUsername(loginRequest.getUsername())
                 .filter(user -> passwordEncoder.matches(loginRequest.getPassword(), user.getPassword()))
                 .map(user -> {
+                    if (!Boolean.TRUE.equals(user.getValidated())) {
+                        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                                .body(java.util.Map.of("error", "EMAIL_NOT_VERIFIED"));
+                    }
                     // 1. Crear autenticación de Spring Security (JSESSIONID)
                     UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
                         user.getUsername(), null, AuthorityUtils.createAuthorityList("ROLE_USER")

@@ -13,6 +13,12 @@ export const AuthService = {
     });
 
     if (!response.ok) {
+      if (response.status === 403) {
+        const data = await response.json().catch(() => ({}));
+        if (data.error === "EMAIL_NOT_VERIFIED") {
+          throw new Error("EMAIL_NOT_VERIFIED");
+        }
+      }
       throw new Error("Error en las credenciales");
     }
 
@@ -72,6 +78,15 @@ export const AuthService = {
     });
     if (response.status === 401) throw new Error("wrongPassword");
     if (!response.ok) throw new Error("changePasswordFailed");
+  },
+
+  verifyEmail: async (token: string): Promise<void> => {
+    const response = await fetch(`${API_URL}/users/verify?token=${encodeURIComponent(token)}`, {
+      credentials: "include",
+    });
+    if (!response.ok) {
+      throw new Error("INVALID_TOKEN");
+    }
   },
 
   // Simulación de fetch de mazos (conectaremos con el backend real luego)

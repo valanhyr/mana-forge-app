@@ -21,6 +21,7 @@ public class User {
     private Boolean active;
     private Boolean validated;
     private String[] friends;
+    private String verificationToken;
 
     public User(
         String name,

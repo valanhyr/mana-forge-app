@@ -81,7 +81,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
   ) => {
     try {
       await AuthService.register(username, email, password);
-      await login(username, password); // Auto-login tras registro exitoso
+      // No auto-login: user must verify email first
     } catch (error) {
       console.error("Register error:", error);
       throw error;

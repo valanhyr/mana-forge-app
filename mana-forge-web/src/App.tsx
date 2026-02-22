@@ -10,6 +10,7 @@ import Profile from "./views/profile/Profile";
 import ArticleDetail from "./views/articles/articleDetail";
 import Friends from "./views/friends/Friends";
 import NotFound from "./views/errors/NotFound";
+import VerifyEmail from "./views/auth/VerifyEmail";
 import { LanguageProvider } from "./services/LanguageContext";
 import ScrollToTop from "./components/layout/ScrollToTop";
 import ProtectedRoute from "./components/layout/ProtectedRoute";
@@ -26,6 +27,7 @@ function App() {
               <Route path="/" element={<Layout />}>
                 <Route index element={<Dashboard />} />
                 <Route path="login" element={<Login />} />
+                <Route path="verify-email" element={<VerifyEmail />} />
                 <Route path="formats/all-formats" element={<FormatDetail />} />
                 <Route path="formats/:formatName" element={<FormatDetail />} />
                 <Route

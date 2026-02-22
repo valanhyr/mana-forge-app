@@ -1,8 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useUser } from "../../services/UserContext";
 import { useTranslation } from "../../hooks/useTranslation";
 import { API_URL } from "../../services/api";
-import { Loader2 } from "lucide-react";
+import { Loader2, Mail } from "lucide-react";
+import { useSearchParams } from "react-router-dom";
+import { useToast } from "../../services/ToastContext";
 
 interface AuthModalProps {
   isOpen?: boolean;
@@ -12,12 +14,22 @@ interface AuthModalProps {
 const AuthModal = ({ isOpen = true, onClose }: AuthModalProps) => {
   const { t } = useTranslation();
   const { login, register } = useUser();
+  const { showToast } = useToast();
+  const [searchParams] = useSearchParams();
   const [isLogin, setIsLogin] = useState(true);
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [registrationDone, setRegistrationDone] = useState(false);
+  const [registeredEmail, setRegisteredEmail] = useState("");
+
+  useEffect(() => {
+    if (searchParams.get("verified") === "true") {
+      showToast(t("auth.verifiedSuccess"), "success");
+    }
+  }, []);
 
   if (!isOpen) return null;
 
@@ -45,16 +57,20 @@ const AuthModal = ({ isOpen = true, onClose }: AuthModalProps) => {
     try {
       if (isLogin) {
         await login(username, password);
+        onClose?.();
       } else {
         await register(username, email, password);
+        setRegisteredEmail(email);
+        setRegistrationDone(true);
       }
-      onClose?.();
     } catch (err: any) {
       setError(
-        err.message ||
-          (isLogin
-            ? t("auth.error.credentials")
-            : t("auth.error.notImplemented")),
+        err.message === "EMAIL_NOT_VERIFIED"
+          ? t("auth.error.emailNotVerified")
+          : err.message ||
+              (isLogin
+                ? t("auth.error.credentials")
+                : t("auth.error.notImplemented")),
       );
     } finally {
       setIsLoading(false);
@@ -67,7 +83,39 @@ const AuthModal = ({ isOpen = true, onClose }: AuthModalProps) => {
     setUsername("");
     setEmail("");
     setPassword("");
+    setRegistrationDone(false);
   };
+
+  if (registrationDone) {
+    return (
+      <div
+        className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+        onClick={onClose}
+      >
+        <div
+          className="bg-zinc-900 border border-zinc-800 rounded-2xl w-full max-w-md shadow-2xl overflow-hidden p-8 flex flex-col items-center text-center gap-4"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="w-16 h-16 rounded-full bg-orange-500/10 flex items-center justify-center">
+            <Mail size={32} className="text-orange-500" />
+          </div>
+          <h2 className="text-2xl font-bold text-white">{t("auth.verifyEmail.title")}</h2>
+          <p className="text-zinc-400 text-sm leading-relaxed">
+            {t("auth.verifyEmail.description")}{" "}
+            <span className="text-orange-400 font-medium">{registeredEmail}</span>.
+            <br />
+            {t("auth.verifyEmail.hint")}
+          </p>
+          <button
+            className="mt-2 text-sm text-zinc-500 hover:text-white transition-colors"
+            onClick={() => handleTabSwitch(true)}
+          >
+            {t("auth.verifyEmail.backToLogin")}
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div

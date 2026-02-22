@@ -48,8 +48,16 @@
         "passwordRequired": "La contraseña es obligatoria",
         "passwordMinLength": "La contraseña debe tener al menos 6 caracteres",
         "emailRequired": "El email es obligatorio",
-        "emailInvalid": "Introduce un email válido"
-      }
+        "emailInvalid": "Introduce un email válido",
+        "emailNotVerified": "Debes verificar tu correo antes de entrar. Revisa tu bandeja de entrada."
+      },
+      "verifyEmail": {
+        "title": "Revisa tu correo",
+        "description": "Te hemos enviado un enlace de verificación a",
+        "hint": "Haz clic en el enlace del email para activar tu cuenta.",
+        "backToLogin": "Volver al login"
+      },
+      "verifiedSuccess": "¡Email verificado! Ya puedes iniciar sesión."
     },
     "userOptions": {
       "connectedAs": "Conectado como",
@@ -286,8 +294,16 @@
         "passwordRequired": "Password is required",
         "passwordMinLength": "Password must be at least 6 characters",
         "emailRequired": "Email is required",
-        "emailInvalid": "Please enter a valid email"
-      }
+        "emailInvalid": "Please enter a valid email",
+        "emailNotVerified": "Please verify your email before logging in. Check your inbox."
+      },
+      "verifyEmail": {
+        "title": "Check your email",
+        "description": "We sent a verification link to",
+        "hint": "Click the link in the email to activate your account.",
+        "backToLogin": "Back to login"
+      },
+      "verifiedSuccess": "Email verified! You can now log in."
     },
     "userOptions": {
       "connectedAs": "Connected as",
