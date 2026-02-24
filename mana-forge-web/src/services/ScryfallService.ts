@@ -12,4 +12,13 @@ export const ScryfallService = {
     }
     return response.json();
   },
+
+  getCardById: async (scryfallId: string): Promise<any> => {
+    const response = await fetch(`https://api.scryfall.com/cards/${scryfallId}`);
+    if (!response.ok) {
+      console.warn(`Card not found on Scryfall: ${scryfallId}`);
+      return null;
+    }
+    return response.json();
+  },
 };

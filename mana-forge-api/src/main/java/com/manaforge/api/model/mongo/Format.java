@@ -4,19 +4,20 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.util.Map;
+
 @Document(collection = "formats")
 public class Format {
 
     @Id
     private String id;
 
-    @Indexed(unique = true)
-    private String name;
+    private Map<String, String> name;
 
     @Indexed(unique = true)
     private String slug;
 
-    private String scryfallKey; // Clave para validaciones contra API externa
+    private String scryfallKey;
 
     private boolean isActive = true;
 
@@ -26,8 +27,13 @@ public class Format {
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
 
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
+    public Map<String, String> getName() { return name; }
+    public void setName(Map<String, String> name) { this.name = name; }
+
+    public String getLocalizedName(String locale) {
+        if (name == null) return "";
+        return name.getOrDefault(locale, name.getOrDefault("en", ""));
+    }
 
     public String getSlug() { return slug; }
     public void setSlug(String slug) { this.slug = slug; }

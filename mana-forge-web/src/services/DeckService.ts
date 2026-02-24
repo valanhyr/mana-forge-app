@@ -8,7 +8,38 @@ export interface DailyDeck {
   brief_analysis: string;
   main_deck: Array<{ name: string; quantity: number }>;
   sideboard: Array<{ name: string; quantity: number }>;
-  cardArtUrl?: string; // Se añade dinámicamente después
+  cardArtUrl?: string;
+}
+
+export interface DeckCardEntry {
+  scryfallId: string;
+  name: string;
+  manaCost: string;
+  cmc: number;
+  typeLine: string;
+  imageUris: { art_crop?: string; normal?: string; small?: string };
+  quantity: number;
+}
+
+export interface DeckView {
+  id: string;
+  name: string;
+  formatName: string;
+  ownerUsername: string;
+  colors: string[];
+  mainDeck: DeckCardEntry[];
+  sideboard: DeckCardEntry[];
+}
+
+
+export interface FeaturedDeck {
+  id: string;
+  name: string;
+  formatName: string;
+  ownerUsername: string;
+  colors: string[];
+  featuredScryfallId: string;
+  cardArtUrl?: string;
 }
 
 // Esta interfaz coincide con el DeckRequestDTO en el backend
@@ -26,9 +57,26 @@ interface DeckPayload {
 
 export const DeckService = {
   getDailyDeck: async (locale: string): Promise<DailyDeck> => {
-    // Enviamos el locale tanto en el body (para el engine) como en el header (por el interceptor)
     const response = await api.post<DailyDeck>("/decks/random", { locale });
     return response.data;
+  },
+
+  getFeaturedDeck: async (): Promise<FeaturedDeck | null> => {
+    try {
+      const response = await api.get<FeaturedDeck>("/decks/featured");
+      return response.data;
+    } catch {
+      return null;
+    }
+  },
+
+  getDeckView: async (deckId: string): Promise<DeckView | null> => {
+    try {
+      const response = await api.get<DeckView>(`/decks/${deckId}/view`);
+      return response.data;
+    } catch {
+      return null;
+    }
   },
 
   saveDeck: async (payload: DeckPayload): Promise<any> => {

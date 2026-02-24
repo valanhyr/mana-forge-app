@@ -16,6 +16,9 @@ import ScrollToTop from "./components/layout/ScrollToTop";
 import ProtectedRoute from "./components/layout/ProtectedRoute";
 import { ToastProvider } from "./services/ToastContext";
 
+import LegalPageView from "./views/legal/LegalPage";
+import DeckViewer from "./views/deck-viewer/DeckViewer";
+
 function App() {
   return (
     <LanguageProvider>
@@ -30,10 +33,9 @@ function App() {
                 <Route path="verify-email" element={<VerifyEmail />} />
                 <Route path="formats/all-formats" element={<FormatDetail />} />
                 <Route path="formats/:formatName" element={<FormatDetail />} />
-                <Route
-                  path="/articles/:articleId"
-                  element={<ArticleDetail />}
-                />
+                <Route path="/articles/:articleId" element={<ArticleDetail />} />
+                <Route path="/legal/:slug" element={<LegalPageView />} />
+                <Route path="/deck-viewer/:deckId" element={<DeckViewer />} />
 
                 {/* Rutas protegidas — requieren autenticación */}
                 <Route element={<ProtectedRoute />}>

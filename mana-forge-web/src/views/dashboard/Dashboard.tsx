@@ -10,7 +10,7 @@ import {
   Layers,
   BookOpen,
 } from "lucide-react";
-import { DeckService, type DailyDeck } from "../../services/DeckService";
+import { DeckService, type DailyDeck, type FeaturedDeck } from "../../services/DeckService";
 import { ScryfallService } from "../../services/ScryfallService";
 import ForgeSpinner from "../../components/ui/ForgeSpinner";
 import { FormatService } from "../../services/FormatService";
@@ -19,16 +19,6 @@ import { ArticleService } from "../../services/ArticleService";
 import { type Article } from "../../core/models/Article";
 
 // --- Mock Data ---
-
-// 2. Mazos del Día
-const deckOfTheDay = {
-  name: "Izzet Delver",
-  format: "Legacy",
-  archetype: "Tempo",
-  cardArtUrl:
-    "https://api.scryfall.com/cards/named?exact=Delver%20of%20Secrets&format=image&version=art_crop", // Delver of Secrets
-  deckId: "some-public-deck-id",
-};
 
 interface FormatSummary {
   mongoId: string;
@@ -41,6 +31,7 @@ interface FormatSummary {
 const Dashboard = () => {
   const { t, locale } = useTranslation();
   const [dailyDeck, setDailyDeck] = useState<DailyDeck | null>(null);
+  const [featuredDeck, setFeaturedDeck] = useState<FeaturedDeck | null>(null);
   const [popularFormats, setPopularFormats] = useState<FormatSummary[]>([]);
   const [articles, setArticles] = useState<Article[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -98,7 +89,19 @@ const Dashboard = () => {
 
     fetchDailyDeck();
 
-    const fetchArticles = async () => {
+    const fetchFeaturedDeck = async () => {
+      const deck = await DeckService.getFeaturedDeck();
+      if (deck && deck.featuredScryfallId) {
+        const cardDetails = await ScryfallService.getCardById(deck.featuredScryfallId);
+        const cardArtUrl = cardDetails?.image_uris?.art_crop ?? null;
+        setFeaturedDeck({ ...deck, cardArtUrl });
+      } else {
+        setFeaturedDeck(deck);
+      }
+    };
+    fetchFeaturedDeck();
+
+    const fetchArticles= async () => {
       const fetchedArticles = await ArticleService.getLastArticles();
       setArticles(fetchedArticles);
     };
@@ -216,32 +219,45 @@ const Dashboard = () => {
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {/* Mazo de la Comunidad */}
-          <Link
-            to={`/deck-viewer/${deckOfTheDay.deckId}`}
-            className="group relative block overflow-hidden rounded-2xl shadow-lg"
-          >
-            <div className="absolute inset-0 z-0">
-              <img
-                src={deckOfTheDay.cardArtUrl}
-                alt={deckOfTheDay.name}
-                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
-            </div>
-            <div className="relative z-10 flex flex-col justify-between h-80 p-6 text-white">
-              <div>
-                <span className="inline-flex items-center gap-2 rounded-full bg-orange-500/10 px-3 py-1 text-xs font-medium text-orange-400 border border-orange-500/20">
-                  <Zap size={14} /> {t("dashboard.deckOfTheDay")}
-                </span>
+          {featuredDeck ? (
+            <Link
+              to={`/deck-viewer/${featuredDeck.id}`}
+              className="group relative block overflow-hidden rounded-2xl shadow-lg"
+            >
+              <div className="absolute inset-0 z-0">
+                {featuredDeck.cardArtUrl ? (
+                  <img
+                    src={featuredDeck.cardArtUrl}
+                    alt={featuredDeck.name}
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-zinc-800" />
+                )}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
               </div>
-              <div>
-                <h3 className="text-2xl font-bold">{deckOfTheDay.name}</h3>
-                <p className="text-sm text-zinc-300 mt-1">
-                  {deckOfTheDay.format} &middot; {deckOfTheDay.archetype}
-                </p>
+              <div className="relative z-10 flex flex-col justify-between h-80 p-6 text-white">
+                <div>
+                  <span className="inline-flex items-center gap-2 rounded-full bg-black/60 px-3 py-1 text-xs font-medium text-orange-400 border border-orange-500/20 backdrop-blur-sm">
+                    <Zap size={14} /> {t("dashboard.deckOfTheDay")}
+                  </span>
+                </div>
+                <div>
+                  <h3 className="text-2xl font-bold">{featuredDeck.name}</h3>
+                  <p className="text-sm text-zinc-300 mt-1">
+                    {featuredDeck.formatName}
+                    {featuredDeck.ownerUsername && (
+                      <> &middot; <Users size={12} className="inline mb-0.5" /> {featuredDeck.ownerUsername}</>
+                    )}
+                  </p>
+                </div>
               </div>
+            </Link>
+          ) : (
+            <div className="flex items-center justify-center h-80 rounded-2xl bg-zinc-900 border border-zinc-800">
+              <p className="text-zinc-500 text-sm">{t("dashboard.noFeaturedDeck")}</p>
             </div>
-          </Link>
+          )}
 
           {/* Mazo de IA */}
           <AiDeckCard />

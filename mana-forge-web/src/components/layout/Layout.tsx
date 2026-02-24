@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
-import { Link, Outlet } from "react-router-dom";
-import { Sword, ChevronDown, LogOut, User, Settings, Book, Menu, X, Users } from "lucide-react";
+import { Link, Outlet, useLocation } from "react-router-dom";
+import { Anvil, ChevronDown, LogOut, User, Settings, Book, Menu, X, Users, LayoutDashboard, Layers, Wand2 } from "lucide-react";
 import { useUser } from "../../services/UserContext";
 import LanguageSelector from "../ui/LanguageSelector";
 import Footer from "./Footer";
@@ -10,10 +10,20 @@ import { useTranslation } from "../../hooks/useTranslation";
 const Layout = () => {
   const { t } = useTranslation();
   const { user, isAuthenticated, logout } = useUser();
+  const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+
+  const navLinks = [
+    { to: "/", label: t("nav.home"), icon: <LayoutDashboard size={16} />, exact: true },
+    { to: "/formats/all-formats", label: t("nav.formats"), icon: <Layers size={16} /> },
+    ...(isAuthenticated ? [{ to: "/deck-builder", label: t("nav.deckBuilder"), icon: <Wand2 size={16} /> }] : []),
+  ];
+
+  const isActive = (to: string, exact?: boolean) =>
+    exact ? location.pathname === to : location.pathname.startsWith(to);
 
   // Cerrar menú desplegable al hacer clic fuera
   useEffect(() => {
@@ -39,7 +49,7 @@ const Layout = () => {
         <header className="max-w-6xl mx-auto flex justify-between items-center mb-12">
           <Link to="/" className="flex items-center gap-3 group">
             <div className="bg-orange-600 p-2 rounded-lg group-hover:bg-orange-500 transition-colors">
-              <Sword className="text-white" size={32} />
+              <Anvil className="text-white" size={32} />
             </div>
             <h1 className="text-2xl font-black tracking-tighter text-white">
               MANA<span className="text-orange-500">FORGE</span>
@@ -47,10 +57,22 @@ const Layout = () => {
           </Link>
 
           {/* Nav desktop */}
-          <nav className="hidden md:flex gap-6 text-zinc-400 font-medium items-center">
-            <Link to="/" className="hover:text-orange-500 transition-colors">
-              Dashboard
-            </Link>
+          <nav className="hidden md:flex gap-1 text-zinc-400 font-medium items-center">
+            {navLinks.map(({ to, label, exact }) => (
+              <Link
+                key={to}
+                to={to}
+                className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${
+                  isActive(to, exact)
+                    ? "text-orange-500 bg-orange-500/10"
+                    : "hover:text-white hover:bg-zinc-800"
+                }`}
+              >
+                {label}
+              </Link>
+            ))}
+
+            <div className="w-px h-5 bg-zinc-700 mx-2" />
 
             <LanguageSelector />
 
@@ -171,13 +193,20 @@ const Layout = () => {
         </div>
 
         <nav className="flex flex-col gap-1 px-3 py-4 flex-1 overflow-y-auto">
-          <Link
-            to="/"
-            onClick={() => setIsSidebarOpen(false)}
-            className="flex items-center gap-3 px-3 py-3 rounded-lg text-zinc-300 hover:bg-zinc-800 hover:text-orange-500 transition-colors font-medium"
-          >
-            Dashboard
-          </Link>
+          {navLinks.map(({ to, label, icon, exact }) => (
+            <Link
+              key={to}
+              to={to}
+              onClick={() => setIsSidebarOpen(false)}
+              className={`flex items-center gap-3 px-3 py-3 rounded-lg font-medium transition-colors ${
+                isActive(to, exact)
+                  ? "text-orange-500 bg-orange-500/10"
+                  : "text-zinc-300 hover:bg-zinc-800 hover:text-orange-500"
+              }`}
+            >
+              {icon} {label}
+            </Link>
+          ))}
 
           <div className="px-3 py-2">
             <LanguageSelector />

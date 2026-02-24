@@ -9,4 +9,5 @@ import java.util.List;
 @Repository
 public interface DeckRepository extends MongoRepository<Deck, String> {
     List<Deck> findByUserId(String userId);
+    List<Deck> findByIsPrivateFalse();
 }

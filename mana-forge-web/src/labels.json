@@ -1,5 +1,10 @@
 {
   "es": {
+    "nav": {
+      "home": "Inicio",
+      "formats": "Formatos",
+      "deckBuilder": "Forja de Mazo"
+    },
     "common": {
       "back": "Volver",
       "viewAll": "Ver todos",
@@ -161,6 +166,7 @@
       "deckOfTheDay": "Mazo del Día",
       "aiDeckOfTheDay": "Mazo del Día (IA)",
       "generatingDeck": "Generando mazo del día...",
+      "noFeaturedDeck": "No hay mazos públicos disponibles aún.",
       "exploreFormats": "Explora Formatos",
       "mainStrategy": "Estrategia Principal",
       "metaAnalysis": "Análisis del Meta",
@@ -200,6 +206,9 @@
       "description": "La herramienta definitiva para la construcción y análisis de mazos de Magic: The Gathering impulsada por IA.",
       "product": "Producto",
       "resources": "Recursos",
+      "scryfall": "Scryfall",
+      "moxfield": "Moxfield",
+      "magicOfficial": "Magic: The Gathering Oficial",
       "legal": "Legal",
       "documentation": "Documentación",
       "api": "API",
@@ -207,8 +216,28 @@
       "privacy": "Privacidad",
       "terms": "Términos",
       "cookies": "Cookies",
+      "legalDisclaimer": "Wizards of the Coast, Magic: The Gathering, and their logos are trademarks of Wizards of the Coast LLC. © 1993-{year} Wizards of the Coast LLC. Mana Forge is not affiliated with, endorsed, or sponsored by Wizards of the Coast LLC. Los datos e imágenes de cartas son proporcionados por Scryfall; Mana Forge no está afiliado ni respaldado por Scryfall. Para más información sobre Wizards of the Coast, visita",
       "rightsReserved": "Todos los derechos reservados.",
       "builtBy": "Desarrollado por: "
+    },
+    "legal": {
+      "notFoundTitle": "Página legal no encontrada",
+      "notFoundDescription": "Lo sentimos, no pudimos encontrar el contenido legal que buscas.",
+      "backToHome": "Volver al inicio",
+      "lastUpdated": "Última actualización:",
+      "tableOfContents": "Contenido"
+    },
+    "deckViewer": {
+      "notFound": "Mazo no encontrado",
+      "group": "Agrupar",
+      "groupType": "Por tipo",
+      "groupNone": "Sin agrupar",
+      "sort": "Ordenar",
+      "sortCmc": "Por coste",
+      "sortAlpha": "Alfabético",
+      "sortAsc": "Ascendente",
+      "sortDesc": "Descendente",
+      "summary": "Resumen"
     },
     "notFound": {
       "title": "Página no encontrada",
@@ -246,6 +275,11 @@
     }
   },
   "en": {
+    "nav": {
+      "home": "Home",
+      "formats": "Formats",
+      "deckBuilder": "Deck Forge"
+    },
     "common": {
       "back": "Back",
       "viewAll": "View all",
@@ -407,6 +441,7 @@
       "deckOfTheDay": "Deck of the Day",
       "aiDeckOfTheDay": "Deck of the Day (AI)",
       "generatingDeck": "Generating deck of the day...",
+      "noFeaturedDeck": "No public decks available yet.",
       "exploreFormats": "Explore Formats",
       "mainStrategy": "Main Strategy",
       "metaAnalysis": "Meta Analysis",
@@ -446,6 +481,9 @@
       "description": "The ultimate AI-powered Magic: The Gathering deck building and analysis tool.",
       "product": "Product",
       "resources": "Resources",
+      "scryfall": "Scryfall",
+      "moxfield": "Moxfield",
+      "magicOfficial": "Magic: The Gathering Official",
       "legal": "Legal",
       "documentation": "Documentation",
       "api": "API",
@@ -453,8 +491,28 @@
       "privacy": "Privacy",
       "terms": "Terms",
       "cookies": "Cookies",
+      "legalDisclaimer": "Wizards of the Coast, Magic: The Gathering, and their logos are trademarks of Wizards of the Coast LLC. © 1993-{year} Wizards of the Coast LLC. Mana Forge is not affiliated with, endorsed, or sponsored by Wizards of the Coast LLC. Card data and imagery are provided by Scryfall; Mana Forge is not affiliated with or endorsed by Scryfall. For more information about Wizards of the Coast, visit",
       "rightsReserved": "All rights reserved.",
       "builtBy": "Built by: "
+    },
+    "legal": {
+      "notFoundTitle": "Legal page not found",
+      "notFoundDescription": "Sorry, we couldn't find the legal content you're looking for.",
+      "backToHome": "Back to home",
+      "lastUpdated": "Last updated:",
+      "tableOfContents": "Contents"
+    },
+    "deckViewer": {
+      "notFound": "Deck not found",
+      "group": "Group",
+      "groupType": "By type",
+      "groupNone": "No grouping",
+      "sort": "Sort",
+      "sortCmc": "By cost",
+      "sortAlpha": "Alphabetical",
+      "sortAsc": "Ascending",
+      "sortDesc": "Descending",
+      "summary": "Summary"
     },
     "notFound": {
       "title": "Page not found",

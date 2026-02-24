@@ -1,0 +1,272 @@
+{
+  "en": [
+    {
+      "slug": "privacy-policy",
+      "title": "Privacy Policy",
+      "lastUpdated": "2025-01-15",
+      "sections": [
+        {
+          "heading": "Introduction",
+          "content": "<p>Welcome to <strong>Mana Forge</strong>. We are committed to protecting your personal information and your right to privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our platform.</p><p>Please read this policy carefully. If you disagree with its terms, please discontinue use of the site.</p>"
+        },
+        {
+          "heading": "Information We Collect",
+          "content": "<p>We may collect information about you in a variety of ways, including:</p><ul><li><strong>Personal Data:</strong> Name, email address, and username provided during registration or Google OAuth login.</li><li><strong>Usage Data:</strong> Information about how you interact with the platform, such as pages visited, decks created, and features used.</li><li><strong>Device Data:</strong> Browser type, IP address, and operating system, collected automatically for security and analytics purposes.</li></ul>"
+        },
+        {
+          "heading": "How We Use Your Information",
+          "content": "<p>We use the information we collect to:</p><ul><li>Create and manage your account.</li><li>Provide and improve our services, including AI-powered deck analysis.</li><li>Send transactional emails such as account verification and password resets.</li><li>Send newsletters if you have opted in.</li><li>Monitor usage to detect and prevent fraudulent or abusive activity.</li></ul>"
+        },
+        {
+          "heading": "Sharing Your Information",
+          "content": "<p>We do not sell, trade, or otherwise transfer your personally identifiable information to third parties, except in the following limited circumstances:</p><ul><li><strong>Service Providers:</strong> We may share data with trusted third-party vendors (e.g., cloud hosting, AI inference providers) solely to operate our platform.</li><li><strong>Legal Requirements:</strong> We may disclose your information if required to do so by law or in response to valid legal processes.</li></ul>"
+        },
+        {
+          "heading": "Data Retention",
+          "content": "<p>We retain your personal data for as long as your account is active or as needed to provide you services. You may request deletion of your account and associated data at any time by contacting us.</p>"
+        },
+        {
+          "heading": "Cookies",
+          "content": "<p>We use cookies and similar tracking technologies to enhance your experience. Session cookies are used to keep you logged in. For detailed information about our cookie usage, please see our <a href='/legal/cookie-policy'>Cookie Policy</a>.</p>"
+        },
+        {
+          "heading": "Your Rights",
+          "content": "<p>Depending on your location, you may have the following rights regarding your personal data:</p><ul><li>Right to access and receive a copy of your data.</li><li>Right to rectification of inaccurate data.</li><li>Right to erasure (\"right to be forgotten\").</li><li>Right to restrict or object to processing.</li><li>Right to data portability.</li></ul><p>To exercise any of these rights, please contact us at <strong>info@mana-forge.com</strong>.</p>"
+        },
+        {
+          "heading": "Changes to This Policy",
+          "content": "<p>We may update this Privacy Policy from time to time. We will notify you of any changes by updating the \"Last Updated\" date at the top of this page. Your continued use of the platform after such changes constitutes your acceptance of the updated policy.</p>"
+        },
+        {
+          "heading": "Contact Us",
+          "content": "<p>If you have any questions about this Privacy Policy, please contact us at <strong>info@mana-forge.com</strong>.</p>"
+        }
+      ]
+    },
+    {
+      "slug": "terms-and-conditions",
+      "title": "Terms and Conditions",
+      "lastUpdated": "2025-01-15",
+      "sections": [
+        {
+          "heading": "Acceptance of Terms",
+          "content": "<p>By accessing or using <strong>Mana Forge</strong>, you agree to be bound by these Terms and Conditions. If you do not agree to all of these terms, do not use the platform.</p>"
+        },
+        {
+          "heading": "Description of Service",
+          "content": "<p>Mana Forge is a Magic: The Gathering deck analysis and building platform focused on the Premodern format. It provides AI-powered analysis, deck management, community features, and curated content. The service is provided \"as is\" and may be modified or discontinued at any time.</p>"
+        },
+        {
+          "heading": "User Accounts",
+          "content": "<p>To access certain features, you must create an account. You are responsible for:</p><ul><li>Maintaining the confidentiality of your login credentials.</li><li>All activity that occurs under your account.</li><li>Providing accurate and up-to-date information during registration.</li></ul><p>You must be at least 13 years old to create an account. We reserve the right to suspend or terminate accounts that violate these terms.</p>"
+        },
+        {
+          "heading": "Acceptable Use",
+          "content": "<p>You agree not to use the platform to:</p><ul><li>Post or transmit any content that is unlawful, harmful, abusive, or otherwise objectionable.</li><li>Attempt to gain unauthorized access to any part of the service or its infrastructure.</li><li>Scrape, crawl, or systematically extract data without prior written consent.</li><li>Impersonate any person or entity.</li><li>Engage in any activity that disrupts or interferes with the service.</li></ul>"
+        },
+        {
+          "heading": "Intellectual Property",
+          "content": "<p>All content on Mana Forge — including but not limited to the logo, design, text, and software — is owned by Mana Forge or its licensors and is protected by intellectual property laws.</p><p>Magic: The Gathering card names, artwork, and related content are the property of <strong>Wizards of the Coast LLC</strong>. Mana Forge is not affiliated with or endorsed by Wizards of the Coast.</p>"
+        },
+        {
+          "heading": "User-Generated Content",
+          "content": "<p>By submitting decks, comments, or other content to the platform, you grant Mana Forge a non-exclusive, royalty-free, worldwide license to use, display, and distribute such content in connection with the service.</p><p>You retain full ownership of your content and are solely responsible for it.</p>"
+        },
+        {
+          "heading": "Disclaimer of Warranties",
+          "content": "<p>The platform is provided on an \"as is\" and \"as available\" basis without warranties of any kind, either express or implied. We do not guarantee that the service will be uninterrupted, error-free, or free of viruses or other harmful components.</p>"
+        },
+        {
+          "heading": "Limitation of Liability",
+          "content": "<p>To the fullest extent permitted by law, Mana Forge shall not be liable for any indirect, incidental, special, consequential, or punitive damages arising from your use of or inability to use the service.</p>"
+        },
+        {
+          "heading": "Changes to Terms",
+          "content": "<p>We reserve the right to modify these Terms at any time. Changes will be effective upon posting. Your continued use of the service after changes are posted constitutes your acceptance of the revised Terms.</p>"
+        },
+        {
+          "heading": "Governing Law",
+          "content": "<p>These Terms are governed by and construed in accordance with the laws of Spain, without regard to its conflict of law provisions.</p>"
+        },
+        {
+          "heading": "Contact",
+          "content": "<p>For questions about these Terms, contact us at <strong>info@mana-forge.com</strong>.</p>"
+        }
+      ]
+    },
+    {
+      "slug": "cookie-policy",
+      "title": "Cookie Policy",
+      "lastUpdated": "2025-01-15",
+      "sections": [
+        {
+          "heading": "What Are Cookies?",
+          "content": "<p>Cookies are small text files stored on your device when you visit a website. They help websites function properly, remember your preferences, and provide analytical information to site owners.</p>"
+        },
+        {
+          "heading": "How We Use Cookies",
+          "content": "<p>Mana Forge uses cookies to:</p><ul><li>Keep you logged in during your session (authentication cookies).</li><li>Remember your language preference between visits.</li><li>Analyze platform usage to improve our services (analytics cookies).</li></ul>"
+        },
+        {
+          "heading": "Types of Cookies We Use",
+          "content": "<p>We use the following categories of cookies:</p><ul><li><strong>Strictly Necessary Cookies:</strong> Essential for the platform to function. These include session cookies that keep you authenticated. These cannot be disabled.</li><li><strong>Preference Cookies:</strong> Store your settings such as language and theme. They persist between visits.</li><li><strong>Analytics Cookies:</strong> Help us understand how users interact with Mana Forge (e.g., pages visited, session duration). This data is aggregated and anonymous.</li></ul>"
+        },
+        {
+          "heading": "Third-Party Cookies",
+          "content": "<p>We may use third-party services that set their own cookies on your device, including:</p><ul><li><strong>Google OAuth:</strong> Used during the login process. Governed by Google's own Privacy Policy.</li><li><strong>Analytics Providers:</strong> Used to collect aggregated usage statistics.</li></ul><p>We have no direct control over third-party cookies. We recommend reviewing the privacy policies of these providers.</p>"
+        },
+        {
+          "heading": "Managing Cookies",
+          "content": "<p>You can control and delete cookies through your browser settings. Most browsers allow you to:</p><ul><li>View cookies stored on your device.</li><li>Block all or certain cookies.</li><li>Delete cookies when you close the browser.</li></ul><p>Please note that disabling strictly necessary cookies may affect the functionality of the platform, including your ability to stay logged in.</p>"
+        },
+        {
+          "heading": "Consent",
+          "content": "<p>By continuing to use Mana Forge, you consent to the use of cookies as described in this policy. You may withdraw your consent at any time by adjusting your browser settings or contacting us.</p>"
+        },
+        {
+          "heading": "Updates to This Policy",
+          "content": "<p>We may update this Cookie Policy periodically. Any changes will be reflected by the \"Last Updated\" date at the top of this page.</p>"
+        },
+        {
+          "heading": "Contact",
+          "content": "<p>For questions about our use of cookies, contact us at <strong>info@mana-forge.com</strong>.</p>"
+        }
+      ]
+    }
+  ],
+  "es": [
+    {
+      "slug": "privacy-policy",
+      "title": "Política de Privacidad",
+      "lastUpdated": "2025-01-15",
+      "sections": [
+        {
+          "heading": "Introducción",
+          "content": "<p>Bienvenido a <strong>Mana Forge</strong>. Estamos comprometidos con la protección de tu información personal y tu derecho a la privacidad. Esta Política de Privacidad explica cómo recopilamos, usamos, divulgamos y protegemos tu información cuando visitas nuestra plataforma.</p><p>Por favor, lee esta política detenidamente. Si no estás de acuerdo con sus términos, te rogamos que dejes de usar el sitio.</p>"
+        },
+        {
+          "heading": "Información que Recopilamos",
+          "content": "<p>Podemos recopilar información sobre ti de diversas formas, incluyendo:</p><ul><li><strong>Datos Personales:</strong> Nombre, dirección de correo electrónico y nombre de usuario proporcionados durante el registro o el inicio de sesión con Google OAuth.</li><li><strong>Datos de Uso:</strong> Información sobre cómo interactúas con la plataforma, como las páginas visitadas, los mazos creados y las funciones utilizadas.</li><li><strong>Datos del Dispositivo:</strong> Tipo de navegador, dirección IP y sistema operativo, recopilados automáticamente con fines de seguridad y análisis.</li></ul>"
+        },
+        {
+          "heading": "Cómo Usamos tu Información",
+          "content": "<p>Utilizamos la información recopilada para:</p><ul><li>Crear y gestionar tu cuenta.</li><li>Proporcionar y mejorar nuestros servicios, incluido el análisis de mazos con IA.</li><li>Enviar correos electrónicos transaccionales como verificación de cuenta y restablecimiento de contraseña.</li><li>Enviar boletines de noticias si has optado por recibirlos.</li><li>Monitorizar el uso para detectar y prevenir actividades fraudulentas o abusivas.</li></ul>"
+        },
+        {
+          "heading": "Compartir tu Información",
+          "content": "<p>No vendemos, intercambiamos ni transferimos tu información de identificación personal a terceros, excepto en las siguientes circunstancias limitadas:</p><ul><li><strong>Proveedores de Servicios:</strong> Podemos compartir datos con proveedores externos de confianza (por ejemplo, alojamiento en la nube, proveedores de inferencia de IA) únicamente para operar nuestra plataforma.</li><li><strong>Requisitos Legales:</strong> Podemos divulgar tu información si así lo exige la ley o en respuesta a procesos legales válidos.</li></ul>"
+        },
+        {
+          "heading": "Retención de Datos",
+          "content": "<p>Conservamos tus datos personales mientras tu cuenta esté activa o según sea necesario para prestarte los servicios. Puedes solicitar la eliminación de tu cuenta y los datos asociados en cualquier momento poniéndote en contacto con nosotros.</p>"
+        },
+        {
+          "heading": "Cookies",
+          "content": "<p>Utilizamos cookies y tecnologías de seguimiento similares para mejorar tu experiencia. Las cookies de sesión se utilizan para mantener tu sesión iniciada. Para obtener información detallada sobre nuestro uso de cookies, consulta nuestra <a href='/legal/cookie-policy'>Política de Cookies</a>.</p>"
+        },
+        {
+          "heading": "Tus Derechos",
+          "content": "<p>Dependiendo de tu ubicación, puedes tener los siguientes derechos sobre tus datos personales:</p><ul><li>Derecho de acceso y a recibir una copia de tus datos.</li><li>Derecho de rectificación de datos inexactos.</li><li>Derecho de supresión (\"derecho al olvido\").</li><li>Derecho a restringir u oponerte al tratamiento.</li><li>Derecho a la portabilidad de datos.</li></ul><p>Para ejercer cualquiera de estos derechos, contáctanos en <strong>info@mana-forge.com</strong>.</p>"
+        },
+        {
+          "heading": "Cambios en esta Política",
+          "content": "<p>Podemos actualizar esta Política de Privacidad periódicamente. Te notificaremos de cualquier cambio actualizando la fecha de \"Última actualización\" en la parte superior de esta página. El uso continuado de la plataforma tras dichos cambios constituye tu aceptación de la política actualizada.</p>"
+        },
+        {
+          "heading": "Contacto",
+          "content": "<p>Si tienes alguna pregunta sobre esta Política de Privacidad, contáctanos en <strong>info@mana-forge.com</strong>.</p>"
+        }
+      ]
+    },
+    {
+      "slug": "terms-and-conditions",
+      "title": "Términos y Condiciones",
+      "lastUpdated": "2025-01-15",
+      "sections": [
+        {
+          "heading": "Aceptación de los Términos",
+          "content": "<p>Al acceder o utilizar <strong>Mana Forge</strong>, aceptas estar sujeto a estos Términos y Condiciones. Si no estás de acuerdo con todos ellos, no utilices la plataforma.</p>"
+        },
+        {
+          "heading": "Descripción del Servicio",
+          "content": "<p>Mana Forge es una plataforma de análisis y construcción de mazos de Magic: The Gathering centrada en el formato Premodern. Ofrece análisis con inteligencia artificial, gestión de mazos, funciones comunitarias y contenido editorial. El servicio se proporciona \"tal cual\" y puede ser modificado o interrumpido en cualquier momento.</p>"
+        },
+        {
+          "heading": "Cuentas de Usuario",
+          "content": "<p>Para acceder a ciertas funciones, debes crear una cuenta. Eres responsable de:</p><ul><li>Mantener la confidencialidad de tus credenciales de acceso.</li><li>Toda la actividad que se produzca en tu cuenta.</li><li>Proporcionar información precisa y actualizada durante el registro.</li></ul><p>Debes tener al menos 13 años para crear una cuenta. Nos reservamos el derecho de suspender o cancelar cuentas que incumplan estos términos.</p>"
+        },
+        {
+          "heading": "Uso Aceptable",
+          "content": "<p>Aceptas no utilizar la plataforma para:</p><ul><li>Publicar o transmitir contenido ilícito, dañino, abusivo o de cualquier otro modo objetable.</li><li>Intentar obtener acceso no autorizado a cualquier parte del servicio o su infraestructura.</li><li>Extraer datos de forma sistemática sin consentimiento previo por escrito.</li><li>Suplantar la identidad de cualquier persona o entidad.</li><li>Participar en cualquier actividad que interrumpa o interfiera con el servicio.</li></ul>"
+        },
+        {
+          "heading": "Propiedad Intelectual",
+          "content": "<p>Todo el contenido de Mana Forge, incluidos, entre otros, el logotipo, el diseño, el texto y el software, es propiedad de Mana Forge o sus licenciantes y está protegido por las leyes de propiedad intelectual.</p><p>Los nombres de cartas de Magic: The Gathering, las ilustraciones y el contenido relacionado son propiedad de <strong>Wizards of the Coast LLC</strong>. Mana Forge no está afiliado ni cuenta con el respaldo de Wizards of the Coast.</p>"
+        },
+        {
+          "heading": "Contenido Generado por el Usuario",
+          "content": "<p>Al enviar mazos, comentarios u otro contenido a la plataforma, otorgas a Mana Forge una licencia no exclusiva, libre de regalías y mundial para usar, mostrar y distribuir dicho contenido en relación con el servicio.</p><p>Conservas la plena propiedad de tu contenido y eres el único responsable del mismo.</p>"
+        },
+        {
+          "heading": "Exclusión de Garantías",
+          "content": "<p>La plataforma se proporciona \"tal cual\" y \"según disponibilidad\" sin garantías de ningún tipo, ya sean expresas o implícitas. No garantizamos que el servicio sea ininterrumpido, libre de errores o libre de virus u otros componentes dañinos.</p>"
+        },
+        {
+          "heading": "Limitación de Responsabilidad",
+          "content": "<p>En la máxima medida permitida por la ley, Mana Forge no será responsable de ningún daño indirecto, incidental, especial, consecuente o punitivo derivado del uso o la imposibilidad de uso del servicio.</p>"
+        },
+        {
+          "heading": "Cambios en los Términos",
+          "content": "<p>Nos reservamos el derecho de modificar estos Términos en cualquier momento. Los cambios entrarán en vigor tras su publicación. El uso continuado del servicio tras la publicación de los cambios implica la aceptación de los Términos revisados.</p>"
+        },
+        {
+          "heading": "Legislación Aplicable",
+          "content": "<p>Estos Términos se rigen e interpretan de conformidad con las leyes de España, sin atender a sus disposiciones sobre conflicto de leyes.</p>"
+        },
+        {
+          "heading": "Contacto",
+          "content": "<p>Para consultas sobre estos Términos, contáctanos en <strong>info@mana-forge.com</strong>.</p>"
+        }
+      ]
+    },
+    {
+      "slug": "cookie-policy",
+      "title": "Política de Cookies",
+      "lastUpdated": "2025-01-15",
+      "sections": [
+        {
+          "heading": "¿Qué son las Cookies?",
+          "content": "<p>Las cookies son pequeños archivos de texto que se almacenan en tu dispositivo cuando visitas un sitio web. Ayudan a que los sitios web funcionen correctamente, recuerdan tus preferencias y proporcionan información analítica a los propietarios del sitio.</p>"
+        },
+        {
+          "heading": "Cómo Usamos las Cookies",
+          "content": "<p>Mana Forge utiliza cookies para:</p><ul><li>Mantener tu sesión iniciada (cookies de autenticación).</li><li>Recordar tu preferencia de idioma entre visitas.</li><li>Analizar el uso de la plataforma para mejorar nuestros servicios (cookies analíticas).</li></ul>"
+        },
+        {
+          "heading": "Tipos de Cookies que Utilizamos",
+          "content": "<p>Utilizamos las siguientes categorías de cookies:</p><ul><li><strong>Cookies Estrictamente Necesarias:</strong> Esenciales para el funcionamiento de la plataforma. Incluyen las cookies de sesión que mantienen tu autenticación. No se pueden deshabilitar.</li><li><strong>Cookies de Preferencias:</strong> Almacenan tus configuraciones, como el idioma y el tema. Persisten entre visitas.</li><li><strong>Cookies Analíticas:</strong> Nos ayudan a entender cómo interactúan los usuarios con Mana Forge (por ejemplo, páginas visitadas, duración de la sesión). Estos datos son agregados y anónimos.</li></ul>"
+        },
+        {
+          "heading": "Cookies de Terceros",
+          "content": "<p>Podemos utilizar servicios de terceros que establecen sus propias cookies en tu dispositivo, incluyendo:</p><ul><li><strong>Google OAuth:</strong> Utilizado durante el proceso de inicio de sesión. Sujeto a la propia Política de Privacidad de Google.</li><li><strong>Proveedores de Analítica:</strong> Utilizados para recopilar estadísticas de uso agregadas.</li></ul><p>No tenemos control directo sobre las cookies de terceros. Te recomendamos que revises las políticas de privacidad de estos proveedores.</p>"
+        },
+        {
+          "heading": "Gestión de Cookies",
+          "content": "<p>Puedes controlar y eliminar las cookies a través de la configuración de tu navegador. La mayoría de los navegadores te permiten:</p><ul><li>Ver las cookies almacenadas en tu dispositivo.</li><li>Bloquear todas las cookies o determinadas cookies.</li><li>Eliminar las cookies al cerrar el navegador.</li></ul><p>Ten en cuenta que deshabilitar las cookies estrictamente necesarias puede afectar a la funcionalidad de la plataforma, incluida tu capacidad para mantener la sesión iniciada.</p>"
+        },
+        {
+          "heading": "Consentimiento",
+          "content": "<p>Al continuar usando Mana Forge, consientes el uso de cookies según se describe en esta política. Puedes retirar tu consentimiento en cualquier momento ajustando la configuración de tu navegador o poniéndote en contacto con nosotros.</p>"
+        },
+        {
+          "heading": "Actualizaciones de esta Política",
+          "content": "<p>Podemos actualizar esta Política de Cookies periódicamente. Los cambios se reflejarán en la fecha de \"Última actualización\" en la parte superior de esta página.</p>"
+        },
+        {
+          "heading": "Contacto",
+          "content": "<p>Para consultas sobre nuestro uso de cookies, contáctanos en <strong>info@mana-forge.com</strong>.</p>"
+        }
+      ]
+    }
+  ]
+}

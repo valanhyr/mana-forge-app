@@ -100,18 +100,18 @@ const Footer = () => {
               }`}
             >
               <li>
-                <a href="#" className="hover:text-orange-500 transition-colors">
-                  {t("footer.documentation")}
+                <a href="https://scryfall.com" target="_blank" rel="noopener noreferrer" className="hover:text-orange-500 transition-colors">
+                  {t("footer.scryfall")}
                 </a>
               </li>
               <li>
-                <a href="#" className="hover:text-orange-500 transition-colors">
-                  {t("footer.api")}
+                <a href="https://www.moxfield.com" target="_blank" rel="noopener noreferrer" className="hover:text-orange-500 transition-colors">
+                  {t("footer.moxfield")}
                 </a>
               </li>
               <li>
-                <a href="#" className="hover:text-orange-500 transition-colors">
-                  {t("footer.status")}
+                <a href="https://magic.wizards.com" target="_blank" rel="noopener noreferrer" className="hover:text-orange-500 transition-colors">
+                  {t("footer.magicOfficial")}
                 </a>
               </li>
             </ul>
@@ -138,22 +138,38 @@ const Footer = () => {
               }`}
             >
               <li>
-                <a href="#" className="hover:text-orange-500 transition-colors">
+                <Link to="/legal/privacy-policy" className="hover:text-orange-500 transition-colors">
                   {t("footer.privacy")}
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="hover:text-orange-500 transition-colors">
+                <Link to="/legal/terms-and-conditions" className="hover:text-orange-500 transition-colors">
                   {t("footer.terms")}
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="hover:text-orange-500 transition-colors">
+                <Link to="/legal/cookie-policy" className="hover:text-orange-500 transition-colors">
                   {t("footer.cookies")}
-                </a>
+                </Link>
               </li>
             </ul>
           </div>
+        </div>
+
+        {/* Legal Disclaimer */}
+        <div className="border-t border-zinc-800 pt-6 mb-6">
+          <p className="text-zinc-600 text-xs leading-relaxed">
+            {t("footer.legalDisclaimer").replace("{year}", String(currentYear))}{" "}
+            <a
+              href="https://company.wizards.com/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-zinc-500 hover:text-zinc-400 underline transition-colors"
+            >
+              company.wizards.com
+            </a>
+            .
+          </p>
         </div>
 
         {/* Bottom Bar */}
