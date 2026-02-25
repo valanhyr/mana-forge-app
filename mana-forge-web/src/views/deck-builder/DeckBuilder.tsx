@@ -411,18 +411,18 @@ const DeckBuilder = () => {
     } else {
       // Reglas estándar
       // 1. Validar tamaño del Main Deck
-      if (mainDeckCount < (selectedFormat.config as any).minDeckSize)
+      if (mainDeckCount < selectedFormat.config.minMainDeck)
         return false;
 
       // Validar tamaño máximo si existe
       if (
-        (selectedFormat.config as any).maxDeckSize &&
-        mainDeckCount > (selectedFormat.config as any).maxDeckSize
+        selectedFormat.config.maxMainDeck &&
+        mainDeckCount > selectedFormat.config.maxMainDeck
       )
         return false;
 
       // 2. Validar tamaño del Sideboard
-      if (sideboardCount > (selectedFormat.config as any).maxSideboard)
+      if (sideboardCount > selectedFormat.config.maxSideboard)
         return false;
     }
 
@@ -444,6 +444,80 @@ const DeckBuilder = () => {
 
     return true;
   }, [deckName, selectedFormat, deckCards, isCommanderFormat]);
+
+  // Razones por las que el mazo no es válido (para mostrar al usuario)
+  const deckValidationErrors = useMemo(() => {
+    const errors: string[] = [];
+    if (!deckName.trim()) {
+      errors.push(t("deckBuilder.validationNeedName"));
+      return errors;
+    }
+    if (!selectedFormat) {
+      errors.push(t("deckBuilder.validationNeedFormat"));
+      return errors;
+    }
+
+    const mainDeckCount = deckCards
+      .filter((c) => c.board === "main" || !c.board)
+      .reduce((acc, c) => acc + c.quantity, 0);
+    const sideboardCount = deckCards
+      .filter((c) => c.board === "side")
+      .reduce((acc, c) => acc + c.quantity, 0);
+    const commanderCount = deckCards
+      .filter((c) => c.board === "commander")
+      .reduce((acc, c) => acc + c.quantity, 0);
+
+    if (isCommanderFormat) {
+      if (mainDeckCount + commanderCount !== 100)
+        errors.push(t("deckBuilder.validationCommander100"));
+      if (commanderCount < 1)
+        errors.push(t("deckBuilder.validationCommanderNeeded"));
+      if (sideboardCount > 0)
+        errors.push(t("deckBuilder.validationNoSideboardCommander"));
+    } else {
+      if (mainDeckCount < selectedFormat.config.minMainDeck)
+        errors.push(
+          t("deckBuilder.validationMinCards")
+            .replace("{min}", String(selectedFormat.config.minMainDeck))
+            .replace("{current}", String(mainDeckCount))
+        );
+      if (
+        selectedFormat.config.maxMainDeck &&
+        mainDeckCount > selectedFormat.config.maxMainDeck
+      )
+        errors.push(
+          t("deckBuilder.validationMaxCards").replace(
+            "{max}",
+            String(selectedFormat.config.maxMainDeck)
+          )
+        );
+      if (sideboardCount > selectedFormat.config.maxSideboard)
+        errors.push(
+          t("deckBuilder.validationMaxSideboard").replace(
+            "{max}",
+            String(selectedFormat.config.maxSideboard)
+          )
+        );
+    }
+
+    if (deckCards.some((c) => c.isValid === false))
+      errors.push(t("deckBuilder.validationIllegalCards"));
+
+    const cardCounts: Record<string, number> = {};
+    for (const c of deckCards) {
+      if (!c.type.includes("Basic"))
+        cardCounts[c.name] = (cardCounts[c.name] || 0) + c.quantity;
+    }
+    if (Object.values(cardCounts).some((n) => n > selectedFormat.config.maxCopies))
+      errors.push(
+        t("deckBuilder.validationMaxCopies").replace(
+          "{max}",
+          String(selectedFormat.config.maxCopies)
+        )
+      );
+
+    return errors;
+  }, [deckName, selectedFormat, deckCards, isCommanderFormat, t]);
 
   const handleSaveDeck = async () => {
     if (!user || !selectedFormat) return;
@@ -562,14 +636,14 @@ const DeckBuilder = () => {
                 <span>
                   {t("deckBuilder.minCardsLabel")}{" "}
                   <span className="text-zinc-300">
-                    {(selectedFormat.config as any).minDeckSize}
+                    {selectedFormat.config.minMainDeck}
                   </span>
                 </span>
-                {(selectedFormat.config as any).maxDeckSize && (
+                {selectedFormat.config.maxMainDeck && (
                   <span>
                     {t("deckBuilder.maxCardsLabel")}{" "}
                     <span className="text-zinc-300">
-                      {(selectedFormat.config as any).maxDeckSize}
+                      {selectedFormat.config.maxMainDeck}
                     </span>
                   </span>
                 )}
@@ -651,6 +725,16 @@ const DeckBuilder = () => {
               : t("deckBuilder.saveDeck")}
           </button>
         </div>
+        {!isDeckValid && deckValidationErrors.length > 0 && (
+          <ul className="mt-2 flex flex-col items-end gap-1">
+            {deckValidationErrors.map((err, i) => (
+              <li key={i} className="flex items-center gap-1 text-xs text-amber-400">
+                <AlertCircle size={12} />
+                {err}
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
 
       {/* Área de Construcción */}
@@ -733,13 +817,17 @@ const DeckBuilder = () => {
               )}
             </div>
 
-            <DeckList
+              <DeckList
               cards={deckCards}
               onUpdateQuantity={handleUpdateQuantity}
               onRemove={handleRemoveCard}
               onMoveToBoard={handleMoveCard}
-              maxSideboardSize={(selectedFormat?.config as any)?.maxSideboard}
-              minMainDeckSize={(selectedFormat?.config as any)?.minDeckSize}
+              maxSideboardSize={selectedFormat?.config?.maxSideboard}
+              minMainDeckSize={
+                isCommanderFormat
+                  ? undefined
+                  : selectedFormat?.config?.minMainDeck
+              }
               isCommanderFormat={isCommanderFormat}
             />
 

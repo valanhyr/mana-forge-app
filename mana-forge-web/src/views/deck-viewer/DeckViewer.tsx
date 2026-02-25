@@ -209,7 +209,7 @@ const DeckViewer = () => {
                   <div key={type} className="break-inside-avoid mb-6">
                     {type !== "All" && (
                       <h3 className="text-sm font-bold text-zinc-300 uppercase tracking-widest mb-2 pb-1 border-b border-zinc-800">
-                        <span className="text-orange-500">{type}</span>
+                        <span className="text-orange-500">{t(`deckViewer.cardTypes.${type}` as any) || type}</span>
                         <span className="text-zinc-600 font-normal ml-2 text-xs">({mainGroups[type].reduce((s, c) => s + c.quantity, 0)})</span>
                       </h3>
                     )}
@@ -279,7 +279,7 @@ const DeckViewer = () => {
                       const count = typeGroups[type].reduce((s, c) => s + c.quantity, 0);
                       return (
                         <li key={type} className="flex justify-between items-center text-sm">
-                          <span className="text-zinc-400">{type}</span>
+                          <span className="text-zinc-400">{t(`deckViewer.cardTypes.${type}` as any) || type}</span>
                           <span className="text-white font-mono font-semibold">{count}</span>
                         </li>
                       );

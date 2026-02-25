@@ -1,7 +1,5 @@
 import { useMemo, useState, useEffect, useRef } from "react";
 import {
-  CheckCircle,
-  Circle,
   AlertTriangle,
   Trash2,
   Plus,
@@ -9,21 +7,29 @@ import {
   MoreVertical,
   ArrowRightLeft,
   Crown,
+  Layers,
+  ArrowUp,
+  ArrowDown,
 } from "lucide-react";
 import { ManaSymbolService } from "../../services/ManaSymbolService";
 import { useTranslation } from "../../hooks/useTranslation";
+
+type SortMode = "cmc" | "alpha";
+type SortDir = "asc" | "desc";
+type GroupMode = "type" | "none";
 
 export interface DeckCard {
   id: string;
   name: string;
   quantity: number;
-  manaCost?: string; // e.g., "{1}{G}{U}"
-  cmc?: number; // Coste de maná convertido para estadísticas
-  type: string; // e.g., "Creature", "Instant", "Land"
+  manaCost?: string;
+  cmc?: number;
+  type: string;
   price?: number;
-  inCollection?: boolean; // Para el icono de check
-  isValid?: boolean; // Para marcar si es legal en el formato
+  inCollection?: boolean;
+  isValid?: boolean;
   board?: "main" | "side" | "commander";
+  image?: string;
 }
 
 interface DeckListProps {
@@ -40,7 +46,6 @@ interface DeckListProps {
   isCommanderFormat?: boolean;
 }
 
-// Componente auxiliar para renderizar iconos de maná
 const ManaCost = ({
   cost,
   symbols,
@@ -49,35 +54,22 @@ const ManaCost = ({
   symbols: Record<string, string>;
 }) => {
   if (!cost) return null;
-
-  // Simple parser para separar símbolos como {1}, {G}, {U}
   const symbolsList = cost.match(/\{([^}]+)\}/g) || [];
-
   return (
-    <div className="flex gap-0.5 justify-end items-center">
+    <div className="flex gap-0.5 items-center">
       {symbolsList.map((sym, idx) => {
         const svgUri = symbols[sym];
-        if (svgUri) {
-          return (
-            <img
-              key={idx}
-              src={svgUri}
-              alt={sym}
-              className="w-4 h-4 shadow-sm rounded-full"
-              loading="lazy"
-            />
-          );
-        }
-        // Fallback texto si no carga la imagen
-        return (
-          <span key={idx} className="text-xs text-zinc-500 font-mono">
-            {sym}
-          </span>
+        return svgUri ? (
+          <img key={idx} src={svgUri} alt={sym} className="w-3.5 h-3.5 rounded-full" loading="lazy" />
+        ) : (
+          <span key={idx} className="text-xs text-zinc-500 font-mono">{sym}</span>
         );
       })}
     </div>
   );
 };
+
+const TYPE_ORDER = ["Planeswalker", "Creature", "Battle", "Instant", "Sorcery", "Enchantment", "Artifact", "Land", "Unknown", "Other"];
 
 const DeckList: React.FC<DeckListProps> = ({
   cards,
@@ -90,21 +82,21 @@ const DeckList: React.FC<DeckListProps> = ({
   isCommanderFormat = false,
 }) => {
   const { t } = useTranslation();
+  const [hoveredCard, setHoveredCard] = useState<DeckCard | null>(null);
   const [activeCard, setActiveCard] = useState<DeckCard | null>(null);
   const [menuPos, setMenuPos] = useState({ top: 0, left: 0 });
   const [manaSymbols, setManaSymbols] = useState<Record<string, string>>({});
+  const [sortMode, setSortMode] = useState<SortMode>("cmc");
+  const [sortDir, setSortDir] = useState<SortDir>("asc");
+  const [groupMode, setGroupMode] = useState<GroupMode>("type");
   const menuRef = useRef<HTMLDivElement>(null);
 
-  // Cerrar menú al hacer clic fuera
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node))
         setActiveCard(null);
-      }
     };
-    // Cerrar al hacer scroll para evitar que el menú se quede flotando
     const handleScroll = () => setActiveCard(null);
-
     document.addEventListener("mousedown", handleClickOutside);
     window.addEventListener("scroll", handleScroll, true);
     return () => {
@@ -113,277 +105,260 @@ const DeckList: React.FC<DeckListProps> = ({
     };
   }, []);
 
-  // Cargar símbolos de maná al montar
   useEffect(() => {
     ManaSymbolService.getAll().then(setManaSymbols);
   }, []);
 
-  // Agrupar cartas por board (main/side) y luego por tipo
+  // Set initial hovered card when cards load
+  useEffect(() => {
+    if (cards.length > 0 && !hoveredCard) setHoveredCard(cards[0]);
+  }, [cards]);
+
   const groupedAndSortedCards = useMemo(() => {
-    const boardOrder: Array<"commander" | "main" | "side"> = [
-      "commander",
-      "main",
-      "side",
-    ];
-    const typeOrder = [
-      "Commander",
-      "Creature",
-      "Instant",
-      "Sorcery",
-      "Enchantment",
-      "Artifact",
-      "Planeswalker",
-      "Land",
-    ];
+    const boardOrder: Array<"commander" | "main" | "side"> = ["commander", "main", "side"];
+
+    const sortFn = (a: DeckCard, b: DeckCard) => {
+      const mul = sortDir === "asc" ? 1 : -1;
+      if (sortMode === "alpha") return mul * a.name.localeCompare(b.name);
+      return mul * ((a.cmc ?? 0) - (b.cmc ?? 0));
+    };
 
     const grouped: Record<string, Record<string, DeckCard[]>> = {};
-
     cards.forEach((card) => {
       const board = card.board || "main";
-      const type = card.type || "Unknown";
+      const rawType = card.type || "Unknown";
+      const type = groupMode === "type"
+        ? (TYPE_ORDER.find((t) => rawType.includes(t)) ?? "Other")
+        : "All";
       if (!grouped[board]) grouped[board] = {};
       if (!grouped[board][type]) grouped[board][type] = [];
       grouped[board][type].push(card);
     });
 
-    const sortedBoards = boardOrder.filter((b) => grouped[b]);
+    return boardOrder
+      .filter((b) => grouped[b])
+      .map((board) => ({
+        boardName: board,
+        types: (groupMode === "type" ? TYPE_ORDER : ["All"])
+          .filter((t) => grouped[board]?.[t])
+          .map((type) => ({
+            typeName: type,
+            cards: [...grouped[board][type]].sort(sortFn),
+          })),
+      }));
+  }, [cards, sortMode, sortDir, groupMode]);
 
-    return sortedBoards.map((board) => ({
-      boardName: board,
-      types: Object.keys(grouped[board])
-        .sort((a, b) => {
-          const indexA = typeOrder.indexOf(a);
-          const indexB = typeOrder.indexOf(b);
-          if (indexA !== -1 && indexB !== -1) return indexA - indexB;
-          if (indexA !== -1) return -1;
-          if (indexB !== -1) return 1;
-          return a.localeCompare(b);
-        })
-        .map((type) => ({ typeName: type, cards: grouped[board][type] })),
-    }));
-  }, [cards]);
+  const renderCardRow = (card: DeckCard) => (
+    <li
+      key={`${card.id}-${card.board}`}
+      onMouseEnter={() => setHoveredCard(card)}
+      className="flex items-center justify-between px-2 py-1.5 rounded-lg hover:bg-zinc-800 transition-colors group cursor-default"
+    >
+      {/* Left: quantity + name */}
+      <div className="flex items-center gap-2 min-w-0 flex-1">
+        {onUpdateQuantity && (
+          <div className="flex flex-col opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+            <button onClick={() => onUpdateQuantity(card, 1)} className="text-zinc-500 hover:text-orange-500 p-0.5 leading-none">
+              <Plus size={9} />
+            </button>
+            <button onClick={() => onUpdateQuantity(card, -1)} className="text-zinc-500 hover:text-orange-500 p-0.5 leading-none">
+              <Minus size={9} />
+            </button>
+          </div>
+        )}
+        <span className="text-zinc-400 font-mono text-xs font-bold w-5 text-center shrink-0">
+          {card.quantity}
+        </span>
+        <button
+          onClick={() => onCardClick && onCardClick(card.id)}
+          className={`text-sm truncate text-left transition-colors ${
+            card.isValid === false
+              ? "text-red-400 hover:text-red-300"
+              : "text-zinc-300 group-hover:text-white hover:underline"
+          }`}
+        >
+          {card.name}
+        </button>
+        {card.isValid === false && (
+          <AlertTriangle size={11} className="text-red-500 shrink-0" />
+        )}
+      </div>
+
+      {/* Right: mana cost + menu */}
+      <div className="flex items-center gap-1 shrink-0 ml-2">
+        <ManaCost cost={card.manaCost} symbols={manaSymbols} />
+        <div className="relative">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              const rect = e.currentTarget.getBoundingClientRect();
+              setMenuPos({ top: rect.bottom + 5, left: rect.right - 192 });
+              setActiveCard(
+                activeCard?.id === card.id && activeCard?.board === card.board ? null : card
+              );
+            }}
+            className={`text-zinc-500 hover:text-white p-1 rounded-md hover:bg-zinc-700 transition-colors cursor-pointer ${
+              activeCard?.id === card.id && activeCard?.board === card.board
+                ? "opacity-100 text-white bg-zinc-700"
+                : "opacity-0 group-hover:opacity-100"
+            }`}
+          >
+            <MoreVertical size={14} />
+          </button>
+        </div>
+      </div>
+    </li>
+  );
 
   return (
-    <div className="w-full space-y-8" ref={menuRef}>
-      {groupedAndSortedCards.map(({ boardName, types }) => {
-        const totalBoardCards = types.reduce(
-          (acc, t) => acc + t.cards.reduce((a, c) => a + c.quantity, 0),
-          0
-        );
-
-        const isMainDeck = boardName === "main";
-        const isSideboard = boardName === "side";
-        const isCommander = boardName === "commander";
-
-        const showMainDeckWarning =
-          isMainDeck &&
-          minMainDeckSize !== undefined &&
-          totalBoardCards > 0 &&
-          totalBoardCards < minMainDeckSize;
-
-        const showSideboardWarning =
-          isSideboard &&
-          maxSideboardSize !== undefined &&
-          totalBoardCards > maxSideboardSize;
-
-        // Si es formato Commander, ocultamos el sideboard si está vacío para no confundir,
-        // o mostramos un aviso si tiene cartas (ya que no debería).
-        if (isCommanderFormat && isSideboard && totalBoardCards === 0)
-          return null;
-
-        return (
-          <div key={boardName}>
-            <div
-              className={`flex items-center gap-2 mb-4 ${
-                isSideboard || isCommander
-                  ? "mt-8 pt-4 border-t border-dashed border-zinc-700"
-                  : ""
+    <div className="space-y-4" ref={menuRef}>
+      {/* Sort / Group bar */}
+      <div className="flex items-center gap-3 flex-wrap">
+        <div className="flex items-center gap-1 p-1 bg-zinc-900 border border-zinc-800 rounded-lg">
+          <span className="text-zinc-600 text-xs px-2">{t("deckViewer.group")}</span>
+          {(["type", "none"] as GroupMode[]).map((mode) => (
+            <button
+              key={mode}
+              onClick={() => setGroupMode(mode)}
+              className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
+                groupMode === mode
+                  ? "bg-orange-500 text-white"
+                  : "text-zinc-400 hover:text-white hover:bg-zinc-800"
               }`}
             >
-              <h3 className="text-xl font-bold text-orange-500">
-                {isCommander && t("deckList.commander")}
-                {isMainDeck && t("common.mainDeck")}
-                {isSideboard && t("common.sideboard")}
-              </h3>
-              <span className="text-zinc-400 font-mono text-lg">
-                ({totalBoardCards})
-              </span>
-              {showMainDeckWarning && (
-                <div
-                  title={t("deckList.minCardsWarning", {
-                    count: minMainDeckSize || 0,
-                  })}
-                  className="text-red-500 flex items-center gap-1 animate-pulse"
-                >
-                  <AlertTriangle size={20} />
-                </div>
-              )}
-              {showSideboardWarning && (
-                <div
-                  title={t("deckList.maxCardsWarning", {
-                    count: maxSideboardSize || 0,
-                  })}
-                  className="text-red-500 flex items-center gap-1 animate-pulse"
-                >
-                  <AlertTriangle size={20} />
-                </div>
-              )}
-            </div>
-            <div className="space-y-6">
-              {types.map(({ typeName, cards: groupCards }) => {
-                const totalCount = groupCards.reduce(
-                  (acc, c) => acc + c.quantity,
-                  0
-                );
-                const totalPrice = groupCards.reduce(
-                  (acc, c) => acc + (c.price || 0) * c.quantity,
-                  0
-                );
+              {mode === "type" ? t("deckViewer.groupType") : t("deckViewer.groupNone")}
+            </button>
+          ))}
+        </div>
+        <div className="flex items-center gap-1 p-1 bg-zinc-900 border border-zinc-800 rounded-lg">
+          <span className="text-zinc-600 text-xs px-2">{t("deckViewer.sort")}</span>
+          {(["cmc", "alpha"] as SortMode[]).map((mode) => (
+            <button
+              key={mode}
+              onClick={() => setSortMode(mode)}
+              className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
+                sortMode === mode
+                  ? "bg-orange-500 text-white"
+                  : "text-zinc-400 hover:text-white hover:bg-zinc-800"
+              }`}
+            >
+              {mode === "cmc" ? t("deckViewer.sortCmc") : t("deckViewer.sortAlpha")}
+            </button>
+          ))}
+          <div className="w-px h-4 bg-zinc-700 mx-1" />
+          <button
+            onClick={() => setSortDir((d) => (d === "asc" ? "desc" : "asc"))}
+            className="p-1 rounded-md text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors"
+            title={sortDir === "asc" ? t("deckViewer.sortAsc") : t("deckViewer.sortDesc")}
+          >
+            {sortDir === "asc" ? <ArrowUp size={13} /> : <ArrowDown size={13} />}
+          </button>
+        </div>
+      </div>
 
-                return (
-                  <div
-                    key={typeName}
-                    className="bg-zinc-900/50 rounded-xl border border-zinc-800"
-                  >
-                    {/* Header del Grupo */}
-                    <div className="bg-zinc-900 px-4 py-2 border-b border-zinc-800 flex justify-between items-center rounded-t-xl">
-                      <div className="flex items-center gap-2">
-                        <span className="font-bold text-zinc-200 uppercase text-sm tracking-wider">
-                          {typeName}
-                        </span>
-                        <span className="text-zinc-500 text-xs font-medium">
-                          ({totalCount})
-                        </span>
-                      </div>
-                      <span className="text-zinc-400 text-xs">
-                        €{totalPrice.toFixed(2)}
-                      </span>
-                    </div>
-
-                    {/* Lista de Cartas */}
-                    <ul className="divide-y divide-zinc-800/50">
-                      {groupCards.map((card) => (
-                        <li
-                          key={card.id}
-                          className="flex items-center justify-between px-4 py-2 hover:bg-zinc-800/50 transition-colors group last:rounded-b-xl"
-                        >
-                          {/* Grupo Izquierda: Controles y Nombre */}
-                          <div className="flex items-center gap-3 flex-1 min-w-0 mr-4 group/item">
-                            <div className="flex items-center gap-1">
-                              {onUpdateQuantity && (
-                                <div className="flex flex-col opacity-0 group-hover/item:opacity-100 transition-opacity -ml-6 mr-1">
-                                  <button
-                                    onClick={() => onUpdateQuantity(card, 1)}
-                                    className="text-zinc-500 hover:text-orange-500 p-0.5"
-                                  >
-                                    <Plus size={10} />
-                                  </button>
-                                  <button
-                                    onClick={() => onUpdateQuantity(card, -1)}
-                                    className="text-zinc-500 hover:text-orange-500 p-0.5"
-                                  >
-                                    <Minus size={10} />
-                                  </button>
-                                </div>
-                              )}
-                              <span className="text-zinc-400 font-mono text-sm font-bold w-6 text-center">
-                                {card.quantity}
-                              </span>
-                            </div>
-
-                            <button
-                              onClick={() =>
-                                onCardClick && onCardClick(card.id)
-                              }
-                              className={`${
-                                card.isValid === false
-                                  ? "text-red-500 hover:text-red-400"
-                                  : "text-zinc-300 hover:text-orange-500"
-                              } font-medium text-sm hover:underline truncate text-left transition-colors`}
-                            >
-                              {card.name}
-                            </button>
-                          </div>
-
-                          {/* Grupo Derecha: Maná, Precio, Check */}
-                          <div className="flex items-center gap-6 flex-shrink-0">
-                            <div className="w-24 flex justify-end">
-                              <ManaCost
-                                cost={card.manaCost}
-                                symbols={manaSymbols}
-                              />
-                            </div>
-
-                            <div className="w-16 text-right text-zinc-500 text-xs font-mono">
-                              €{(card.price || 0).toFixed(2)}
-                            </div>
-
-                            <div className="w-6 flex justify-end">
-                              {card.isValid === false ? (
-                                <div title="Carta no válida para este formato">
-                                  <AlertTriangle
-                                    size={14}
-                                    className="text-red-500"
-                                  />
-                                </div>
-                              ) : card.inCollection ? (
-                                <CheckCircle
-                                  size={14}
-                                  className="text-green-600/70"
-                                />
-                              ) : (
-                                <Circle size={14} className="text-zinc-700" />
-                              )}
-                            </div>
-
-                            {/* Menú de Opciones (3 puntos) */}
-                            <div
-                              className={`relative w-6 flex justify-end ${
-                                activeCard?.id === card.id &&
-                                activeCard?.board === card.board
-                                  ? "z-20"
-                                  : ""
-                              }`}
-                            >
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  const rect =
-                                    e.currentTarget.getBoundingClientRect();
-                                  setMenuPos({
-                                    top: rect.bottom + 5,
-                                    left: rect.right - 192,
-                                  }); // 192px es el ancho del menú (w-48)
-                                  setActiveCard(
-                                    activeCard?.id === card.id &&
-                                      activeCard?.board === card.board
-                                      ? null
-                                      : card
-                                  );
-                                }}
-                                className={`text-zinc-500 hover:text-white p-1 rounded-md hover:bg-zinc-700 transition-colors cursor-pointer ${
-                                  activeCard?.id === card.id &&
-                                  activeCard?.board === card.board
-                                    ? "opacity-100 text-white bg-zinc-700"
-                                    : "opacity-0 group-hover:opacity-100"
-                                }`}
-                              >
-                                <MoreVertical size={16} />
-                              </button>
-                            </div>
-                          </div>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                );
-              })}
-            </div>
+      <div className="flex gap-6">
+      {/* Sticky card preview */}
+      <div className="hidden lg:flex flex-col items-center gap-3 sticky top-8 self-start w-52 shrink-0">
+        {hoveredCard?.image ? (
+          <img
+            src={hoveredCard.image}
+            alt={hoveredCard.name}
+            className="rounded-xl shadow-2xl w-full transition-all duration-200"
+          />
+        ) : (
+          <div className="w-full h-72 rounded-xl bg-zinc-800 border border-zinc-700 flex items-center justify-center text-zinc-600">
+            <Layers size={40} />
           </div>
-        );
-      })}
+        )}
+        {hoveredCard && (
+          <div className="text-center px-2">
+            <p className="text-white text-sm font-semibold leading-tight">{hoveredCard.name}</p>
+            <p className="text-zinc-400 text-xs mt-0.5">{hoveredCard.type}</p>
+            {hoveredCard.manaCost && (
+              <div className="flex justify-center mt-1">
+                <ManaCost cost={hoveredCard.manaCost} symbols={manaSymbols} />
+              </div>
+            )}
+          </div>
+        )}
+      </div>
 
-      {/* Menú Flotante (Fixed Position) */}
+      {/* Card lists */}
+      <div className="flex-1 min-w-0 space-y-8">
+        {groupedAndSortedCards.map(({ boardName, types }) => {
+          const totalBoardCards = types.reduce(
+            (acc, t) => acc + t.cards.reduce((a, c) => a + c.quantity, 0),
+            0
+          );
+          const isMainDeck = boardName === "main";
+          const isSideboard = boardName === "side";
+          const isCommander = boardName === "commander";
+
+          const showMainDeckWarning =
+            isMainDeck &&
+            minMainDeckSize !== undefined &&
+            totalBoardCards > 0 &&
+            totalBoardCards < minMainDeckSize;
+
+          const showSideboardWarning =
+            isSideboard &&
+            maxSideboardSize !== undefined &&
+            totalBoardCards > maxSideboardSize;
+
+          if (isCommanderFormat && isSideboard && totalBoardCards === 0)
+            return null;
+
+          return (
+            <div key={boardName}>
+              {/* Board header */}
+              <div
+                className={`flex items-center gap-2 mb-4 ${
+                  isSideboard || isCommander
+                    ? "mt-2 pt-4 border-t border-dashed border-zinc-700"
+                    : ""
+                }`}
+              >
+                <h3 className="text-lg font-bold text-orange-500">
+                  {isCommander && t("deckList.commander")}
+                  {isMainDeck && t("common.mainDeck")}
+                  {isSideboard && t("common.sideboard")}
+                </h3>
+                <span className="text-zinc-400 font-mono">({totalBoardCards})</span>
+                {showMainDeckWarning && (
+                  <div title={t("deckList.minCardsWarning", { count: minMainDeckSize || 0 })} className="text-red-500 animate-pulse">
+                    <AlertTriangle size={18} />
+                  </div>
+                )}
+                {showSideboardWarning && (
+                  <div title={t("deckList.maxCardsWarning", { count: maxSideboardSize || 0 })} className="text-red-500 animate-pulse">
+                    <AlertTriangle size={18} />
+                  </div>
+                )}
+              </div>
+
+              {/* 2-column type groups */}
+              <div className="columns-1 sm:columns-2 gap-6">
+                {types.map(({ typeName, cards: groupCards }) => {
+                  const typeTotal = groupCards.reduce((a, c) => a + c.quantity, 0);
+                  return (
+                    <div key={typeName} className="break-inside-avoid mb-5">
+                      <h4 className="text-xs font-bold text-zinc-400 uppercase tracking-widest mb-1.5 pb-1 border-b border-zinc-800 flex justify-between">
+                        <span className="text-orange-500">{t(`deckViewer.cardTypes.${typeName}` as any) || typeName}</span>
+                        <span className="text-zinc-600 font-normal">{typeTotal}</span>
+                      </h4>
+                      <ul className="space-y-0.5">
+                        {groupCards.map((card) => renderCardRow(card))}
+                      </ul>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Floating context menu */}
       {activeCard && (
         <div
           className="fixed w-48 bg-zinc-900 border border-zinc-800 rounded-xl shadow-xl z-50 overflow-hidden"
@@ -392,19 +367,13 @@ const DeckList: React.FC<DeckListProps> = ({
           {onUpdateQuantity && (
             <>
               <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onUpdateQuantity(activeCard, 1);
-                }}
+                onClick={(e) => { e.stopPropagation(); onUpdateQuantity(activeCard, 1); }}
                 className="w-full text-left px-4 py-2 text-sm text-zinc-300 hover:bg-zinc-800 hover:text-orange-500 flex items-center gap-2"
               >
                 <Plus size={14} /> {t("deckList.addOne")}
               </button>
               <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onUpdateQuantity(activeCard, -1);
-                }}
+                onClick={(e) => { e.stopPropagation(); onUpdateQuantity(activeCard, -1); }}
                 className="w-full text-left px-4 py-2 text-sm text-zinc-300 hover:bg-zinc-800 hover:text-orange-500 flex items-center gap-2"
               >
                 <Minus size={14} /> {t("deckList.removeOne")}
@@ -415,54 +384,33 @@ const DeckList: React.FC<DeckListProps> = ({
             <>
               {isCommanderFormat && activeCard.board !== "commander" && (
                 <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onMoveToBoard(activeCard, "commander");
-                    setActiveCard(null);
-                  }}
+                  onClick={(e) => { e.stopPropagation(); onMoveToBoard(activeCard, "commander"); setActiveCard(null); }}
                   className="w-full text-left px-4 py-2 text-sm text-zinc-300 hover:bg-zinc-800 hover:text-orange-500 flex items-center gap-2"
                 >
-                  <Crown size={14} />
-                  {t("deckList.makeCommander")}
+                  <Crown size={14} /> {t("deckList.makeCommander")}
                 </button>
               )}
-
               {activeCard.board !== "main" && (
                 <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onMoveToBoard(activeCard, "main");
-                    setActiveCard(null);
-                  }}
+                  onClick={(e) => { e.stopPropagation(); onMoveToBoard(activeCard, "main"); setActiveCard(null); }}
                   className="w-full text-left px-4 py-2 text-sm text-zinc-300 hover:bg-zinc-800 hover:text-orange-500 flex items-center gap-2"
                 >
-                  <ArrowRightLeft size={14} />
-                  {t("deckList.moveToMain")}
+                  <ArrowRightLeft size={14} /> {t("deckList.moveToMain")}
                 </button>
               )}
-
               {activeCard.board !== "side" && !isCommanderFormat && (
                 <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onMoveToBoard(activeCard, "side");
-                    setActiveCard(null);
-                  }}
+                  onClick={(e) => { e.stopPropagation(); onMoveToBoard(activeCard, "side"); setActiveCard(null); }}
                   className="w-full text-left px-4 py-2 text-sm text-zinc-300 hover:bg-zinc-800 hover:text-orange-500 flex items-center gap-2"
                 >
-                  <ArrowRightLeft size={14} />
-                  {t("deckList.moveToSideboard")}
+                  <ArrowRightLeft size={14} /> {t("deckList.moveToSideboard")}
                 </button>
               )}
             </>
           )}
           {onRemove && (
             <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onRemove(activeCard);
-                setActiveCard(null);
-              }}
+              onClick={(e) => { e.stopPropagation(); onRemove(activeCard); setActiveCard(null); }}
               className="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-red-500/10 hover:text-red-300 flex items-center gap-2 border-t border-zinc-800"
             >
               <Trash2 size={14} /> {t("common.delete")}
@@ -471,7 +419,9 @@ const DeckList: React.FC<DeckListProps> = ({
         </div>
       )}
     </div>
+    </div>
   );
 };
 
 export default DeckList;
+

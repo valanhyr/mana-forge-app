@@ -142,7 +142,17 @@
       "strengths": "Fortalezas",
       "weaknesses": "Debilidades",
       "matchups": "Enfrentamientos Clave (Matchups)",
-      "winRate": "Win Rate:"
+      "winRate": "Win Rate:",
+      "validationNeedName": "El mazo necesita un nombre.",
+      "validationNeedFormat": "Selecciona un formato.",
+      "validationCommander100": "El mazo Commander debe tener exactamente 100 cartas (Main + Comandante).",
+      "validationCommanderNeeded": "Designa al menos una carta como Comandante (clic en la carta → Hacer Comandante).",
+      "validationNoSideboardCommander": "El formato Commander no permite sideboard.",
+      "validationMinCards": "El mazo principal necesita al menos {min} cartas ({current} actuales).",
+      "validationMaxCards": "El mazo principal no puede superar {max} cartas.",
+      "validationMaxSideboard": "El sideboard no puede superar {max} cartas.",
+      "validationIllegalCards": "Hay cartas no permitidas en el formato seleccionado.",
+      "validationMaxCopies": "Alguna carta supera el límite de {max} copias."
     },
     "formatDetail": {
       "notFoundTitle": "Formato no encontrado",
@@ -237,7 +247,20 @@
       "sortAlpha": "Alfabético",
       "sortAsc": "Ascendente",
       "sortDesc": "Descendente",
-      "summary": "Resumen"
+      "summary": "Resumen",
+      "cardTypes": {
+        "Planeswalker": "Planeswalker",
+        "Creature": "Criatura",
+        "Battle": "Batalla",
+        "Instant": "Instantáneo",
+        "Sorcery": "Conjuro",
+        "Enchantment": "Encantamiento",
+        "Artifact": "Artefacto",
+        "Land": "Tierra",
+        "Other": "Otro",
+        "All": "Todas",
+        "Unknown": "Otro"
+      }
     },
     "notFound": {
       "title": "Página no encontrada",
@@ -417,7 +440,17 @@
       "strengths": "Strengths",
       "weaknesses": "Weaknesses",
       "matchups": "Key Matchups",
-      "winRate": "Win Rate:"
+      "winRate": "Win Rate:",
+      "validationNeedName": "The deck needs a name.",
+      "validationNeedFormat": "Select a format.",
+      "validationCommander100": "Commander deck must have exactly 100 cards (Main + Commander).",
+      "validationCommanderNeeded": "Designate at least one card as Commander (click card → Make Commander).",
+      "validationNoSideboardCommander": "Commander format does not allow a sideboard.",
+      "validationMinCards": "Main deck needs at least {min} cards ({current} current).",
+      "validationMaxCards": "Main deck cannot exceed {max} cards.",
+      "validationMaxSideboard": "Sideboard cannot exceed {max} cards.",
+      "validationIllegalCards": "Some cards are not legal in the selected format.",
+      "validationMaxCopies": "A card exceeds the {max} copy limit."
     },
     "formatDetail": {
       "notFoundTitle": "Format not found",
@@ -512,7 +545,20 @@
       "sortAlpha": "Alphabetical",
       "sortAsc": "Ascending",
       "sortDesc": "Descending",
-      "summary": "Summary"
+      "summary": "Summary",
+      "cardTypes": {
+        "Planeswalker": "Planeswalker",
+        "Creature": "Creature",
+        "Battle": "Battle",
+        "Instant": "Instant",
+        "Sorcery": "Sorcery",
+        "Enchantment": "Enchantment",
+        "Artifact": "Artifact",
+        "Land": "Land",
+        "Other": "Other",
+        "All": "All",
+        "Unknown": "Other"
+      }
     },
     "notFound": {
       "title": "Page not found",
