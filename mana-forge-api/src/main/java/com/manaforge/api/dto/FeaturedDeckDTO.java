@@ -11,4 +11,5 @@ public class FeaturedDeckDTO {
     private String ownerUsername;
     private List<String> colors;
     private String featuredScryfallId;
+    private int likesCount;
 }

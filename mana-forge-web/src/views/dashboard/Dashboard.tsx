@@ -9,6 +9,7 @@ import {
   X,
   Layers,
   BookOpen,
+  ThumbsUp,
 } from "lucide-react";
 import { DeckService, type DailyDeck, type FeaturedDeck } from "../../services/DeckService";
 import { ScryfallService } from "../../services/ScryfallService";
@@ -248,6 +249,9 @@ const Dashboard = () => {
                     {featuredDeck.formatName}
                     {featuredDeck.ownerUsername && (
                       <> &middot; <Users size={12} className="inline mb-0.5" /> {featuredDeck.ownerUsername}</>
+                    )}
+                    {featuredDeck.likesCount > 0 && (
+                      <> &middot; <ThumbsUp size={12} className="inline mb-0.5" /> {featuredDeck.likesCount}</>
                     )}
                   </p>
                 </div>

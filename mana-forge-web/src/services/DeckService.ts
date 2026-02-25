@@ -29,6 +29,8 @@ export interface DeckView {
   colors: string[];
   mainDeck: DeckCardEntry[];
   sideboard: DeckCardEntry[];
+  likesCount: number;
+  likedByMe: boolean;
 }
 
 
@@ -40,6 +42,7 @@ export interface FeaturedDeck {
   colors: string[];
   featuredScryfallId: string;
   cardArtUrl?: string;
+  likesCount: number;
 }
 
 // Esta interfaz coincide con el DeckRequestDTO en el backend
@@ -96,6 +99,14 @@ export const DeckService = {
 
   analyzeDeck: async (payload: any) => {
     const response = await api.post("/decks/analyze", payload);
+    return response.data;
+  },
+  likeDeck: async (deckId: string): Promise<{ likesCount: number; likedByMe: boolean }> => {
+    const response = await api.post<{ likesCount: number; likedByMe: boolean }>(`/decks/${deckId}/like`);
+    return response.data;
+  },
+  unlikeDeck: async (deckId: string): Promise<{ likesCount: number; likedByMe: boolean }> => {
+    const response = await api.delete<{ likesCount: number; likedByMe: boolean }>(`/decks/${deckId}/like`);
     return response.data;
   },
 };

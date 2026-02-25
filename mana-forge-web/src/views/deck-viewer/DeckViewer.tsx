@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { ArrowLeft, ArrowUp, ArrowDown, Layers, User, Loader2, Shield } from "lucide-react";
+import { ArrowLeft, ArrowUp, ArrowDown, Layers, User, Loader2, Shield, ThumbsUp } from "lucide-react";
 import { DeckService, type DeckView, type DeckCardEntry } from "../../services/DeckService";
+import { useUser } from "../../services/UserContext";
 import ManaCost from "../../components/ui/ManaCost";
 import ManaCurve from "../../components/ui/ManaCurve";
 import { useLanguage } from "../../services/LanguageContext";
@@ -42,6 +43,8 @@ const DeckViewer = () => {
   const [groupMode, setGroupMode] = useState<GroupMode>("type");
   const { locale } = useLanguage();
   const { t } = useTranslation();
+  const { isAuthenticated } = useUser();
+  const [liking, setLiking] = useState(false);
 
   useEffect(() => {
     if (!deckId) { setLoading(false); return; }
@@ -90,6 +93,26 @@ const DeckViewer = () => {
     { value: "alpha", label: t("deckViewer.sortAlpha") },
   ];
 
+  const handleLikeToggle = async () => {
+    if (!deck || !isAuthenticated || liking) return;
+    setLiking(true);
+    try {
+      const data = deck.likedByMe 
+        ? await DeckService.unlikeDeck(deck.id)
+        : await DeckService.likeDeck(deck.id);
+      
+      setDeck({
+        ...deck,
+        likesCount: data.likesCount,
+        likedByMe: data.likedByMe
+      });
+    } catch (error) {
+      console.error("Error toggling like:", error);
+    } finally {
+      setLiking(false);
+    }
+  };
+
   return (
     <div className="min-h-screen pb-16">
       {/* Header */}
@@ -111,6 +134,22 @@ const DeckViewer = () => {
                     <User size={13} /> {deck.ownerUsername}
                   </span>
                 )}
+                <div className="w-px h-3 bg-zinc-700 mx-1 hidden sm:block" />
+                <button
+                  onClick={handleLikeToggle}
+                  disabled={!isAuthenticated || liking}
+                  className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold transition-all ${
+                    deck.likedByMe
+                      ? "bg-orange-500/20 text-orange-500 border border-orange-500/30"
+                      : isAuthenticated
+                      ? "bg-zinc-800 text-zinc-400 border border-zinc-700 hover:border-zinc-500 hover:text-zinc-300"
+                      : "bg-zinc-800/50 text-zinc-600 border border-zinc-800 cursor-not-allowed"
+                  }`}
+                  title={!isAuthenticated ? t("common.loginToLike" as any) || "Inicia sesión para dar like" : ""}
+                >
+                  <ThumbsUp size={14} className={deck.likedByMe ? "fill-orange-500" : ""} />
+                  {deck.likesCount || 0}
+                </button>
               </div>
             </div>
 

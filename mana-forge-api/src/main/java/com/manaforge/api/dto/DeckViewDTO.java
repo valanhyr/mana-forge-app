@@ -13,6 +13,8 @@ public class DeckViewDTO {
     private List<String> colors;
     private List<CardEntryDTO> mainDeck;
     private List<CardEntryDTO> sideboard;
+    private int likesCount;
+    private boolean likedByMe;
 
     @Data
     public static class CardEntryDTO {

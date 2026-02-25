@@ -12,7 +12,11 @@ import com.manaforge.api.repository.FormatRepository;
 import com.manaforge.api.repository.UserRepository;
 import com.manaforge.api.service.ScryfallService;
 import com.manaforge.api.service.AiService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
@@ -45,6 +49,21 @@ public class DeckController {
         this.formatRepository = formatRepository;
         this.userRepository = userRepository;
         this.cardRepository = cardRepository;
+    }
+
+    // ── Auth helper ───────────────────────────────────────────────────────────
+
+    /** Devuelve el userId del usuario autenticado, o null si es anónimo */
+    private String getCurrentUserId() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getPrincipal())) return null;
+        String identifier = auth.getPrincipal() instanceof OAuth2User oAuth2User
+                ? oAuth2User.getAttribute("email")
+                : auth.getPrincipal().toString();
+        return userRepository.findByUsername(identifier)
+                .or(() -> userRepository.findByEmail(identifier))
+                .map(u -> u.getId())
+                .orElse(null);
     }
 
     @PostMapping
@@ -116,11 +135,16 @@ public class DeckController {
             @PathVariable String id,
             @RequestHeader(value = "Accept-Language", defaultValue = "en") String locale) {
 
+        String currentUserId = getCurrentUserId();
+
         return deckRepository.findById(id).map(deck -> {
             DeckViewDTO dto = new DeckViewDTO();
             dto.setId(deck.getId());
             dto.setName(deck.getName());
             dto.setColors(deck.getColors());
+            dto.setLikesCount(deck.getLikesCount());
+            dto.setLikedByMe(currentUserId != null && deck.getLikedBy() != null
+                    && deck.getLikedBy().contains(currentUserId));
 
             formatRepository.findById(deck.getFormatId()).ifPresent(f ->
                     dto.setFormatName(f.getLocalizedName(locale)));
@@ -221,6 +245,7 @@ public class DeckController {
         dto.setId(deck.getId());
         dto.setName(deck.getName());
         dto.setColors(deck.getColors());
+        dto.setLikesCount(deck.getLikesCount());
 
         // Nombre del formato localizado
         formatRepository.findById(deck.getFormatId()).ifPresent(format ->
@@ -237,6 +262,44 @@ public class DeckController {
                 .ifPresent(c -> dto.setFeaturedScryfallId(c.getScryfallId()));
 
         return ResponseEntity.ok(dto);
+    }
+
+    /** Da like a un mazo (idempotente). Requiere autenticación. */
+    @PostMapping("/{id}/like")
+    public ResponseEntity<Map<String, Object>> likeDeck(@PathVariable String id) {
+        String userId = getCurrentUserId();
+        if (userId == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+
+        return deckRepository.findById(id).map(deck -> {
+            if (deck.getLikedBy() == null) deck.setLikedBy(new java.util.HashSet<>());
+            boolean added = deck.getLikedBy().add(userId);
+            if (added) {
+                deck.setLikesCount(deck.getLikedBy().size());
+                deckRepository.save(deck);
+            }
+            return ResponseEntity.ok(Map.<String, Object>of(
+                    "likesCount", deck.getLikesCount(),
+                    "likedByMe", true
+            ));
+        }).orElse(ResponseEntity.notFound().build());
+    }
+
+    /** Quita el like de un mazo. Requiere autenticación. */
+    @DeleteMapping("/{id}/like")
+    public ResponseEntity<Map<String, Object>> unlikeDeck(@PathVariable String id) {
+        String userId = getCurrentUserId();
+        if (userId == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+
+        return deckRepository.findById(id).map(deck -> {
+            if (deck.getLikedBy() != null && deck.getLikedBy().remove(userId)) {
+                deck.setLikesCount(deck.getLikedBy().size());
+                deckRepository.save(deck);
+            }
+            return ResponseEntity.ok(Map.<String, Object>of(
+                    "likesCount", deck.getLikesCount(),
+                    "likedByMe", false
+            ));
+        }).orElse(ResponseEntity.notFound().build());
     }
 
     /**
