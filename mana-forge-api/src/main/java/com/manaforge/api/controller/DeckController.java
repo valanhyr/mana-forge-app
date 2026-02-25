@@ -2,6 +2,7 @@ package com.manaforge.api.controller;
 
 import com.manaforge.api.model.mongo.Deck;
 import com.manaforge.api.dto.DeckRequestDTO;
+import com.manaforge.api.dto.DeckSearchResultDTO;
 import com.manaforge.api.dto.DeckViewDTO;
 import com.manaforge.api.dto.FeaturedDeckDTO;
 import com.manaforge.api.repository.CardRepository;
@@ -230,6 +231,48 @@ public class DeckController {
     /**
      * Devuelve un mazo público aleatorio de la base de datos para mostrar en el dashboard.
      */
+    @GetMapping("/search")
+    public ResponseEntity<List<DeckSearchResultDTO>> searchDecks(
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) String formatId,
+            @RequestHeader(value = "Accept-Language", defaultValue = "en") String locale) {
+
+        List<Deck> decks;
+        if (name != null && formatId != null) {
+            decks = deckRepository.findByIsPrivateFalseAndNameContainingIgnoreCaseAndFormatId(name, formatId);
+        } else if (name != null) {
+            decks = deckRepository.findByIsPrivateFalseAndNameContainingIgnoreCase(name);
+        } else if (formatId != null) {
+            decks = deckRepository.findByIsPrivateFalseAndFormatId(formatId);
+        } else {
+            decks = deckRepository.findByIsPrivateFalse();
+        }
+
+        List<DeckSearchResultDTO> results = decks.stream().map(deck -> {
+            DeckSearchResultDTO dto = new DeckSearchResultDTO();
+            dto.setId(deck.getId());
+            dto.setName(deck.getName());
+            dto.setColors(deck.getColors());
+            dto.setLikesCount(deck.getLikesCount());
+
+            formatRepository.findById(deck.getFormatId()).ifPresent(f ->
+                    dto.setFormatName(f.getLocalizedName(locale)));
+
+            userRepository.findById(deck.getUserId()).ifPresent(u ->
+                    dto.setOwnerUsername(u.getUsername()));
+
+            // Find featured card logic
+            deck.getCards().stream()
+                    .filter(c -> "main".equals(c.getBoard()))
+                    .findFirst()
+                    .ifPresent(c -> dto.setFeaturedScryfallId(c.getScryfallId()));
+
+            return dto;
+        }).collect(Collectors.toList());
+
+        return ResponseEntity.ok(results);
+    }
+
     @GetMapping("/featured")
     public ResponseEntity<FeaturedDeckDTO> getFeaturedDeck(
             @RequestHeader(value = "Accept-Language", defaultValue = "en") String locale) {

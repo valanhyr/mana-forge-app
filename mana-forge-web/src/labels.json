@@ -3,7 +3,8 @@
     "nav": {
       "home": "Inicio",
       "formats": "Formatos",
-      "deckBuilder": "Forja de Mazo"
+      "deckBuilder": "Forja de Mazo",
+      "explorer": "Explorador"
     },
     "common": {
       "back": "Volver",
@@ -22,7 +23,9 @@
       "loading": "Cargando...",
       "delete": "Eliminar",
       "private": "Privado",
-      "forging": "Forjando"
+      "forging": "Forjando",
+      "search": "Buscar",
+      "loginToLike": "Inicia sesión para dar like"
     },
     "articles": {
       "writtenBy": "Escrito por",
@@ -152,7 +155,8 @@
       "validationMaxCards": "El mazo principal no puede superar {max} cartas.",
       "validationMaxSideboard": "El sideboard no puede superar {max} cartas.",
       "validationIllegalCards": "Hay cartas no permitidas en el formato seleccionado.",
-      "validationMaxCopies": "Alguna carta supera el límite de {max} copias."
+      "validationMaxCopies": "Alguna carta supera el límite de {max} copias.",
+      "allFormats": "Todos los formatos"
     },
     "formatDetail": {
       "notFoundTitle": "Formato no encontrado",
@@ -318,7 +322,8 @@
     "nav": {
       "home": "Home",
       "formats": "Formats",
-      "deckBuilder": "Deck Forge"
+      "deckBuilder": "Deck Forge",
+      "explorer": "Explorer"
     },
     "common": {
       "back": "Back",
@@ -337,7 +342,9 @@
       "loading": "Loading...",
       "delete": "Delete",
       "private": "Private",
-      "forging": "Forging"
+      "forging": "Forging",
+      "search": "Search",
+      "loginToLike": "Log in to like"
     },
     "articles": {
       "writtenBy": "Written by",
@@ -467,7 +474,8 @@
       "validationMaxCards": "Main deck cannot exceed {max} cards.",
       "validationMaxSideboard": "Sideboard cannot exceed {max} cards.",
       "validationIllegalCards": "Some cards are not legal in the selected format.",
-      "validationMaxCopies": "A card exceeds the {max} copy limit."
+      "validationMaxCopies": "A card exceeds the {max} copy limit.",
+      "allFormats": "All Formats"
     },
     "formatDetail": {
       "notFoundTitle": "Format not found",

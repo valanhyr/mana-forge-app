@@ -10,4 +10,7 @@ import java.util.List;
 public interface DeckRepository extends MongoRepository<Deck, String> {
     List<Deck> findByUserId(String userId);
     List<Deck> findByIsPrivateFalse();
+    List<Deck> findByIsPrivateFalseAndNameContainingIgnoreCase(String name);
+    List<Deck> findByIsPrivateFalseAndFormatId(String formatId);
+    List<Deck> findByIsPrivateFalseAndNameContainingIgnoreCaseAndFormatId(String name, String formatId);
 }

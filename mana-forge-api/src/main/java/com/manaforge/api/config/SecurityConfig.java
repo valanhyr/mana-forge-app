@@ -27,6 +27,9 @@ public class SecurityConfig {
             .csrf(AbstractHttpConfigurer::disable)
             // Gestión de sesiones: IF_REQUIRED crea sesión solo si es necesario (login), no para anónimos
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
+            // IMPORTANTE: Permitir que el contexto de seguridad se cargue automáticamente desde la sesión
+            // incluso en rutas permitAll(). Sin esto, Spring Security 6 no carga el contexto en rutas públicas.
+            .securityContext(context -> context.requireExplicitSave(false))
             // Permitimos el acceso a todas las rutas para que tu UserController maneje la lógica
             .authorizeHttpRequests(auth -> auth
                 // 1. Endpoints POST públicos específicos (Login, Registro, Herramientas IA)

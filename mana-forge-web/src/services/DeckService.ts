@@ -45,6 +45,17 @@ export interface FeaturedDeck {
   likesCount: number;
 }
 
+export interface DeckSearchResult {
+  id: string;
+  name: string;
+  formatName: string;
+  ownerUsername: string;
+  colors: string[];
+  featuredScryfallId: string;
+  likesCount: number;
+  cardArtUrl?: string; // Will be populated in the view/service
+}
+
 // Esta interfaz coincide con el DeckRequestDTO en el backend
 interface DeckPayload {
   name: string;
@@ -107,6 +118,11 @@ export const DeckService = {
   },
   unlikeDeck: async (deckId: string): Promise<{ likesCount: number; likedByMe: boolean }> => {
     const response = await api.delete<{ likesCount: number; likedByMe: boolean }>(`/decks/${deckId}/like`);
+    return response.data;
+  },
+
+  searchDecks: async (filters: { name?: string; formatId?: string }): Promise<DeckSearchResult[]> => {
+    const response = await api.get<DeckSearchResult[]>("/decks/search", { params: filters });
     return response.data;
   },
 };

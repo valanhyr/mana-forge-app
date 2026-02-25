@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, Outlet, useLocation } from "react-router-dom";
-import { Anvil, ChevronDown, LogOut, User, Settings, Book, Menu, X, Users, LayoutDashboard, Layers, Wand2, MessageCircle } from "lucide-react";
+import { Anvil, ChevronDown, LogOut, User, Settings, Book, Menu, X, Users, LayoutDashboard, Layers, Wand2, MessageCircle, Sparkles } from "lucide-react";
 import { useUser } from "../../services/UserContext";
 import LanguageSelector from "../ui/LanguageSelector";
 import Footer from "./Footer";
@@ -20,6 +20,7 @@ const Layout = () => {
 
   const navLinks = [
     { to: "/", label: t("nav.home"), icon: <LayoutDashboard size={16} />, exact: true },
+    { to: "/explorer", label: t("nav.explorer" as any) || "Explorar", icon: <Sparkles size={16} /> },
     { to: "/formats/all-formats", label: t("nav.formats"), icon: <Layers size={16} /> },
     ...(isAuthenticated ? [{ to: "/deck-builder", label: t("nav.deckBuilder"), icon: <Wand2 size={16} /> }] : []),
   ];

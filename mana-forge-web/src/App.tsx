@@ -20,6 +20,7 @@ import LegalPageView from "./views/legal/LegalPage";
 import DeckViewer from "./views/deck-viewer/DeckViewer";
 
 import Messages from "./views/messages/Messages";
+import DeckExplorer from "./views/deck-explorer/DeckExplorer";
 
 function App() {
   return (
@@ -38,6 +39,7 @@ function App() {
                 <Route path="/articles/:articleId" element={<ArticleDetail />} />
                 <Route path="/legal/:slug" element={<LegalPageView />} />
                 <Route path="/deck-viewer/:deckId" element={<DeckViewer />} />
+                <Route path="/explorer" element={<DeckExplorer />} />
 
                 {/* Rutas protegidas — requieren autenticación */}
                 <Route element={<ProtectedRoute />}>
