@@ -1,5 +1,7 @@
-from pydantic import BaseModel, Field, ConfigDict
-from typing import List, Optional
+from pydantic import BaseModel, Field, ConfigDict, field_validator
+from typing import List, Optional, Literal
+
+SUPPORTED_LOCALES = {"es", "en", "fr", "de", "it", "pt"}
 
 class CardInput(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
@@ -21,11 +23,17 @@ class SideboardRequest(BaseModel):
     format_name: str
     locale: str
 
+    @field_validator("locale")
+    @classmethod
+    def validate_locale(cls, v: str) -> str:
+        normalized = v.split("-")[0].lower()
+        return normalized if normalized in SUPPORTED_LOCALES else "en"
+
 # --- Schemas for Deck Analysis ---
 class MatchupAnalysis(BaseModel):
     archetype: str
-    win_rate_pre: int
-    win_rate_post: int
+    win_rate_pre: float
+    win_rate_post: float
     key_cards_opponent: List[str]
     strategy: str
     sideboard_in: List[CardInput]
@@ -52,10 +60,22 @@ class DeckAnalysisRequest(BaseModel):
     locale: str
     meta_archetypes: Optional[List[str]] = None
 
+    @field_validator("locale")
+    @classmethod
+    def validate_locale(cls, v: str) -> str:
+        normalized = v.split("-")[0].lower()
+        return normalized if normalized in SUPPORTED_LOCALES else "en"
+
 # --- Schemas for Random Deck Generation ---
 class RandomDeckRequest(BaseModel):
     locale: str
     format_name: Optional[str] = None
+
+    @field_validator("locale")
+    @classmethod
+    def validate_locale(cls, v: str) -> str:
+        normalized = v.split("-")[0].lower()
+        return normalized if normalized in SUPPORTED_LOCALES else "en"
 
 class CardOutput(BaseModel):
     name: str

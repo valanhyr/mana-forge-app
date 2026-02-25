@@ -9,17 +9,17 @@ payload = {
     "format_name": "Premodern",
     "locale": "es",
     "main_deck": [
-        {"name": "Mountain", "quantity": 20},
-        {"name": "Lightning Bolt", "quantity": 4},
-        {"name": "Jackal Pup", "quantity": 4},
-        {"name": "Mogg Fanatic", "quantity": 4},
-        {"name": "Grim Lavamancer", "quantity": 4},
-        {"name": "Cursed Scroll", "quantity": 4},
-        {"name": "Fireblast", "quantity": 4},
-        {"name": "Incinerate", "quantity": 4},
-        {"name": "Ball Lightning", "quantity": 4},
-        {"name": "Price of Progress", "quantity": 4},
-        {"name": "Wasteland", "quantity": 4}
+        {"card_name": "Mountain", "quantity": 20},
+        {"card_name": "Lightning Bolt", "quantity": 4},
+        {"card_name": "Jackal Pup", "quantity": 4},
+        {"card_name": "Mogg Fanatic", "quantity": 4},
+        {"card_name": "Grim Lavamancer", "quantity": 4},
+        {"card_name": "Cursed Scroll", "quantity": 4},
+        {"card_name": "Fireblast", "quantity": 4},
+        {"card_name": "Incinerate", "quantity": 4},
+        {"card_name": "Ball Lightning", "quantity": 4},
+        {"card_name": "Price of Progress", "quantity": 4},
+        {"card_name": "Wasteland", "quantity": 4}
     ]
 }
 

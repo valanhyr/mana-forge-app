@@ -1,39 +1,60 @@
 # Mana Forge Engine
 
-Microservicio de IA para Mana Forge, encargado de generar sugerencias de mazos y análisis estratégicos utilizando LLMs (Groq/Llama 3).
+Microservicio de IA para Mana Forge. Genera sugerencias de sideboard, análisis estratégicos y mazos aleatorios usando Groq (Llama 3.3 70B).
 
 ## Requisitos
 
 - Python 3.11+
-- Una API Key de [Groq](https://console.groq.com/)
+- API Key de [Groq](https://console.groq.com/)
 
-## Instalación y Ejecución Local
+## Instalación
 
-1.  **Crear entorno virtual:**
+```bash
+python -m venv venv
+# Windows
+.\venv\Scripts\activate
+# Linux/Mac
+source venv/bin/activate
 
-    ```bash
-    python -m venv venv
-    # Windows
-    .\venv\Scripts\activate
-    # Linux/Mac
-    source venv/bin/activate
-    ```
+pip install -r requirements.txt
+```
 
-2.  **Instalar dependencias:**
+## Configuración
 
-    ```bash
-    pip install -r requirements.txt
-    ```
+Copia `.env.example` a `.env` y añade tu API Key:
 
-3.  **Configuración:**
-    Crea un archivo `.env` basado en `.env.example` y añade tu API Key:
+```
+GROQ_API_KEY=gsk_...
+CORS_ORIGINS=http://localhost:5173,http://localhost:8080
+```
 
-    ```
-    GROQ_API_KEY=gsk_...
-    ```
+## Ejecución
 
-4.  **Ejecutar:**
-    ```bash
-    python main.py
-    ```
-    El servidor arrancará en `http://localhost:8000`.
+```bash
+python main.py
+# Servidor en http://localhost:8000
+# Docs interactivos: http://localhost:8000/docs
+```
+
+## Endpoints
+
+| Método | Ruta | Descripción |
+|--------|------|-------------|
+| GET | `/health` | Estado del servicio |
+| POST | `/v1/ai/suggest-sideboard` | Sugiere 15 cartas de sideboard para un mazo |
+| POST | `/v1/ai/analyze-deck` | Análisis completo con matchups y cambios sugeridos |
+| POST | `/v1/ai/generate-random-deck` | Genera un mazo competitivo aleatorio |
+
+## Formatos soportados
+
+`Premodern`, `Modern`, `Legacy`, `Pauper`, `Commander` / `EDH`, `cEDH`, `Duel Commander`, `Pauper Commander`
+
+## Tests manuales
+
+Con el servidor corriendo:
+
+```bash
+python test_request.py       # Sideboard — Mono Red Burn (Premodern)
+python test_custom_meta.py   # Análisis — Goblins con meta personalizado (Premodern)
+```
+
