@@ -8,6 +8,7 @@ import {
   Search,
   Clock,
   UserCheck,
+  Rss,
 } from "lucide-react";
 import {
   FriendService,
@@ -15,6 +16,7 @@ import {
   type ReceivedRequest,
   type SentRequest,
 } from "../../services/FriendService";
+import { FollowService } from "../../services/FollowService";
 import { useToast } from "../../services/ToastContext";
 import { useTranslation } from "../../hooks/useTranslation";
 import ForgeSpinner from "../../components/ui/ForgeSpinner";
@@ -34,6 +36,8 @@ export default function Friends() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSearching, setIsSearching] = useState(false);
   const [pendingAction, setPendingAction] = useState<string | null>(null);
+  const [followingIds, setFollowingIds] = useState<Set<string>>(new Set());
+  const [pendingFollow, setPendingFollow] = useState<string | null>(null);
 
   const loadData = useCallback(async () => {
     setIsLoading(true);
@@ -46,6 +50,8 @@ export default function Friends() {
       setFriends(f);
       setReceived(r);
       setSent(s);
+      const following = await FollowService.getFollowing();
+      setFollowingIds(new Set(following.map((u: FriendUser) => u.userId)));
     } catch {
       showToast(t("friends.loadError"), "error");
     } finally {
@@ -126,6 +132,23 @@ export default function Friends() {
     }
   };
 
+  const handleToggleFollow = async (userId: string) => {
+    setPendingFollow(userId);
+    try {
+      if (followingIds.has(userId)) {
+        await FollowService.unfollow(userId);
+        setFollowingIds((prev) => { const s = new Set(prev); s.delete(userId); return s; });
+      } else {
+        await FollowService.follow(userId);
+        setFollowingIds((prev) => new Set([...prev, userId]));
+      }
+    } catch {
+      showToast(t("friends.followError"), "error");
+    } finally {
+      setPendingFollow(null);
+    }
+  };
+
   const friendIds = new Set(friends.map((f) => f.userId));
   const sentIds = new Set(sent.map((s) => s.receiver.userId));
 
@@ -185,6 +208,18 @@ export default function Friends() {
                           {t("friends.addFriend")}
                         </button>
                       )}
+                      <button
+                        onClick={() => handleToggleFollow(user.userId)}
+                        disabled={pendingFollow === user.userId}
+                        className={`flex items-center gap-1 text-xs px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50 ${
+                          followingIds.has(user.userId)
+                            ? "bg-zinc-700 hover:bg-zinc-600 text-zinc-300"
+                            : "bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-white"
+                        }`}
+                      >
+                        <Rss size={14} />
+                        {followingIds.has(user.userId) ? t("friends.unfollow") : t("friends.follow")}
+                      </button>
                     </div>
                   );
                 })
@@ -224,6 +259,9 @@ export default function Friends() {
             friends={friends}
             pendingAction={pendingAction}
             onRemove={handleRemoveFriend}
+            followingIds={followingIds}
+            pendingFollow={pendingFollow}
+            onToggleFollow={handleToggleFollow}
             t={t}
           />
         ) : (
@@ -243,10 +281,13 @@ export default function Friends() {
 
 // ── Sub-components ────────────────────────────────────────────────────────────
 
-function FriendsList({ friends, pendingAction, onRemove, t }: {
+function FriendsList({ friends, pendingAction, onRemove, followingIds, pendingFollow, onToggleFollow, t }: {
   friends: FriendUser[];
   pendingAction: string | null;
   onRemove: (id: string) => void;
+  followingIds: Set<string>;
+  pendingFollow: string | null;
+  onToggleFollow: (id: string) => void;
   t: (key: string) => string;
 }) {
   if (friends.length === 0) {
@@ -262,14 +303,28 @@ function FriendsList({ friends, pendingAction, onRemove, t }: {
             <p className="text-white font-medium">{f.username}</p>
             {f.biography && <p className="text-zinc-500 text-sm mt-0.5">{f.biography}</p>}
           </div>
-          <button
-            onClick={() => onRemove(f.userId)}
-            disabled={pendingAction === f.userId}
-            className="flex items-center gap-1.5 text-sm text-zinc-400 hover:text-red-400 transition-colors disabled:opacity-50"
-          >
-            <UserMinus size={16} />
-            {t("friends.remove")}
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => onToggleFollow(f.userId)}
+              disabled={pendingFollow === f.userId}
+              className={`flex items-center gap-1 text-sm px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50 ${
+                followingIds.has(f.userId)
+                  ? "bg-zinc-700 hover:bg-zinc-600 text-zinc-300"
+                  : "bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-white"
+              }`}
+            >
+              <Rss size={14} />
+              {followingIds.has(f.userId) ? t("friends.unfollow") : t("friends.follow")}
+            </button>
+            <button
+              onClick={() => onRemove(f.userId)}
+              disabled={pendingAction === f.userId}
+              className="flex items-center gap-1.5 text-sm text-zinc-400 hover:text-red-400 transition-colors disabled:opacity-50"
+            >
+              <UserMinus size={16} />
+              {t("friends.remove")}
+            </button>
+          </div>
         </div>
       ))}
     </div>

@@ -19,6 +19,8 @@ import { ToastProvider } from "./services/ToastContext";
 import LegalPageView from "./views/legal/LegalPage";
 import DeckViewer from "./views/deck-viewer/DeckViewer";
 
+import Messages from "./views/messages/Messages";
+
 function App() {
   return (
     <LanguageProvider>
@@ -47,6 +49,8 @@ function App() {
                   />
                   <Route path="profile" element={<Profile />} />
                   <Route path="friends" element={<Friends />} />
+                  <Route path="messages" element={<Messages />} />
+                  <Route path="messages/:friendId" element={<Messages />} />
                 </Route>
 
                 {/* 404 */}

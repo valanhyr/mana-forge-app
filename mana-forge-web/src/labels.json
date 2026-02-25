@@ -294,7 +294,24 @@
       "friendRemoved": "Amigo eliminado",
       "alreadyExists": "Ya existe una solicitud pendiente",
       "requestError": "Error al procesar la solicitud",
-      "loadError": "Error al cargar los datos"
+      "loadError": "Error al cargar los datos",
+      "follow": "Seguir",
+      "unfollow": "Siguiendo",
+      "followers": "seguidores",
+      "following": "siguiendo",
+      "followError": "Error al actualizar seguimiento",
+      "message": "Mensaje",
+      "sendMessage": "Enviar mensaje"
+    },
+    "messages": {
+      "title": "Mensajes",
+      "noConversation": "Selecciona una conversación",
+      "noConversationHint": "Elige un amigo de la lista para comenzar a chatear",
+      "noFriendsToMessage": "Añade amigos para poder enviar mensajes",
+      "placeholder": "Escribe un mensaje...",
+      "empty": "Aún no hay mensajes. ¡Di hola!",
+      "sendError": "Error al enviar el mensaje",
+      "loadError": "Error al cargar los mensajes"
     }
   },
   "en": {
@@ -592,7 +609,24 @@
       "friendRemoved": "Friend removed",
       "alreadyExists": "A pending request already exists",
       "requestError": "Error processing the request",
-      "loadError": "Error loading data"
+      "loadError": "Error loading data",
+      "follow": "Follow",
+      "unfollow": "Following",
+      "followers": "followers",
+      "following": "following",
+      "followError": "Error updating follow",
+      "message": "Message",
+      "sendMessage": "Send message"
+    },
+    "messages": {
+      "title": "Messages",
+      "noConversation": "Select a conversation",
+      "noConversationHint": "Choose a friend from the list to start chatting",
+      "noFriendsToMessage": "Add friends to send messages",
+      "placeholder": "Write a message...",
+      "empty": "No messages yet. Say hi!",
+      "sendError": "Error sending message",
+      "loadError": "Error loading messages"
     }
   }
 }

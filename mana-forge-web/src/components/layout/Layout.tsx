@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, Outlet, useLocation } from "react-router-dom";
-import { Anvil, ChevronDown, LogOut, User, Settings, Book, Menu, X, Users, LayoutDashboard, Layers, Wand2 } from "lucide-react";
+import { Anvil, ChevronDown, LogOut, User, Settings, Book, Menu, X, Users, LayoutDashboard, Layers, Wand2, MessageCircle } from "lucide-react";
 import { useUser } from "../../services/UserContext";
 import LanguageSelector from "../ui/LanguageSelector";
 import Footer from "./Footer";
 import AuthModal from "../../views/auth/Login";
 import { useTranslation } from "../../hooks/useTranslation";
+import { MessageService } from "../../services/MessageService";
 
 const Layout = () => {
   const { t } = useTranslation();
@@ -14,6 +15,7 @@ const Layout = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
   const menuRef = useRef<HTMLDivElement>(null);
 
   const navLinks = [
@@ -41,6 +43,15 @@ const Layout = () => {
     document.body.style.overflow = isSidebarOpen ? "hidden" : "";
     return () => { document.body.style.overflow = ""; };
   }, [isSidebarOpen]);
+
+  // Poll unread message count every 30s
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    const fetchUnread = () => MessageService.getUnreadCount().then(setUnreadCount).catch(() => {});
+    fetchUnread();
+    const interval = setInterval(fetchUnread, 30000);
+    return () => clearInterval(interval);
+  }, [isAuthenticated]);
 
   return (
     <div className="min-h-screen bg-zinc-950 flex flex-col">
@@ -75,6 +86,25 @@ const Layout = () => {
             <div className="w-px h-5 bg-zinc-700 mx-2" />
 
             <LanguageSelector />
+
+            <div className="w-px h-5 bg-zinc-700 mx-2" />
+
+            {isAuthenticated && (
+              <Link
+                to="/messages"
+                className="relative p-2 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors"
+                aria-label="Mensajes"
+              >
+                <MessageCircle size={18} />
+                {unreadCount > 0 && (
+                  <span className="absolute -top-0.5 -right-0.5 bg-orange-500 text-white text-[10px] font-bold rounded-full min-w-[16px] h-4 flex items-center justify-center px-1 leading-none">
+                    {unreadCount > 99 ? "99+" : unreadCount}
+                  </span>
+                )}
+              </Link>
+            )}
+
+            <div className="w-px h-5 bg-zinc-700 mx-2" />
 
             {isAuthenticated && user ? (
               <div className="relative" ref={menuRef}>
@@ -123,6 +153,19 @@ const Layout = () => {
                       <Users size={16} /> {t("userOptions.myFriends")}
                     </Link>
                     <Link
+                      to="/messages"
+                      onClick={() => setIsMenuOpen(false)}
+                      className="flex items-center gap-2 px-4 py-2 text-sm text-zinc-300 hover:bg-zinc-800 hover:text-orange-500 transition-colors"
+                    >
+                      <MessageCircle size={16} />
+                      {t("messages.title")}
+                      {unreadCount > 0 && (
+                        <span className="ml-auto bg-orange-500 text-white text-xs font-bold rounded-full px-1.5 py-0.5 min-w-[18px] text-center">
+                          {unreadCount}
+                        </span>
+                      )}
+                    </Link>
+                    <Link
                       to="/settings"
                       onClick={() => setIsMenuOpen(false)}
                       className="flex items-center gap-2 px-4 py-2 text-sm text-zinc-300 hover:bg-zinc-800 hover:text-orange-500 transition-colors"
@@ -149,14 +192,30 @@ const Layout = () => {
             )}
           </nav>
 
-          {/* Botón hamburguesa (solo mobile) */}
-          <button
-            className="md:hidden text-zinc-300 hover:text-white transition-colors"
-            onClick={() => setIsSidebarOpen(true)}
-            aria-label="Abrir menú"
-          >
-            <Menu size={28} />
-          </button>
+          {/* Botón hamburguesa + mensajes (solo mobile) */}
+          <div className="md:hidden flex items-center gap-2">
+            {isAuthenticated && (
+              <Link
+                to="/messages"
+                className="relative p-2 rounded-lg text-zinc-300 hover:text-white transition-colors"
+                aria-label="Mensajes"
+              >
+                <MessageCircle size={22} />
+                {unreadCount > 0 && (
+                  <span className="absolute -top-0.5 -right-0.5 bg-orange-500 text-white text-[10px] font-bold rounded-full min-w-[16px] h-4 flex items-center justify-center px-1 leading-none">
+                    {unreadCount > 99 ? "99+" : unreadCount}
+                  </span>
+                )}
+              </Link>
+            )}
+            <button
+              className="text-zinc-300 hover:text-white transition-colors"
+              onClick={() => setIsSidebarOpen(true)}
+              aria-label="Abrir menú"
+            >
+              <Menu size={28} />
+            </button>
+          </div>
         </header>
 
         <main className="max-w-6xl mx-auto">
@@ -245,6 +304,19 @@ const Layout = () => {
                 className="flex items-center gap-3 px-3 py-3 rounded-lg text-zinc-300 hover:bg-zinc-800 hover:text-orange-500 transition-colors"
               >
                 <Users size={16} /> {t("userOptions.myFriends")}
+              </Link>
+              <Link
+                to="/messages"
+                onClick={() => setIsSidebarOpen(false)}
+                className="flex items-center gap-3 px-3 py-3 rounded-lg text-zinc-300 hover:bg-zinc-800 hover:text-orange-500 transition-colors"
+              >
+                <MessageCircle size={16} />
+                {t("messages.title")}
+                {unreadCount > 0 && (
+                  <span className="ml-auto bg-orange-500 text-white text-xs font-bold rounded-full px-1.5 py-0.5 min-w-[18px] text-center">
+                    {unreadCount}
+                  </span>
+                )}
               </Link>
               <Link
                 to="/settings"

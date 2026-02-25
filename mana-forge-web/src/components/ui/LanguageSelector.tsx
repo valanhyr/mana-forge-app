@@ -1,6 +1,6 @@
 // src/components/ui/LanguageSelector.tsx
 import { useState, useRef, useEffect } from "react";
-import { Globe, ChevronDown, Check } from "lucide-react";
+import { ChevronDown, Check } from "lucide-react";
 import { useLanguage, type Locale } from "../../services/LanguageContext";
 
 const LANGUAGES: { code: Locale; label: string }[] = [
@@ -36,13 +36,12 @@ const LanguageSelector = () => {
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 px-3 py-2 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white transition-colors border border-zinc-700"
+        className="flex items-center gap-1 text-zinc-400 hover:text-white transition-colors text-sm"
         title="Change Language"
       >
-        <Globe size={18} />
-        <span className="uppercase font-bold text-sm">{locale}</span>
+        <span className="uppercase font-medium">{locale}</span>
         <ChevronDown
-          size={14}
+          size={12}
           className={`transition-transform ${isOpen ? "rotate-180" : ""}`}
         />
       </button>
