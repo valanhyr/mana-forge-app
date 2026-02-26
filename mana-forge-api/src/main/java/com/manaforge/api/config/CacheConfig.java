@@ -64,16 +64,16 @@ public class CacheConfig {
 
         Map<String, RedisCacheConfiguration> cacheConfigurations = new HashMap<>();
 
-        // Caché de Strapi - 6 horas
+        // Caché de Strapi - 30 días
         addCacheConfig(cacheConfigurations, List.of(
             "footer", "footer-legal", "heros", "sections", "languages",
             "formats", "format-detail"
-        ), Duration.ofHours(6), serializer);
+        ), Duration.ofDays(30), serializer);
 
-        // Caché de artículos - 2 horas
+        // Caché de artículos - 30 días
         addCacheConfig(cacheConfigurations, List.of(
             "articles-latest", "article-detail"
-        ), Duration.ofHours(2), serializer);
+        ), Duration.ofDays(30), serializer);
 
         // Caché de Scryfall - 24 horas
         addCacheConfig(cacheConfigurations, List.of(
