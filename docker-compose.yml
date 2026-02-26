@@ -40,6 +40,7 @@ services:
       - SMTP_USERNAME=resend
       - SMTP_PASSWORD=${SMTP_PASSWORD}
       - SMTP_FROM=${SMTP_FROM}
+      - SPRING_DATA_REDIS_PASSWORD=${REDIS_PASSWORD}
     depends_on:
       engine:
         condition: service_started
@@ -67,8 +68,7 @@ services:
   redis:
     image: redis:7-alpine
     container_name: mana-forge-cache-1
-    ports:
-      - "6379:6379"
+    command: redis-server --requirepass ${REDIS_PASSWORD}
     restart: always
     networks:
       - mana-forge-network
