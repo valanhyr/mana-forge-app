@@ -36,7 +36,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/api/users", "/api/users/login", "/api/decks/analyze", "/api/decks/random").permitAll()
                 
                 // 2. Todo lo que sea lectura (GET) es público (Web anónima)
-                .requestMatchers(HttpMethod.GET, "/api/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/**", "/content-service/**").permitAll()
 
                 // 3. Todo lo demás (POST, PUT, DELETE en mazos, usuarios, cartas) requiere Login
                 .anyRequest().authenticated()
