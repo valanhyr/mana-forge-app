@@ -18,6 +18,7 @@ import { FormatService } from "../../services/FormatService";
 import { useTranslation } from "../../hooks/useTranslation";
 import { ArticleService } from "../../services/ArticleService";
 import { type Article } from "../../core/models/Article";
+import ManaCost from "../../components/ui/ManaCost";
 
 // --- Mock Data ---
 
@@ -340,14 +341,19 @@ const Dashboard = () => {
                       <Layers size={18} className="text-indigo-500" />{" "}
                       {t("common.mainDeck")}
                     </h4>
-                    <ul className="text-sm text-zinc-300 space-y-1 font-mono">
+                    <ul className="space-y-3">
                       {dailyDeck.main_deck.map((c, i) => (
                         <li
                           key={i}
-                          className="flex justify-between border-b border-zinc-800/50 pb-1 last:border-0"
+                          className="flex justify-between items-center border-b border-zinc-800/50 pb-2 last:border-0 gap-3"
                         >
-                          <span>{c.name}</span>
-                          <span className="text-zinc-500">{c.quantity}</span>
+                          <div className="flex flex-col gap-1">
+                            <span className="text-white font-medium text-sm leading-tight">{c.name}</span>
+                            {c.mana_cost && <ManaCost cost={c.mana_cost} size={14} />}
+                          </div>
+                          <span className="text-zinc-500 font-bold text-xs bg-zinc-800/50 px-2 py-1 rounded-lg border border-zinc-700/50">
+                            x{c.quantity}
+                          </span>
                         </li>
                       ))}
                     </ul>
@@ -359,14 +365,19 @@ const Dashboard = () => {
                         <Layers size={18} className="text-zinc-500" />{" "}
                         {t("common.sideboard")}
                       </h4>
-                      <ul className="text-sm text-zinc-300 space-y-1 font-mono">
+                      <ul className="space-y-3">
                         {dailyDeck.sideboard.map((c, i) => (
                           <li
                             key={i}
-                            className="flex justify-between border-b border-zinc-800/50 pb-1 last:border-0"
+                            className="flex justify-between items-center border-b border-zinc-800/50 pb-2 last:border-0 gap-3"
                           >
-                            <span>{c.name}</span>
-                            <span className="text-zinc-500">{c.quantity}</span>
+                            <div className="flex flex-col gap-1">
+                              <span className="text-zinc-400 font-medium text-sm leading-tight">{c.name}</span>
+                              {c.mana_cost && <ManaCost cost={c.mana_cost} size={14} />}
+                            </div>
+                            <span className="text-zinc-600 font-bold text-xs bg-zinc-800/30 px-2 py-1 rounded-lg border border-zinc-800/50">
+                              x{c.quantity}
+                            </span>
                           </li>
                         ))}
                       </ul>

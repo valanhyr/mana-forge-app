@@ -189,37 +189,43 @@ export default function Friends() {
                   const isFriend = friendIds.has(user.userId);
                   const isPending = sentIds.has(user.userId);
                   return (
-                    <div key={user.userId} className="flex items-center justify-between bg-zinc-800/50 rounded-xl px-4 py-2.5">
-                      <div>
-                        <p className="text-white text-sm font-medium">{user.username}</p>
-                        {user.biography && <p className="text-zinc-500 text-xs truncate max-w-xs">{user.biography}</p>}
+                    <div key={user.userId} className="flex flex-col sm:flex-row sm:items-center justify-between bg-zinc-800/50 rounded-xl px-4 py-3 gap-4">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-white text-sm font-bold">{user.username}</p>
+                        {user.biography && <p className="text-zinc-500 text-xs truncate">{user.biography}</p>}
                       </div>
-                      {isFriend ? (
-                        <span className="text-xs text-green-400 flex items-center gap-1"><UserCheck size={14} />{t("friends.alreadyFriend")}</span>
-                      ) : isPending ? (
-                        <span className="text-xs text-zinc-400 flex items-center gap-1"><Clock size={14} />{t("friends.pending")}</span>
-                      ) : (
+                      <div className="flex items-center gap-2">
+                        {isFriend ? (
+                          <span className="text-xs text-green-400 flex items-center gap-1 border border-green-500/20 bg-green-500/5 px-2 py-1 rounded-lg">
+                            <UserCheck size={14} />{t("friends.alreadyFriend")}
+                          </span>
+                        ) : isPending ? (
+                          <span className="text-xs text-zinc-400 flex items-center gap-1 border border-zinc-700 bg-zinc-800 px-2 py-1 rounded-lg">
+                            <Clock size={14} />{t("friends.pending")}
+                          </span>
+                        ) : (
+                          <button
+                            onClick={() => handleSendRequest(user.userId)}
+                            disabled={pendingAction === user.userId}
+                            className="flex-1 sm:flex-none flex items-center justify-center gap-1 text-xs bg-orange-600 hover:bg-orange-500 text-white px-3 py-2 rounded-lg transition-colors disabled:opacity-50 font-bold"
+                          >
+                            <UserPlus size={14} />
+                            {t("friends.addFriend")}
+                          </button>
+                        )}
                         <button
-                          onClick={() => handleSendRequest(user.userId)}
-                          disabled={pendingAction === user.userId}
-                          className="flex items-center gap-1 text-xs bg-orange-600 hover:bg-orange-500 text-white px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
+                          onClick={() => handleToggleFollow(user.userId)}
+                          disabled={pendingFollow === user.userId}
+                          className={`flex-1 sm:flex-none flex items-center justify-center gap-1 text-xs px-3 py-2 rounded-lg transition-colors disabled:opacity-50 font-bold ${
+                            followingIds.has(user.userId)
+                              ? "bg-zinc-700 hover:bg-zinc-600 text-zinc-300"
+                              : "bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-white border border-zinc-700"
+                          }`}
                         >
-                          <UserPlus size={14} />
-                          {t("friends.addFriend")}
+                          <Rss size={14} />
+                          {followingIds.has(user.userId) ? t("friends.unfollow") : t("friends.follow")}
                         </button>
-                      )}
-                      <button
-                        onClick={() => handleToggleFollow(user.userId)}
-                        disabled={pendingFollow === user.userId}
-                        className={`flex items-center gap-1 text-xs px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50 ${
-                          followingIds.has(user.userId)
-                            ? "bg-zinc-700 hover:bg-zinc-600 text-zinc-300"
-                            : "bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-white"
-                        }`}
-                      >
-                        <Rss size={14} />
-                        {followingIds.has(user.userId) ? t("friends.unfollow") : t("friends.follow")}
-                      </button>
+                      </div>
                     </div>
                   );
                 })
@@ -298,30 +304,30 @@ function FriendsList({ friends, pendingAction, onRemove, followingIds, pendingFo
   return (
     <div className="space-y-3">
       {friends.map((f) => (
-        <div key={f.userId} className="bg-zinc-900 border border-zinc-800 rounded-xl px-5 py-4 flex items-center justify-between">
-          <div>
-            <p className="text-white font-medium">{f.username}</p>
-            {f.biography && <p className="text-zinc-500 text-sm mt-0.5">{f.biography}</p>}
+        <div key={f.userId} className="bg-zinc-900 border border-zinc-800 rounded-xl px-5 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex-1 min-w-0">
+            <p className="text-white font-bold text-lg">{f.username}</p>
+            {f.biography && <p className="text-zinc-500 text-sm mt-1">{f.biography}</p>}
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             <button
               onClick={() => onToggleFollow(f.userId)}
               disabled={pendingFollow === f.userId}
-              className={`flex items-center gap-1 text-sm px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50 ${
+              className={`flex-1 sm:flex-none flex items-center justify-center gap-1.5 text-sm px-4 py-2 rounded-lg transition-colors disabled:opacity-50 font-bold ${
                 followingIds.has(f.userId)
                   ? "bg-zinc-700 hover:bg-zinc-600 text-zinc-300"
-                  : "bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-white"
+                  : "bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-white border border-zinc-700"
               }`}
             >
-              <Rss size={14} />
+              <Rss size={16} />
               {followingIds.has(f.userId) ? t("friends.unfollow") : t("friends.follow")}
             </button>
             <button
               onClick={() => onRemove(f.userId)}
               disabled={pendingAction === f.userId}
-              className="flex items-center gap-1.5 text-sm text-zinc-400 hover:text-red-400 transition-colors disabled:opacity-50"
+              className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 text-sm text-zinc-500 hover:text-red-400 transition-colors disabled:opacity-50 hover:bg-red-500/10 px-4 py-2 rounded-lg"
             >
-              <UserMinus size={16} />
+              <UserMinus size={18} />
               {t("friends.remove")}
             </button>
           </div>
@@ -351,25 +357,28 @@ function RequestsList({ received, sent, pendingAction, onAccept, onReject, t }: 
         ) : (
           <div className="space-y-3">
             {received.map((req) => (
-              <div key={req.requestId} className="bg-zinc-900 border border-zinc-800 rounded-xl px-5 py-4 flex items-center justify-between">
-                <div>
-                  <p className="text-white font-medium">{req.sender.username}</p>
-                  <p className="text-zinc-500 text-xs mt-0.5">{new Date(req.createdAt).toLocaleDateString()}</p>
+              <div key={req.requestId} className="bg-zinc-900 border border-zinc-800 rounded-xl px-5 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="flex-1 min-w-0">
+                  <p className="text-white font-bold text-lg">{req.sender.username}</p>
+                  <p className="text-zinc-500 text-xs mt-1 flex items-center gap-1.5">
+                    <Clock size={12} />
+                    {new Date(req.createdAt).toLocaleDateString()}
+                  </p>
                 </div>
                 <div className="flex gap-2">
                   <button
                     onClick={() => onAccept(req.requestId)}
                     disabled={pendingAction === req.requestId}
-                    className="flex items-center gap-1 bg-green-600 hover:bg-green-500 text-white text-sm px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
+                    className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-green-600 hover:bg-green-500 text-white text-sm px-4 py-2.5 rounded-lg transition-colors disabled:opacity-50 font-bold"
                   >
-                    <Check size={14} />{t("friends.accept")}
+                    <Check size={16} />{t("friends.accept")}
                   </button>
                   <button
                     onClick={() => onReject(req.requestId)}
                     disabled={pendingAction === req.requestId}
-                    className="flex items-center gap-1 bg-zinc-700 hover:bg-zinc-600 text-white text-sm px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
+                    className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-zinc-800 hover:bg-zinc-700 text-white text-sm px-4 py-2.5 rounded-lg transition-colors disabled:opacity-50 border border-zinc-700"
                   >
-                    <X size={14} />{t("friends.reject")}
+                    <X size={16} />{t("friends.reject")}
                   </button>
                 </div>
               </div>
@@ -388,17 +397,21 @@ function RequestsList({ received, sent, pendingAction, onAccept, onReject, t }: 
         ) : (
           <div className="space-y-3">
             {sent.map((req) => (
-              <div key={req.requestId} className="bg-zinc-900 border border-zinc-800 rounded-xl px-5 py-4 flex items-center justify-between">
-                <div>
-                  <p className="text-white font-medium">{req.receiver.username}</p>
-                  <p className="text-zinc-500 text-xs mt-0.5">{new Date(req.createdAt).toLocaleDateString()}</p>
+              <div key={req.requestId} className="bg-zinc-900 border border-zinc-800 rounded-xl px-5 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="flex-1 min-w-0">
+                  <p className="text-white font-bold text-lg">{req.receiver.username}</p>
+                  <p className="text-zinc-500 text-xs mt-1 flex items-center gap-1.5">
+                    <Clock size={12} />
+                    {new Date(req.createdAt).toLocaleDateString()}
+                  </p>
                 </div>
                 <button
                   onClick={() => onReject(req.requestId)}
                   disabled={pendingAction === req.requestId}
-                  className="flex items-center gap-1 text-sm text-zinc-400 hover:text-red-400 transition-colors disabled:opacity-50"
+                  className="flex items-center justify-center gap-2 text-sm text-zinc-500 hover:text-red-400 transition-colors disabled:opacity-50 hover:bg-red-500/10 px-4 py-2.5 rounded-lg"
                 >
-                  <X size={14} />{t("friends.cancel")}
+                  <X size={16} />
+                  {t("friends.cancel")}
                 </button>
               </div>
             ))}

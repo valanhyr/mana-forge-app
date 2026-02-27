@@ -61,29 +61,20 @@ const DeckTable: React.FC<DeckTableProps> = ({
   }, []);
 
   return (
-    <div className="w-full overflow-x-auto rounded-xl border border-zinc-800 bg-zinc-950">
-      <table className="w-full text-left text-sm text-zinc-400">
-        <thead className="bg-zinc-900 text-xs uppercase text-zinc-500">
+    <div className="w-full overflow-hidden rounded-xl border border-zinc-800 bg-zinc-950">
+      <table className="w-full text-left text-sm text-zinc-400 border-collapse">
+        <thead className="hidden md:table-header-group bg-zinc-900 text-xs uppercase text-zinc-500">
           <tr>
             <th scope="col" className="px-6 py-3 font-medium">
               {t("myDecks.table.name")}
             </th>
-            <th
-              scope="col"
-              className="hidden px-6 py-3 font-medium xl:table-cell"
-            >
+            <th scope="col" className="px-6 py-3 font-medium">
               {t("myDecks.table.colors")}
             </th>
-            <th
-              scope="col"
-              className="hidden px-6 py-3 font-medium xl:table-cell"
-            >
+            <th scope="col" className="px-6 py-3 font-medium">
               {t("myDecks.table.format")}
             </th>
-            <th
-              scope="col"
-              className="hidden px-6 py-3 font-medium lg:table-cell"
-            >
+            <th scope="col" className="px-6 py-3 font-medium">
               {t("myDecks.table.updated")}
             </th>
             <th scope="col" className="px-6 py-3 text-right font-medium">
@@ -94,7 +85,10 @@ const DeckTable: React.FC<DeckTableProps> = ({
         <tbody className="divide-y divide-zinc-800">
           {decks.length === 0 ? (
             <tr>
-              <td colSpan={5} className="px-6 py-12 text-center text-zinc-500">
+              <td
+                colSpan={5}
+                className="px-6 py-12 text-center text-zinc-500 md:table-cell"
+              >
                 <div className="flex flex-col items-center justify-center gap-2">
                   <p className="text-lg font-medium">{t("myDecks.noDecks")}</p>
                   <p className="text-sm">{t("myDecks.noDecksDescription")}</p>
@@ -105,9 +99,10 @@ const DeckTable: React.FC<DeckTableProps> = ({
             decks.map((deck) => (
               <tr
                 key={deck.id}
-                className="group cursor-pointer transition-colors hover:bg-zinc-900/50"
+                className="flex flex-col md:table-row group cursor-pointer transition-colors hover:bg-zinc-900/50"
               >
-                <td className="px-6 py-4">
+                {/* Nombre y Pin */}
+                <td className="px-6 py-4 md:table-cell">
                   <div className="flex items-center gap-3">
                     <button
                       onClick={(e) => {
@@ -123,56 +118,79 @@ const DeckTable: React.FC<DeckTableProps> = ({
                         fill={deck.isPinned ? "currentColor" : "none"}
                       />
                     </button>
-                    <div className="flex flex-col">
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium text-zinc-200 group-hover:text-orange-500 transition-colors">
-                          {deck.name}
-                        </span>
-                        {deck.isPrivate && (
-                          <span className="inline-flex items-center gap-1 rounded bg-zinc-800 px-1.5 py-0.5 text-[10px] font-medium text-zinc-400">
-                            <Shield size={10} />{" "}
+                    <div className="flex flex-col gap-1">
+                      <span className="text-lg font-bold text-white group-hover:text-orange-500 transition-colors break-words">
+                        {deck.name}
+                      </span>
+                      {deck.isPrivate && (
+                        <div className="flex">
+                          <span className="inline-flex items-center gap-1 rounded bg-zinc-800/50 px-1.5 py-0.5 text-[10px] font-bold text-zinc-500 border border-zinc-800">
+                            <Shield size={10} />
                             {t("common.private").toUpperCase()}
                           </span>
-                        )}
-                      </div>
-                      <span className="text-xs text-zinc-500 xl:hidden">
-                        {deck.format}
-                      </span>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </td>
-                <td className="hidden px-6 py-4 xl:table-cell">
-                  <div className="flex items-center">
-                    {deck.colors.map((color) => {
-                      const symbolKey = `{${color}}`;
-                      const svgUri = manaSymbols[symbolKey];
-                      return svgUri ? (
-                        <img
-                          key={color}
-                          src={svgUri}
-                          alt={color}
-                          className="w-4 h-4 mr-1 rounded-full shadow-sm"
-                        />
-                      ) : null;
-                    })}
+
+                {/* Colores */}
+                <td className="px-6 py-2 md:py-4 md:table-cell border-t border-zinc-900/50 md:border-t-0">
+                  <div className="flex items-center justify-between md:justify-start gap-4">
+                    <span className="text-xs font-medium uppercase text-zinc-600 md:hidden">
+                      {t("myDecks.table.colors")}
+                    </span>
+                    <div className="flex items-center">
+                      {deck.colors.map((color) => {
+                        const symbolKey = `{${color}}`;
+                        const svgUri = manaSymbols[symbolKey];
+                        return svgUri ? (
+                          <img
+                            key={color}
+                            src={svgUri}
+                            alt={color}
+                            className="w-4 h-4 mr-1 rounded-full shadow-sm"
+                          />
+                        ) : null;
+                      })}
+                      {deck.colors.length === 0 && (
+                        <span className="text-zinc-600">—</span>
+                      )}
+                    </div>
                   </div>
                 </td>
-                <td className="hidden px-6 py-4 xl:table-cell">
-                  <span className="inline-flex items-center rounded-full bg-zinc-900 px-2.5 py-0.5 text-xs font-medium text-zinc-400 border border-zinc-800">
-                    {deck.format}
-                  </span>
+
+                {/* Formato */}
+                <td className="px-6 py-2 md:py-4 md:table-cell border-t border-zinc-900/50 md:border-t-0">
+                  <div className="flex items-center justify-between md:justify-start gap-4">
+                    <span className="text-xs font-medium uppercase text-zinc-600 md:hidden">
+                      {t("myDecks.table.format")}
+                    </span>
+                    <span className="inline-flex items-center rounded-full bg-zinc-900/50 px-2.5 py-0.5 text-xs font-medium text-zinc-400 border border-zinc-800 md:bg-zinc-900">
+                      {deck.format}
+                    </span>
+                  </div>
                 </td>
-                <td className="hidden px-6 py-4 text-xs lg:table-cell">
-                  {deck.lastUpdated}
+
+                {/* Última Actualización */}
+                <td className="px-6 py-2 md:py-4 md:table-cell border-t border-zinc-900/50 md:border-t-0 text-xs text-zinc-500">
+                  <div className="flex items-center justify-between md:justify-start gap-4">
+                    <span className="text-xs font-medium uppercase text-zinc-600 md:hidden">
+                      {t("myDecks.table.updated")}
+                    </span>
+                    <span>{deck.lastUpdated}</span>
+                  </div>
                 </td>
-                <td className="px-6 py-4 text-right">
+
+                {/* Acciones */}
+                <td className="px-6 py-4 md:table-cell border-t border-zinc-900/50 md:border-t-0 text-right">
                   <div className="flex items-center justify-end gap-2 relative">
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
                         onInfo && onInfo(deck.id);
                       }}
-                      className="p-2 text-zinc-500 hover:text-zinc-300 transition-colors"
+                      className="p-2 text-zinc-500 hover:text-zinc-300 transition-colors hidden md:block"
                       title={t("common.info")}
                     >
                       <Info size={18} />

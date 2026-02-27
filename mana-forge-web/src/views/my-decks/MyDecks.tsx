@@ -7,13 +7,23 @@ import { useTranslation } from "../../hooks/useTranslation";
 
 const MyDecks = () => {
   const navigate = useNavigate();
-  const { decks, loadDecks } = useUser();
+  const { decks, loadDecks, deleteDeck } = useUser();
   const { t } = useTranslation();
 
   useEffect(() => {
     // Cargar mazos al entrar en la vista (usa caché si ya existen)
     loadDecks();
   }, [loadDecks]);
+
+  const handleDelete = async (id: string) => {
+    if (window.confirm(t("common.confirmDelete"))) {
+      try {
+        await deleteDeck(id);
+      } catch (error) {
+        alert("Error al borrar el mazo");
+      }
+    }
+  };
 
   return (
     <div className="max-w-6xl mx-auto mt-8">
@@ -30,6 +40,7 @@ const MyDecks = () => {
       <DeckTable
         decks={decks}
         onEdit={(id) => navigate(`/deck-builder/${id}`)}
+        onDelete={handleDelete}
       />
     </div>
   );

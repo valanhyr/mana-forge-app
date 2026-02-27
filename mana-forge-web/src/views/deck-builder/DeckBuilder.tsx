@@ -666,48 +666,48 @@ const DeckBuilder = () => {
           </div>
         </div>
 
-        {/* Footer Configuración: Privacidad y Guardar */}
-        <div className="mt-6 pt-6 border-t border-zinc-800 flex justify-between items-center">
-          <div className="flex items-center gap-4">
+        {/* Footer Configuración: Privacidad, Analizar y Guardar (Vertical Stack) */}
+        <div className="mt-6 pt-6 border-t border-zinc-800 flex flex-col gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-4">
             <button
               onClick={() => setIsPrivate(!isPrivate)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg border transition-all ${
+              className={`flex items-center justify-center gap-2 px-4 py-3 rounded-xl border transition-all sm:w-auto ${
                 isPrivate
                   ? "bg-orange-500/10 border-orange-500 text-orange-500"
                   : "bg-zinc-950 border-zinc-800 text-zinc-400 hover:border-zinc-600"
               }`}
             >
               {isPrivate ? <Shield size={18} /> : <ShieldAlert size={18} />}
-              <span className="font-medium">
+              <span className="font-bold">
                 {isPrivate ? t("deckBuilder.private") : t("deckBuilder.public")}
               </span>
             </button>
-            <span className="text-xs text-zinc-600 hidden sm:inline">
+            <span className="text-xs text-zinc-600">
               {isPrivate
                 ? t("deckBuilder.privateDescription")
                 : t("deckBuilder.publicDescription")}
             </span>
           </div>
-          <div className="flex gap-3">
-            <button
-              onClick={handleAnalyzeDeck}
-              disabled={!isDeckValid || isAnalyzing}
-              className={`flex items-center gap-2 px-4 py-3 rounded-xl font-bold transition-all border ${
-                isDeckValid && !isAnalyzing
-                  ? "bg-indigo-600/20 border-indigo-500 text-indigo-400 hover:bg-indigo-600/30"
-                  : "bg-zinc-800 border-zinc-700 text-zinc-500 cursor-not-allowed"
-              }`}
-            >
-              <Brain size={20} className={isAnalyzing ? "animate-pulse" : ""} />
-              {isAnalyzing
-                ? t("deckBuilder.analyzing")
-                : t("deckBuilder.analyzeAI")}
-            </button>
-          </div>{" "}
+
+          <button
+            onClick={handleAnalyzeDeck}
+            disabled={!isDeckValid || isAnalyzing}
+            className={`flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-bold transition-all border w-full ${
+              isDeckValid && !isAnalyzing
+                ? "bg-indigo-600/20 border-indigo-500 text-indigo-400 hover:bg-indigo-600/30"
+                : "bg-zinc-800 border-zinc-700 text-zinc-500 cursor-not-allowed"
+            }`}
+          >
+            <Brain size={20} className={isAnalyzing ? "animate-pulse" : ""} />
+            {isAnalyzing
+              ? t("deckBuilder.analyzing")
+              : t("deckBuilder.analyzeAI")}
+          </button>
+
           <button
             onClick={handleSaveDeck}
             disabled={!isDeckValid || isSaving}
-            className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold transition-all ${
+            className={`flex items-center justify-center gap-2 px-6 py-4 rounded-xl font-bold transition-all w-full ${
               isDeckValid && !isSaving
                 ? "bg-green-600 hover:bg-green-500 text-white shadow-lg shadow-green-900/20 active:scale-95"
                 : "bg-zinc-800 text-zinc-500 cursor-not-allowed"
@@ -751,40 +751,38 @@ const DeckBuilder = () => {
           </div>
         ) : (
           <>
-            <div className="relative mb-8 max-w-2xl mx-auto">
-              <div className="flex gap-3 items-start">
-                <div className="flex-1 relative">
-                  <SearchInput
-                    label={t("deckBuilder.addCardsLabel")}
-                    placeholder={t("deckBuilder.addCardsPlaceholder")}
-                    value={searchQuery}
-                    onChange={handleSearchChange}
-                    hint={t("deckBuilder.addCardsHint")}
-                  />
+            <div className="relative mb-8 max-w-2xl mx-auto flex flex-col gap-4">
+              <div className="relative w-full">
+                <SearchInput
+                  label={t("deckBuilder.addCardsLabel")}
+                  placeholder={t("deckBuilder.addCardsPlaceholder")}
+                  value={searchQuery}
+                  onChange={handleSearchChange}
+                  hint={t("deckBuilder.addCardsHint")}
+                />
 
-                  {suggestions.length > 0 && (
-                    <ul className="absolute top-[85px] left-0 right-0 bg-zinc-950 border border-zinc-700 rounded-xl shadow-2xl z-50 max-h-[160px] overflow-y-auto py-1">
-                      {suggestions.map((suggestion) => (
-                        <li
-                          key={suggestion}
-                          className="px-4 py-3 text-sm text-zinc-300 hover:bg-zinc-800 hover:text-orange-500 cursor-pointer transition-colors border-b border-zinc-800/50 last:border-0"
-                          onClick={() => handleAddCard(suggestion)}
-                        >
-                          {suggestion}
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-
-                <button
-                  onClick={() => setIsImportModalOpen(true)}
-                  className="mt-7 p-3 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white rounded-xl border border-zinc-700 transition-all shadow-lg"
-                  title={t("deckBuilder.importDeckButton")}
-                >
-                  <Upload size={24} />
-                </button>
+                {suggestions.length > 0 && (
+                  <ul className="absolute top-[85px] left-0 right-0 bg-zinc-950 border border-zinc-700 rounded-xl shadow-2xl z-50 max-h-[160px] overflow-y-auto py-1">
+                    {suggestions.map((suggestion) => (
+                      <li
+                        key={suggestion}
+                        className="px-4 py-3 text-sm text-zinc-300 hover:bg-zinc-800 hover:text-orange-500 cursor-pointer transition-colors border-b border-zinc-800/50 last:border-0"
+                        onClick={() => handleAddCard(suggestion)}
+                      >
+                        {suggestion}
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </div>
+
+              <button
+                onClick={() => setIsImportModalOpen(true)}
+                className="w-full flex items-center justify-center gap-2 py-3 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white rounded-xl border border-zinc-700 transition-all shadow-lg font-bold"
+              >
+                <Upload size={20} />
+                {t("deckBuilder.importDeckButton")}
+              </button>
 
               {/* Panel de Errores de Importación */}
               {importErrors.length > 0 && (

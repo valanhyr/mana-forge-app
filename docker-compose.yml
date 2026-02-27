@@ -27,20 +27,22 @@ services:
     environment:
       # Comunicación interna: 'engine' es el nombre del servicio de abajo
       - SERVICES_PYTHON_ENGINE_URL=http://engine:8000
-      - FRONTEND_URL=${FRONTEND_URL:-https://mana-forge.com}
-      - STRAPI_API_URL=${STRAPI_API_URL:-https://original-book-1bf186e2ab.strapiapp.com/api}
-      - STRAPI_API_TOKEN=${STRAPI_API_TOKEN:-a6a6f1ccc517498711021dff78c51290ab57bfc2379d69a393dfb0d3156b5501b7fff3149987c92ecacc03022b926594cff6f4ef4a718b48129fcac2c854b11113a16f1b3238f3547dc527cc65dd67101a3d0a46a4ba28161e39be9390beb52726f92d36d6c1291e7bb2692b0340b0cd0efc4819fa410d7d6b4e5e5a6ad90964}
-      - SPRING_DATA_MONGODB_URI=${MONGODB_URI:-mongodb+srv://valanhyr_db_user:0wtjeXsiAAEKkYGH@cluster0.3jvqdu6.mongodb.net/production?appName=Cluster0}
+      - FRONTEND_URL=${FRONTEND_URL}
+      - STRAPI_API_URL=${STRAPI_API_URL}
+      - STRAPI_API_TOKEN=${STRAPI_API_TOKEN}
+      - MONGODB_URI=${MONGODB_URI}
       - SPRING_DATA_REDIS_HOST=redis
       - SPRING_DATA_REDIS_PORT=6379
       - SESSION_STORE_TYPE=redis
       # SMTP: Resend
-      - SMTP_HOST=smtp.resend.com
-      - SMTP_PORT=587
-      - SMTP_USERNAME=resend
+      - SMTP_HOST=${SMTP_HOST:-smtp.resend.com}
+      - SMTP_PORT=${SMTP_PORT:-587}
+      - SMTP_USERNAME=${SMTP_USERNAME:-resend}
       - SMTP_PASSWORD=${SMTP_PASSWORD}
       - SMTP_FROM=${SMTP_FROM}
-      - SPRING_DATA_REDIS_PASSWORD=${REDIS_PASSWORD}
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
     depends_on:
       engine:
         condition: service_started
@@ -59,7 +61,7 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - GROQ_API_KEY=${GROQ_API_KEY:-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}
+      - GROQ_API_KEY=${GROQ_API_KEY}
     restart: always
     networks:
       - mana-forge-network

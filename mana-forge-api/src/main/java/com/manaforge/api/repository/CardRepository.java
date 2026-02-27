@@ -10,5 +10,6 @@ import java.util.Optional;
 @Repository
 public interface CardRepository extends MongoRepository<Card, String> {
     List<Card> findByNameContainingIgnoreCase(String name);
+    Optional<Card> findByName(String name);
     Optional<Card> findByScryfallId(String scryfallId);
 }

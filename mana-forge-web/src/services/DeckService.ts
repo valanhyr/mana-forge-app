@@ -6,8 +6,8 @@ export interface DailyDeck {
   archetype: string;
   strategy_summary: string;
   brief_analysis: string;
-  main_deck: Array<{ name: string; quantity: number }>;
-  sideboard: Array<{ name: string; quantity: number }>;
+  main_deck: Array<{ name: string; quantity: number; mana_cost?: string }>;
+  sideboard: Array<{ name: string; quantity: number; mana_cost?: string }>;
   cardArtUrl?: string;
 }
 
@@ -119,6 +119,15 @@ export const DeckService = {
   unlikeDeck: async (deckId: string): Promise<{ likesCount: number; likedByMe: boolean }> => {
     const response = await api.delete<{ likesCount: number; likedByMe: boolean }>(`/decks/${deckId}/like`);
     return response.data;
+  },
+
+  cloneDeck: async (deckId: string): Promise<any> => {
+    const response = await api.post(`/decks/${deckId}/clone`);
+    return response.data;
+  },
+
+  deleteDeck: async (deckId: string): Promise<void> => {
+    await api.delete(`/decks/${deckId}`);
   },
 
   searchDecks: async (filters: { name?: string; formatId?: string }): Promise<DeckSearchResult[]> => {

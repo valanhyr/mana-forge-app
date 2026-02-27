@@ -27,6 +27,7 @@ interface UserContextType {
   ) => Promise<void>;
   logout: () => void;
   loadDecks: (force?: boolean) => Promise<void>;
+  deleteDeck: (deckId: string) => Promise<void>;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -186,6 +187,17 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
     [user, decks.length, locale, t]
   );
 
+  const deleteDeck = async (deckId: string) => {
+    try {
+      const { DeckService } = await import("./DeckService");
+      await DeckService.deleteDeck(deckId);
+      setDecks((prev) => prev.filter((d) => d.id !== deckId));
+    } catch (error) {
+      console.error("Error deleting deck:", error);
+      throw error;
+    }
+  };
+
   return (
     <UserContext.Provider
       value={{
@@ -197,6 +209,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
         register,
         logout,
         loadDecks,
+        deleteDeck,
       }}
     >
       {children}
