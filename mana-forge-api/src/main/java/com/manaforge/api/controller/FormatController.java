@@ -5,6 +5,8 @@ import com.manaforge.api.dto.FormatSummaryDto;
 import com.manaforge.api.model.mongo.Format;
 import com.manaforge.api.repository.FormatRepository;
 import com.manaforge.api.service.FormatService;
+import io.swagger.v3.oas.annotations.Operation;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -30,6 +32,13 @@ public class FormatController {
     @GetMapping
     public ResponseEntity<List<FormatSummaryDto>> getAllFormats() {
         return ResponseEntity.ok(formatService.getAllFormats());
+    }
+
+    @DeleteMapping("/cache")
+    @CacheEvict(value = {"formats", "format-detail"}, allEntries = true)
+    @Operation(summary = "Evict formats cache", description = "Clears the Redis cache for formats.")
+    public ResponseEntity<Void> evictFormatsCache() {
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/{mongoId}")

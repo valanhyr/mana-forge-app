@@ -2,7 +2,10 @@ package com.manaforge.api.controller;
 
 import com.manaforge.api.service.StrapiService;
 import com.manaforge.api.model.strapi.*;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -35,5 +38,12 @@ public class ContentController {
             @RequestParam(required = false) String locale,
             @RequestParam(required = false) List<String> sectionIds) throws Exception {
         return strapiService.getSections(locale, sectionIds);
+    }
+
+    @DeleteMapping("/cache")
+    @CacheEvict(value = {"footer", "footer-legal", "heros", "sections", "languages"}, allEntries = true)
+    @Operation(summary = "Evict content cache", description = "Clears the Redis cache for general content (footer, heros, sections, languages).")
+    public ResponseEntity<Void> evictContentCache() {
+        return ResponseEntity.noContent().build();
     }
 }

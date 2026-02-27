@@ -32,8 +32,9 @@ public class SecurityConfig {
             .securityContext(context -> context.requireExplicitSave(false))
             // Permitimos el acceso a todas las rutas para que tu UserController maneje la lógica
             .authorizeHttpRequests(auth -> auth
-                // 1. Endpoints POST públicos específicos (Login, Registro, Herramientas IA)
+                // 1. Endpoints POST y DELETE públicos específicos
                 .requestMatchers(HttpMethod.POST, "/api/users", "/api/users/login", "/api/decks/analyze", "/api/decks/random").permitAll()
+                .requestMatchers(HttpMethod.DELETE, "/api/articles/cache", "/api/formats/cache", "/api/v1/content/cache").permitAll()
                 
                 // 2. Todo lo que sea lectura (GET) es público (Web anónima)
                 .requestMatchers(HttpMethod.GET, "/api/**", "/content-service/**").permitAll()
