@@ -4,6 +4,7 @@ import DeckTable from "../../components/ui/DeckTable";
 import { Plus } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "../../hooks/useTranslation";
+import Meta from "../../components/ui/Meta";
 
 const MyDecks = () => {
   const navigate = useNavigate();
@@ -27,6 +28,10 @@ const MyDecks = () => {
 
   return (
     <div className="max-w-6xl mx-auto mt-8">
+      <Meta 
+        title={t("seo.myDecksTitle")} 
+        description={t("seo.myDecksDescription")} 
+      />
       <div className="flex justify-between items-center mb-8">
         <h2 className="text-2xl font-bold text-white">{t("myDecks.title")}</h2>
         <Link

@@ -6,6 +6,7 @@ import { ScryfallService } from "../../services/ScryfallService";
 import { type Format } from "../../core/models/Format";
 import DeckCard from "../../components/ui/DeckCard";
 import { useTranslation } from "../../hooks/useTranslation";
+import Meta from "../../components/ui/Meta";
 
 const DeckExplorer = () => {
   const { t, locale } = useTranslation();
@@ -59,14 +60,18 @@ const DeckExplorer = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+      <Meta 
+        title={t("seo.explorerTitle")} 
+        description={t("seo.explorerDescription")} 
+      />
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
         <div>
           <h1 className="text-4xl font-black text-white flex items-center gap-3">
             <Sparkles className="text-orange-500" size={32} />
-            {t("nav.explorer" as any) || "Explorar Mazos"}
+            {t("nav.explorer") || "Explorar Mazos"}
           </h1>
           <p className="text-zinc-400 mt-2">
-            Descubre las mejores estrategias de la comunidad
+            {t("friends.explorerSubtitle") || "Descubre las mejores estrategias de mi comunidad"}
           </p>
         </div>
 

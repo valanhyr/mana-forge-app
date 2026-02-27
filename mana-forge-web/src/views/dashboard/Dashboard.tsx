@@ -19,6 +19,7 @@ import { useTranslation } from "../../hooks/useTranslation";
 import { ArticleService } from "../../services/ArticleService";
 import { type Article } from "../../core/models/Article";
 import ManaCost from "../../components/ui/ManaCost";
+import Meta from "../../components/ui/Meta";
 
 // --- Mock Data ---
 
@@ -181,6 +182,10 @@ const Dashboard = () => {
 
   return (
     <div className="max-w-7xl mx-auto mt-8 px-4 sm:px-6 lg:px-8 space-y-12 mb-12">
+      <Meta 
+        title={t("seo.dashboardTitle")} 
+        description={t("seo.dashboardDescription")} 
+      />
       {/* --- Sección de Noticias --- */}
       <section>
         <h2 className="text-3xl font-bold text-white mb-6">

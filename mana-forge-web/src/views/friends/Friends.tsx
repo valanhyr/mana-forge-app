@@ -20,6 +20,7 @@ import { FollowService } from "../../services/FollowService";
 import { useToast } from "../../services/ToastContext";
 import { useTranslation } from "../../hooks/useTranslation";
 import ForgeSpinner from "../../components/ui/ForgeSpinner";
+import Meta from "../../components/ui/Meta";
 
 type Tab = "friends" | "requests";
 
@@ -154,6 +155,10 @@ export default function Friends() {
 
   return (
     <div className="min-h-screen bg-zinc-950 py-10 px-4 sm:px-6 lg:px-8">
+      <Meta 
+        title={t("seo.friendsTitle")} 
+        description={t("seo.friendsDescription")} 
+      />
       <div className="max-w-3xl mx-auto">
         {/* Header */}
         <div className="mb-8">

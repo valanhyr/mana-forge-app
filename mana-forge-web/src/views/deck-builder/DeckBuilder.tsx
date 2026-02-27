@@ -24,6 +24,7 @@ import Modal from "../../components/ui/Modal";
 import TextAreaInput from "../../components/ui/TextAreaInput";
 import { useUser } from "../../services/UserContext";
 import { useTranslation } from "../../hooks/useTranslation";
+import Meta from "../../components/ui/Meta";
 
 // Extendemos DeckCard localmente para incluir la imagen hasta que se actualice la definición base
 type DeckCardWithImage = DeckCard & { image: string };
@@ -590,6 +591,10 @@ const DeckBuilder = () => {
 
   return (
     <div className="max-w-6xl mx-auto mt-8">
+      <Meta 
+        title={t("seo.deckBuilderTitle")} 
+        description={t("seo.deckBuilderDescription")} 
+      />
       <div className="flex items-center gap-3 mb-6">
         <Settings className="text-orange-500" size={28} />
         <h2 className="text-2xl font-bold text-white">
