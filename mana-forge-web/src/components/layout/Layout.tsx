@@ -88,21 +88,22 @@ const Layout = () => {
 
             <LanguageSelector />
 
-            <div className="w-px h-5 bg-zinc-700 mx-2" />
-
             {isAuthenticated && (
-              <Link
-                to="/messages"
-                className="relative p-2 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors"
-                aria-label="Mensajes"
-              >
-                <MessageCircle size={18} />
-                {unreadCount > 0 && (
-                  <span className="absolute -top-0.5 -right-0.5 bg-orange-500 text-white text-[10px] font-bold rounded-full min-w-[16px] h-4 flex items-center justify-center px-1 leading-none">
-                    {unreadCount > 99 ? "99+" : unreadCount}
-                  </span>
-                )}
-              </Link>
+              <>
+                <div className="w-px h-5 bg-zinc-700 mx-2" />
+                <Link
+                  to="/messages"
+                  className="relative p-2 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors"
+                  aria-label="Mensajes"
+                >
+                  <MessageCircle size={18} />
+                  {unreadCount > 0 && (
+                    <span className="absolute -top-0.5 -right-0.5 bg-orange-500 text-white text-[10px] font-bold rounded-full min-w-[16px] h-4 flex items-center justify-center px-1 leading-none">
+                      {unreadCount > 99 ? "99+" : unreadCount}
+                    </span>
+                  )}
+                </Link>
+              </>
             )}
 
             <div className="w-px h-5 bg-zinc-700 mx-2" />

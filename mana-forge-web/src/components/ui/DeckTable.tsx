@@ -99,47 +99,64 @@ const DeckTable: React.FC<DeckTableProps> = ({
             decks.map((deck) => (
               <tr
                 key={deck.id}
-                className="flex flex-col md:table-row group cursor-pointer transition-colors hover:bg-zinc-900/50"
+                className="flex flex-col md:table-row group cursor-pointer transition-colors hover:bg-zinc-900/50 p-4 md:p-0"
               >
-                {/* Nombre y Pin */}
-                <td className="px-6 py-4 md:table-cell">
-                  <div className="flex items-center gap-3">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onPin && onPin(deck.id);
-                      }}
-                      className={`transition-colors hover:text-orange-500 ${
-                        deck.isPinned ? "text-orange-500" : "text-zinc-600"
-                      }`}
-                    >
-                      <Star
-                        size={16}
-                        fill={deck.isPinned ? "currentColor" : "none"}
-                      />
-                    </button>
-                    <div className="flex flex-col gap-1">
-                      <span className="text-lg font-bold text-white group-hover:text-orange-500 transition-colors break-words">
-                        {deck.name}
-                      </span>
-                      {deck.isPrivate && (
-                        <div className="flex">
-                          <span className="inline-flex items-center gap-1 rounded bg-zinc-800/50 px-1.5 py-0.5 text-[10px] font-bold text-zinc-500 border border-zinc-800">
-                            <Shield size={10} />
-                            {t("common.private").toUpperCase()}
-                          </span>
-                        </div>
-                      )}
+                {/* Desktop: Todas las columnas | Mobile: Cabecera con Nombre y Pin */}
+                <td className="p-0 md:px-6 md:py-4 md:table-cell">
+                  <div className="flex items-start justify-between md:justify-start gap-3">
+                    <div className="flex items-start gap-3">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onPin && onPin(deck.id);
+                        }}
+                        className={`mt-1 transition-colors hover:text-orange-500 ${
+                          deck.isPinned ? "text-orange-500" : "text-zinc-600"
+                        }`}
+                      >
+                        <Star
+                          size={18}
+                          fill={deck.isPinned ? "currentColor" : "none"}
+                        />
+                      </button>
+                      <div className="flex flex-col gap-1">
+                        <span className="text-lg font-bold text-white group-hover:text-orange-500 transition-colors break-words leading-tight">
+                          {deck.name}
+                        </span>
+                        {deck.isPrivate && (
+                          <div className="flex">
+                            <span className="inline-flex items-center gap-1 rounded bg-zinc-800/50 px-1.5 py-0.5 text-[10px] font-bold text-zinc-500 border border-zinc-800">
+                              <Shield size={10} />
+                              {t("common.private").toUpperCase()}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Menú de acciones reducido para Mobile (derecha del nombre) */}
+                    <div className="md:hidden">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const rect = e.currentTarget.getBoundingClientRect();
+                          setMenuPos({
+                            top: rect.bottom + 5,
+                            left: rect.right - 192,
+                          });
+                          setActiveDeckId(activeDeckId === deck.id ? null : deck.id);
+                        }}
+                        className="p-2 text-zinc-500 hover:text-white transition-colors"
+                      >
+                        <MoreVertical size={20} />
+                      </button>
                     </div>
                   </div>
                 </td>
 
-                {/* Colores */}
-                <td className="px-6 py-2 md:py-4 md:table-cell border-t border-zinc-900/50 md:border-t-0">
-                  <div className="flex items-center justify-between md:justify-start gap-4">
-                    <span className="text-xs font-medium uppercase text-zinc-600 md:hidden">
-                      {t("myDecks.table.colors")}
-                    </span>
+                {/* Info agrupada: Colores y Formato (Mobile: misma fila) */}
+                <td className="p-0 mt-3 md:mt-0 md:px-6 md:py-4 md:table-cell">
+                  <div className="flex items-center gap-4">
                     <div className="flex items-center">
                       {deck.colors.map((color) => {
                         const symbolKey = `{${color}}`;
@@ -157,40 +174,38 @@ const DeckTable: React.FC<DeckTableProps> = ({
                         <span className="text-zinc-600">—</span>
                       )}
                     </div>
-                  </div>
-                </td>
+                    
+                    <div className="h-4 w-px bg-zinc-800 md:hidden"></div>
 
-                {/* Formato */}
-                <td className="px-6 py-2 md:py-4 md:table-cell border-t border-zinc-900/50 md:border-t-0">
-                  <div className="flex items-center justify-between md:justify-start gap-4">
-                    <span className="text-xs font-medium uppercase text-zinc-600 md:hidden">
-                      {t("myDecks.table.format")}
-                    </span>
-                    <span className="inline-flex items-center rounded-full bg-zinc-900/50 px-2.5 py-0.5 text-xs font-medium text-zinc-400 border border-zinc-800 md:bg-zinc-900">
+                    <span className="inline-flex items-center rounded-full bg-zinc-900 px-2 py-0.5 text-[11px] font-bold text-zinc-400 border border-zinc-800 uppercase tracking-wider md:hidden">
                       {deck.format}
                     </span>
                   </div>
                 </td>
 
-                {/* Última Actualización */}
-                <td className="px-6 py-2 md:py-4 md:table-cell border-t border-zinc-900/50 md:border-t-0 text-xs text-zinc-500">
-                  <div className="flex items-center justify-between md:justify-start gap-4">
-                    <span className="text-xs font-medium uppercase text-zinc-600 md:hidden">
-                      {t("myDecks.table.updated")}
-                    </span>
-                    <span>{deck.lastUpdated}</span>
-                  </div>
+                {/* Desktop: Formato (Ya incluido arriba para mobile) */}
+                <td className="hidden md:table-cell px-6 py-4">
+                   <span className="inline-flex items-center rounded-full bg-zinc-900 px-2.5 py-0.5 text-xs font-medium text-zinc-400 border border-zinc-800">
+                    {deck.format}
+                  </span>
                 </td>
 
-                {/* Acciones */}
-                <td className="px-6 py-4 md:table-cell border-t border-zinc-900/50 md:border-t-0 text-right">
-                  <div className="flex items-center justify-end gap-2 relative">
+                {/* Fecha Desktop/Mobile */}
+                <td className="p-0 mt-3 md:mt-0 md:px-6 md:py-4 md:table-cell">
+                  <span className="text-xs text-zinc-500 font-medium md:font-normal uppercase md:capitalize">
+                    <span className="md:hidden">{t("myDecks.table.updated")}: </span>{deck.lastUpdated}
+                  </span>
+                </td>
+
+                {/* Acciones Desktop (td separado para respetar columnas de la tabla) */}
+                <td className="hidden md:table-cell px-6 py-4 text-right">
+                  <div className="flex items-center justify-end gap-2">
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
                         onInfo && onInfo(deck.id);
                       }}
-                      className="p-2 text-zinc-500 hover:text-zinc-300 transition-colors hidden md:block"
+                      className="p-2 text-zinc-500 hover:text-zinc-300 transition-colors"
                       title={t("common.info")}
                     >
                       <Info size={18} />
@@ -201,16 +216,12 @@ const DeckTable: React.FC<DeckTableProps> = ({
                         const rect = e.currentTarget.getBoundingClientRect();
                         setMenuPos({
                           top: rect.bottom + 5,
-                          left: rect.right - 192,
+                          left: rect.left - 192,
                         });
-                        setActiveDeckId(
-                          activeDeckId === deck.id ? null : deck.id
-                        );
+                        setActiveDeckId(activeDeckId === deck.id ? null : deck.id);
                       }}
-                      className={`p-2 transition-colors rounded-md cursor-pointer ${
-                        activeDeckId === deck.id
-                          ? "text-white bg-zinc-800"
-                          : "text-zinc-500 hover:text-zinc-300"
+                      className={`p-2 transition-colors rounded-md ${
+                        activeDeckId === deck.id ? "text-white bg-zinc-800" : "text-zinc-500 hover:text-zinc-300"
                       }`}
                     >
                       <MoreVertical size={18} />

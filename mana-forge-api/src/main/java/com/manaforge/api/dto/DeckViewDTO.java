@@ -25,5 +25,7 @@ public class DeckViewDTO {
         private String typeLine;
         private Map<String, String> imageUris;
         private int quantity;
+        @com.fasterxml.jackson.annotation.JsonProperty("isGameChanger")
+        private boolean isGameChanger;
     }
 }

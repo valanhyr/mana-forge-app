@@ -29,6 +29,7 @@ export interface DeckCard {
   inCollection?: boolean;
   isValid?: boolean;
   board?: "main" | "side" | "commander";
+  isGameChanger?: boolean;
   image?: string;
 }
 
@@ -171,13 +172,18 @@ const DeckList: React.FC<DeckListProps> = ({
         </span>
         <button
           onClick={() => onCardClick && onCardClick(card.id)}
-          className={`text-sm truncate text-left transition-colors ${
+          className={`text-sm truncate text-left transition-colors flex items-center gap-1 ${
             card.isValid === false
               ? "text-red-400 hover:text-red-300"
               : "text-zinc-300 group-hover:text-white hover:underline"
           }`}
         >
           {card.name}
+          {card.isGameChanger && (
+            <span title={t("common.gameChangerTooltip")} className="cursor-help inline-flex items-center justify-center bg-orange-500/20 text-orange-400 text-[10px] font-bold px-1.5 py-0.5 rounded border border-orange-500/30 no-underline">
+              GC
+            </span>
+          )}
         </button>
         {card.isValid === false && (
           <AlertTriangle size={11} className="text-red-500 shrink-0" />

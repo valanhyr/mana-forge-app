@@ -28,6 +28,7 @@ interface UserContextType {
   logout: () => void;
   loadDecks: (force?: boolean) => Promise<void>;
   deleteDeck: (deckId: string) => Promise<void>;
+  togglePinDeck: (deckId: string) => Promise<void>;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -174,8 +175,8 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
             format: formatName,
             colors: d.colors || [],
             lastUpdated: t("common.recent"), // TODO: Añadir campo timestamp en Deck.java
-            isPrivate: d.private, // Jackson serializa 'isPrivate' como 'private' por defecto
-            isPinned: false,
+            isPrivate: d.private,
+            isPinned: d.pinned || false,
           };
         });
 
@@ -198,6 +199,26 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
+  const togglePinDeck = async (deckId: string) => {
+    const deck = decks.find((d) => d.id === deckId);
+    if (!deck) return;
+
+    try {
+      const { DeckService } = await import("./DeckService");
+      if (deck.isPinned) {
+        await DeckService.unpinDeck(deckId);
+      } else {
+        await DeckService.pinDeck(deckId);
+      }
+      setDecks((prev) =>
+        prev.map((d) => (d.id === deckId ? { ...d, isPinned: !d.isPinned } : d))
+      );
+    } catch (error) {
+      console.error("Error toggling pin:", error);
+      throw error;
+    }
+  };
+
   return (
     <UserContext.Provider
       value={{
@@ -210,6 +231,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
         logout,
         loadDecks,
         deleteDeck,
+        togglePinDeck,
       }}
     >
       {children}

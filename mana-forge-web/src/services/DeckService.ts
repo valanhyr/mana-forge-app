@@ -6,8 +6,8 @@ export interface DailyDeck {
   archetype: string;
   strategy_summary: string;
   brief_analysis: string;
-  main_deck: Array<{ name: string; quantity: number; mana_cost?: string }>;
-  sideboard: Array<{ name: string; quantity: number; mana_cost?: string }>;
+  main_deck: Array<{ name: string; quantity: number; mana_cost?: string; isGameChanger?: boolean }>;
+  sideboard: Array<{ name: string; quantity: number; mana_cost?: string; isGameChanger?: boolean }>;
   cardArtUrl?: string;
 }
 
@@ -19,6 +19,7 @@ export interface DeckCardEntry {
   typeLine: string;
   imageUris: { art_crop?: string; normal?: string; small?: string };
   quantity: number;
+  isGameChanger?: boolean;
 }
 
 export interface DeckView {
@@ -128,6 +129,16 @@ export const DeckService = {
 
   deleteDeck: async (deckId: string): Promise<void> => {
     await api.delete(`/decks/${deckId}`);
+  },
+
+  pinDeck: async (deckId: string): Promise<any> => {
+    const response = await api.post(`/decks/${deckId}/pin`);
+    return response.data;
+  },
+
+  unpinDeck: async (deckId: string): Promise<any> => {
+    const response = await api.delete(`/decks/${deckId}/pin`);
+    return response.data;
   },
 
   searchDecks: async (filters: { name?: string; formatId?: string }): Promise<DeckSearchResult[]> => {

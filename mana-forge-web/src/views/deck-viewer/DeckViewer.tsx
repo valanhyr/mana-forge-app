@@ -351,8 +351,13 @@ const DeckViewer = () => {
                               onMouseEnter={() => setHoveredCard(card)}
                               className="flex justify-between items-center px-3 py-1.5 rounded-lg hover:bg-zinc-800 transition-colors cursor-default group"
                             >
-                              <span className="text-zinc-300 group-hover:text-white text-sm transition-colors">
+                              <span className="text-zinc-300 group-hover:text-white text-sm transition-colors flex items-center gap-1">
                                 {card.name ?? card.scryfallId}
+                                {card.isGameChanger && (
+                                  <span title={t("common.gameChangerTooltip")} className="cursor-help inline-flex items-center justify-center bg-orange-500/20 text-orange-400 text-[10px] font-bold px-1.5 py-0.5 rounded border border-orange-500/30">
+                                    GC
+                                  </span>
+                                )}
                               </span>
                               <span className="flex items-center gap-1 ml-2 shrink-0">
                                 <ManaCost cost={card.manaCost} size={13} />
@@ -381,8 +386,13 @@ const DeckViewer = () => {
                           onMouseEnter={() => setHoveredCard(card)}
                           className="flex justify-between items-center px-3 py-1.5 rounded-lg hover:bg-zinc-800 transition-colors cursor-default group"
                         >
-                          <span className="text-zinc-300 group-hover:text-white text-sm transition-colors">
+                          <span className="text-zinc-300 group-hover:text-white text-sm transition-colors flex items-center gap-1">
                             {card.name ?? card.scryfallId}
+                            {card.isGameChanger && (
+                              <span title={t("common.gameChangerTooltip")} className="cursor-help inline-flex items-center justify-center bg-orange-500/20 text-orange-400 text-[10px] font-bold px-1.5 py-0.5 rounded border border-orange-500/30">
+                                GC
+                              </span>
+                            )}
                           </span>
                           <span className="flex items-center gap-1 ml-2 shrink-0">
                             <ManaCost cost={card.manaCost} size={13} />
@@ -410,7 +420,7 @@ const DeckViewer = () => {
                           <img
                             src={card.imageUris.normal}
                             alt={card.name}
-                            className="rounded-lg shadow-lg w-full transition-transform group-hover:scale-105 group-hover:z-10"
+                            className={`rounded-lg shadow-lg w-full transition-transform group-hover:scale-105 group-hover:z-10 ${card.isGameChanger ? 'ring-2 ring-orange-500 shadow-orange-500/30' : ''}`}
                           />
                         ) : (
                           <div className="aspect-[2.5/3.5] rounded-lg bg-zinc-800 border border-zinc-700 flex flex-col items-center justify-center p-4 text-center">
@@ -441,7 +451,7 @@ const DeckViewer = () => {
                             <img
                               src={card.imageUris.normal}
                               alt={card.name}
-                              className="rounded-lg shadow-lg w-full transition-transform group-hover:scale-105 group-hover:z-10"
+                              className={`rounded-lg shadow-lg w-full transition-transform group-hover:scale-105 group-hover:z-10 ${card.isGameChanger ? 'ring-2 ring-orange-500 shadow-orange-500/30' : ''}`}
                             />
                           ) : (
                             <div className="aspect-[2.5/3.5] rounded-lg bg-zinc-800 border border-zinc-700 flex flex-col items-center justify-center p-4 text-center">

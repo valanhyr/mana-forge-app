@@ -17,6 +17,7 @@ public class Deck {
     private String formatId;
     private String userId;
     private boolean isPrivate;
+    private boolean isPinned;
     private List<String> colors;
     private List<DeckCardEntry> cards;
 
@@ -28,5 +29,6 @@ public class Deck {
         private String scryfallId;
         private int quantity;
         private String board; // "main" or "side"
+        private boolean isGameChanger;
     }
 }

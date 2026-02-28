@@ -139,6 +139,7 @@ public class DeckServiceImpl implements DeckService {
                                 cardDTO.setCmc(card.getCmc());
                                 cardDTO.setTypeLine(card.getTypeLine());
                                 cardDTO.setImageUris(card.getImageUris());
+                                cardDTO.setGameChanger(Boolean.TRUE.equals(card.getGameChanger()));
                                 return true;
                             }).orElse(false);
 
@@ -154,6 +155,9 @@ public class DeckServiceImpl implements DeckService {
                                 @SuppressWarnings("unchecked")
                                 Map<String, String> imageUris = (Map<String, String>) scryfallData.get("image_uris");
                                 cardDTO.setImageUris(imageUris);
+                            }
+                            if (Boolean.TRUE.equals(scryfallData.get("games_changer")) || Boolean.TRUE.equals(scryfallData.get("game_changer"))) {
+                                cardDTO.setGameChanger(true);
                             }
                         }
                     }
@@ -392,16 +396,25 @@ public class DeckServiceImpl implements DeckService {
                             }
                         }
                         
-                        // Si sigue sin estar en repo, intentar Scryfall
                         if (manaCost == null) {
                             try {
                                 Map<String, Object> scryData = scryfallService.getCardNamed(finalName, null, null);
                                 if (scryData != null && scryData.containsKey("mana_cost")) {
                                     manaCost = (String) scryData.get("mana_cost");
                                 }
+                                if (scryData != null && (Boolean.TRUE.equals(scryData.get("games_changer")) || Boolean.TRUE.equals(scryData.get("game_changer")))) {
+                                    mutableCardMap.put("isGameChanger", true);
+                                }
                             } catch (Exception e) {
                                 // Ignorar errores de red
                             }
+                        } else {
+                            // Si lo encontramos en cache, intentar sacar el gameChanger si existe
+                            cardRepository.findByName(finalName).ifPresent(c -> {
+                                if (Boolean.TRUE.equals(c.getGameChanger())) {
+                                    mutableCardMap.put("isGameChanger", true);
+                                }
+                            });
                         }
                         
                         if (manaCost != null) {
@@ -448,5 +461,27 @@ public class DeckServiceImpl implements DeckService {
                     return Integer.compare(i1 == -1 ? 99 : i1, i2 == -1 ? 99 : i2);
                 })
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public Deck pinDeck(String id, String userId) {
+        Deck deck = deckRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Deck not found"));
+        if (!deck.getUserId().equals(userId)) {
+            throw new RuntimeException("Forbidden: You do not own this deck");
+        }
+        deck.setPinned(true);
+        return deckRepository.save(deck);
+    }
+
+    @Override
+    public Deck unpinDeck(String id, String userId) {
+        Deck deck = deckRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Deck not found"));
+        if (!deck.getUserId().equals(userId)) {
+            throw new RuntimeException("Forbidden: You do not own this deck");
+        }
+        deck.setPinned(false);
+        return deckRepository.save(deck);
     }
 }

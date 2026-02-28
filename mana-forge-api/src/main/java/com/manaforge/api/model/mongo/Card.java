@@ -62,4 +62,5 @@ public class Card {
     private Map<String, String> prices;
     private Map<String, String> relatedUris;
     private Map<String, String> purchaseUris;
+    private Boolean gameChanger;
 }

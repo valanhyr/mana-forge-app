@@ -10,6 +10,7 @@ import {
   Layers,
   BookOpen,
   ThumbsUp,
+  Camera,
 } from "lucide-react";
 import { DeckService, type DailyDeck, type FeaturedDeck } from "../../services/DeckService";
 import { ScryfallService } from "../../services/ScryfallService";
@@ -40,6 +41,9 @@ const Dashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [cachedImages, setCachedImages] = useState<Record<string, string>>({});
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchDailyDeck = async () => {
@@ -122,6 +126,29 @@ const Dashboard = () => {
     };
     fetchFormats();
   }, [locale]); // Recargar si cambia el idioma
+
+  const handleMouseEnterCard = async (cardName: string) => {
+    if (cachedImages[cardName]) {
+      setPreviewImage(cachedImages[cardName]);
+      return;
+    }
+
+    try {
+      const cardDetails = await ScryfallService.getCardByName(cardName);
+      if (cardDetails && cardDetails.image_uris) {
+        const imageUrl = cardDetails.image_uris.normal;
+        setCachedImages(prev => ({ ...prev, [cardName]: imageUrl }));
+        setPreviewImage(imageUrl);
+      }
+    } catch (error) {
+      console.error("Error fetching card image:", error);
+    }
+  };
+
+  const handleOpenPreview = async (cardName: string) => {
+    await handleMouseEnterCard(cardName);
+    setIsPreviewModalOpen(true);
+  };
 
   const AiDeckCard = () => {
     if (isLoading) {
@@ -350,13 +377,29 @@ const Dashboard = () => {
                       {dailyDeck.main_deck.map((c, i) => (
                         <li
                           key={i}
-                          className="flex justify-between items-center border-b border-zinc-800/50 pb-2 last:border-0 gap-3"
+                          onMouseEnter={() => handleMouseEnterCard(c.name)}
+                          className="flex justify-between items-center border-b border-zinc-800/50 pb-2 last:border-0 gap-3 group"
                         >
-                          <div className="flex flex-col gap-1">
-                            <span className="text-white font-medium text-sm leading-tight">{c.name}</span>
-                            {c.mana_cost && <ManaCost cost={c.mana_cost} size={14} />}
+                          <div className="flex items-center gap-3 min-w-0 flex-1">
+                            <button 
+                              onClick={() => handleOpenPreview(c.name)}
+                              className="lg:hidden p-1 text-zinc-500 hover:text-orange-500 transition-colors shrink-0"
+                            >
+                              <Camera size={24} />
+                            </button>
+                            <div className="flex flex-col min-w-0">
+                              <span className="text-white font-medium text-sm leading-tight truncate flex items-center gap-1">
+                                {c.name}
+                                {c.isGameChanger && (
+                                  <span title={t("common.gameChangerTooltip")} className="cursor-help inline-flex items-center justify-center bg-orange-500/20 text-orange-400 text-[10px] font-bold px-1.5 py-0.5 rounded border border-orange-500/30">
+                                    GC
+                                  </span>
+                                )}
+                              </span>
+                              {c.mana_cost && <div className="mt-0.5"><ManaCost cost={c.mana_cost} size={14} /></div>}
+                            </div>
                           </div>
-                          <span className="text-zinc-500 font-bold text-xs bg-zinc-800/50 px-2 py-1 rounded-lg border border-zinc-700/50">
+                          <span className="text-zinc-500 font-bold text-xs bg-zinc-800/50 px-2 py-1 rounded-lg border border-zinc-700/50 shrink-0">
                             x{c.quantity}
                           </span>
                         </li>
@@ -374,13 +417,29 @@ const Dashboard = () => {
                         {dailyDeck.sideboard.map((c, i) => (
                           <li
                             key={i}
-                            className="flex justify-between items-center border-b border-zinc-800/50 pb-2 last:border-0 gap-3"
+                            onMouseEnter={() => handleMouseEnterCard(c.name)}
+                            className="flex justify-between items-center border-b border-zinc-800/50 pb-2 last:border-0 gap-3 group"
                           >
-                            <div className="flex flex-col gap-1">
-                              <span className="text-zinc-400 font-medium text-sm leading-tight">{c.name}</span>
-                              {c.mana_cost && <ManaCost cost={c.mana_cost} size={14} />}
+                          <div className="flex items-center gap-3 min-w-0 flex-1">
+                            <button 
+                              onClick={() => handleOpenPreview(c.name)}
+                              className="lg:hidden p-1 text-zinc-500 hover:text-orange-500 transition-colors shrink-0"
+                            >
+                              <Camera size={18} />
+                            </button>
+                            <div className="flex flex-col min-w-0">
+                              <span className="text-zinc-400 font-medium text-sm leading-tight truncate flex items-center gap-1">
+                                {c.name}
+                                {c.isGameChanger && (
+                                  <span title={t("common.gameChangerTooltip")} className="cursor-help inline-flex items-center justify-center bg-orange-500/20 text-orange-400 text-[10px] font-bold px-1.5 py-0.5 rounded border border-orange-500/30">
+                                    GC
+                                  </span>
+                                )}
+                              </span>
+                              {c.mana_cost && <div className="mt-0.5"><ManaCost cost={c.mana_cost} size={14} /></div>}
                             </div>
-                            <span className="text-zinc-600 font-bold text-xs bg-zinc-800/30 px-2 py-1 rounded-lg border border-zinc-800/50">
+                          </div>
+                            <span className="text-zinc-600 font-bold text-xs bg-zinc-800/30 px-2 py-1 rounded-lg border border-zinc-800/50 shrink-0">
                               x{c.quantity}
                             </span>
                           </li>
@@ -390,8 +449,28 @@ const Dashboard = () => {
                   )}
                 </div>
 
-                {/* Columna 2 y 3: Análisis y Estrategia */}
-                <div className="lg:col-span-2 space-y-6">
+                {/* Columna 2: Vista Previa de Carta (Desktop) */}
+                <div className="hidden lg:flex flex-col items-center justify-start py-4">
+                  <div className="sticky top-0 w-full max-w-[280px]">
+                    {previewImage ? (
+                      <img
+                        src={previewImage}
+                        alt="Card preview"
+                        className="w-full rounded-2xl shadow-2xl animate-in fade-in zoom-in duration-300"
+                      />
+                    ) : (
+                      <div className="w-full aspect-[2.5/3.5] rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-700">
+                        <Sparkles size={48} className="opacity-20" />
+                      </div>
+                    )}
+                    <p className="text-center text-xs text-zinc-500 mt-4 italic">
+                      {t("dashboard.previewHint") || "Pasa el ratón para ver la carta"}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Columna 3: Análisis y Estrategia */}
+                <div className="lg:col-span-1 space-y-6">
                   <div className="bg-zinc-950/50 p-5 rounded-xl border border-zinc-800">
                     <h4 className="font-bold text-white mb-3 flex items-center gap-2">
                       <Zap size={18} className="text-orange-500" />{" "}
@@ -414,6 +493,33 @@ const Dashboard = () => {
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+      {/* Lightbox para Móvil */}
+      {isPreviewModalOpen && (
+        <div 
+          className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/90 backdrop-blur-sm animate-in fade-in duration-200"
+          onClick={() => setIsPreviewModalOpen(false)}
+        >
+          <div className="relative max-w-sm w-full animate-in zoom-in duration-300" onClick={e => e.stopPropagation()}>
+            <button
+              onClick={() => setIsPreviewModalOpen(false)}
+              className="absolute -top-12 right-0 p-2 text-white bg-zinc-800 rounded-full hover:bg-zinc-700 transition-colors"
+            >
+              <X size={24} />
+            </button>
+            {previewImage ? (
+              <img
+                src={previewImage}
+                alt="Card preview"
+                className="w-full rounded-3xl shadow-2xl"
+              />
+            ) : (
+              <div className="w-full aspect-[2.5/3.5] rounded-3xl bg-zinc-900 flex items-center justify-center">
+                <ForgeSpinner size={64} />
+              </div>
+            )}
           </div>
         </div>
       )}

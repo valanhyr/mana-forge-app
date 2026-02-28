@@ -8,7 +8,7 @@ import Meta from "../../components/ui/Meta";
 
 const MyDecks = () => {
   const navigate = useNavigate();
-  const { decks, loadDecks, deleteDeck } = useUser();
+  const { decks, loadDecks, deleteDeck, togglePinDeck } = useUser();
   const { t } = useTranslation();
 
   useEffect(() => {
@@ -27,7 +27,7 @@ const MyDecks = () => {
   };
 
   return (
-    <div className="max-w-6xl mx-auto mt-8">
+    <div className="max-w-6xl mx-auto mt-8 px-4 md:px-0">
       <Meta 
         title={t("seo.myDecksTitle")} 
         description={t("seo.myDecksDescription")} 
@@ -44,6 +44,7 @@ const MyDecks = () => {
 
       <DeckTable
         decks={decks}
+        onPin={togglePinDeck}
         onEdit={(id) => navigate(`/deck-builder/${id}`)}
         onDelete={handleDelete}
       />

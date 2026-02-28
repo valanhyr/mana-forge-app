@@ -23,4 +23,6 @@ public interface DeckService {
     List<Deck> getDecksByUser(String userId);
     Map<String, Object> analyzeDeck(Map<String, Object> deckPayload);
     Map<String, Object> generateRandomDeck(Map<String, Object> payload);
+    Deck pinDeck(String id, String userId);
+    Deck unpinDeck(String id, String userId);
 }

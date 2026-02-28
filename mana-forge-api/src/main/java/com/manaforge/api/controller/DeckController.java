@@ -159,4 +159,28 @@ public class DeckController {
     public Map<String, Object> generateRandomDeck(@RequestBody Map<String, Object> payload) {
         return deckService.generateRandomDeck(payload);
     }
+
+    @PostMapping("/{id}/pin")
+    public ResponseEntity<Deck> pinDeck(@PathVariable String id) {
+        String userId = getCurrentUserId();
+        if (userId == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        try {
+            return ResponseEntity.ok(deckService.pinDeck(id, userId));
+        } catch (RuntimeException e) {
+            if (e.getMessage().contains("Forbidden")) return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @DeleteMapping("/{id}/pin")
+    public ResponseEntity<Deck> unpinDeck(@PathVariable String id) {
+        String userId = getCurrentUserId();
+        if (userId == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        try {
+            return ResponseEntity.ok(deckService.unpinDeck(id, userId));
+        } catch (RuntimeException e) {
+            if (e.getMessage().contains("Forbidden")) return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            return ResponseEntity.notFound().build();
+        }
+    }
 }

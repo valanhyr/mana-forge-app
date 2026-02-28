@@ -30,7 +30,8 @@
       "copied": "¡Copiado!",
       "clone": "Duplicar",
       "cloning": "Duplicando...",
-      "confirmDelete": "¿Estás seguro de que quieres borrar este mazo?"
+      "confirmDelete": "¿Estás seguro de que quieres borrar este mazo?",
+      "gameChangerTooltip": "Carta considerada Game Changer"
     },
     "articles": {
       "writtenBy": "Escrito por",

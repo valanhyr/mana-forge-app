@@ -139,6 +139,7 @@ const DeckBuilder = () => {
                 inCollection: false,
                 isValid: isValid,
                 board: entry.board || "main", // Puede venir "commander" de la DB
+                isGameChanger: cardData.games_changer === true || cardData.game_changer === true,
                 image:
                   cardData.image_uris?.normal ||
                   cardData.card_faces?.[0]?.image_uris?.normal ||
@@ -368,6 +369,7 @@ const DeckBuilder = () => {
           inCollection: false,
           isValid: isValid,
           board: isSideboardSection ? "side" : "main",
+          isGameChanger: cardData.games_changer === true || cardData.game_changer === true,
           image:
             cardData.image_uris?.normal ||
             cardData.card_faces?.[0]?.image_uris?.normal ||
@@ -671,9 +673,9 @@ const DeckBuilder = () => {
           </div>
         </div>
 
-        {/* Footer Configuración: Privacidad, Analizar y Guardar (Vertical Stack) */}
-        <div className="mt-6 pt-6 border-t border-zinc-800 flex flex-col gap-4">
-          <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+        {/* Footer Configuración: Privacidad, Analizar y Guardar */}
+        <div className="mt-6 pt-6 border-t border-zinc-800 flex flex-col md:flex-row md:items-center gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-4 md:mr-auto">
             <button
               onClick={() => setIsPrivate(!isPrivate)}
               className={`flex items-center justify-center gap-2 px-4 py-3 rounded-xl border transition-all sm:w-auto ${
@@ -697,7 +699,7 @@ const DeckBuilder = () => {
           <button
             onClick={handleAnalyzeDeck}
             disabled={!isDeckValid || isAnalyzing}
-            className={`flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-bold transition-all border w-full ${
+            className={`flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-bold transition-all border w-full md:w-auto ${
               isDeckValid && !isAnalyzing
                 ? "bg-indigo-600/20 border-indigo-500 text-indigo-400 hover:bg-indigo-600/30"
                 : "bg-zinc-800 border-zinc-700 text-zinc-500 cursor-not-allowed"
@@ -712,7 +714,7 @@ const DeckBuilder = () => {
           <button
             onClick={handleSaveDeck}
             disabled={!isDeckValid || isSaving}
-            className={`flex items-center justify-center gap-2 px-6 py-4 rounded-xl font-bold transition-all w-full ${
+            className={`flex items-center justify-center gap-2 px-6 py-4 rounded-xl font-bold transition-all w-full md:w-auto ${
               isDeckValid && !isSaving
                 ? "bg-green-600 hover:bg-green-500 text-white shadow-lg shadow-green-900/20 active:scale-95"
                 : "bg-zinc-800 text-zinc-500 cursor-not-allowed"
