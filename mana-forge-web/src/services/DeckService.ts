@@ -9,6 +9,10 @@ export interface DailyDeck {
   main_deck: Array<{ name: string; quantity: number; mana_cost?: string; isGameChanger?: boolean }>;
   sideboard: Array<{ name: string; quantity: number; mana_cost?: string; isGameChanger?: boolean }>;
   cardArtUrl?: string;
+  totalRatings?: number;
+  averageRating?: number;
+  userRating?: number;
+  date?: string;
 }
 
 export interface DeckCardEntry {
@@ -73,6 +77,11 @@ interface DeckPayload {
 export const DeckService = {
   getDailyDeck: async (locale: string): Promise<DailyDeck> => {
     const response = await api.post<DailyDeck>("/decks/random", { locale });
+    return response.data;
+  },
+
+  rateDailyDeck: async (date: string, stars: number): Promise<DailyDeck> => {
+    const response = await api.post<DailyDeck>("/decks/random/rate", { date, stars });
     return response.data;
   },
 

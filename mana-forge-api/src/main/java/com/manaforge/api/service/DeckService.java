@@ -8,6 +8,7 @@ import com.manaforge.api.model.mongo.Deck;
 
 import java.util.List;
 import java.util.Map;
+import java.time.LocalDate;
 
 public interface DeckService {
     Deck saveDeck(DeckRequestDTO dto, String userId);
@@ -25,4 +26,5 @@ public interface DeckService {
     Map<String, Object> generateRandomDeck(Map<String, Object> payload);
     Deck pinDeck(String id, String userId);
     Deck unpinDeck(String id, String userId);
+    Map<String, Object> rateDailyDeck(LocalDate date, String userId, int stars);
 }

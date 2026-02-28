@@ -18,6 +18,8 @@ public class DailyDeck {
 
     private Map<String, Object> deckData;
 
+    private Map<String, Integer> ratings = new java.util.HashMap<>();
+
     public String getId() {
         return id;
     }
@@ -40,5 +42,13 @@ public class DailyDeck {
 
     public void setDeckData(Map<String, Object> deckData) {
         this.deckData = deckData;
+    }
+
+    public Map<String, Integer> getRatings() {
+        return ratings;
+    }
+
+    public void setRatings(Map<String, Integer> ratings) {
+        this.ratings = ratings;
     }
 }

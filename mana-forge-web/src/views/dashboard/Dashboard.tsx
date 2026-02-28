@@ -11,6 +11,7 @@ import {
   BookOpen,
   ThumbsUp,
   Camera,
+  Star,
 } from "lucide-react";
 import { DeckService, type DailyDeck, type FeaturedDeck } from "../../services/DeckService";
 import { ScryfallService } from "../../services/ScryfallService";
@@ -44,6 +45,8 @@ const Dashboard = () => {
   const [cachedImages, setCachedImages] = useState<Record<string, string>>({});
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
+  const [hoveredStar, setHoveredStar] = useState<number>(0);
+  const [ratingLoading, setRatingLoading] = useState(false);
 
   useEffect(() => {
     const fetchDailyDeck = async () => {
@@ -150,6 +153,39 @@ const Dashboard = () => {
     setIsPreviewModalOpen(true);
   };
 
+  const handleRateDeck = async (e: React.MouseEvent, stars: number) => {
+    e.stopPropagation(); // Avoid opening the modal if clicked from the card
+    if (!dailyDeck || !dailyDeck.date || ratingLoading) return;
+    
+    // Validate we are logged in (checking the existence of a likedby feature like in featuredDeck, although if API fails it handles it)
+    try {
+      setRatingLoading(true);
+      // Optimistic visual update
+      const previousRating = dailyDeck.userRating;
+      const isRemoving = previousRating === stars;
+      
+      setDailyDeck(prev => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          userRating: isRemoving ? undefined : stars,
+        };
+      });
+
+      const updatedDeck = await DeckService.rateDailyDeck(dailyDeck.date, stars);
+      setDailyDeck(prev => ({
+        ...prev,
+        ...updatedDeck,
+        cardArtUrl: prev?.cardArtUrl // Keep the cached image UI url
+      }));
+    } catch (err) {
+      console.error("Error rating deck:", err);
+      // Revert in case of error (reload data or just show toast, here we just let it be)
+    } finally {
+      setRatingLoading(false);
+    }
+  };
+
   const AiDeckCard = () => {
     if (isLoading) {
       return (
@@ -191,10 +227,47 @@ const Dashboard = () => {
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
         </div>
         <div className="relative z-10 flex flex-col justify-between h-80 p-6 text-white">
-          <div>
+          <div className="flex justify-between items-start">
             <span className="inline-flex items-center gap-2 rounded-full bg-black/60 px-3 py-1 text-xs font-medium text-indigo-400 border border-indigo-500/20 backdrop-blur-sm">
               <Sparkles size={14} /> {t("dashboard.aiDeckOfTheDay")}
             </span>
+            
+            {/* Star Rating System On Card */}
+            <div 
+              className="flex gap-1 bg-black/60 px-2 py-1 rounded-full border border-zinc-500/20 backdrop-blur-sm"
+              onMouseLeave={() => setHoveredStar(0)}
+              onClick={e => e.stopPropagation()}
+            >
+              {[1, 2, 3, 4, 5].map(star => {
+                const currentRating = dailyDeck.userRating || 0;
+                // If we are hovering, show hovered state. Else show actual rating state.
+                const isActive = hoveredStar ? star <= hoveredStar : star <= currentRating;
+                
+                return (
+                  <button
+                    key={star}
+                    type="button"
+                    disabled={ratingLoading}
+                    onMouseEnter={() => setHoveredStar(star)}
+                    onClick={(e) => handleRateDeck(e, star)}
+                    className="p-0.5 focus:outline-none transition-transform hover:scale-125 disabled:opacity-50"
+                  >
+                    <Star 
+                      size={18} 
+                      className={isActive 
+                        ? "text-orange-500 fill-orange-500 transition-colors duration-200" 
+                        : "text-zinc-500 fill-transparent hover:text-orange-400 transition-colors duration-200"
+                      } 
+                    />
+                  </button>
+                );
+              })}
+              {dailyDeck.averageRating && dailyDeck.totalRatings && dailyDeck.totalRatings > 0 ? (
+                <span className="ml-1 text-xs text-zinc-300 font-medium self-center px-1">
+                  {dailyDeck.averageRating} ({dailyDeck.totalRatings})
+                </span>
+              ) : null}
+            </div>
           </div>
           <div>
             <h3 className="text-2xl font-bold">{dailyDeck.deck_name}</h3>
@@ -348,9 +421,52 @@ const Dashboard = () => {
             {/* Header */}
             <div className="flex items-center justify-between p-6 border-b border-zinc-800 shrink-0">
               <div>
-                <h3 className="text-2xl font-bold text-white">
-                  {dailyDeck.deck_name}
-                </h3>
+                <div className="flex items-center gap-4 mb-1">
+                  <h3 className="text-2xl font-bold text-white">
+                    {dailyDeck.deck_name}
+                  </h3>
+                  
+                  {/* Star Rating System Modal Header */}
+                  <div 
+                    className="flex gap-1 bg-zinc-950/50 px-3 py-1.5 rounded-full border border-zinc-800"
+                    onMouseLeave={() => setHoveredStar(0)}
+                  >
+                    {[1, 2, 3, 4, 5].map(star => {
+                      const currentRating = dailyDeck.userRating || 0;
+                      const isActive = hoveredStar ? star <= hoveredStar : star <= currentRating;
+                      
+                      return (
+                        <button
+                          key={star}
+                          type="button"
+                          disabled={ratingLoading}
+                          onMouseEnter={() => setHoveredStar(star)}
+                          onClick={(e) => handleRateDeck(e, star)}
+                          className="p-1 focus:outline-none transition-transform hover:scale-125 disabled:opacity-50"
+                        >
+                          <Star 
+                            size={20} 
+                            className={isActive 
+                              ? "text-orange-500 fill-orange-500" 
+                              : "text-zinc-600 fill-transparent"
+                            } 
+                          />
+                        </button>
+                      );
+                    })}
+                    {dailyDeck.averageRating && dailyDeck.totalRatings && dailyDeck.totalRatings > 0 ? (
+                      <div className="ml-2 pl-2 border-l border-zinc-700 flex flex-col justify-center">
+                        <span className="text-xs text-zinc-300 font-bold leading-none">
+                          {dailyDeck.averageRating}
+                        </span>
+                        <span className="text-[10px] text-zinc-500 leading-none mt-0.5">
+                          {dailyDeck.totalRatings} {dailyDeck.totalRatings === 1 ? 'voto' : 'votos'}
+                        </span>
+                      </div>
+                    ) : null}
+                  </div>
+                </div>
+                
                 <p className="text-zinc-400">
                   {dailyDeck.format_name} &middot; {dailyDeck.archetype}
                 </p>

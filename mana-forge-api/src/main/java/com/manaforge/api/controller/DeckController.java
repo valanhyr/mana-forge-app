@@ -14,6 +14,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
@@ -181,6 +182,24 @@ public class DeckController {
         } catch (RuntimeException e) {
             if (e.getMessage().contains("Forbidden")) return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
             return ResponseEntity.notFound().build();
+        }
+    }
+
+    @PostMapping("/random/rate")
+    public ResponseEntity<Map<String, Object>> rateDailyDeck(@RequestBody Map<String, Object> payload) {
+        String userId = getCurrentUserId();
+        if (userId == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        
+        try {
+            String dateStr = (String) payload.get("date");
+            int stars = (Integer) payload.get("stars");
+            LocalDate date = LocalDate.parse(dateStr);
+            
+            return ResponseEntity.ok(deckService.rateDailyDeck(date, userId, stars));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
 }

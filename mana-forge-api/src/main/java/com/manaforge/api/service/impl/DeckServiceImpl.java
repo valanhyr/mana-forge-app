@@ -327,6 +327,9 @@ public class DeckServiceImpl implements DeckService {
         Optional<DailyDeck> existing = getDailyDeckSafe(today);
         if (existing.isPresent()) {
             Map<String, Object> deckData = existing.get().getDeckData();
+            
+            enrichRatingsInfo(deckData, existing.get().getRatings(), payload.get("userId"));
+
             // Si el mazo existe pero no tiene costes enriquecidos, lo hacemos ahora
             if (isMissingManaCosts(deckData)) {
                 enrichDeckData(deckData);
@@ -346,12 +349,37 @@ public class DeckServiceImpl implements DeckService {
             daily.setDate(today);
             daily.setDeckData(newDeck);
             dailyDeckRepository.save(daily);
+
+            enrichRatingsInfo(newDeck, daily.getRatings(), payload.get("userId"));
+
             return newDeck;
         } catch (DuplicateKeyException e) {
             return getDailyDeckSafe(today)
                     .map(DailyDeck::getDeckData)
                     .orElse(Collections.emptyMap());
         }
+    }
+
+    private void enrichRatingsInfo(Map<String, Object> deckData, Map<String, Integer> ratings, Object userIdObj) {
+        if (deckData == null) return;
+        
+        int totalRatings = 0;
+        double averageRating = 0.0;
+        Integer userRating = null;
+
+        if (ratings != null && !ratings.isEmpty()) {
+            totalRatings = ratings.size();
+            long sum = ratings.values().stream().mapToInt(Integer::intValue).sum();
+            averageRating = (double) sum / totalRatings;
+
+            if (userIdObj instanceof String userId && ratings.containsKey(userId)) {
+                userRating = ratings.get(userId);
+            }
+        }
+
+        deckData.put("totalRatings", totalRatings);
+        deckData.put("averageRating", Math.round(averageRating * 10.0) / 10.0); // 1 decimal
+        deckData.put("userRating", userRating);
     }
 
     private boolean isMissingManaCosts(Map<String, Object> deckData) {
@@ -483,5 +511,32 @@ public class DeckServiceImpl implements DeckService {
         }
         deck.setPinned(false);
         return deckRepository.save(deck);
+    }
+
+    @Override
+    public Map<String, Object> rateDailyDeck(LocalDate date, String userId, int stars) {
+        DailyDeck dailyDeck = getDailyDeckSafe(date)
+                .orElseThrow(() -> new RuntimeException("Daily deck not found for date: " + date));
+
+        Map<String, Integer> ratings = dailyDeck.getRatings();
+        if (ratings == null) {
+            ratings = new HashMap<>();
+            dailyDeck.setRatings(ratings);
+        }
+
+        // Si el usuario vota la MISMA estrella, la quitamos (despuntuar). Si no, la guardamos/actualizamos
+        if (ratings.containsKey(userId) && ratings.get(userId) == stars) {
+            ratings.remove(userId);
+        } else {
+            // Validar límite 1-5
+            stars = Math.max(1, Math.min(5, stars));
+            ratings.put(userId, stars);
+        }
+
+        dailyDeckRepository.save(dailyDeck);
+
+        Map<String, Object> response = new HashMap<>(dailyDeck.getDeckData());
+        enrichRatingsInfo(response, ratings, userId);
+        return response;
     }
 }
