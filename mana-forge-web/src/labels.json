@@ -177,19 +177,19 @@
       "viewBanlist": "Ver Banlist"
     },
     "dashboard": {
-      "newsTitle": "Lo último que he forjado",
-      "readAnalysis": "Leer mi análisis",
+      "newsTitle": "Lo último en Mana Forge",
+      "readAnalysis": "Leer análisis",
       "readNews": "Leer noticia",
-      "viewGuide": "Ver mi guía",
+      "viewGuide": "Ver guía",
       "exploreMeta": "Explorar el meta",
       "featuredDecks": "Mazos Destacados",
       "deckOfTheDay": "Mazo del Día",
-      "aiDeckOfTheDay": "He forjado un Mazo para ti (IA)",
-      "generatingDeck": "Estoy forjando el mazo del día para ti...",
-      "noFeaturedDeck": "Aún no he seleccionado mazos públicos destacados.",
+      "aiDeckOfTheDay": "Mazo del Día forjado por IA",
+      "generatingDeck": "Forjando el mazo del día...",
+      "noFeaturedDeck": "Aún no hay mazos públicos destacados.",
       "exploreFormats": "Explora los Formatos",
-      "mainStrategy": "Mi Estrategia Sugerida",
-      "metaAnalysis": "Mi Análisis del Meta",
+      "mainStrategy": "Estrategia Sugerida",
+      "metaAnalysis": "Análisis del Meta",
       "formatDescriptions": {
         "commander": "El formato multijugador por excelencia.",
         "modern": "Poder y consistencia con un amplio pool de cartas.",
@@ -223,7 +223,7 @@
       "moveToSideboard": "Mover a Sideboard"
     },
     "footer": {
-      "description": "He forjado esta herramienta para que sea tu compañera definitiva en la construcción y análisis de mazos de Magic: The Gathering, impulsada por mi IA.",
+      "description": "La herramienta definitiva en la construcción y análisis de mazos de Magic: The Gathering. Tu personal shopper inmobiliario de cartas, un servicio 100% enfocado en el comprador.",
       "product": "Producto",
       "resources": "Recursos",
       "scryfall": "Scryfall",
@@ -283,6 +283,7 @@
     "friends": {
       "title": "Amigos",
       "subtitle": "Gestiona tus amigos y solicitudes de amistad",
+      "explorerSubtitle": "Descubre las mejores estrategias de la comunidad",
       "searchPlaceholder": "Buscar usuarios por nombre...",
       "noResults": "No se encontraron usuarios",
       "tab": {
@@ -328,19 +329,19 @@
     },
     "seo": {
       "defaultTitle": "Mana Forge | Tu Forja de Mazos MTG con IA",
-      "defaultDescription": "He forjado Mana Forge para ayudarte a construir, analizar y perfeccionar tus mazos de Magic: The Gathering con el poder de mi Inteligencia Artificial.",
+      "defaultDescription": "Mana Forge te ayuda a construir, analizar y perfeccionar tus mazos de Magic: The Gathering. El personal shopper inmobiliario de cartas ideal, un servicio 100% enfocado en el comprador.",
       "dashboardTitle": "Inicio",
-      "dashboardDescription": "Explora lo último que he forjado: noticias, formatos populares y el mazo del día generado por mi IA.",
+      "dashboardDescription": "Explora las últimas noticias, formatos populares y el mazo del día generado por IA.",
       "deckBuilderTitle": "Forja de Mazo",
-      "deckBuilderDescription": "Crea y analiza tus mazos de Magic. Te ayudaré a optimizar tu curva de maná y estrategia con mi análisis de IA.",
+      "deckBuilderDescription": "Crea y analiza tus mazos de Magic. Optimiza tu curva de maná y estrategia con análisis avanzado de IA.",
       "myDecksTitle": "Mis Mazos",
-      "myDecksDescription": "Gestiona la colección de mazos que hemos forjado juntos.",
+      "myDecksDescription": "Gestiona tu colección de mazos guardados.",
       "explorerTitle": "Explorador de Mazos",
-      "explorerDescription": "Descubre los mazos más poderosos creados por mi comunidad de jugadores.",
+      "explorerDescription": "Descubre los mazos más poderosos creados por la comunidad de jugadores.",
       "friendsTitle": "Amigos",
-      "friendsDescription": "Conecta con otros forjadores y comparte tus creaciones.",
+      "friendsDescription": "Conecta con otros jugadores y comparte tus creaciones.",
       "profileTitle": "Mi Perfil",
-      "profileDescription": "Configura tus preferencias para que pueda ayudarte mejor en tu camino como forjador."
+      "profileDescription": "Configura tus preferencias para personalizar tu experiencia en la plataforma."
     }
   },
   "en": {
@@ -521,7 +522,7 @@
     },
     "dashboard": {
       "newsTitle": "Latest News",
-      "readNews": "Red news",
+      "readNews": "Read news",
       "readAnalysis": "Read analysis",
       "viewGuide": "View guide",
       "exploreMeta": "Explore meta",
@@ -566,7 +567,7 @@
       "moveToSideboard": "Move to Sideboard"
     },
     "footer": {
-      "description": "The ultimate AI-powered Magic: The Gathering deck building and analysis tool.",
+      "description": "The ultimate AI-powered Magic: The Gathering deck building and analysis tool. Your specialized real estate personal shopper for cards, a 100% buyer-focused service.",
       "product": "Product",
       "resources": "Resources",
       "scryfall": "Scryfall",
@@ -626,6 +627,7 @@
     "friends": {
       "title": "Friends",
       "subtitle": "Manage your friends and friend requests",
+      "explorerSubtitle": "Discover the best strategies from the community",
       "searchPlaceholder": "Search users by name...",
       "noResults": "No users found",
       "tab": {
@@ -671,19 +673,19 @@
     },
     "seo": {
       "defaultTitle": "Mana Forge | Your AI MTG Deck Forge",
-      "defaultDescription": "I forged Mana Forge to help you build, analyze, and perfect your Magic: The Gathering decks with the power of my AI.",
+      "defaultDescription": "Mana Forge helps you build, analyze, and perfect your Magic: The Gathering decks. The ideal real estate personal shopper for cards, a 100% buyer-focused service.",
       "dashboardTitle": "Home",
-      "dashboardDescription": "Explore the latest I've forged: news, popular formats, and the daily deck generated by my AI.",
+      "dashboardDescription": "Explore the latest news, popular formats, and the daily deck generated by AI.",
       "deckBuilderTitle": "Deck Forge",
-      "deckBuilderDescription": "Create and analyze your Magic decks. I'll help you optimize your mana curve and strategy with my AI analysis.",
+      "deckBuilderDescription": "Create and analyze your Magic decks. Optimize your mana curve and strategy with advanced AI analysis.",
       "myDecksTitle": "My Decks",
-      "myDecksDescription": "Manage the collection of decks we've forged together.",
+      "myDecksDescription": "Manage your collection of saved decks.",
       "explorerTitle": "Deck Explorer",
-      "explorerDescription": "Discover the most powerful decks created by my community of players.",
+      "explorerDescription": "Discover the most powerful decks created by the community of players.",
       "friendsTitle": "Friends",
-      "friendsDescription": "Connect with other forgers and share your creations.",
+      "friendsDescription": "Connect with other players and share your creations.",
       "profileTitle": "My Profile",
-      "profileDescription": "Configure your preferences so I can better help you on your journey as a forger."
+      "profileDescription": "Configure your preferences to personalize your experience on the platform."
     }
   }
 }

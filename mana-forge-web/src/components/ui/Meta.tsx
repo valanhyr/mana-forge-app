@@ -21,7 +21,7 @@ const Meta = ({ title, description }: MetaProps) => {
 
     // 2. Actualizar Descripción Meta
     const metaDescription = document.querySelector('meta[name="description"]');
-    const defaultDescription = t("seo.defaultDescription") || "He forjado Mana Forge para ayudarte a construir los mejores mazos de Magic.";
+    const defaultDescription = t("seo.defaultDescription") || "Mana Forge te ayuda a construir los mejores mazos de Magic.";
     const newDescription = description || defaultDescription;
 
     if (metaDescription) {
