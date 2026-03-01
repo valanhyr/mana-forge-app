@@ -22,6 +22,8 @@ import { ArticleService } from "../../services/ArticleService";
 import { type Article } from "../../core/models/Article";
 import ManaCost from "../../components/ui/ManaCost";
 import Meta from "../../components/ui/Meta";
+import { useUser } from "../../services/UserContext";
+import { useToast } from "../../services/ToastContext";
 
 // --- Mock Data ---
 
@@ -35,6 +37,8 @@ interface FormatSummary {
 
 const Dashboard = () => {
   const { t, locale } = useTranslation();
+  const { isAuthenticated } = useUser();
+  const { showToast } = useToast();
   const [dailyDeck, setDailyDeck] = useState<DailyDeck | null>(null);
   const [featuredDeck, setFeaturedDeck] = useState<FeaturedDeck | null>(null);
   const [popularFormats, setPopularFormats] = useState<FormatSummary[]>([]);
@@ -154,8 +158,14 @@ const Dashboard = () => {
   };
 
   const handleRateDeck = async (e: React.MouseEvent, stars: number) => {
+    e.preventDefault();
     e.stopPropagation(); // Avoid opening the modal if clicked from the card
-    if (!dailyDeck || !dailyDeck.date || ratingLoading) return;
+    if (!dailyDeck || ratingLoading) return;
+
+    if (!isAuthenticated) {
+      showToast(t("common.loginToRate"), "info");
+      return;
+    }
     
     // Validate we are logged in (checking the existence of a likedby feature like in featuredDeck, although if API fails it handles it)
     try {
@@ -186,7 +196,7 @@ const Dashboard = () => {
     }
   };
 
-  const AiDeckCard = () => {
+  const renderAiDeckCard = () => {
     if (isLoading) {
       return (
         <div className="group relative flex items-center justify-center h-80 p-6 text-white bg-zinc-900 rounded-2xl border border-zinc-800">
@@ -240,8 +250,10 @@ const Dashboard = () => {
             >
               {[1, 2, 3, 4, 5].map(star => {
                 const currentRating = dailyDeck.userRating || 0;
+                const averageRating = dailyDeck.averageRating || 0;
                 // If we are hovering, show hovered state. Else show actual rating state.
-                const isActive = hoveredStar ? star <= hoveredStar : star <= currentRating;
+                const isFilled = hoveredStar ? star <= hoveredStar : star <= currentRating;
+                const isOrangeBorder = isFilled || (!hoveredStar && star <= Math.round(averageRating));
                 
                 return (
                   <button
@@ -254,9 +266,11 @@ const Dashboard = () => {
                   >
                     <Star 
                       size={18} 
-                      className={isActive 
-                        ? "text-orange-500 fill-orange-500 transition-colors duration-200" 
-                        : "text-zinc-500 fill-transparent hover:text-orange-400 transition-colors duration-200"
+                      className={isFilled 
+                        ? "text-orange-500 fill-orange-500 transition-colors duration-200"
+                        : isOrangeBorder
+                          ? "text-orange-500 fill-transparent transition-colors duration-200"
+                          : "text-zinc-500 fill-transparent hover:text-orange-400 transition-colors duration-200"
                       } 
                     />
                   </button>
@@ -370,7 +384,7 @@ const Dashboard = () => {
           )}
 
           {/* Mazo de IA */}
-          <AiDeckCard />
+          {renderAiDeckCard()}
         </div>
       </section>
 
@@ -433,7 +447,9 @@ const Dashboard = () => {
                   >
                     {[1, 2, 3, 4, 5].map(star => {
                       const currentRating = dailyDeck.userRating || 0;
-                      const isActive = hoveredStar ? star <= hoveredStar : star <= currentRating;
+                      const averageRating = dailyDeck.averageRating || 0;
+                      const isFilled = hoveredStar ? star <= hoveredStar : star <= currentRating;
+                      const isOrangeBorder = isFilled || (!hoveredStar && star <= Math.round(averageRating));
                       
                       return (
                         <button
@@ -446,9 +462,11 @@ const Dashboard = () => {
                         >
                           <Star 
                             size={20} 
-                            className={isActive 
+                            className={isFilled 
                               ? "text-orange-500 fill-orange-500" 
-                              : "text-zinc-600 fill-transparent"
+                              : isOrangeBorder
+                                ? "text-orange-500 fill-transparent"
+                                : "text-zinc-600 fill-transparent"
                             } 
                           />
                         </button>

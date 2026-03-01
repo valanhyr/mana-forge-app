@@ -27,5 +27,6 @@ public class DeckViewDTO {
         private int quantity;
         @com.fasterxml.jackson.annotation.JsonProperty("isGameChanger")
         private boolean isGameChanger;
+        private String category;
     }
 }

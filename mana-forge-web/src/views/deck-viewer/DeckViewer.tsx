@@ -22,16 +22,33 @@ const sortCards = (cards: DeckCardEntry[], mode: SortMode, dir: SortDir) => {
 const groupByType = (cards: DeckCardEntry[]) => {
   const groups: Record<string, DeckCardEntry[]> = {};
   for (const card of cards) {
-    const type = card.typeLine?.split("—")[0]?.split(" ").find(t =>
-      ["Creature", "Instant", "Sorcery", "Enchantment", "Artifact", "Planeswalker", "Land", "Battle"].includes(t)
-    ) ?? "Other";
+    // Check for commander
+    if ((card as any).category === "commander") {
+      if (!groups["Commander"]) groups["Commander"] = [];
+      groups["Commander"].push(card);
+      continue;
+    }
+
+    const typeLine = card.typeLine || "";
+    const mainType = typeLine.split("—")[0];
+    
+    let type = "Other";
+    if (mainType.includes("Creature")) type = "Creature";
+    else if (mainType.includes("Planeswalker")) type = "Planeswalker";
+    else if (mainType.includes("Battle")) type = "Battle";
+    else if (mainType.includes("Instant")) type = "Instant";
+    else if (mainType.includes("Sorcery")) type = "Sorcery";
+    else if (mainType.includes("Enchantment")) type = "Enchantment";
+    else if (mainType.includes("Artifact")) type = "Artifact";
+    else if (mainType.includes("Land")) type = "Land";
+
     if (!groups[type]) groups[type] = [];
     groups[type].push(card);
   }
   return groups;
 };
 
-const TYPE_ORDER = ["Planeswalker", "Creature", "Battle", "Instant", "Sorcery", "Enchantment", "Artifact", "Land", "Other"];
+const TYPE_ORDER = ["Commander", "Planeswalker", "Creature", "Battle", "Instant", "Sorcery", "Enchantment", "Artifact", "Land", "Other"];
 
 const DeckViewer = () => {
   const { deckId } = useParams<{ deckId: string }>();
@@ -413,27 +430,38 @@ const DeckViewer = () => {
                     {t("common.mainDeck")}
                     <span className="text-zinc-500 font-normal text-sm">({mainTotal})</span>
                   </h2>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-                    {deck.mainDeck.map((card, i) => (
-                      <div key={i} className="group relative">
-                        {card.imageUris?.normal ? (
-                          <img
-                            src={card.imageUris.normal}
-                            alt={card.name}
-                            className={`rounded-lg shadow-lg w-full transition-transform group-hover:scale-105 group-hover:z-10 ${card.isGameChanger ? 'ring-2 ring-orange-500 shadow-orange-500/30' : ''}`}
-                          />
-                        ) : (
-                          <div className="aspect-[2.5/3.5] rounded-lg bg-zinc-800 border border-zinc-700 flex flex-col items-center justify-center p-4 text-center">
-                            <Layers size={32} className="text-zinc-700 mb-2" />
-                            <span className="text-xs text-zinc-500 font-medium">{card.name}</span>
+                  
+                  {TYPE_ORDER.filter(t => mainGroups[t]).concat(mainGroups["All"] ? ["All"] : []).map(type => (
+                    <div key={type} className={type !== "All" ? "mb-8" : ""}>
+                      {type !== "All" && (
+                        <h3 className="text-sm font-bold text-zinc-300 uppercase tracking-widest mb-4 pb-1 border-b border-zinc-800">
+                          <span className="text-orange-500">{t(`deckViewer.cardTypes.${type}` as any) || type}</span>
+                          <span className="text-zinc-600 font-normal ml-2 text-xs">({mainGroups[type].reduce((s, c) => s + c.quantity, 0)})</span>
+                        </h3>
+                      )}
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+                        {mainGroups[type].map((card, i) => (
+                          <div key={i} className="group relative">
+                            {card.imageUris?.normal ? (
+                              <img
+                                src={card.imageUris.normal}
+                                alt={card.name}
+                                className={`rounded-lg shadow-lg w-full transition-transform group-hover:scale-105 group-hover:z-10 ${card.isGameChanger ? 'ring-2 ring-orange-500 shadow-orange-500/30' : ''}`}
+                              />
+                            ) : (
+                              <div className="aspect-[2.5/3.5] rounded-lg bg-zinc-800 border border-zinc-700 flex flex-col items-center justify-center p-4 text-center">
+                                <Layers size={32} className="text-zinc-700 mb-2" />
+                                <span className="text-xs text-zinc-500 font-medium">{card.name}</span>
+                              </div>
+                            )}
+                            <div className="absolute top-1 right-1 bg-black/80 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-md border border-white/20 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                              ×{card.quantity}
+                            </div>
                           </div>
-                        )}
-                        <div className="absolute top-1 right-1 bg-black/80 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-md border border-white/20 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-                          ×{card.quantity}
-                        </div>
+                        ))}
                       </div>
-                    ))}
-                  </div>
+                    </div>
+                  ))}
                 </div>
 
                 {/* Spoiler Mode: Sideboard */}
@@ -445,7 +473,7 @@ const DeckViewer = () => {
                       <span className="text-zinc-500 font-normal text-sm">({sideTotal})</span>
                     </h2>
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 font-mono">
-                      {deck.sideboard.map((card, i) => (
+                      {sortCards(deck.sideboard, sortMode, sortDir).map((card, i) => (
                         <div key={i} className="group relative">
                           {card.imageUris?.normal ? (
                             <img

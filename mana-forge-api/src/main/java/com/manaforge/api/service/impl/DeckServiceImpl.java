@@ -18,6 +18,8 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executors;
 
 @Service
 public class DeckServiceImpl implements DeckService {
@@ -126,46 +128,60 @@ public class DeckServiceImpl implements DeckService {
             List<DeckViewDTO.CardEntryDTO> side = new ArrayList<>();
 
             if (deck.getCards() != null) {
-                for (Deck.DeckCardEntry entry : deck.getCards()) {
-                    DeckViewDTO.CardEntryDTO cardDTO = new DeckViewDTO.CardEntryDTO();
-                    cardDTO.setScryfallId(entry.getScryfallId());
-                    cardDTO.setQuantity(entry.getQuantity());
+                // Usamos Virtual Threads para paralelizar la búsqueda en base de datos
+                try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {
+                    var futures = deck.getCards().stream()
+                        .map(entry -> CompletableFuture.supplyAsync(() -> {
+                            DeckViewDTO.CardEntryDTO cardDTO = new DeckViewDTO.CardEntryDTO();
+                            cardDTO.setScryfallId(entry.getScryfallId());
+                            cardDTO.setQuantity(entry.getQuantity());
+                            cardDTO.setCategory(entry.getBoard());
 
-                    // 1. Buscar en caché local
-                    boolean foundInCache = cardRepository.findByScryfallId(entry.getScryfallId())
-                            .map(card -> {
-                                cardDTO.setName(card.getName());
-                                cardDTO.setManaCost(card.getManaCost());
-                                cardDTO.setCmc(card.getCmc());
-                                cardDTO.setTypeLine(card.getTypeLine());
-                                cardDTO.setImageUris(card.getImageUris());
-                                cardDTO.setGameChanger(Boolean.TRUE.equals(card.getGameChanger()));
-                                return true;
-                            }).orElse(false);
+                            // 1. Buscar en caché local (DB) en paralelo
+                            cardRepository.findByScryfallId(entry.getScryfallId())
+                                    .ifPresent(card -> {
+                                        cardDTO.setName(card.getName());
+                                        cardDTO.setManaCost(card.getManaCost());
+                                        cardDTO.setCmc(card.getCmc());
+                                        cardDTO.setTypeLine(card.getTypeLine());
+                                        cardDTO.setImageUris(card.getImageUris());
+                                        cardDTO.setGameChanger(Boolean.TRUE.equals(card.getGameChanger()));
+                                    });
+                            
+                            return Map.entry(entry, cardDTO);
+                        }, executor))
+                        .toList();
 
-                    // 2. Fallback a Scryfall
-                    if (!foundInCache || cardDTO.getCmc() == null) {
-                        Map<String, Object> scryfallData = scryfallService.getCardById(entry.getScryfallId());
-                        if (scryfallData != null && !scryfallData.isEmpty()) {
-                            if (cardDTO.getName() == null) cardDTO.setName((String) scryfallData.get("name"));
-                            if (cardDTO.getManaCost() == null) cardDTO.setManaCost((String) scryfallData.get("mana_cost"));
-                            if (scryfallData.get("cmc") instanceof Number n) cardDTO.setCmc(n.doubleValue());
-                            if (cardDTO.getTypeLine() == null) cardDTO.setTypeLine((String) scryfallData.get("type_line"));
-                            if (cardDTO.getImageUris() == null) {
-                                @SuppressWarnings("unchecked")
-                                Map<String, String> imageUris = (Map<String, String>) scryfallData.get("image_uris");
-                                cardDTO.setImageUris(imageUris);
-                            }
-                            if (Boolean.TRUE.equals(scryfallData.get("games_changer")) || Boolean.TRUE.equals(scryfallData.get("game_changer"))) {
-                                cardDTO.setGameChanger(true);
+                    // Recolectamos resultados y hacemos fallback secuencial si es necesario
+                    for (var future : futures) {
+                        var result = future.join();
+                        var entry = result.getKey();
+                        var cardDTO = result.getValue();
+
+                        // 2. Fallback a Scryfall (Secuencial para respetar rate limits)
+                        if (cardDTO.getName() == null || cardDTO.getCmc() == null) {
+                            Map<String, Object> scryfallData = scryfallService.getCardById(entry.getScryfallId());
+                            if (scryfallData != null && !scryfallData.isEmpty()) {
+                                if (cardDTO.getName() == null) cardDTO.setName((String) scryfallData.get("name"));
+                                if (cardDTO.getManaCost() == null) cardDTO.setManaCost((String) scryfallData.get("mana_cost"));
+                                if (scryfallData.get("cmc") instanceof Number n) cardDTO.setCmc(n.doubleValue());
+                                if (cardDTO.getTypeLine() == null) cardDTO.setTypeLine((String) scryfallData.get("type_line"));
+                                if (cardDTO.getImageUris() == null) {
+                                    @SuppressWarnings("unchecked")
+                                    Map<String, String> imageUris = (Map<String, String>) scryfallData.get("image_uris");
+                                    cardDTO.setImageUris(imageUris);
+                                }
+                                if (Boolean.TRUE.equals(scryfallData.get("games_changer")) || Boolean.TRUE.equals(scryfallData.get("game_changer"))) {
+                                    cardDTO.setGameChanger(true);
+                                }
                             }
                         }
-                    }
 
-                    if ("side".equals(entry.getBoard())) {
-                        side.add(cardDTO);
-                    } else {
-                        main.add(cardDTO);
+                        if ("side".equals(entry.getBoard())) {
+                            side.add(cardDTO);
+                        } else {
+                            main.add(cardDTO);
+                        }
                     }
                 }
             }
@@ -336,6 +352,8 @@ public class DeckServiceImpl implements DeckService {
                 existing.get().setDeckData(deckData);
                 dailyDeckRepository.save(existing.get());
             }
+            // Ensure date is present in the response so frontend can reference it
+            deckData.put("date", existing.get().getDate().toString());
             return deckData;
         }
 
@@ -352,10 +370,17 @@ public class DeckServiceImpl implements DeckService {
 
             enrichRatingsInfo(newDeck, daily.getRatings(), payload.get("userId"));
 
+            // Ensure date is present in the response
+            newDeck.put("date", today.toString());
+
             return newDeck;
         } catch (DuplicateKeyException e) {
             return getDailyDeckSafe(today)
-                    .map(DailyDeck::getDeckData)
+                    .map(d -> {
+                        Map<String, Object> data = d.getDeckData();
+                        data.put("date", d.getDate().toString());
+                        return data;
+                    })
                     .orElse(Collections.emptyMap());
         }
     }
