@@ -182,12 +182,14 @@ const Dashboard = () => {
         };
       });
 
-      const updatedDeck = await DeckService.rateDailyDeck(dailyDeck.date, stars);
-      setDailyDeck(prev => ({
-        ...prev,
-        ...updatedDeck,
-        cardArtUrl: prev?.cardArtUrl // Keep the cached image UI url
-      }));
+      if (dailyDeck.date) {
+        const updatedDeck = await DeckService.rateDailyDeck(dailyDeck.date, stars);
+        setDailyDeck(prev => ({
+          ...prev,
+          ...updatedDeck,
+          cardArtUrl: prev?.cardArtUrl // Keep the cached image UI url
+        }));
+      }
     } catch (err) {
       console.error("Error rating deck:", err);
       // Revert in case of error (reload data or just show toast, here we just let it be)
