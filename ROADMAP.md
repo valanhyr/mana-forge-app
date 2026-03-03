@@ -53,6 +53,9 @@
 - [ ] Enlace desde navbar (visible para todos)
 - [ ] Miniatura de carta destacada por mazo
 
+### DeckBuilder — mejoras
+- [ ] Selección de arte por carta: elegir entre todas las reimpresiones disponibles (vía Scryfall) para personalizar el arte de cada carta del mazo
+
 ### DeckViewer — mejoras
 - [ ] Vista de mazo en modo "spoiler" (imágenes de cartas en grid)
 - [ ] Compartir mazo (URL pública)
@@ -117,4 +120,4 @@
 
 ---
 
-*Última actualización: febrero 2026*
+*Última actualización: marzo 2026*

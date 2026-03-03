@@ -147,6 +147,7 @@ public class DeckServiceImpl implements DeckService {
                                         cardDTO.setTypeLine(card.getTypeLine());
                                         cardDTO.setImageUris(card.getImageUris());
                                         cardDTO.setGameChanger(Boolean.TRUE.equals(card.getGameChanger()));
+                                        cardDTO.setPrices(card.getPrices());
                                     });
                             
                             return Map.entry(entry, cardDTO);
@@ -171,6 +172,11 @@ public class DeckServiceImpl implements DeckService {
                                     @SuppressWarnings("unchecked")
                                     Map<String, String> imageUris = (Map<String, String>) scryfallData.get("image_uris");
                                     cardDTO.setImageUris(imageUris);
+                                }
+                                if (cardDTO.getPrices() == null && scryfallData.get("prices") instanceof Map<?,?> p) {
+                                    @SuppressWarnings("unchecked")
+                                    Map<String, String> prices = (Map<String, String>) p;
+                                    cardDTO.setPrices(prices);
                                 }
                                 if (Boolean.TRUE.equals(scryfallData.get("games_changer")) || Boolean.TRUE.equals(scryfallData.get("game_changer"))) {
                                     cardDTO.setGameChanger(true);
@@ -341,52 +347,117 @@ public class DeckServiceImpl implements DeckService {
         return aiService.analyzeDeck(deckPayload);
     }
 
+    private static final List<String> SUPPORTED_LOCALES = List.of("es", "en");
+
     @Override
     public Map<String, Object> generateRandomDeck(Map<String, Object> payload) {
         LocalDate today = LocalDate.now();
+        String requestedLocale = payload.getOrDefault("locale", "es").toString();
+
         Optional<DailyDeck> existing = getDailyDeckSafe(today);
         if (existing.isPresent()) {
-            Map<String, Object> deckData = existing.get().getDeckData();
-            
-            enrichRatingsInfo(deckData, existing.get().getRatings(), payload.get("userId"));
-
-            // Si el mazo existe pero no tiene costes enriquecidos, lo hacemos ahora
-            if (isMissingManaCosts(deckData)) {
-                enrichDeckData(deckData);
-                existing.get().setDeckData(deckData);
-                dailyDeckRepository.save(existing.get());
-            }
-            // Ensure date is present in the response so frontend can reference it
-            deckData.put("date", existing.get().getDate().toString());
+            DailyDeck daily = existing.get();
+            Map<String, Object> deckData = resolveDeckForLocale(daily, requestedLocale, payload);
+            deckData.put("date", daily.getDate().toString());
+            enrichRatingsInfo(deckData, daily.getRatings(), payload.get("userId"));
             return deckData;
         }
 
         try {
-            Map<String, Object> newDeck = aiService.generateRandomDeck(payload);
-            
-            // Enriquecer con costes de maná antes de guardar
-            enrichDeckData(newDeck);
-            
+            // Generate deck for all supported locales in parallel using virtual threads
+            Map<String, Map<String, Object>> byLocale = generateForAllLocales(payload);
+            if (byLocale.isEmpty()) return Collections.emptyMap();
+
+            // Enrich mana costs once (cards are the same across locales)
+            Map<String, Object> reference = byLocale.values().iterator().next();
+            enrichDeckData(reference);
+            // Propagate enriched card lists to all locales
+            for (Map<String, Object> localeData : byLocale.values()) {
+                if (localeData != reference) {
+                    localeData.put("main_deck", reference.get("main_deck"));
+                    localeData.put("sideboard", reference.get("sideboard"));
+                }
+            }
+
             DailyDeck daily = new DailyDeck();
             daily.setDate(today);
-            daily.setDeckData(newDeck);
+            daily.setDeckDataByLocale(byLocale);
+            // Keep deckData as fallback pointing to default locale
+            daily.setDeckData(byLocale.getOrDefault(requestedLocale, reference));
             dailyDeckRepository.save(daily);
 
-            enrichRatingsInfo(newDeck, daily.getRatings(), payload.get("userId"));
-
-            // Ensure date is present in the response
-            newDeck.put("date", today.toString());
-
-            return newDeck;
+            Map<String, Object> result = byLocale.getOrDefault(requestedLocale, reference);
+            enrichRatingsInfo(result, daily.getRatings(), payload.get("userId"));
+            result.put("date", today.toString());
+            return result;
         } catch (DuplicateKeyException e) {
             return getDailyDeckSafe(today)
                     .map(d -> {
-                        Map<String, Object> data = d.getDeckData();
+                        Map<String, Object> data = resolveDeckForLocale(d, requestedLocale, payload);
                         data.put("date", d.getDate().toString());
                         return data;
                     })
                     .orElse(Collections.emptyMap());
         }
+    }
+
+    private Map<String, Object> resolveDeckForLocale(DailyDeck daily, String locale, Map<String, Object> payload) {
+        Map<String, Map<String, Object>> byLocale = daily.getDeckDataByLocale();
+
+        // If we have the requested locale stored, return it
+        if (byLocale != null && byLocale.containsKey(locale)) {
+            Map<String, Object> data = byLocale.get(locale);
+            if (isMissingManaCosts(data)) {
+                enrichDeckData(data);
+                byLocale.put(locale, data);
+                daily.setDeckDataByLocale(byLocale);
+                dailyDeckRepository.save(daily);
+            }
+            return data;
+        }
+
+        // Locale not yet stored — generate it and persist
+        if (byLocale != null && !byLocale.isEmpty()) {
+            Map<String, Object> payloadWithLocale = new HashMap<>(payload);
+            payloadWithLocale.put("locale", locale);
+            Map<String, Object> generated = aiService.generateRandomDeck(payloadWithLocale);
+            if (generated != null) {
+                // Reuse already-enriched card lists from an existing locale
+                Map<String, Object> existing = byLocale.values().iterator().next();
+                generated.put("main_deck", existing.get("main_deck"));
+                generated.put("sideboard", existing.get("sideboard"));
+                byLocale.put(locale, generated);
+                daily.setDeckDataByLocale(byLocale);
+                dailyDeckRepository.save(daily);
+                return generated;
+            }
+        }
+
+        // Fallback: old record without deckDataByLocale
+        Map<String, Object> fallback = daily.getDeckData();
+        if (fallback == null) fallback = Collections.emptyMap();
+        if (isMissingManaCosts(fallback)) {
+            enrichDeckData(fallback);
+            daily.setDeckData(fallback);
+            dailyDeckRepository.save(daily);
+        }
+        return fallback;
+    }
+
+    private Map<String, Map<String, Object>> generateForAllLocales(Map<String, Object> basePayload) {
+        Map<String, Map<String, Object>> result = new java.util.concurrent.ConcurrentHashMap<>();
+        try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {
+            List<CompletableFuture<Void>> futures = SUPPORTED_LOCALES.stream()
+                .map(loc -> CompletableFuture.runAsync(() -> {
+                    Map<String, Object> localePayload = new HashMap<>(basePayload);
+                    localePayload.put("locale", loc);
+                    Map<String, Object> deck = aiService.generateRandomDeck(localePayload);
+                    if (deck != null) result.put(loc, deck);
+                }, executor))
+                .toList();
+            CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+        }
+        return result;
     }
 
     private void enrichRatingsInfo(Map<String, Object> deckData, Map<String, Integer> ratings, Object userIdObj) {

@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { ArrowLeft, ArrowUp, ArrowDown, Layers, User, Loader2, Shield, ThumbsUp, Copy, Check, Files, Lightbulb } from "lucide-react";
+import { ArrowLeft, ArrowUp, ArrowDown, Layers, User, Loader2, Shield, ThumbsUp, Copy, Check, Files, Lightbulb, Euro } from "lucide-react";
 import { DeckService, type DeckView, type DeckCardEntry } from "../../services/DeckService";
 import { useUser } from "../../services/UserContext";
 import ManaCost from "../../components/ui/ManaCost";
@@ -66,6 +66,9 @@ const DeckViewer = () => {
   const navigate = useNavigate();
   const [cloning, setCloning] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [showPrices, setShowPrices] = useState(false);
+  const sentinelRef = useRef<HTMLDivElement>(null);
+  const [isFloating, setIsFloating] = useState(true);
 
   useEffect(() => {
     if (!deckId) { setLoading(false); return; }
@@ -75,6 +78,15 @@ const DeckViewer = () => {
       setLoading(false);
     });
   }, [deckId, locale]);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => setIsFloating(!entry.isIntersecting),
+      { threshold: 0 }
+    );
+    if (sentinelRef.current) observer.observe(sentinelRef.current);
+    return () => observer.disconnect();
+  }, []);
 
   if (loading) {
     return (
@@ -105,6 +117,16 @@ const DeckViewer = () => {
   const mainTotal = deck.mainDeck.reduce((s, c) => s + c.quantity, 0);
   const sideTotal = deck.sideboard.reduce((s, c) => s + c.quantity, 0);
   const maybeTotal = (deck as any).maybeboard?.reduce((s: number, c: any) => s + c.quantity, 0) || 0;
+
+  const calcPrice = (cards: DeckCardEntry[]) =>
+    cards.reduce((sum, c) => {
+      const eur = parseFloat(c.prices?.eur ?? "");
+      return sum + (isNaN(eur) ? 0 : eur * c.quantity);
+    }, 0);
+
+  const mainPrice = calcPrice(deck.mainDeck);
+  const sidePrice = calcPrice(deck.sideboard);
+  const totalPrice = mainPrice + sidePrice;
 
   const GROUP_OPTIONS: { value: GroupMode; label: string }[] = [
     { value: "type", label: t("deckViewer.groupType") },
@@ -341,6 +363,29 @@ const DeckViewer = () => {
                   {t("deckViewer.viewSpoiler")}
                 </button>
               </div>
+
+              {/* Price toggle */}
+              <button
+                onClick={() => setShowPrices(p => !p)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-medium transition-colors ${
+                  showPrices
+                    ? "bg-green-500/20 text-green-400 border-green-500/40"
+                    : "bg-zinc-900 text-zinc-400 border-zinc-800 hover:text-white hover:border-zinc-600"
+                }`}
+                title={showPrices ? t("deckViewer.hidePrices") : t("deckViewer.showPrices")}
+              >
+                <Euro size={13} />
+                {showPrices ? t("deckViewer.hidePrices") : t("deckViewer.showPrices")}
+              </button>
+
+              {/* Total price badge (visible when prices shown) */}
+              {showPrices && totalPrice > 0 && (
+                <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-900 border border-zinc-800 text-xs">
+                  <Euro size={13} className="text-green-400" />
+                  <span className="text-zinc-400">{t("deckViewer.totalPrice")}:</span>
+                  <span className="text-green-400 font-bold">{totalPrice.toFixed(2)} €</span>
+                </div>
+              )}
             </div>
 
             {viewMode === "list" ? (
@@ -379,6 +424,11 @@ const DeckViewer = () => {
                               </span>
                               <span className="flex items-center gap-1 ml-2 shrink-0">
                                 <ManaCost cost={card.manaCost} size={13} />
+                                {showPrices && (
+                                  <span className={`text-[11px] font-mono px-1 rounded ${card.prices?.eur ? "text-green-400" : "text-zinc-600"}`}>
+                                    {card.prices?.eur ? `${(parseFloat(card.prices.eur) * card.quantity).toFixed(2)}€` : t("deckViewer.noPrice")}
+                                  </span>
+                                )}
                                 <span className="text-zinc-500 text-sm font-mono">×{card.quantity}</span>
                               </span>
                             </li>
@@ -414,6 +464,11 @@ const DeckViewer = () => {
                           </span>
                           <span className="flex items-center gap-1 ml-2 shrink-0">
                             <ManaCost cost={card.manaCost} size={13} />
+                            {showPrices && (
+                              <span className={`text-[11px] font-mono px-1 rounded ${card.prices?.eur ? "text-green-400" : "text-zinc-600"}`}>
+                                {card.prices?.eur ? `${(parseFloat(card.prices.eur) * card.quantity).toFixed(2)}€` : t("deckViewer.noPrice")}
+                              </span>
+                            )}
                             <span className="text-zinc-500 text-sm font-mono">×{card.quantity}</span>
                           </span>
                         </li>
@@ -588,6 +643,50 @@ const DeckViewer = () => {
               </div>
             </div>
           </div>
+        </div>
+      </div>
+      {/* Sentinel – floats bar until this element scrolls into view */}
+      <div ref={sentinelRef} />
+      {isFloating && <div className="h-16" />}
+      <div className={isFloating ? "fixed bottom-0 left-0 right-0 z-40 bg-zinc-950/95 backdrop-blur-sm border-t border-zinc-800/80" : "mt-4 mx-4 sm:mx-6 lg:mx-8 rounded-2xl border border-zinc-800 bg-zinc-900"}>
+        <div className="flex items-center gap-4 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+          <div className="flex items-center gap-4 flex-1 min-w-0">
+            {deck.formatName.toLowerCase().includes("commander") ? (
+              <div className="flex items-center gap-1.5 text-sm">
+                <Layers size={14} className="text-orange-500 flex-shrink-0" />
+                <span className="text-white font-bold">{mainTotal}</span>
+                <span className="text-zinc-500 hidden sm:inline">{t("deckViewer.total")}</span>
+              </div>
+            ) : (
+              <>
+                <div className="flex items-center gap-1.5 text-sm">
+                  <Layers size={14} className="text-orange-500 flex-shrink-0" />
+                  <span className="text-white font-bold">{mainTotal}</span>
+                  <span className="text-zinc-500 hidden sm:inline">{t("common.mainDeck")}</span>
+                </div>
+                {sideTotal > 0 && (
+                  <div className="flex items-center gap-1.5 text-sm">
+                    <Shield size={14} className="text-zinc-500 flex-shrink-0" />
+                    <span className="text-white font-bold">{sideTotal}</span>
+                    <span className="text-zinc-500 hidden sm:inline">{t("common.sideboard")}</span>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+          {totalPrice > 0 && (
+            <div className="flex items-center gap-1.5 text-sm">
+              <Euro size={14} className="text-green-400 flex-shrink-0" />
+              <span className="text-green-400 font-bold">{totalPrice.toFixed(2)} €</span>
+            </div>
+          )}
+          <button
+            onClick={() => setShowPrices(v => !v)}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${showPrices ? "bg-green-500/20 text-green-400 border border-green-500/30" : "bg-zinc-800 text-zinc-400 hover:text-white border border-zinc-700"}`}
+          >
+            <Euro size={13} />
+            {showPrices ? t("deckViewer.hidePrices") : t("deckViewer.showPrices")}
+          </button>
         </div>
       </div>
     </div>

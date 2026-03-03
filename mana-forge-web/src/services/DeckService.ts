@@ -24,6 +24,7 @@ export interface DeckCardEntry {
   imageUris: { art_crop?: string; normal?: string; small?: string };
   quantity: number;
   isGameChanger?: boolean;
+  prices?: { eur?: string; eur_foil?: string; usd?: string; [key: string]: string | undefined };
 }
 
 export interface DeckView {

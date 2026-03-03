@@ -16,6 +16,8 @@ import {
   Brain,
   Loader2,
   Lightbulb,
+  Layers,
+  Euro,
 } from "lucide-react";
 import { type Format } from "../../core/models/Format";
 import { FormatService } from "../../services/FormatService";
@@ -91,6 +93,8 @@ const DeckBuilder = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [analysisResult, setAnalysisResult] = useState<any>(null);
   const [isAnalysisModalOpen, setIsAnalysisModalOpen] = useState(false);
+  const sentinelRef = useRef<HTMLDivElement>(null);
+  const [isFloating, setIsFloating] = useState(true);
 
   // Carga de formatos reales desde el servicio (con caché)
   useEffect(() => {
@@ -404,7 +408,7 @@ const DeckBuilder = () => {
       .filter((c) => c.board === "commander")
       .reduce((acc, c) => acc + c.quantity, 0);
 
-    const maybeboardCount = deckCards
+    void deckCards
       .filter((c) => c.board === "maybe")
       .reduce((acc, c) => acc + c.quantity, 0);
 
@@ -527,6 +531,15 @@ const DeckBuilder = () => {
     return errors;
   }, [deckName, selectedFormat, deckCards, isCommanderFormat, t]);
 
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => setIsFloating(!entry.isIntersecting),
+      { threshold: 0 }
+    );
+    if (sentinelRef.current) observer.observe(sentinelRef.current);
+    return () => observer.disconnect();
+  }, []);
+
   const handleSaveDeck = async () => {
     if (!user || !selectedFormat) return;
     if (!deckName.trim()) {
@@ -602,6 +615,9 @@ const DeckBuilder = () => {
   // Filter cards for the main DeckList component (exclude maybeboard to avoid confusion if DeckList doesn't support it)
   const mainDeckCards = deckCards.filter(c => c.board !== "maybe");
   const maybeCards = deckCards.filter(c => c.board === "maybe");
+  const mainBarCount = deckCards.filter(c => c.board === "main" || !c.board).reduce((s, c) => s + c.quantity, 0);
+  const sideBarCount = deckCards.filter(c => c.board === "side").reduce((s, c) => s + c.quantity, 0);
+  const totalDeckPrice = deckCards.reduce((sum, c) => sum + (c.price ?? 0) * c.quantity, 0);
 
   return (
     <div className="max-w-6xl mx-auto mt-8">
@@ -903,6 +919,52 @@ const DeckBuilder = () => {
             <DeckStats cards={deckCards} />
           </>
         )}
+      </div>
+
+      {/* Sentinel – floats bar until this element scrolls into view */}
+      <div ref={sentinelRef} />
+      {isFloating && <div className="h-16" />}
+      <div className={isFloating ? "fixed bottom-0 left-0 right-0 z-40 bg-zinc-950/95 backdrop-blur-sm border-t border-zinc-800/80" : "mt-4 rounded-2xl border border-zinc-800 bg-zinc-900"}>
+        <div className="flex items-center gap-4 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+          <div className="flex items-center gap-4 flex-1 min-w-0">
+            {isCommanderFormat ? (
+              <div className="flex items-center gap-1.5 text-sm">
+                <Layers size={14} className="text-orange-500 flex-shrink-0" />
+                <span className="text-white font-bold">{deckCards.filter(c => c.board !== "maybe" && c.board !== "side").reduce((s, c) => s + c.quantity, 0)}</span>
+                <span className="text-zinc-500 hidden sm:inline">{t("deckViewer.total")}</span>
+              </div>
+            ) : (
+              <>
+                <div className="flex items-center gap-1.5 text-sm">
+                  <Layers size={14} className="text-orange-500 flex-shrink-0" />
+                  <span className="text-white font-bold">{mainBarCount}</span>
+                  <span className="text-zinc-500 hidden sm:inline">{t("common.mainDeck")}</span>
+                </div>
+                {sideBarCount > 0 && (
+                  <div className="flex items-center gap-1.5 text-sm">
+                    <Shield size={14} className="text-zinc-500 flex-shrink-0" />
+                    <span className="text-white font-bold">{sideBarCount}</span>
+                    <span className="text-zinc-500 hidden sm:inline">{t("common.sideboard")}</span>
+                  </div>
+                )}
+              </>
+            )}
+            {totalDeckPrice > 0 && (
+              <div className="flex items-center gap-1.5 text-sm">
+                <Euro size={14} className="text-green-400 flex-shrink-0" />
+                <span className="text-green-400 font-bold">{totalDeckPrice.toFixed(2)} €</span>
+              </div>
+            )}
+          </div>
+          <button
+            onClick={handleSaveDeck}
+            disabled={!isDeckValid || isSaving}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all ${isDeckValid && !isSaving ? "bg-green-600 hover:bg-green-500 text-white active:scale-95" : "bg-zinc-800 text-zinc-500 cursor-not-allowed"}`}
+          >
+            {isSaving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
+            {isSaving ? t("common.saving") : deckId ? t("deckBuilder.updateDeck") : t("deckBuilder.saveDeck")}
+          </button>
+        </div>
       </div>
 
       {/* Modal de Importación */}

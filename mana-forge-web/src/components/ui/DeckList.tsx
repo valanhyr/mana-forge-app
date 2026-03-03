@@ -11,6 +11,7 @@ import {
   ArrowUp,
   ArrowDown,
   Lightbulb,
+  Euro,
 } from "lucide-react";
 import { ManaSymbolService } from "../../services/ManaSymbolService";
 import { useTranslation } from "../../hooks/useTranslation";
@@ -91,6 +92,7 @@ const DeckList: React.FC<DeckListProps> = ({
   const [sortMode, setSortMode] = useState<SortMode>("cmc");
   const [sortDir, setSortDir] = useState<SortDir>("asc");
   const [groupMode, setGroupMode] = useState<GroupMode>("type");
+  const [showPrices, setShowPrices] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -191,9 +193,14 @@ const DeckList: React.FC<DeckListProps> = ({
         )}
       </div>
 
-      {/* Right: mana cost + menu */}
+      {/* Right: mana cost + price + menu */}
       <div className="flex items-center gap-1 shrink-0 ml-2">
         <ManaCost cost={card.manaCost} symbols={manaSymbols} />
+        {showPrices && (
+          <span className={`text-[11px] font-mono px-1 rounded ${card.price ? "text-green-400" : "text-zinc-600"}`}>
+            {card.price ? `${(card.price * card.quantity).toFixed(2)}€` : t("deckViewer.noPrice")}
+          </span>
+        )}
         <div className="relative">
           <button
             onClick={(e) => {
@@ -261,6 +268,19 @@ const DeckList: React.FC<DeckListProps> = ({
             {sortDir === "asc" ? <ArrowUp size={13} /> : <ArrowDown size={13} />}
           </button>
         </div>
+
+        {/* Price toggle */}
+        <button
+          onClick={() => setShowPrices(p => !p)}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-medium transition-colors ${
+            showPrices
+              ? "bg-green-500/20 text-green-400 border-green-500/40"
+              : "bg-zinc-900 text-zinc-400 border-zinc-800 hover:text-white hover:border-zinc-600"
+          }`}
+        >
+          <Euro size={13} />
+          {showPrices ? t("deckViewer.hidePrices") : t("deckViewer.showPrices")}
+        </button>
       </div>
 
       <div className="flex gap-6">
@@ -331,6 +351,15 @@ const DeckList: React.FC<DeckListProps> = ({
                   {isSideboard && t("common.sideboard")}
                 </h3>
                 <span className="text-zinc-400 font-mono">({totalBoardCards})</span>
+                {showPrices && (() => {
+                  const boardPrice = types.reduce((sum, { cards: gc }) =>
+                    sum + gc.reduce((s, c) => s + (c.price ?? 0) * c.quantity, 0), 0);
+                  return boardPrice > 0 ? (
+                    <span className="ml-auto flex items-center gap-1 text-xs text-green-400 font-mono">
+                      <Euro size={12} /> {boardPrice.toFixed(2)} €
+                    </span>
+                  ) : null;
+                })()}
                 {showMainDeckWarning && (
                   <div title={t("deckList.minCardsWarning", { count: minMainDeckSize || 0 })} className="text-red-500 animate-pulse">
                     <AlertTriangle size={18} />

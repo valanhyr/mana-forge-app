@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { Search, Filter, Loader2, Sparkles } from "lucide-react";
+import { useState, useEffect, useMemo } from "react";
+import { Search, Filter, ArrowUpDown, Loader2, Sparkles } from "lucide-react";
 import { DeckService, type DeckSearchResult } from "../../services/DeckService";
 import { FormatService } from "../../services/FormatService";
 import { ScryfallService } from "../../services/ScryfallService";
@@ -8,6 +8,8 @@ import DeckCard from "../../components/ui/DeckCard";
 import { useTranslation } from "../../hooks/useTranslation";
 import Meta from "../../components/ui/Meta";
 
+type SortOption = "recent" | "popular" | "nameAZ";
+
 const DeckExplorer = () => {
   const { t, locale } = useTranslation();
   const [decks, setDecks] = useState<DeckSearchResult[]>([]);
@@ -15,6 +17,7 @@ const DeckExplorer = () => {
   const [loading, setLoading] = useState(true);
   const [searchName, setSearchName] = useState("");
   const [selectedFormat, setSelectedFormat] = useState("");
+  const [sortBy, setSortBy] = useState<SortOption>("recent");
 
   useEffect(() => {
     FormatService.getActiveFormats().then(setFormats);
@@ -57,6 +60,13 @@ const DeckExplorer = () => {
     }, 300); // Debounce
     return () => clearTimeout(timer);
   }, [searchName, selectedFormat]);
+
+  const sortedDecks = useMemo(() => {
+    const sorted = [...decks];
+    if (sortBy === "popular") return sorted.sort((a, b) => (b.likesCount ?? 0) - (a.likesCount ?? 0));
+    if (sortBy === "nameAZ") return sorted.sort((a, b) => a.name.localeCompare(b.name));
+    return sorted; // "recent" keeps API order
+  }, [decks, sortBy]);
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
@@ -104,6 +114,20 @@ const DeckExplorer = () => {
               ))}
             </select>
           </div>
+
+          {/* Sort Selector */}
+          <div className="relative group sm:w-48">
+            <ArrowUpDown className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 group-focus-within:text-orange-500 transition-colors" size={16} />
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value as SortOption)}
+              className="w-full bg-zinc-900 border border-zinc-800 rounded-xl py-2.5 pl-10 pr-4 text-white appearance-none focus:outline-none focus:border-orange-500/50 transition-all cursor-pointer"
+            >
+              <option value="recent">{t("explorer.sortRecent")}</option>
+              <option value="popular">{t("explorer.sortPopular")}</option>
+              <option value="nameAZ">{t("explorer.sortNameAZ")}</option>
+            </select>
+          </div>
         </div>
       </div>
 
@@ -114,21 +138,21 @@ const DeckExplorer = () => {
         </div>
       ) : decks.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {decks.map((deck) => (
+          {sortedDecks.map((deck) => (
             <DeckCard key={deck.id} deck={deck} />
           ))}
         </div>
       ) : (
         <div className="flex flex-col items-center justify-center py-20 bg-zinc-900/30 rounded-3xl border border-dashed border-zinc-800">
           <Search size={48} className="text-zinc-700 mb-4" />
-          <h3 className="text-xl font-bold text-white mb-2">No se encontraron mazos</h3>
+          <h3 className="text-xl font-bold text-white mb-2">{t("explorer.noDecks")}</h3>
           <p className="text-zinc-500">Prueba con otros términos de búsqueda o filtros</p>
           {(searchName || selectedFormat) && (
             <button
               onClick={() => { setSearchName(""); setSelectedFormat(""); }}
               className="mt-6 text-orange-500 hover:text-orange-400 font-medium transition-colors"
             >
-              Limpiar filtros
+              {t("explorer.clearFilters")}
             </button>
           )}
         </div>

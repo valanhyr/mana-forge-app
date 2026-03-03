@@ -18,6 +18,9 @@ public class DailyDeck {
 
     private Map<String, Object> deckData;
 
+    // Deck data per locale: locale code -> deck data (e.g. "es", "en")
+    private Map<String, Map<String, Object>> deckDataByLocale;
+
     private Map<String, Integer> ratings = new java.util.HashMap<>();
 
     public String getId() {
@@ -42,6 +45,14 @@ public class DailyDeck {
 
     public void setDeckData(Map<String, Object> deckData) {
         this.deckData = deckData;
+    }
+
+    public Map<String, Map<String, Object>> getDeckDataByLocale() {
+        return deckDataByLocale;
+    }
+
+    public void setDeckDataByLocale(Map<String, Map<String, Object>> deckDataByLocale) {
+        this.deckDataByLocale = deckDataByLocale;
     }
 
     public Map<String, Integer> getRatings() {

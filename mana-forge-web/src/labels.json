@@ -294,6 +294,11 @@
       "sortAsc": "Ascendente",
       "sortDesc": "Descendente",
       "summary": "Resumen",
+      "showPrices": "Ver precios",
+      "hidePrices": "Ocultar precios",
+      "totalPrice": "Precio total",
+      "noPrice": "S/P",
+      "total": "Total",
       "cardTypes": {
         "Commander": "Comandante",
         "Planeswalker": "Planeswalker",
@@ -361,6 +366,14 @@
       "empty": "Aún no hay mensajes. ¡Dime algo!",
       "sendError": "No he podido enviar tu mensaje",
       "loadError": "No he podido cargar los mensajes"
+    },
+    "explorer": {
+      "sortLabel": "Ordenar por",
+      "sortRecent": "Más recientes",
+      "sortPopular": "Más populares",
+      "sortNameAZ": "Nombre A-Z",
+      "noDecks": "No se encontraron mazos",
+      "clearFilters": "Limpiar filtros"
     },
     "seo": {
       "defaultTitle": "Mana Forge | Tu Forja de Mazos MTG con IA",
@@ -673,6 +686,11 @@
       "sortAsc": "Ascending",
       "sortDesc": "Descending",
       "summary": "Summary",
+      "showPrices": "Show prices",
+      "hidePrices": "Hide prices",
+      "totalPrice": "Total price",
+      "noPrice": "N/A",
+      "total": "Total",
       "cardTypes": {
         "Commander": "Commander",
         "Planeswalker": "Planeswalker",
@@ -740,6 +758,14 @@
       "empty": "No messages yet. Say hi!",
       "sendError": "Error sending message",
       "loadError": "Error loading messages"
+    },
+    "explorer": {
+      "sortLabel": "Sort by",
+      "sortRecent": "Most recent",
+      "sortPopular": "Most popular",
+      "sortNameAZ": "Name A-Z",
+      "noDecks": "No decks found",
+      "clearFilters": "Clear filters"
     },
     "seo": {
       "defaultTitle": "Mana Forge | Your AI MTG Deck Forge",
