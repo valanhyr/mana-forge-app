@@ -10,6 +10,7 @@ import {
   Layers,
   ArrowUp,
   ArrowDown,
+  Lightbulb,
 } from "lucide-react";
 import { ManaSymbolService } from "../../services/ManaSymbolService";
 import { useTranslation } from "../../hooks/useTranslation";
@@ -28,7 +29,7 @@ export interface DeckCard {
   price?: number;
   inCollection?: boolean;
   isValid?: boolean;
-  board?: "main" | "side" | "commander";
+  board?: "main" | "side" | "commander" | "maybe";
   isGameChanger?: boolean;
   image?: string;
 }
@@ -40,7 +41,7 @@ interface DeckListProps {
   onRemove?: (card: DeckCard) => void;
   onMoveToBoard?: (
     card: DeckCard,
-    board: "main" | "side" | "commander"
+    board: "main" | "side" | "commander" | "maybe"
   ) => void;
   maxSideboardSize?: number;
   minMainDeckSize?: number;
@@ -412,6 +413,14 @@ const DeckList: React.FC<DeckListProps> = ({
                   <ArrowRightLeft size={14} /> {t("deckList.moveToSideboard")}
                 </button>
               )}
+              {activeCard.board !== "maybe" && (
+                <button
+                  onClick={(e) => { e.stopPropagation(); onMoveToBoard(activeCard, "maybe"); setActiveCard(null); }}
+                  className="w-full text-left px-4 py-2 text-sm text-zinc-300 hover:bg-zinc-800 hover:text-orange-500 flex items-center gap-2"
+                >
+                  <Lightbulb size={14} /> {t("deckList.moveToMaybeboard")}
+                </button>
+              )}
             </>
           )}
           {onRemove && (
@@ -430,4 +439,3 @@ const DeckList: React.FC<DeckListProps> = ({
 };
 
 export default DeckList;
-

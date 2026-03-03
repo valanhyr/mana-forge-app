@@ -19,6 +19,7 @@ import { ToastProvider } from "./services/ToastContext";
 import LegalPageView from "./views/legal/LegalPage";
 import DeckViewer from "./views/deck-viewer/DeckViewer";
 
+import CookieConsent from "./components/ui/CookieConsent";
 import Messages from "./views/messages/Messages";
 import DeckExplorer from "./views/deck-explorer/DeckExplorer";
 
@@ -59,6 +60,7 @@ function App() {
                 <Route path="*" element={<NotFound />} />
               </Route>
             </Routes>
+            <CookieConsent />
           </BrowserRouter>
         </ToastProvider>
       </UserProvider>

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { ArrowLeft, ArrowUp, ArrowDown, Layers, User, Loader2, Shield, ThumbsUp, Copy, Check, Files } from "lucide-react";
+import { ArrowLeft, ArrowUp, ArrowDown, Layers, User, Loader2, Shield, ThumbsUp, Copy, Check, Files, Lightbulb } from "lucide-react";
 import { DeckService, type DeckView, type DeckCardEntry } from "../../services/DeckService";
 import { useUser } from "../../services/UserContext";
 import ManaCost from "../../components/ui/ManaCost";
@@ -104,6 +104,7 @@ const DeckViewer = () => {
       : { All: sortCards(deck.mainDeck, sortMode, sortDir) };
   const mainTotal = deck.mainDeck.reduce((s, c) => s + c.quantity, 0);
   const sideTotal = deck.sideboard.reduce((s, c) => s + c.quantity, 0);
+  const maybeTotal = (deck as any).maybeboard?.reduce((s: number, c: any) => s + c.quantity, 0) || 0;
 
   const GROUP_OPTIONS: { value: GroupMode; label: string }[] = [
     { value: "type", label: t("deckViewer.groupType") },
@@ -420,6 +421,34 @@ const DeckViewer = () => {
                     </ul>
                   </div>
                 )}
+
+                {/* Maybeboard */}
+                {(deck as any).maybeboard && (deck as any).maybeboard.length > 0 && (
+                  <div>
+                    <h2 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                      <Lightbulb size={18} className="text-yellow-500" />
+                      {t("common.maybeboard")}
+                      <span className="text-zinc-500 font-normal text-sm">({maybeTotal})</span>
+                    </h2>
+                    <ul className="space-y-1">
+                      {(deck as any).maybeboard.map((card: any, i: number) => (
+                        <li
+                          key={i}
+                          onMouseEnter={() => setHoveredCard(card)}
+                          className="flex justify-between items-center px-3 py-1.5 rounded-lg hover:bg-zinc-800 transition-colors cursor-default group"
+                        >
+                          <span className="text-zinc-300 group-hover:text-white text-sm transition-colors flex items-center gap-1">
+                            {card.name ?? card.scryfallId}
+                          </span>
+                          <span className="flex items-center gap-1 ml-2 shrink-0">
+                            <ManaCost cost={card.manaCost} size={13} />
+                            <span className="text-zinc-500 text-sm font-mono">×{card.quantity}</span>
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
               </>
             ) : (
               <div className="space-y-12">
@@ -484,6 +513,38 @@ const DeckViewer = () => {
                           ) : (
                             <div className="aspect-[2.5/3.5] rounded-lg bg-zinc-800 border border-zinc-700 flex flex-col items-center justify-center p-4 text-center">
                               <Shield size={32} className="text-zinc-700 mb-2" />
+                              <span className="text-xs text-zinc-500 font-medium">{card.name}</span>
+                            </div>
+                          )}
+                          <div className="absolute top-1 right-1 bg-black/80 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-md border border-white/20 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                            ×{card.quantity}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Spoiler Mode: Maybeboard */}
+                {(deck as any).maybeboard && (deck as any).maybeboard.length > 0 && (
+                  <div>
+                    <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2 border-b border-zinc-800 pb-3">
+                      <Lightbulb size={22} className="text-yellow-500" />
+                      {t("common.maybeboard")}
+                      <span className="text-zinc-500 font-normal text-sm">({maybeTotal})</span>
+                    </h2>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 font-mono">
+                      {sortCards((deck as any).maybeboard, sortMode, sortDir).map((card, i) => (
+                        <div key={i} className="group relative">
+                          {card.imageUris?.normal ? (
+                            <img
+                              src={card.imageUris.normal}
+                              alt={card.name}
+                              className="rounded-lg shadow-lg w-full transition-transform group-hover:scale-105 group-hover:z-10 opacity-80 group-hover:opacity-100"
+                            />
+                          ) : (
+                            <div className="aspect-[2.5/3.5] rounded-lg bg-zinc-800 border border-zinc-700 flex flex-col items-center justify-center p-4 text-center">
+                              <Lightbulb size={32} className="text-zinc-700 mb-2" />
                               <span className="text-xs text-zinc-500 font-medium">{card.name}</span>
                             </div>
                           )}

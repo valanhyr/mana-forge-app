@@ -15,6 +15,7 @@ import {
   Save,
   Brain,
   Loader2,
+  Lightbulb,
 } from "lucide-react";
 import { type Format } from "../../core/models/Format";
 import { FormatService } from "../../services/FormatService";
@@ -244,7 +245,7 @@ const DeckBuilder = () => {
 
   const handleMoveCard = (
     card: DeckCard,
-    targetBoard: "main" | "side" | "commander"
+    targetBoard: "main" | "side" | "commander" | "maybe"
   ) => {
     setDeckCards((prev) => {
       // 1. Eliminar la carta de su ubicación actual
@@ -401,6 +402,10 @@ const DeckBuilder = () => {
 
     const commanderCount = deckCards
       .filter((c) => c.board === "commander")
+      .reduce((acc, c) => acc + c.quantity, 0);
+
+    const maybeboardCount = deckCards
+      .filter((c) => c.board === "maybe")
       .reduce((acc, c) => acc + c.quantity, 0);
 
     // Reglas específicas para Commander
@@ -572,6 +577,9 @@ const DeckBuilder = () => {
         sideboard: deckCards
           .filter((c) => c.board === "side")
           .map((c) => ({ name: c.name, quantity: c.quantity })),
+        maybeboard: deckCards
+          .filter((c) => c.board === "maybe")
+          .map((c) => ({ name: c.name, quantity: c.quantity })),
         format_name: selectedFormat.name.en || selectedFormat.scryfallKey,
         locale: locale,
         meta_archetypes:
@@ -590,6 +598,10 @@ const DeckBuilder = () => {
       setIsAnalyzing(false);
     }
   };
+
+  // Filter cards for the main DeckList component (exclude maybeboard to avoid confusion if DeckList doesn't support it)
+  const mainDeckCards = deckCards.filter(c => c.board !== "maybe");
+  const maybeCards = deckCards.filter(c => c.board === "maybe");
 
   return (
     <div className="max-w-6xl mx-auto mt-8">
@@ -823,7 +835,7 @@ const DeckBuilder = () => {
             </div>
 
               <DeckList
-              cards={deckCards}
+              cards={mainDeckCards}
               onUpdateQuantity={handleUpdateQuantity}
               onRemove={handleRemoveCard}
               onMoveToBoard={handleMoveCard}
@@ -835,6 +847,57 @@ const DeckBuilder = () => {
               }
               isCommanderFormat={isCommanderFormat}
             />
+
+            {/* Maybeboard Section (Manual Render) */}
+            <div className="mt-8 pt-6 border-t border-zinc-800">
+              <h3 className="text-lg font-bold text-zinc-400 mb-4 flex items-center gap-2">
+                <Lightbulb size={18} />
+                {t("common.maybeboard")}
+                <span className="text-zinc-600 text-sm font-normal">({maybeCards.reduce((acc, c) => acc + c.quantity, 0)})</span>
+              </h3>
+              
+              {maybeCards.length === 0 ? (
+                <div className="text-zinc-600 text-sm italic p-4 border border-dashed border-zinc-800 rounded-xl text-center">
+                  Arrastra cartas aquí o usa el menú para añadir cartas consideradas.
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 gap-2">
+                  {maybeCards.map((card) => (
+                    <div key={card.id} className="flex items-center justify-between bg-zinc-950/50 p-2 rounded-lg border border-zinc-800/50 group hover:border-zinc-700 transition-colors">
+                      <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-1 bg-zinc-900 rounded-md px-1.5 py-0.5 border border-zinc-800">
+                          <button onClick={() => handleUpdateQuantity(card, -1)} className="text-zinc-500 hover:text-white px-1">-</button>
+                          <span className="text-sm font-mono w-4 text-center">{card.quantity}</span>
+                          <button onClick={() => handleUpdateQuantity(card, 1)} className="text-zinc-500 hover:text-white px-1">+</button>
+                        </div>
+                        <span className="text-zinc-300 font-medium">{card.name}</span>
+                      </div>
+                      
+                      <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button 
+                          onClick={() => handleMoveCard(card, "main")}
+                          className="text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-300 px-2 py-1 rounded border border-zinc-700"
+                        >
+                          {t("deckList.moveToMain" as any) || "Main"}
+                        </button>
+                        <button 
+                          onClick={() => handleMoveCard(card, "side")}
+                          className="text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-300 px-2 py-1 rounded border border-zinc-700"
+                        >
+                          {t("deckList.moveToSideboard" as any) || "Side"}
+                        </button>
+                        <button 
+                          onClick={() => handleRemoveCard(card)}
+                          className="text-red-500 hover:bg-red-900/20 p-1 rounded"
+                        >
+                          <X size={16} />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
 
             {/* Footer con Estadísticas */}
             <DeckStats cards={deckCards} />

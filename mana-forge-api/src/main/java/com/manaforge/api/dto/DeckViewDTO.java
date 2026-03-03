@@ -13,6 +13,7 @@ public class DeckViewDTO {
     private List<String> colors;
     private List<CardEntryDTO> mainDeck;
     private List<CardEntryDTO> sideboard;
+    private List<CardEntryDTO> maybeboard;
     private int likesCount;
     private boolean likedByMe;
 

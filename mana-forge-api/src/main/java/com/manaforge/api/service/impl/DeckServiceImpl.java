@@ -126,6 +126,7 @@ public class DeckServiceImpl implements DeckService {
 
             List<DeckViewDTO.CardEntryDTO> main = new ArrayList<>();
             List<DeckViewDTO.CardEntryDTO> side = new ArrayList<>();
+            List<DeckViewDTO.CardEntryDTO> maybe = new ArrayList<>();
 
             if (deck.getCards() != null) {
                 // Usamos Virtual Threads para paralelizar la búsqueda en base de datos
@@ -179,6 +180,8 @@ public class DeckServiceImpl implements DeckService {
 
                         if ("side".equals(entry.getBoard())) {
                             side.add(cardDTO);
+                        } else if ("maybe".equals(entry.getBoard())) {
+                            maybe.add(cardDTO);
                         } else {
                             main.add(cardDTO);
                         }
@@ -188,6 +191,7 @@ public class DeckServiceImpl implements DeckService {
 
             dto.setMainDeck(main);
             dto.setSideboard(side);
+            dto.setMaybeboard(maybe);
             return dto;
         }).orElseThrow(() -> new RuntimeException("Deck not found"));
     }
@@ -423,6 +427,7 @@ public class DeckServiceImpl implements DeckService {
         if (deckData == null) return;
         enrichDeckList(deckData, "main_deck");
         enrichDeckList(deckData, "sideboard");
+        enrichDeckList(deckData, "maybeboard");
     }
 
     private void enrichDeckList(Map<String, Object> deckData, String key) {
