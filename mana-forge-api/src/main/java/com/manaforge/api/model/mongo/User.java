@@ -22,6 +22,7 @@ public class User {
     private Boolean validated;
     private String[] friends;
     private String verificationToken;
+    private Boolean betaAccepted;
 
     public User(
         String name,

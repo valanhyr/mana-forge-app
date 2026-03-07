@@ -177,7 +177,7 @@ const Footer = () => {
           <p className="text-zinc-600 text-sm">
             © {currentYear} ManaForge. {t("footer.rightsReserved")}
           </p>
-          <p className="text-zinc-600 text-sm">
+          {/* <p className="text-zinc-600 text-sm">
             {t("footer.builtBy")}
             <a
               href="https://sputnikdigitals.com"
@@ -186,7 +186,7 @@ const Footer = () => {
             >
               Sputnik Digitals
             </a>
-          </p>
+          </p> */}
           <div className="flex gap-4 text-zinc-500">
             <a href="#" className="hover:text-white transition-colors">
               <Github size={20} />

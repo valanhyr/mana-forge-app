@@ -5,6 +5,7 @@ import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -19,7 +20,7 @@ public class AiService {
     private final RestTemplate restTemplate;
     private final String engineUrl;
 
-    public AiService(RestTemplate restTemplate, @Value("${services.python-engine.url:http://localhost:8000}") String engineUrl) {
+    public AiService(@Qualifier("aiRestTemplate") RestTemplate restTemplate, @Value("${services.python-engine.url:http://localhost:8000}") String engineUrl) {
         this.restTemplate = restTemplate;
         // Asegurar que no haya doble barra al concatenar y que termine en /v1/ai
         String baseUrl = engineUrl.endsWith("/") ? engineUrl.substring(0, engineUrl.length() - 1) : engineUrl;

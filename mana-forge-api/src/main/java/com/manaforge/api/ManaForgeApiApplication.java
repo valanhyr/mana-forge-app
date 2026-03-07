@@ -3,14 +3,17 @@ package com.manaforge.api;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.MediaType;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.http.converter.AbstractHttpMessageConverter;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -36,6 +39,7 @@ public class ManaForgeApiApplication {
     }
 
     @Bean
+    @Primary
     public RestTemplate restTemplate() {
         RestTemplate restTemplate = new RestTemplate();
         restTemplate.getMessageConverters().stream()
@@ -49,6 +53,19 @@ public class ManaForgeApiApplication {
                     c.setSupportedMediaTypes(types);
                 });
         return restTemplate;
+    }
+
+    /**
+     * Dedicated RestTemplate for the AI engine with a long read timeout.
+     * AI calls (generation + review pass) can take 60-120 seconds.
+     */
+    @Bean("aiRestTemplate")
+    public RestTemplate aiRestTemplate(
+            @Value("${services.python-engine.timeout:120000}") int timeoutMs) {
+        SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
+        factory.setConnectTimeout(5000);
+        factory.setReadTimeout(timeoutMs);
+        return new RestTemplate(factory);
     }
 
     @Bean

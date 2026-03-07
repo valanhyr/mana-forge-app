@@ -34,7 +34,8 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
         String name = oAuth2User.getAttribute("name");
 
         // 2. LÓGICA DE NEGOCIO (Ejemplo):
-        if (userRepository.findByEmail(email).isEmpty()) {
+        boolean isNewUser = userRepository.findByEmail(email).isEmpty();
+        if (isNewUser) {
             User newUser = new User();
             newUser.setEmail(email);
             newUser.setUsername(email); // Usamos el email como username inicial
@@ -42,6 +43,7 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
             newUser.setActive(true);
             newUser.setPassword(""); // Sin password
             newUser.setValidated(true);
+            newUser.setBetaAccepted(false);
             newUser.setFriends(new String[0]);
             newUser.setBiography("");
             userRepository.save(newUser);
@@ -49,8 +51,8 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
         
         System.out.println("Usuario logueado con Google: " + email);
 
-        // 3. Redirección final (ej. a tu aplicación frontend)
-        // Podrías generar un JWT aquí y pasarlo como query param si tu frontend es separado
-        response.sendRedirect(frontendUrl + "/profile"); 
+        // 3. Redirección final — nuevos usuarios ven el modal de bienvenida beta
+        String redirect = isNewUser ? frontendUrl + "/profile?beta_welcome=true" : frontendUrl + "/profile";
+        response.sendRedirect(redirect);
     }
 }

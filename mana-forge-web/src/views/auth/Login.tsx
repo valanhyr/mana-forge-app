@@ -24,6 +24,7 @@ const AuthModal = ({ isOpen = true, onClose }: AuthModalProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [registrationDone, setRegistrationDone] = useState(false);
   const [registeredEmail, setRegisteredEmail] = useState("");
+  const [betaAccepted, setBetaAccepted] = useState(false);
 
   useEffect(() => {
     if (searchParams.get("verified") === "true") {
@@ -41,6 +42,7 @@ const AuthModal = ({ isOpen = true, onClose }: AuthModalProps) => {
       if (!email.trim()) return t("auth.error.emailRequired");
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
         return t("auth.error.emailInvalid");
+      if (!betaAccepted) return t("beta.betaCheckboxRequired");
     }
     return "";
   };
@@ -83,6 +85,7 @@ const AuthModal = ({ isOpen = true, onClose }: AuthModalProps) => {
     setUsername("");
     setEmail("");
     setPassword("");
+    setBetaAccepted(false);
     setRegistrationDone(false);
   };
 
@@ -206,6 +209,21 @@ const AuthModal = ({ isOpen = true, onClose }: AuthModalProps) => {
                 disabled={isLoading}
               />
             </div>
+
+            {!isLogin && (
+              <label className="flex items-start gap-3 cursor-pointer group">
+                <input
+                  type="checkbox"
+                  className="mt-0.5 h-4 w-4 flex-shrink-0 rounded border-zinc-600 bg-zinc-950 text-orange-500 focus:ring-orange-500/50 cursor-pointer"
+                  checked={betaAccepted}
+                  onChange={(e) => { setBetaAccepted(e.target.checked); setError(""); }}
+                  disabled={isLoading}
+                />
+                <span className="text-xs text-zinc-400 group-hover:text-zinc-300 transition-colors leading-relaxed">
+                  {t("beta.betaCheckbox")}
+                </span>
+              </label>
+            )}
 
             {error && <p className="text-orange-500 text-sm">{error}</p>}
 

@@ -1,21 +1,62 @@
 import { useState, useEffect, useRef } from "react";
-import { Link, Outlet, useLocation } from "react-router-dom";
-import { Anvil, ChevronDown, LogOut, User, Settings, Book, Menu, X, Users, LayoutDashboard, Layers, Wand2, MessageCircle, Sparkles } from "lucide-react";
+import { Link, Outlet, useLocation, useSearchParams } from "react-router-dom";
+import { Anvil, ChevronDown, LogOut, User, Settings, Book, Menu, X, Users, LayoutDashboard, Layers, Wand2, MessageCircle, Sparkles, FlaskConical, Info, MessageSquarePlus } from "lucide-react";
 import { useUser } from "../../services/UserContext";
 import LanguageSelector from "../ui/LanguageSelector";
 import Footer from "./Footer";
 import AuthModal from "../../views/auth/Login";
+import FeedbackModal from "../ui/FeedbackModal";
+import BetaWelcomeModal from "../ui/BetaWelcomeModal";
 import { useTranslation } from "../../hooks/useTranslation";
 import { MessageService } from "../../services/MessageService";
+
+const BETA_BANNER_KEY = "beta_banner_dismissed";
+const FEEDBACK_TOOLTIP_KEY = "feedback_tooltip_shown";
 
 const Layout = () => {
   const { t } = useTranslation();
   const { user, isAuthenticated, logout } = useUser();
   const location = useLocation();
+  const [searchParams] = useSearchParams();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [bannerVisible, setBannerVisible] = useState(() => !sessionStorage.getItem(BETA_BANNER_KEY));
+  const [showBannerInfo, setShowBannerInfo] = useState(false);
+  const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
+  const [isBetaWelcomeOpen, setIsBetaWelcomeOpen] = useState(() => searchParams.get("beta_welcome") === "true");
+  const [showFeedbackTooltip, setShowFeedbackTooltip] = useState(() => !localStorage.getItem(FEEDBACK_TOOLTIP_KEY));
+  // Once the user has seen the tooltip, always show the FAB (even while banner is visible)
+  const [fabAlwaysVisible, setFabAlwaysVisible] = useState(() => !!localStorage.getItem(FEEDBACK_TOOLTIP_KEY));
+
+  useEffect(() => {
+    if (!showFeedbackTooltip) return;
+    localStorage.setItem(FEEDBACK_TOOLTIP_KEY, "1");
+    const id = setTimeout(() => {
+      setShowFeedbackTooltip(false);
+      setFabAlwaysVisible(true);
+    }, 6000);
+    return () => clearTimeout(id);
+  }, []);
+
+  // Countdown to 2026-03-22 23:59:59
+  const BETA_END = new Date("2026-03-22T23:59:59").getTime();
+  const calcTimeLeft = () => {
+    const diff = BETA_END - Date.now();
+    if (diff <= 0) return null;
+    return {
+      d: Math.floor(diff / 86400000),
+      h: Math.floor((diff % 86400000) / 3600000),
+      m: Math.floor((diff % 3600000) / 60000),
+      s: Math.floor((diff % 60000) / 1000),
+    };
+  };
+  const [timeLeft, setTimeLeft] = useState(calcTimeLeft);
+  useEffect(() => {
+    const id = setInterval(() => setTimeLeft(calcTimeLeft()), 1000);
+    return () => clearInterval(id);
+  }, []);
   const menuRef = useRef<HTMLDivElement>(null);
 
   const navLinks = [
@@ -56,6 +97,61 @@ const Layout = () => {
 
   return (
     <div className="min-h-screen bg-zinc-950 flex flex-col">
+
+      {/* Beta Banner */}
+      {bannerVisible && (
+        <div className="w-full bg-zinc-900 border-b border-orange-500/20 px-4 py-2 flex items-center justify-between gap-2 text-sm relative z-40">
+          <div className="flex items-center gap-2 min-w-0">
+            <FlaskConical size={15} className="text-orange-400 flex-shrink-0" />
+            <span className="text-zinc-300 truncate hidden sm:block">{t("beta.bannerText")}</span>
+            <span className="text-zinc-300 truncate sm:hidden">{t("beta.bannerTextShort")}</span>
+            <button
+              onClick={() => setShowBannerInfo((v) => !v)}
+              className="text-zinc-500 hover:text-orange-400 transition-colors flex-shrink-0"
+              aria-label="Más información"
+            >
+              <Info size={14} />
+            </button>
+            {timeLeft && (
+              <span className="hidden md:flex items-center gap-1.5 ml-2 text-sm font-mono text-white flex-shrink-0">
+                <span className="text-zinc-400 text-xs font-sans">{t("beta.countdownLabel")}</span>
+                {String(timeLeft.d).padStart(2,"0")}d&nbsp;
+                {String(timeLeft.h).padStart(2,"0")}h&nbsp;
+                {String(timeLeft.m).padStart(2,"0")}m&nbsp;
+                {String(timeLeft.s).padStart(2,"0")}s
+              </span>
+            )}
+          </div>
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <button
+              onClick={() => setIsFeedbackOpen(true)}
+              className="flex items-center gap-1.5 px-2.5 py-1 bg-orange-600/20 hover:bg-orange-600/40 text-orange-400 rounded-lg text-xs font-medium transition-all"
+            >
+              <MessageSquarePlus size={13} />
+              <span className="hidden xs:block">{t("beta.feedbackButton")}</span>
+            </button>
+            <button
+              onClick={() => { setBannerVisible(false); sessionStorage.setItem(BETA_BANNER_KEY, "1"); }}
+              className="text-zinc-500 hover:text-white transition-colors p-1"
+              aria-label="Cerrar banner"
+            >
+              <X size={14} />
+            </button>
+          </div>
+          {/* Info popover */}
+          {showBannerInfo && (
+            <div
+              className="absolute top-full left-1/2 -translate-x-1/2 mt-1 w-80 max-w-[calc(100vw-2rem)] bg-zinc-800 border border-zinc-700 rounded-xl p-4 shadow-2xl z-50"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button onClick={() => setShowBannerInfo(false)} className="absolute top-2 right-2 text-zinc-500 hover:text-white"><X size={14} /></button>
+              <p className="text-sm font-semibold text-white mb-1">{t("beta.infoTitle")}</p>
+              <p className="text-xs text-zinc-400 leading-relaxed">{t("beta.infoBody")}</p>
+            </div>
+          )}
+        </div>
+      )}
+
       <div className="p-8 flex-1">
         {/* Header / Navbar Global */}
         <header className="max-w-6xl mx-auto flex justify-between items-center mb-12">
@@ -350,6 +446,39 @@ const Layout = () => {
         isOpen={isAuthModalOpen}
         onClose={() => setIsAuthModalOpen(false)}
       />
+
+      {/* Feedback Modal */}
+      <FeedbackModal isOpen={isFeedbackOpen} onClose={() => setIsFeedbackOpen(false)} />
+
+      {/* Beta Welcome Modal (new Google OAuth users) */}
+      <BetaWelcomeModal isOpen={isBetaWelcomeOpen} onAccept={() => setIsBetaWelcomeOpen(false)} />
+
+      {/* Feedback tooltip — shown once on first visit, always rendered regardless of banner state */}
+      {showFeedbackTooltip && (
+        <div className="fixed bottom-36 right-6 z-50 w-64 bg-zinc-800 border border-orange-500/40 rounded-2xl shadow-2xl p-4 animate-in fade-in slide-in-from-bottom-4 duration-300">
+          <button
+            onClick={() => { setShowFeedbackTooltip(false); setFabAlwaysVisible(true); }}
+            className="absolute top-2 right-2 text-zinc-500 hover:text-white transition-colors"
+          >
+            <X size={14} />
+          </button>
+          <div className="absolute -bottom-2 right-8 w-4 h-4 bg-zinc-800 border-r border-b border-orange-500/40 rotate-45" />
+          <p className="text-sm font-bold text-orange-400 mb-1">{t("beta.feedbackTooltipTitle")}</p>
+          <p className="text-xs text-zinc-300 leading-relaxed">{t("beta.feedbackTooltipBody")}</p>
+        </div>
+      )}
+
+      {/* FAB — visible when banner is dismissed, tooltip is active, or user has already seen the tooltip */}
+      {(!bannerVisible || showFeedbackTooltip || fabAlwaysVisible) && (
+        <button
+          onClick={() => { setIsFeedbackOpen(true); setShowFeedbackTooltip(false); }}
+          className={`fixed bottom-20 right-6 z-50 flex items-center gap-2 px-4 py-2.5 bg-orange-600 hover:bg-orange-500 text-white text-sm font-bold rounded-full shadow-lg shadow-orange-900/30 transition-all active:scale-95 ${showFeedbackTooltip ? "animate-pulse" : ""}`}
+          aria-label={t("beta.feedbackButton")}
+        >
+          <MessageSquarePlus size={16} />
+          <span className="hidden sm:block">{t("beta.feedbackButton")}</span>
+        </button>
+      )}
     </div>
   );
 };

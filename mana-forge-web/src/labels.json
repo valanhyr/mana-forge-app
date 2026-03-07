@@ -75,6 +75,46 @@
       },
       "verifiedSuccess": "¡Email verificado! Ya puedes iniciar sesión."
     },
+    "beta": {
+      "bannerText": "🧪 Estás usando una versión beta de Mana Forge",
+      "bannerTextShort": "🧪 Versión beta",
+      "infoTitle": "¿Qué significa estar en beta?",
+      "infoBody": "Mana Forge está en fase de pruebas públicas. Tus datos están seguros y NO se perderán al salir de la beta. Este periodo nos ayuda a mejorar la IA, las funcionalidades y la experiencia general gracias a tu uso y feedback.",
+      "feedbackButton": "Dar feedback",
+      "betaCheckbox": "Entiendo que Mana Forge está en versión beta y quiero ayudar a mejorarlo",
+      "betaCheckboxRequired": "Debes aceptar para continuar el registro",
+      "countdownLabel": "Beta acaba en",
+      "feedbackTooltipTitle": "¡Tu opinión importa!",
+      "feedbackTooltipBody": "Usa el botón de feedback para contarnos qué mejorar. Es rápido y anónimo.",
+      "welcomeTitle": "¡Bienvenido a la beta de Mana Forge!",
+      "welcomeBody": "Estamos en fase de pruebas. Tus datos están seguros. Tu opinión nos ayuda a mejorar.",
+      "welcomeAccept": "Entendido, entrar"
+    },
+    "feedback": {
+      "title": "Enviar feedback",
+      "categoryLabel": "Categoría",
+      "categories": {
+        "AI": "🤖 IA / Mazos",
+        "FEATURE": "⚙️ Funcionalidad",
+        "BUG": "🐛 Bug",
+        "SUGGESTION": "💡 Sugerencia",
+        "UI": "🎨 UI / Diseño",
+        "OTHER": "💬 Otro"
+      },
+      "anonymousLabel": "Enviar de forma anónima",
+      "emailLabel": "Tu email (opcional)",
+      "summaryLabel": "Resumen",
+      "summaryPlaceholder": "Describe brevemente el feedback (máx. 100 caracteres)",
+      "descriptionLabel": "Detalle",
+      "descriptionPlaceholder": "Cuéntanos todo lo que quieras...",
+      "submit": "Enviar",
+      "submitting": "Enviando...",
+      "successTitle": "¡Gracias por tu feedback!",
+      "successBody": "Nos ayuda mucho a mejorar Mana Forge.",
+      "errorBody": "No se pudo enviar el feedback. Inténtalo de nuevo.",
+      "categoryRequired": "Selecciona una categoría",
+      "summaryRequired": "El resumen es obligatorio"
+    },
     "userOptions": {
       "connectedAs": "Conectado como",
       "myDecks": "Mis Mazos",
@@ -466,6 +506,46 @@
         "backToLogin": "Back to login"
       },
       "verifiedSuccess": "Email verified! You can now log in."
+    },
+    "beta": {
+      "bannerText": "🧪 You're using a beta version of Mana Forge",
+      "bannerTextShort": "🧪 Beta version",
+      "infoTitle": "What does beta mean?",
+      "infoBody": "Mana Forge is in public testing. Your data is safe and will NOT be lost when the beta ends. This period helps us improve the AI, features, and overall experience through your usage and feedback.",
+      "feedbackButton": "Give feedback",
+      "betaCheckbox": "I understand Mana Forge is in beta and I want to help improve it",
+      "betaCheckboxRequired": "You must accept to complete registration",
+      "countdownLabel": "Beta ends in",
+      "feedbackTooltipTitle": "Your opinion matters!",
+      "feedbackTooltipBody": "Use the feedback button to tell us what to improve. It's quick and anonymous.",
+      "welcomeTitle": "Welcome to Mana Forge beta!",
+      "welcomeBody": "We're in testing phase. Your data is safe. Your feedback helps us improve.",
+      "welcomeAccept": "Got it, let me in"
+    },
+    "feedback": {
+      "title": "Send feedback",
+      "categoryLabel": "Category",
+      "categories": {
+        "AI": "🤖 AI / Decks",
+        "FEATURE": "⚙️ Feature",
+        "BUG": "🐛 Bug",
+        "SUGGESTION": "💡 Suggestion",
+        "UI": "🎨 UI / Design",
+        "OTHER": "💬 Other"
+      },
+      "anonymousLabel": "Send anonymously",
+      "emailLabel": "Your email (optional)",
+      "summaryLabel": "Summary",
+      "summaryPlaceholder": "Briefly describe your feedback (max 100 characters)",
+      "descriptionLabel": "Details",
+      "descriptionPlaceholder": "Tell us everything you want...",
+      "submit": "Send",
+      "submitting": "Sending...",
+      "successTitle": "Thanks for your feedback!",
+      "successBody": "It really helps us improve Mana Forge.",
+      "errorBody": "Could not send feedback. Please try again.",
+      "categoryRequired": "Please select a category",
+      "summaryRequired": "Summary is required"
     },
     "userOptions": {
       "connectedAs": "Connected as",
