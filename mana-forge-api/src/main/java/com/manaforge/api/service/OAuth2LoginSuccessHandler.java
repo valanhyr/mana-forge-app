@@ -36,9 +36,15 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
         // 2. LÓGICA DE NEGOCIO (Ejemplo):
         boolean isNewUser = userRepository.findByEmail(email).isEmpty();
         if (isNewUser) {
+            // Usar el nombre de pila de Google como username; si no viene, usar la parte local del email
+            String givenName = oAuth2User.getAttribute("given_name");
+            String defaultUsername = (givenName != null && !givenName.isBlank())
+                ? givenName
+                : email.split("@")[0];
+
             User newUser = new User();
             newUser.setEmail(email);
-            newUser.setUsername(email); // Usamos el email como username inicial
+            newUser.setUsername(defaultUsername);
             newUser.setName(name);
             newUser.setActive(true);
             newUser.setPassword(""); // Sin password

@@ -18,6 +18,8 @@ import {
   Lightbulb,
   Layers,
   Euro,
+  ArrowUp,
+  ArrowDown,
 } from "lucide-react";
 import { type Format } from "../../core/models/Format";
 import { FormatService } from "../../services/FormatService";
@@ -31,6 +33,45 @@ import Meta from "../../components/ui/Meta";
 
 // Extendemos DeckCard localmente para incluir la imagen hasta que se actualice la definición base
 type DeckCardWithImage = DeckCard & { image: string };
+
+type ViewMode = "list" | "spoiler";
+type GroupMode = "type" | "none";
+type SortMode = "cmc" | "alpha";
+type SortDir = "asc" | "desc";
+
+const sortCards = (cards: DeckCardWithImage[], mode: SortMode, dir: SortDir) => {
+  const mul = dir === "asc" ? 1 : -1;
+  const sorted = [...cards];
+  if (mode === "alpha") return sorted.sort((a, b) => mul * (a.name ?? "").localeCompare(b.name ?? ""));
+  return sorted.sort((a, b) => mul * ((a.cmc ?? 0) - (b.cmc ?? 0)));
+};
+
+const groupByType = (cards: DeckCardWithImage[]) => {
+  const groups: Record<string, DeckCardWithImage[]> = {};
+  for (const card of cards) {
+    if (card.board === "commander") {
+      if (!groups["Commander"]) groups["Commander"] = [];
+      groups["Commander"].push(card);
+      continue;
+    }
+
+    let type = "Other";
+    if (card.type?.includes("Creature")) type = "Creature";
+    else if (card.type?.includes("Planeswalker")) type = "Planeswalker";
+    else if (card.type?.includes("Battle")) type = "Battle";
+    else if (card.type?.includes("Instant")) type = "Instant";
+    else if (card.type?.includes("Sorcery")) type = "Sorcery";
+    else if (card.type?.includes("Enchantment")) type = "Enchantment";
+    else if (card.type?.includes("Artifact")) type = "Artifact";
+    else if (card.type?.includes("Land")) type = "Land";
+
+    if (!groups[type]) groups[type] = [];
+    groups[type].push(card);
+  }
+  return groups;
+};
+
+const TYPE_ORDER = ["Commander", "Planeswalker", "Creature", "Battle", "Instant", "Sorcery", "Enchantment", "Artifact", "Land", "Other"];
 
 // Mock de base de datos de arquetipos (esto debería venir de tu API/DB en el futuro)
 const ARCHETYPES_DB: Record<string, string[]> = {
@@ -95,6 +136,19 @@ const DeckBuilder = () => {
   const [isAnalysisModalOpen, setIsAnalysisModalOpen] = useState(false);
   const sentinelRef = useRef<HTMLDivElement>(null);
   const [isFloating, setIsFloating] = useState(true);
+
+  // Layout states (matching DeckViewer features roughly)
+  const [viewMode, setViewMode] = useState<ViewMode>("list");
+  const [sortMode, setSortMode] = useState<SortMode>("cmc");
+  const [sortDir, setSortDir] = useState<SortDir>("asc");
+  const [groupMode, setGroupMode] = useState<GroupMode>("type");
+  const [showPrices, setShowPrices] = useState(false);
+
+  // Mobile image preview
+  const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [previewCardName, setPreviewCardName] = useState<string | null>(null);
+  const [cachedImages, setCachedImages] = useState<Record<string, string>>({});
 
   // Carga de formatos reales desde el servicio (con caché)
   useEffect(() => {
@@ -252,28 +306,45 @@ const DeckBuilder = () => {
     targetBoard: "main" | "side" | "commander" | "maybe"
   ) => {
     setDeckCards((prev) => {
-      // 1. Eliminar la carta de su ubicación actual
-      const deckWithoutCard = prev.filter(
-        (c) => !(c.id === card.id && c.board === card.board)
+      // Create a copy of the deck to mutate
+      const newDeck = [...prev];
+      
+      const sourceIndex = newDeck.findIndex(
+        (c) => c.id === card.id && c.board === card.board
       );
 
-      // 2. Crear la carta con el nuevo board
+      if (sourceIndex === -1) return prev; // Security check
+
+      // 1. Decrement source or remove if it's the last one
+      const sourceCard = newDeck[sourceIndex];
+      if (sourceCard.quantity > 1) {
+        newDeck[sourceIndex] = { ...sourceCard, quantity: sourceCard.quantity - 1 };
+      } else {
+        newDeck.splice(sourceIndex, 1);
+      }
+
+      // 2. Prepare the card for the new board (quantity of 1)
       const movedCard: DeckCardWithImage = {
         ...(card as DeckCardWithImage),
         board: targetBoard,
+        quantity: 1,
       };
 
-      // 3. Verificar si ya existe en el destino para fusionar
-      const existingIndex = deckWithoutCard.findIndex(
+      // 3. Check if it already exists in the destination to merge
+      const existingDestIndex = newDeck.findIndex(
         (c) => c.name === movedCard.name && c.board === movedCard.board
       );
 
-      if (existingIndex > -1) {
-        deckWithoutCard[existingIndex].quantity += movedCard.quantity;
-        return [...deckWithoutCard];
+      if (existingDestIndex > -1) {
+        newDeck[existingDestIndex] = {
+           ...newDeck[existingDestIndex],
+           quantity: newDeck[existingDestIndex].quantity + 1
+        };
       } else {
-        return [...deckWithoutCard, movedCard];
+        newDeck.push(movedCard);
       }
+
+      return newDeck;
     });
   };
 
@@ -615,9 +686,86 @@ const DeckBuilder = () => {
   // Filter cards for the main DeckList component (exclude maybeboard to avoid confusion if DeckList doesn't support it)
   const mainDeckCards = deckCards.filter(c => c.board !== "maybe");
   const maybeCards = deckCards.filter(c => c.board === "maybe");
+  const sideCards = deckCards.filter(c => c.board === "side");
   const mainBarCount = deckCards.filter(c => c.board === "main" || !c.board).reduce((s, c) => s + c.quantity, 0);
   const sideBarCount = deckCards.filter(c => c.board === "side").reduce((s, c) => s + c.quantity, 0);
   const totalDeckPrice = deckCards.reduce((sum, c) => sum + (c.price ?? 0) * c.quantity, 0);
+
+  const mainTypeGroups = groupByType(mainDeckCards);
+  const mainGroups: Record<string, DeckCardWithImage[]> =
+    groupMode === "type"
+      ? Object.fromEntries(
+          Object.entries(mainTypeGroups).map(([type, cards]) => [type, sortCards(cards, sortMode, sortDir)])
+        )
+      : { All: sortCards(mainDeckCards, sortMode, sortDir) };
+
+  const handleMouseEnterCard = async (cardName: string, imageSrc?: string) => {
+    if (cachedImages[cardName]) {
+      setPreviewImage(cachedImages[cardName]);
+      return;
+    }
+    if (imageSrc) {
+       setCachedImages(prev => ({ ...prev, [cardName]: imageSrc }));
+       setPreviewImage(imageSrc);
+       return;
+    }
+    
+    try {
+      const cardDetails = await CardService.getCardByName(cardName);
+      const imageUrl = cardDetails.image_uris?.normal || cardDetails.card_faces?.[0]?.image_uris?.normal;
+      if (imageUrl) {
+        setCachedImages(prev => ({ ...prev, [cardName]: imageUrl }));
+        setPreviewImage(imageUrl);
+      }
+    } catch (error) {
+      console.error("Error fetching card image for preview:", error);
+    }
+  };
+
+  const handleCardPreview = async (cardName: string) => {
+    const cardInDeck = deckCards.find(c => c.name === cardName);
+    await handleMouseEnterCard(cardName, cardInDeck?.image);
+    setPreviewCardName(cardName);
+    setIsPreviewModalOpen(true);
+  };
+
+  const handleSuggestedCardPreview = async (cardName: string) => {
+    setPreviewImage(null);
+    setPreviewCardName(cardName);
+    setIsPreviewModalOpen(true);
+    await handleMouseEnterCard(cardName);
+  };
+
+  const handleAddSuggestionToBoard = async (cardName: string, board: "main" | "side" | "maybe") => {
+    try {
+      const cardData = await CardService.getCardByName(cardName);
+      let isValid = true;
+      if (selectedFormat) {
+        const formatKey = selectedFormat.scryfallKey;
+        isValid = cardData.legalities?.[formatKey] === "legal" || cardData.legalities?.[formatKey] === "restricted";
+      }
+      const newCard: DeckCardWithImage = {
+        id: cardData.id,
+        name: cardData.name,
+        quantity: 1,
+        manaCost: cardData.mana_cost,
+        cmc: cardData.cmc,
+        type: cardData.type_line?.split("—")[0]?.trim() || "Unknown",
+        price: parseFloat(cardData.prices?.eur || "0"),
+        inCollection: false,
+        isValid: isValid,
+        board,
+        isGameChanger: cardData.games_changer === true || cardData.game_changer === true,
+        image: cardData.image_uris?.normal || cardData.card_faces?.[0]?.image_uris?.normal || "",
+      };
+      addCardsToDeck([newCard]);
+      setIsPreviewModalOpen(false);
+      showToast(`${cardData.name} → ${board}`, "success");
+    } catch (error) {
+      console.error("Error adding suggested card:", error);
+      showToast("Error al añadir la carta", "error");
+    }
+  };
 
   return (
     <div className="max-w-6xl mx-auto mt-8">
@@ -793,7 +941,6 @@ const DeckBuilder = () => {
                   placeholder={t("deckBuilder.addCardsPlaceholder")}
                   value={searchQuery}
                   onChange={handleSearchChange}
-                  hint={t("deckBuilder.addCardsHint")}
                 />
 
                 {suggestions.length > 0 && (
@@ -811,13 +958,23 @@ const DeckBuilder = () => {
                 )}
               </div>
 
-              <button
-                onClick={() => setIsImportModalOpen(true)}
-                className="w-full flex items-center justify-center gap-2 py-3 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white rounded-xl border border-zinc-700 transition-all shadow-lg font-bold"
-              >
-                <Upload size={20} />
-                {t("deckBuilder.importDeckButton")}
-              </button>
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <button
+                    onClick={() => setIsImportModalOpen(true)}
+                    className="flex-1 flex items-center justify-center gap-2 py-3 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white rounded-xl border border-zinc-700 transition-all shadow-lg font-bold min-h-[46px]"
+                  >
+                    <Upload size={20} />
+                    {t("deckBuilder.importDeckButton")}
+                  </button>
+
+                  <button
+                    onClick={() => setIsImportModalOpen(true)}
+                    className="flex-1 flex items-center justify-center gap-2 py-3 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white rounded-xl border border-zinc-700 transition-all shadow-lg font-bold min-h-[46px]"
+                  >
+                    <Upload size={20} />
+                    {t("deckBuilder.importDeckButton")}
+                  </button>
+                </div>
 
               {/* Panel de Errores de Importación */}
               {importErrors.length > 0 && (
@@ -847,22 +1004,269 @@ const DeckBuilder = () => {
                     </div>
                   </div>
                 </div>
-              )}
+               )}
             </div>
 
+            {/* Toolbar: Group, Sort, ViewMode, Prices */}
+            <div className="flex items-center gap-3 flex-wrap mt-6 mb-4">
+              <div className="flex items-center gap-1 p-1 bg-zinc-900 border border-zinc-800 rounded-lg">
+                <span className="text-zinc-600 text-xs px-2">{t("deckViewer.group")}</span>
+                {(["type", "none"] as GroupMode[]).map((mode) => (
+                  <button
+                    key={mode}
+                    onClick={() => setGroupMode(mode)}
+                    className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
+                      groupMode === mode
+                        ? "bg-orange-500 text-white"
+                        : "text-zinc-400 hover:text-white hover:bg-zinc-800"
+                    }`}
+                  >
+                    {mode === "type" ? t("deckViewer.groupType") : t("deckViewer.groupNone")}
+                  </button>
+                ))}
+              </div>
+
+              <div className="flex items-center gap-1 p-1 bg-zinc-900 border border-zinc-800 rounded-lg">
+                <span className="text-zinc-600 text-xs px-2">{t("deckViewer.sort")}</span>
+                {(["cmc", "alpha"] as SortMode[]).map((mode) => (
+                  <button
+                    key={mode}
+                    onClick={() => setSortMode(mode)}
+                    className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
+                      sortMode === mode
+                        ? "bg-orange-500 text-white"
+                        : "text-zinc-400 hover:text-white hover:bg-zinc-800"
+                    }`}
+                  >
+                    {mode === "cmc" ? t("deckViewer.sortCmc") : t("deckViewer.sortAlpha")}
+                  </button>
+                ))}
+                <div className="w-px h-4 bg-zinc-700 mx-1" />
+                <button
+                  onClick={() => setSortDir((d) => (d === "asc" ? "desc" : "asc"))}
+                  className="p-1 rounded-md text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors"
+                  title={sortDir === "asc" ? t("deckViewer.sortAsc") : t("deckViewer.sortDesc")}
+                >
+                  {sortDir === "asc" ? <ArrowUp size={13} /> : <ArrowDown size={13} />}
+                </button>
+              </div>
+
+              {/* View Mode Toggle moved here */}
+              <div className="flex items-center gap-1 p-1 bg-zinc-900 border border-zinc-800 rounded-lg ml-auto sm:ml-0">
+                <button
+                  onClick={() => setViewMode("list")}
+                  className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
+                    viewMode === "list"
+                      ? "bg-orange-500 text-white"
+                      : "text-zinc-400 hover:text-white hover:bg-zinc-800"
+                  }`}
+                >
+                  {t("deckViewer.viewList")}
+                </button>
+                <button
+                  onClick={() => setViewMode("spoiler")}
+                  className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
+                    viewMode === "spoiler"
+                      ? "bg-orange-500 text-white"
+                      : "text-zinc-400 hover:text-white hover:bg-zinc-800"
+                  }`}
+                >
+                  {t("deckViewer.viewSpoiler")}
+                </button>
+              </div>
+
+              {/* Price toggle */}
+              <button
+                onClick={() => setShowPrices(p => !p)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-medium transition-colors ${
+                  showPrices
+                    ? "bg-green-500/20 text-green-400 border-green-500/40"
+                    : "bg-zinc-900 text-zinc-400 border-zinc-800 hover:text-white hover:border-zinc-600"
+                }`}
+              >
+                <Euro size={13} />
+                {showPrices ? t("deckViewer.hidePrices") : t("deckViewer.showPrices")}
+              </button>
+            </div>
+            
+            {viewMode === "list" ? (
               <DeckList
-              cards={mainDeckCards}
-              onUpdateQuantity={handleUpdateQuantity}
-              onRemove={handleRemoveCard}
-              onMoveToBoard={handleMoveCard}
-              maxSideboardSize={selectedFormat?.config?.maxSideboard}
-              minMainDeckSize={
-                isCommanderFormat
-                  ? undefined
-                  : selectedFormat?.config?.minMainDeck
-              }
-              isCommanderFormat={isCommanderFormat}
-            />
+                cards={mainDeckCards.concat(sideCards)}
+                onUpdateQuantity={handleUpdateQuantity}
+                onRemove={handleRemoveCard}
+                onMoveToBoard={handleMoveCard}
+                maxSideboardSize={selectedFormat?.config?.maxSideboard}
+                minMainDeckSize={
+                  isCommanderFormat
+                    ? undefined
+                    : selectedFormat?.config?.minMainDeck
+                }
+                isCommanderFormat={isCommanderFormat}
+                onCardPreview={handleCardPreview}
+                hideToolbar={true}
+                externalSortMode={sortMode}
+                externalSortDir={sortDir}
+                externalGroupMode={groupMode}
+                externalShowPrices={showPrices}
+              />
+            ) : (
+                <div className="space-y-12">
+                  {/* Spoiler Mode: Main Deck */}
+                  <div>
+                    <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2 border-b border-zinc-800 pb-3">
+                      <Layers size={22} className="text-orange-500" />
+                      {t("common.mainDeck")}
+                      <span className="text-zinc-500 font-normal text-sm">({mainBarCount})</span>
+                    </h2>
+                    
+                    {TYPE_ORDER.filter(t => mainGroups[t]).concat(mainGroups["All"] ? ["All"] : []).map(typeName => (
+                      <div key={typeName} className={typeName !== "All" ? "mb-8 " : ""}>
+                         {typeName !== "All" && (
+                            <h3 className="text-sm font-bold text-zinc-300 uppercase tracking-widest mb-4 pb-1 border-b border-zinc-800 flex justify-between">
+                              <span><span className="text-orange-500">{t(`deckViewer.cardTypes.${typeName}` as any) || typeName}</span>
+                              <span className="text-zinc-600 font-normal ml-2 text-xs">({mainGroups[typeName].reduce((s, c) => s + c.quantity, 0)})</span></span>
+                            </h3>
+                          )}
+                          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+                              {mainGroups[typeName].map((card, i) => (
+                                <div key={i} className="group relative">
+                                  {card.image ? (
+                                    <img
+                                      src={card.image}
+                                      alt={card.name}
+                                      className={`rounded-lg shadow-lg w-full transition-transform group-hover:scale-105 group-hover:z-10 ${card.isGameChanger ? 'ring-2 ring-orange-500 shadow-orange-500/30' : ''}`}
+                                    />
+                                  ) : (
+                                    <div className="aspect-[2.5/3.5] rounded-lg bg-zinc-800 border border-zinc-700 flex flex-col items-center justify-center p-4 text-center">
+                                      <Layers size={32} className="text-zinc-700 mb-2" />
+                                      <span className="text-xs text-zinc-500 font-medium">{card.name}</span>
+                                    </div>
+                                  )}
+                                  {/* Desktop Hover Overlay (Original Style) */}
+                                  <div className="hidden lg:block absolute top-1 right-1 bg-black/80 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-md border border-white/20 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                                    ×{card.quantity}
+                                  </div>
+                                  <div className="hidden lg:flex absolute bottom-1 left-1/2 -translate-x-1/2 items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-20">
+                                      <div className="flex bg-zinc-900 border border-zinc-700 rounded-md shadow-xl overflow-hidden p-0.5">
+                                          <button onClick={(e) => { e.stopPropagation(); handleUpdateQuantity(card, -1); }} className="px-2 text-zinc-300 hover:text-white hover:bg-zinc-800">-</button>
+                                          <button onClick={(e) => { e.stopPropagation(); handleUpdateQuantity(card, 1); }} className="px-2 text-zinc-300 hover:text-white hover:bg-zinc-800">+</button>
+                                          <button onClick={(e) => { e.stopPropagation(); handleRemoveCard(card); }} className="px-2 text-red-500 hover:bg-zinc-800"><X size={14}/></button>
+                                      </div>
+                                  </div>
+
+                                  {/* Footer estático para reemplazar hover y dar soporte a mobile/tablet */}
+                                  <div className="mt-2 flex lg:hidden flex-col gap-1.5 w-full bg-zinc-900/50 p-2 rounded-lg border border-zinc-800/80">
+                                    <div className="flex items-center justify-between">
+                                      {/* Controles de cantidad */}
+                                      <div className="flex items-center gap-1 bg-zinc-950 rounded-md px-1 py-0.5 border border-zinc-800">
+                                        <button onClick={(e) => { e.stopPropagation(); handleUpdateQuantity(card, -1); }} className="text-zinc-500 hover:text-white px-1 font-bold">-</button>
+                                        <span className="text-xs font-bold text-zinc-300 w-4 text-center">{card.quantity}</span>
+                                        <button onClick={(e) => { e.stopPropagation(); handleUpdateQuantity(card, 1); }} className="text-zinc-500 hover:text-white px-1 font-bold">+</button>
+                                      </div>
+                                      
+                                      {/* Borrar */}
+                                      <button onClick={(e) => { e.stopPropagation(); handleRemoveCard(card); }} className="text-red-500/70 hover:text-red-400 p-1 hover:bg-red-500/10 rounded transition-colors" title={t("common.delete")}>
+                                        <X size={14}/>
+                                      </button>
+                                    </div>
+                                    
+                                    {/* Mover carta */}
+                                    <div className="flex gap-1">
+                                      <button 
+                                        onClick={(e) => { e.stopPropagation(); handleMoveCard(card, "side"); }} 
+                                        className="flex-1 text-[10px] uppercase font-bold text-zinc-500 bg-zinc-950 hover:bg-zinc-800 hover:text-orange-400 py-1 rounded border border-zinc-800 transition-colors"
+                                      >
+                                        + SIDE
+                                      </button>
+                                      <button 
+                                        onClick={(e) => { e.stopPropagation(); handleMoveCard(card, "maybe"); }} 
+                                        className="flex-1 text-[10px] uppercase font-bold text-zinc-500 bg-zinc-950 hover:bg-zinc-800 hover:text-yellow-400 py-1 rounded border border-zinc-800 transition-colors"
+                                      >
+                                        + MAYBE
+                                      </button>
+                                    </div>
+                                  </div>
+                                </div>
+                              ))}
+                          </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Spoiler Mode: Sideboard */}
+                  {sideCards.length > 0 && (
+                     <div>
+                      <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2 border-b border-zinc-800 pb-3">
+                        <Shield size={22} className="text-zinc-500" />
+                        {t("common.sideboard")}
+                        <span className="text-zinc-500 font-normal text-sm">({sideBarCount})</span>
+                      </h2>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 font-mono">
+                          {sortCards(sideCards, sortMode, sortDir).map((card, i) => (
+                             <div key={i} className="group relative">
+                               {card.image ? (
+                                 <img
+                                   src={card.image}
+                                   alt={card.name}
+                                   className={`rounded-lg shadow-lg w-full transition-transform group-hover:scale-105 group-hover:z-10 ${card.isGameChanger ? 'ring-2 ring-orange-500 shadow-orange-500/30' : ''}`}
+                                 />
+                               ) : (
+                                 <div className="aspect-[2.5/3.5] rounded-lg bg-zinc-800 border border-zinc-700 flex flex-col items-center justify-center p-4 text-center">
+                                   <Shield size={32} className="text-zinc-700 mb-2" />
+                                   <span className="text-xs text-zinc-500 font-medium">{card.name}</span>
+                                 </div>
+                               )}
+                                {/* Desktop Hover Overlay (Original Style) */}
+                                <div className="hidden lg:block absolute top-1 right-1 bg-black/80 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-md border border-white/20 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                                  ×{card.quantity}
+                                </div>
+                                <div className="hidden lg:flex absolute bottom-1 left-1/2 -translate-x-1/2 items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-20">
+                                    <div className="flex bg-zinc-900 border border-zinc-700 rounded-md shadow-xl overflow-hidden p-0.5">
+                                        <button onClick={(e) => { e.stopPropagation(); handleUpdateQuantity(card, -1); }} className="px-2 text-zinc-300 hover:text-white hover:bg-zinc-800">-</button>
+                                        <button onClick={(e) => { e.stopPropagation(); handleUpdateQuantity(card, 1); }} className="px-2 text-zinc-300 hover:text-white hover:bg-zinc-800">+</button>
+                                        <button onClick={(e) => { e.stopPropagation(); handleRemoveCard(card); }} className="px-2 text-red-500 hover:bg-zinc-800"><X size={14}/></button>
+                                    </div>
+                                </div>
+
+                                {/* Footer estático para reemplazar hover y dar soporte a mobile/tablet */}
+                                <div className="mt-2 flex lg:hidden flex-col gap-1.5 w-full bg-zinc-900/50 p-2 rounded-lg border border-zinc-800/80">
+                                  <div className="flex items-center justify-between">
+                                    {/* Controles de cantidad */}
+                                    <div className="flex items-center gap-1 bg-zinc-950 rounded-md px-1 py-0.5 border border-zinc-800">
+                                      <button onClick={(e) => { e.stopPropagation(); handleUpdateQuantity(card, -1); }} className="text-zinc-500 hover:text-white px-1 font-bold">-</button>
+                                      <span className="text-xs font-bold text-zinc-300 w-4 text-center">{card.quantity}</span>
+                                      <button onClick={(e) => { e.stopPropagation(); handleUpdateQuantity(card, 1); }} className="text-zinc-500 hover:text-white px-1 font-bold">+</button>
+                                    </div>
+                                    
+                                    {/* Borrar */}
+                                    <button onClick={(e) => { e.stopPropagation(); handleRemoveCard(card); }} className="text-red-500/70 hover:text-red-400 p-1 hover:bg-red-500/10 rounded transition-colors" title={t("common.delete")}>
+                                      <X size={14}/>
+                                    </button>
+                                  </div>
+                                  
+                                  {/* Mover carta */}
+                                  <div className="flex gap-1">
+                                    <button 
+                                      onClick={(e) => { e.stopPropagation(); handleMoveCard(card, "main"); }} 
+                                      className="flex-1 text-[10px] uppercase font-bold text-zinc-500 bg-zinc-950 hover:bg-zinc-800 hover:text-orange-400 py-1 rounded border border-zinc-800 transition-colors"
+                                    >
+                                      + MAIN
+                                    </button>
+                                    <button 
+                                      onClick={(e) => { e.stopPropagation(); handleMoveCard(card, "maybe"); }} 
+                                      className="flex-1 text-[10px] uppercase font-bold text-zinc-500 bg-zinc-950 hover:bg-zinc-800 hover:text-yellow-400 py-1 rounded border border-zinc-800 transition-colors"
+                                    >
+                                      + MAYBE
+                                    </button>
+                                  </div>
+                                </div>
+                             </div>
+                           ))}
+                      </div>
+                     </div>
+                  )}
+                </div>
+            )}
 
             {/* Maybeboard Section (Manual Render) */}
             <div className="mt-8 pt-6 border-t border-zinc-800">
@@ -993,6 +1397,7 @@ const DeckBuilder = () => {
         isOpen={isAnalysisModalOpen}
         onClose={() => setIsAnalysisModalOpen(false)}
         title={t("deckBuilder.analysisModalTitle")}
+        maxWidth="max-w-4xl"
       >
         {analysisResult && (
           <div className="space-y-6 text-zinc-300 max-h-[70vh] overflow-y-auto pr-2">
@@ -1062,9 +1467,88 @@ const DeckBuilder = () => {
                 ))}
               </div>
             </div>
+            {/* Suggested Changes */}
+            {analysisResult.suggested_changes && analysisResult.suggested_changes.length > 0 && (
+              <div>
+                <h4 className="text-white font-bold mb-3 flex items-center gap-2">
+                  <span className="text-yellow-400">✦</span>
+                  {t("deckBuilder.suggestedChanges" as any) || "Cambios Sugeridos"}
+                </h4>
+                <div className="space-y-2">
+                  {analysisResult.suggested_changes.map((change: any, idx: number) => (
+                    <div key={idx} className="bg-zinc-950 p-3 rounded-lg border border-zinc-800 flex flex-col sm:flex-row sm:items-center gap-3">
+                      <div className="flex items-center gap-2 flex-1 min-w-0">
+                        <span className="text-red-400/80 line-through text-xs truncate flex-shrink-0 max-w-[40%]">{change.card_out}</span>
+                        <span className="text-zinc-500">→</span>
+                        <button
+                          onClick={() => handleSuggestedCardPreview(change.card_in)}
+                          className="text-indigo-400 hover:text-indigo-300 font-semibold text-xs underline underline-offset-2 truncate text-left transition-colors"
+                          title={`Click to preview ${change.card_in}`}
+                        >
+                          {change.card_in}
+                        </button>
+                        {change.quantity && <span className="text-zinc-600 text-[10px] flex-shrink-0">x{change.quantity}</span>}
+                      </div>
+                      <p className="text-xs text-zinc-500 italic sm:max-w-[50%]">{change.reason}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
       </Modal>
+
+      {/* Lightbox para Móvil/Lista Previews (+ AI Suggested Cards) */}
+      {isPreviewModalOpen && (
+        <div 
+          className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/90 backdrop-blur-sm animate-in fade-in duration-200"
+          onClick={() => setIsPreviewModalOpen(false)}
+        >
+          <div className="relative max-w-sm w-full animate-in zoom-in duration-300" onClick={e => e.stopPropagation()}>
+            <button
+              onClick={() => setIsPreviewModalOpen(false)}
+              className="absolute -top-12 right-0 p-2 text-white bg-zinc-800 rounded-full hover:bg-zinc-700 transition-colors"
+            >
+              <X size={24} />
+            </button>
+            {previewImage ? (
+              <img
+                src={previewImage || undefined}
+                alt="Card preview"
+                className="w-full rounded-3xl shadow-2xl"
+              />
+            ) : (
+              <div className="w-full aspect-[2.5/3.5] rounded-3xl bg-zinc-900 flex items-center justify-center">
+                <Loader2 size={64} className="animate-spin text-orange-500" />
+              </div>
+            )}
+            {/* Add to Deck buttons (shown when previewing an AI suggestion) */}
+            {previewCardName && (
+              <div className="mt-3 grid grid-cols-3 gap-2">
+                <button
+                  onClick={() => handleAddSuggestionToBoard(previewCardName, "main")}
+                  className="py-2 text-xs font-bold rounded-xl bg-orange-600 hover:bg-orange-500 text-white transition-colors shadow-lg"
+                >
+                  + Main
+                </button>
+                <button
+                  onClick={() => handleAddSuggestionToBoard(previewCardName, "side")}
+                  className="py-2 text-xs font-bold rounded-xl bg-zinc-700 hover:bg-zinc-600 text-zinc-200 transition-colors"
+                >
+                  + Side
+                </button>
+                <button
+                  onClick={() => handleAddSuggestionToBoard(previewCardName, "maybe")}
+                  className="py-2 text-xs font-bold rounded-xl bg-zinc-700 hover:bg-zinc-600 text-yellow-400 transition-colors"
+                >
+                  + Maybe
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

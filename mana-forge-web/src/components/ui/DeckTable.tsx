@@ -100,6 +100,7 @@ const DeckTable: React.FC<DeckTableProps> = ({
               <tr
                 key={deck.id}
                 className="flex flex-col md:table-row group cursor-pointer transition-colors hover:bg-zinc-900/50 p-4 md:p-0"
+                onClick={() => onEdit && onEdit(deck.id)}
               >
                 {/* Desktop: Todas las columnas | Mobile: Cabecera con Nombre y Pin */}
                 <td className="p-0 md:px-6 md:py-4 md:table-cell">

@@ -12,6 +12,7 @@ import {
   ArrowDown,
   Lightbulb,
   Euro,
+  Camera,
 } from "lucide-react";
 import { ManaSymbolService } from "../../services/ManaSymbolService";
 import { useTranslation } from "../../hooks/useTranslation";
@@ -47,6 +48,12 @@ interface DeckListProps {
   maxSideboardSize?: number;
   minMainDeckSize?: number;
   isCommanderFormat?: boolean;
+  onCardPreview?: (cardName: string) => void;
+  hideToolbar?: boolean;
+  externalSortMode?: SortMode;
+  externalSortDir?: SortDir;
+  externalGroupMode?: GroupMode;
+  externalShowPrices?: boolean;
 }
 
 const ManaCost = ({
@@ -83,6 +90,12 @@ const DeckList: React.FC<DeckListProps> = ({
   maxSideboardSize,
   minMainDeckSize,
   isCommanderFormat = false,
+  onCardPreview,
+  hideToolbar = false,
+  externalSortMode,
+  externalSortDir,
+  externalGroupMode,
+  externalShowPrices,
 }) => {
   const { t } = useTranslation();
   const [hoveredCard, setHoveredCard] = useState<DeckCard | null>(null);
@@ -94,6 +107,11 @@ const DeckList: React.FC<DeckListProps> = ({
   const [groupMode, setGroupMode] = useState<GroupMode>("type");
   const [showPrices, setShowPrices] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+
+  const activeSortMode = externalSortMode !== undefined ? externalSortMode : sortMode;
+  const activeSortDir = externalSortDir !== undefined ? externalSortDir : sortDir;
+  const activeGroupMode = externalGroupMode !== undefined ? externalGroupMode : groupMode;
+  const activeShowPrices = externalShowPrices !== undefined ? externalShowPrices : showPrices;
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -122,8 +140,8 @@ const DeckList: React.FC<DeckListProps> = ({
     const boardOrder: Array<"commander" | "main" | "side"> = ["commander", "main", "side"];
 
     const sortFn = (a: DeckCard, b: DeckCard) => {
-      const mul = sortDir === "asc" ? 1 : -1;
-      if (sortMode === "alpha") return mul * a.name.localeCompare(b.name);
+      const mul = activeSortDir === "asc" ? 1 : -1;
+      if (activeSortMode === "alpha") return mul * a.name.localeCompare(b.name);
       return mul * ((a.cmc ?? 0) - (b.cmc ?? 0));
     };
 
@@ -131,7 +149,7 @@ const DeckList: React.FC<DeckListProps> = ({
     cards.forEach((card) => {
       const board = card.board || "main";
       const rawType = card.type || "Unknown";
-      const type = groupMode === "type"
+      const type = activeGroupMode === "type"
         ? (TYPE_ORDER.find((t) => rawType.includes(t)) ?? "Other")
         : "All";
       if (!grouped[board]) grouped[board] = {};
@@ -143,14 +161,14 @@ const DeckList: React.FC<DeckListProps> = ({
       .filter((b) => grouped[b])
       .map((board) => ({
         boardName: board,
-        types: (groupMode === "type" ? TYPE_ORDER : ["All"])
+        types: (activeGroupMode === "type" ? TYPE_ORDER : ["All"])
           .filter((t) => grouped[board]?.[t])
           .map((type) => ({
             typeName: type,
             cards: [...grouped[board][type]].sort(sortFn),
           })),
       }));
-  }, [cards, sortMode, sortDir, groupMode]);
+  }, [cards, activeSortMode, activeSortDir, activeGroupMode]);
 
   const renderCardRow = (card: DeckCard) => (
     <li
@@ -166,13 +184,21 @@ const DeckList: React.FC<DeckListProps> = ({
               <Plus size={9} />
             </button>
             <button onClick={() => onUpdateQuantity(card, -1)} className="text-zinc-500 hover:text-orange-500 p-0.5 leading-none">
-              <Minus size={9} />
             </button>
           </div>
         )}
         <span className="text-zinc-400 font-mono text-xs font-bold w-5 text-center shrink-0">
           {card.quantity}
         </span>
+        {onCardPreview && (
+          <button 
+            onClick={(e) => { e.stopPropagation(); onCardPreview(card.name); }}
+            className="lg:hidden p-1 text-zinc-500 hover:text-orange-500 transition-colors shrink-0"
+            title={t("deckViewer.previewCard" as any) || "Preview Card"}
+          >
+            <Camera size={16} />
+          </button>
+        )}
         <button
           onClick={() => onCardClick && onCardClick(card.id)}
           className={`text-sm truncate text-left transition-colors flex items-center gap-1 ${
@@ -193,14 +219,16 @@ const DeckList: React.FC<DeckListProps> = ({
         )}
       </div>
 
-      {/* Right: mana cost + price + menu */}
-      <div className="flex items-center gap-1 shrink-0 ml-2">
-        <ManaCost cost={card.manaCost} symbols={manaSymbols} />
-        {showPrices && (
-          <span className={`text-[11px] font-mono px-1 rounded ${card.price ? "text-green-400" : "text-zinc-600"}`}>
-            {card.price ? `${(card.price * card.quantity).toFixed(2)}€` : t("deckViewer.noPrice")}
+      {/* Right: mana cost + context menu */}
+      <div className="flex items-center gap-3">
+        {activeShowPrices && (
+          <span className="text-zinc-500 text-xs font-mono w-12 text-right">
+            {((card.price ?? 0) * card.quantity).toFixed(2)} €
           </span>
         )}
+        <div className="w-24 shrink-0 flex justify-end">
+          <ManaCost cost={card.manaCost} symbols={manaSymbols} />
+        </div>
         <div className="relative">
           <button
             onClick={(e) => {
@@ -227,8 +255,9 @@ const DeckList: React.FC<DeckListProps> = ({
   return (
     <div className="space-y-4" ref={menuRef}>
       {/* Sort / Group bar */}
-      <div className="flex items-center gap-3 flex-wrap">
-        <div className="flex items-center gap-1 p-1 bg-zinc-900 border border-zinc-800 rounded-lg">
+      {!hideToolbar && (
+        <div className="flex items-center gap-3 flex-wrap">
+          <div className="flex items-center gap-1 p-1 bg-zinc-900 border border-zinc-800 rounded-lg">
           <span className="text-zinc-600 text-xs px-2">{t("deckViewer.group")}</span>
           {(["type", "none"] as GroupMode[]).map((mode) => (
             <button
@@ -282,7 +311,9 @@ const DeckList: React.FC<DeckListProps> = ({
           {showPrices ? t("deckViewer.hidePrices") : t("deckViewer.showPrices")}
         </button>
       </div>
+      )}
 
+      {/* List */}
       <div className="flex gap-6">
       {/* Sticky card preview */}
       <div className="hidden lg:flex flex-col items-center gap-3 sticky top-8 self-start w-52 shrink-0">

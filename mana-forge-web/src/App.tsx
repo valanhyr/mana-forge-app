@@ -20,6 +20,7 @@ import LegalPageView from "./views/legal/LegalPage";
 import DeckViewer from "./views/deck-viewer/DeckViewer";
 
 import CookieConsent from "./components/ui/CookieConsent";
+import WhatsNewModal from "./components/ui/WhatsNewModal";
 import Messages from "./views/messages/Messages";
 import DeckExplorer from "./views/deck-explorer/DeckExplorer";
 
@@ -61,6 +62,7 @@ function App() {
               </Route>
             </Routes>
             <CookieConsent />
+            <WhatsNewModal />
           </BrowserRouter>
         </ToastProvider>
       </UserProvider>
