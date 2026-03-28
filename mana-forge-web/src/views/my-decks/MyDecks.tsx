@@ -4,7 +4,7 @@ import DeckTable from "../../components/ui/DeckTable";
 import { Plus } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "../../hooks/useTranslation";
-import Meta from "../../components/ui/Meta";
+import SEO from "../../components/ui/SEO";
 
 const MyDecks = () => {
   const navigate = useNavigate();
@@ -27,8 +27,8 @@ const MyDecks = () => {
   };
 
   return (
-    <div className="max-w-6xl mx-auto mt-8 px-4 md:px-0">
-      <Meta 
+    <div className="max-w-6xl xl:max-w-7xl 2xl:max-w-screen-2xl mx-auto mt-8 px-4 md:px-0">
+      <SEO 
         title={t("seo.myDecksTitle")} 
         description={t("seo.myDecksDescription")} 
       />

@@ -13,7 +13,7 @@ const MyDecks = () => {
   }, [loadDecks]);
 
   return (
-    <div className="max-w-6xl mx-auto mt-8">
+    <div className="max-w-6xl xl:max-w-7xl 2xl:max-w-screen-2xl mx-auto mt-8">
       <div className="flex justify-between items-center mb-8">
         <h2 className="text-2xl font-bold text-white">Mis Mazos</h2>
         <Link

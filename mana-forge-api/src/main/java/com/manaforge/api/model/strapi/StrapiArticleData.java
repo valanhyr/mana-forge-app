@@ -18,6 +18,7 @@ public class StrapiArticleData implements Serializable {
     private String article;
     private String publishedAt;
     private Author author;
+    private StrapiSeo seo;
 
     @Data
     @JsonIgnoreProperties(ignoreUnknown = true)

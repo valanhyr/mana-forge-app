@@ -6,7 +6,7 @@ import { ScryfallService } from "../../services/ScryfallService";
 import { type Format } from "../../core/models/Format";
 import DeckCard from "../../components/ui/DeckCard";
 import { useTranslation } from "../../hooks/useTranslation";
-import Meta from "../../components/ui/Meta";
+import SEO from "../../components/ui/SEO";
 
 type SortOption = "recent" | "popular" | "nameAZ";
 
@@ -70,7 +70,7 @@ const DeckExplorer = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-      <Meta 
+      <SEO 
         title={t("seo.explorerTitle")} 
         description={t("seo.explorerDescription")} 
       />

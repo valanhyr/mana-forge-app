@@ -15,7 +15,7 @@ const Footer = () => {
 
   return (
     <footer className="border-t border-zinc-800 bg-zinc-950 mt-auto">
-      <div className="max-w-6xl mx-auto px-4 py-12">
+      <div className="max-w-6xl xl:max-w-7xl 2xl:max-w-screen-2xl mx-auto px-4 py-12">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
           {/* Brand & Description */}
           <div className="col-span-1 md:col-span-1">
@@ -54,26 +54,26 @@ const Footer = () => {
             >
               <li>
                 <Link
-                  to="/deck-builder"
+                  to="/explorer"
                   className="hover:text-orange-500 transition-colors"
                 >
-                  {t("deckBuilder.title")}
+                  {t("nav.explorer")}
                 </Link>
               </li>
               <li>
                 <Link
-                  to="/my-decks"
-                  className="hover:text-orange-500 transition-colors"
-                >
-                  {t("myDecks.title")}
-                </Link>
-              </li>
-              <li>
-                <Link
-                  to="/formats"
+                  to="/formats/all-formats"
                   className="hover:text-orange-500 transition-colors"
                 >
                   {t("dashboard.exploreFormats")}
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/?daily-deck=true"
+                  className="hover:text-orange-500 transition-colors"
+                >
+                  {t("dashboard.aiDeckOfTheDay")}
                 </Link>
               </li>
             </ul>

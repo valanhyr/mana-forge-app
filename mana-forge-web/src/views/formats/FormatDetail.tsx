@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { useTranslation } from "../../hooks/useTranslation";
 import ForgeSpinner from "../../components/ui/ForgeSpinner";
+import SEO from "../../components/ui/SEO";
 import Modal from "../../components/ui/Modal";
 import { FormatService } from "../../services/FormatService";
 import { CardService } from "../../services/CardService";
@@ -143,7 +144,7 @@ const FormatDetail = () => {
 
   if (isAllFormats) {
     return (
-      <div className="max-w-7xl mx-auto mt-8 px-4 sm:px-6 lg:px-8 mb-12">
+      <div className="max-w-7xl 2xl:max-w-screen-2xl mx-auto mt-8 px-4 sm:px-6 lg:px-8 mb-12">
         <div className="flex items-center gap-3 mb-8">
           <div className="bg-orange-600 p-2 rounded-lg">
             <Users className="text-white" size={24} />
@@ -206,6 +207,18 @@ const FormatDetail = () => {
 
   return (
     <div className="min-h-screen pb-12">
+      <SEO 
+        title={data.title}
+        description={data.subtitle || data.description?.description}
+        ogImage={data.imageUrl}
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@type": "Thing",
+          "name": data.title,
+          "description": data.description?.description,
+          "image": data.imageUrl
+        }}
+      />
       {/* Hero Header */}
       <div className="relative h-[40vh] w-full overflow-hidden">
         <div className="absolute inset-0">
@@ -216,7 +229,7 @@ const FormatDetail = () => {
           />
           <div className="absolute inset-0 bg-linear-to-t from-zinc-950 via-zinc-950/60 to-transparent"></div>
         </div>
-        <div className="absolute bottom-0 left-0 right-0 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
+        <div className="absolute bottom-0 left-0 right-0 max-w-7xl 2xl:max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
           <Link
             to="/"
             className="inline-flex items-center gap-2 text-zinc-300 hover:text-white mb-6 transition-colors bg-black/30 backdrop-blur-sm px-3 py-1 rounded-full border border-white/10 w-fit"
@@ -233,7 +246,7 @@ const FormatDetail = () => {
       </div>
 
       {/* Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-8 relative z-10">
+      <div className="max-w-7xl 2xl:max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 -mt-8 relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Column */}
           <div className="lg:col-span-2 space-y-8">

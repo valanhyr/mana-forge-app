@@ -2,8 +2,10 @@ package com.manaforge.api.service;
 
 import com.manaforge.api.dto.FormatDetailDto;
 import com.manaforge.api.dto.FormatSummaryDto;
+import com.manaforge.api.dto.SeoDto;
 import com.manaforge.api.model.strapi.StrapiComponent;
 import com.manaforge.api.model.strapi.StrapiFormatData;
+import com.manaforge.api.model.strapi.StrapiSeo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -87,6 +89,17 @@ public class FormatService {
                 .imageUrl(data.getImageUrl())
                 .description(descriptionSection)
                 .rules(rulesSection)
+                .seo(mapSeo(data.getSeo()))
+                .build();
+    }
+
+    private SeoDto mapSeo(StrapiSeo seo) {
+        if (seo == null) return null;
+        return SeoDto.builder()
+                .title(seo.getTitle())
+                .description(seo.getDescription())
+                .keywords(seo.getKeywords())
+                .canonical(seo.getCanonical())
                 .build();
     }
 

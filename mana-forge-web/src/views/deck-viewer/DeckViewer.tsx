@@ -5,6 +5,8 @@ import { DeckService, type DeckView, type DeckCardEntry } from "../../services/D
 import { useUser } from "../../services/UserContext";
 import ManaCost from "../../components/ui/ManaCost";
 import ManaCurve from "../../components/ui/ManaCurve";
+import ForgeSpinner from "../../components/ui/ForgeSpinner";
+import SEO from "../../components/ui/SEO";
 import { useLanguage } from "../../services/LanguageContext";
 import { useTranslation } from "../../hooks/useTranslation";
 
@@ -185,9 +187,29 @@ const DeckViewer = () => {
 
   return (
     <div className="min-h-screen pb-16">
+      <SEO 
+        title={deck.name}
+        description={t("seo.deckViewerDescription").replace("{deckName}", deck.name)}
+        ogType="article"
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@type": "GameStrategy",
+          "name": deck.name,
+          "description": (deck as any).description || t("seo.deckViewerDescription").replace("{deckName}", deck.name),
+          "author": {
+            "@type": "Person",
+            "name": deck.ownerUsername || "Mana Forge User"
+          },
+          "gameItem": {
+            "@type": "Thing",
+            "name": "Magic: The Gathering Deck",
+            "description": `A ${deck.formatName} deck for Magic: The Gathering.`
+          }
+        }}
+      />
       {/* Header */}
       <div className="bg-zinc-900 border-b border-zinc-800">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="max-w-6xl xl:max-w-7xl 2xl:max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <Link to="/" className="flex items-center gap-2 text-zinc-400 hover:text-white mb-6 transition-colors text-sm w-fit">
             <ArrowLeft size={16} /> {t("common.back")}
           </Link>
@@ -268,7 +290,7 @@ const DeckViewer = () => {
       </div>
 
       {/* Body */}
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
+      <div className="max-w-6xl xl:max-w-7xl 2xl:max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
           {/* Card preview (sticky) - Only in list mode */}
@@ -649,7 +671,7 @@ const DeckViewer = () => {
       <div ref={sentinelRef} />
       {isFloating && <div className="h-16" />}
       <div className={isFloating ? "fixed bottom-0 left-0 right-0 z-40 bg-zinc-950/95 backdrop-blur-sm border-t border-zinc-800/80" : "mt-4 mx-4 sm:mx-6 lg:mx-8 rounded-2xl border border-zinc-800 bg-zinc-900"}>
-        <div className="flex items-center gap-4 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+        <div className="flex items-center gap-4 max-w-6xl xl:max-w-7xl 2xl:max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
           <div className="flex items-center gap-4 flex-1 min-w-0">
             {deck.formatName.toLowerCase().includes("commander") ? (
               <div className="flex items-center gap-1.5 text-sm">

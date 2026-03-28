@@ -13,4 +13,5 @@ public class ArticleDto {
     private String imageUrl;
     private String publishedAt;
     private String author;
+    private SeoDto seo;
 }

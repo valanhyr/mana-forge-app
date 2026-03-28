@@ -22,4 +22,5 @@ public class StrapiFormatData implements Serializable {
     private String imageUrl;
     @JsonProperty("section")
     private List<StrapiComponent> section;
+    private StrapiSeo seo;
 }

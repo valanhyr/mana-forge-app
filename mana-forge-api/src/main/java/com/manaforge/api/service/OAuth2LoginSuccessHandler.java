@@ -58,7 +58,7 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
         System.out.println("Usuario logueado con Google: " + email);
 
         // 3. Redirección final — nuevos usuarios ven el modal de bienvenida beta
-        String redirect = isNewUser ? frontendUrl + "/profile?beta_welcome=true" : frontendUrl + "/profile";
+        String redirect = isNewUser ? frontendUrl + "/profile?beta_welcome=true" : frontendUrl + "/";
         response.sendRedirect(redirect);
     }
 }

@@ -13,6 +13,7 @@ public class FormatDetailDto {
     private String imageUrl;
     private FormatSectionDto description;
     private FormatSectionDto rules;
+    private SeoDto seo;
 
     @Data
     @Builder

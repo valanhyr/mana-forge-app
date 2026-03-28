@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import {
   ArrowRight,
   Sparkles,
@@ -21,7 +21,7 @@ import { useTranslation } from "../../hooks/useTranslation";
 import { ArticleService } from "../../services/ArticleService";
 import { type Article } from "../../core/models/Article";
 import ManaCost from "../../components/ui/ManaCost";
-import Meta from "../../components/ui/Meta";
+import SEO from "../../components/ui/SEO";
 import { useUser } from "../../services/UserContext";
 import { useToast } from "../../services/ToastContext";
 
@@ -38,6 +38,7 @@ interface FormatSummary {
 const Dashboard = () => {
   const { t, locale } = useTranslation();
   const { isAuthenticated } = useUser();
+  const location = useLocation();
   const { showToast } = useToast();
   const [dailyDeck, setDailyDeck] = useState<DailyDeck | null>(null);
   const [featuredDeck, setFeaturedDeck] = useState<FeaturedDeck | null>(null);
@@ -132,7 +133,13 @@ const Dashboard = () => {
       }
     };
     fetchFormats();
-  }, [locale]); // Recargar si cambia el idioma
+
+    // Check for query param to open daily deck modal
+    const searchParams = new URLSearchParams(location.search);
+    if (searchParams.get("daily-deck") === "true") {
+      setIsModalOpen(true);
+    }
+  }, [locale, location.search]); // Recargar si cambia el idioma o la URL
 
   const handleMouseEnterCard = async (cardName: string) => {
     if (cachedImages[cardName]) {
@@ -297,10 +304,22 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto mt-8 px-4 sm:px-6 lg:px-8 space-y-12 mb-12">
-      <Meta 
+    <div className="max-w-7xl 2xl:max-w-screen-2xl mx-auto mt-8 px-4 sm:px-6 lg:px-8 space-y-12 mb-12">
+      <SEO 
         title={t("seo.dashboardTitle")} 
-        description={t("seo.dashboardDescription")} 
+        description={t("seo.dashboardDescription")}
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@type": "WebSite",
+          "name": "Mana Forge",
+          "url": "https://mana-forge.com",
+          "description": t("seo.defaultDescription"),
+          "potentialAction": {
+            "@type": "SearchAction",
+            "target": "https://mana-forge.com/explorer?q={search_term_string}",
+            "query-input": "required name=search_term_string"
+          }
+        }}
       />
       {/* --- Sección de Noticias --- */}
       <section>
@@ -404,7 +423,7 @@ const Dashboard = () => {
           </Link>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {popularFormats.map((format) => (
+          {popularFormats.slice(0, 4).map((format) => (
             <Link
               to={`/formats/${format.slug}`}
               key={format.mongoId}

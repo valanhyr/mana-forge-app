@@ -154,7 +154,7 @@ const Layout = () => {
 
       <div className="p-8 flex-1">
         {/* Header / Navbar Global */}
-        <header className="max-w-6xl mx-auto flex justify-between items-center mb-12">
+        <header className="max-w-6xl xl:max-w-7xl 2xl:max-w-screen-2xl mx-auto flex justify-between items-center mb-12">
           <Link to="/" className="flex items-center gap-3 group">
             <div className="bg-orange-600 p-2 rounded-lg group-hover:bg-orange-500 transition-colors">
               <Anvil className="text-white" size={32} />
@@ -316,7 +316,7 @@ const Layout = () => {
           </div>
         </header>
 
-        <main className="max-w-6xl mx-auto">
+        <main className="max-w-6xl xl:max-w-7xl 2xl:max-w-screen-2xl mx-auto">
           <Outlet />
         </main>
       </div>

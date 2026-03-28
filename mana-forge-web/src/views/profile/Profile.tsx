@@ -4,7 +4,7 @@ import { useTranslation } from "../../hooks/useTranslation";
 import { useLanguage } from "../../services/LanguageContext";
 import { useState } from "react";
 import { AuthService } from "../../services/AuthService";
-import Meta from "../../components/ui/Meta";
+import SEO from "../../components/ui/SEO";
 
 const Profile = () => {
   const { t } = useTranslation();
@@ -72,7 +72,7 @@ const Profile = () => {
 
   return (
     <div className="max-w-4xl mx-auto mt-8 px-4 sm:px-6 lg:px-8 pb-12">
-      <Meta 
+      <SEO 
         title={t("seo.profileTitle")} 
         description={t("seo.profileDescription")} 
       />

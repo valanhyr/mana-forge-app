@@ -29,7 +29,7 @@ import Modal from "../../components/ui/Modal";
 import TextAreaInput from "../../components/ui/TextAreaInput";
 import { useUser } from "../../services/UserContext";
 import { useTranslation } from "../../hooks/useTranslation";
-import Meta from "../../components/ui/Meta";
+import SEO from "../../components/ui/SEO";
 
 // Extendemos DeckCard localmente para incluir la imagen hasta que se actualice la definición base
 type DeckCardWithImage = DeckCard & { image: string };
@@ -768,8 +768,8 @@ const DeckBuilder = () => {
   };
 
   return (
-    <div className="max-w-6xl mx-auto mt-8">
-      <Meta 
+    <div className="max-w-6xl xl:max-w-7xl 2xl:max-w-screen-2xl mx-auto mt-8">
+      <SEO 
         title={t("seo.deckBuilderTitle")} 
         description={t("seo.deckBuilderDescription")} 
       />

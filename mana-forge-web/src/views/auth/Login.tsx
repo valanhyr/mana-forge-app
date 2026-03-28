@@ -3,7 +3,7 @@ import { useUser } from "../../services/UserContext";
 import { useTranslation } from "../../hooks/useTranslation";
 import { API_URL } from "../../services/api";
 import { Loader2, Mail } from "lucide-react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { useToast } from "../../services/ToastContext";
 
 interface AuthModalProps {
@@ -13,9 +13,10 @@ interface AuthModalProps {
 
 const AuthModal = ({ isOpen = true, onClose }: AuthModalProps) => {
   const { t } = useTranslation();
-  const { login, register } = useUser();
+  const { login, register, isAuthenticated } = useUser();
   const { showToast } = useToast();
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const [isLogin, setIsLogin] = useState(true);
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
@@ -30,7 +31,11 @@ const AuthModal = ({ isOpen = true, onClose }: AuthModalProps) => {
     if (searchParams.get("verified") === "true") {
       showToast(t("auth.verifiedSuccess"), "success");
     }
-  }, []);
+    // Si ya está autenticado y accede a esta "página", redirigir fuera
+    if (isAuthenticated && !onClose) {
+      navigate("/");
+    }
+  }, [isAuthenticated, onClose, navigate, searchParams, showToast, t]);
 
   if (!isOpen) return null;
 
@@ -59,7 +64,11 @@ const AuthModal = ({ isOpen = true, onClose }: AuthModalProps) => {
     try {
       if (isLogin) {
         await login(username, password);
-        onClose?.();
+        if (onClose) {
+          onClose();
+        } else {
+          navigate("/");
+        }
       } else {
         await register(username, email, password);
         setRegisteredEmail(email);

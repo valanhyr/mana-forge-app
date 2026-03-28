@@ -1,3 +1,5 @@
+import type { SEOData } from "../../components/ui/SEO";
+
 export interface FormatConfig {
   minMainDeck: number;
   maxMainDeck?: number;
@@ -21,7 +23,7 @@ export interface FormatDetail {
   description: FormatSection,
   rules: FormatSection,
   imageUrl:string,
-  
+  seo?: SEOData;
 }
 export interface FormatCMSBase {
   mongoId: String,

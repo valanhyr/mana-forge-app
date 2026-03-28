@@ -1,3 +1,5 @@
+import type { SEOData } from "../../components/ui/SEO";
+
 export interface Article {
     documentId: string;
     title: string;
@@ -6,4 +8,5 @@ export interface Article {
     author?: string;
     content?:  string;
     publishedAt?: string;
+    seo?: SEOData;
 }

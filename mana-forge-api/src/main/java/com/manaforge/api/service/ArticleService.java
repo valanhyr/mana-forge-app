@@ -1,7 +1,9 @@
 package com.manaforge.api.service;
 
 import com.manaforge.api.dto.ArticleDto;
+import com.manaforge.api.dto.SeoDto;
 import com.manaforge.api.model.strapi.StrapiArticleData;
+import com.manaforge.api.model.strapi.StrapiSeo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -52,6 +54,17 @@ public class ArticleService {
                 .content(data.getArticle())
                 .publishedAt(data.getPublishedAt())
                 .author(data.getAuthor() != null ? data.getAuthor().getUsername() : null)
+                .seo(mapSeo(data.getSeo()))
+                .build();
+    }
+
+    private SeoDto mapSeo(StrapiSeo seo) {
+        if (seo == null) return null;
+        return SeoDto.builder()
+                .title(seo.getTitle())
+                .description(seo.getDescription())
+                .keywords(seo.getKeywords())
+                .canonical(seo.getCanonical())
                 .build();
     }
 }
