@@ -40,7 +40,6 @@ services:
       - SMTP_USERNAME=${SMTP_USERNAME:-resend}
       - SMTP_PASSWORD=${SMTP_PASSWORD}
       - SMTP_FROM=${SMTP_FROM}
-      - REDIS_PASSWORD=${REDIS_PASSWORD}
       - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
       - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
     depends_on:
@@ -70,7 +69,7 @@ services:
   redis:
     image: redis:7-alpine
     container_name: mana-forge-cache-1
-    command: redis-server --requirepass ${REDIS_PASSWORD}
+    command: redis-server
     restart: always
     networks:
       - mana-forge-network
