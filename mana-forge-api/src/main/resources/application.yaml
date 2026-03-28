@@ -1,0 +1,148 @@
+server:
+  port: 8080
+  forward-headers-strategy: framework
+  tomcat:
+    remoteip:
+      remote-ip-header: x-forwarded-for
+      protocol-header: x-forwarded-proto
+  servlet:
+    context-path: /
+  error:
+    include-message: always
+
+spring:
+  application:
+    name: mana-forge-api
+
+  config:
+    import: optional:file:.env[.properties]
+
+  # STACK 2025: Java 25 Virtual Threads
+  # Optimización para procesar múltiples peticiones de análisis sin bloquear hilos
+  threads:
+    virtual:
+      enabled: true
+
+  # PERSISTENCIA SQL: Base de datos H2 (en memoria para desarrollo y caché rápida)
+  datasource:
+    url: jdbc:h2:mem:manaforgedb
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: ""
+
+  # PERSISTENCIA NO-SQL: MongoDB Atlas (Cloud)
+  data:
+    mongodb:
+      uri: ${MONGODB_URI}
+    redis:
+      host: ${SPRING_DATA_REDIS_HOST:localhost}
+      port: ${SPRING_DATA_REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD}
+      connect-timeout: 1000
+      timeout: 1000
+      lettuce:
+        pool:
+          enabled: false
+
+  # SESIONES: Redis en producción (Docker), en memoria en local
+  session:
+    store-type: ${SESSION_STORE_TYPE:none}
+    redis:
+      flush-mode: on-save
+      namespace: mana-forge:session
+
+  # CACHE: Couchbase (Distributed Cache para Strapi/Scryfall)
+  couchbase:
+    connection-string: ${SPRING_COUCHBASE_CONNECTION_STRING:couchbase://localhost}
+    username: ${SPRING_COUCHBASE_USERNAME:Administrator}
+    password: ${SPRING_COUCHBASE_PASSWORD}
+    bucket-name: manaforge-cache
+  
+  cache:
+    type: simple  # Spring usará CacheManager configurado manualmente
+    cache-names:
+      - strapiFormats
+      - strapiArticles
+      - scryfallCards
+
+  # Herramienta visual H2 en: http://localhost:8080/h2-console
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+      settings:
+        trace: false
+        web-allow-others: false
+
+  # JPA / HIBERNATE CONFIG
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        highlight_sql: true
+
+  docker:
+    compose:
+      enabled: false
+
+  # SEGURIDAD: OAuth2 con Google
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID}
+            client-secret: ${GOOGLE_CLIENT_SECRET}
+            redirect-uri: "{baseUrl}/api/login/oauth2/code/{registrationId}"
+
+  # SMTP: Configuración de correo electrónico
+  mail:
+    host: ${SMTP_HOST:smtp.resend.com}
+    port: ${SMTP_PORT:587}
+    username: ${SMTP_USERNAME:resend}
+    password: ${SMTP_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+          ssl:
+            trust: smtp.resend.com
+
+# Email
+mail:
+  from: ${SMTP_FROM:noreply@localhost}
+
+# CONFIGURACIÓN PERSONALIZADA: Conexión con el motor de Python (FastAPI)
+services:
+  python-engine:
+    url: ${SERVICES_PYTHON_ENGINE_URL:http://localhost:8000}
+    timeout: 120000  # 120s — AI generation + review pass can take 60-120s
+  frontend:
+    url: ${FRONTEND_URL:http://localhost:5173}
+
+# Strapi Configuration (CMS)
+# PRODUCTION
+strapi:
+  api:
+    url: ${STRAPI_API_URL}
+    token: ${STRAPI_API_TOKEN}
+# DEVELOPMENT
+#    url: ${STRAPI_API_URL:http://localhost:1337/api}
+#    token: ${STRAPI_API_TOKEN}
+
+# LOGGING: Nivel de detalle
+logging:
+  level:
+    root: INFO
+    com.manaforge.api: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.springframework.data.mongodb: DEBUG
+    org.springframework.cache: TRACE
+    com.couchbase: DEBUG
