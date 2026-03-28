@@ -41,6 +41,15 @@ const Layout = () => {
     return () => clearTimeout(id);
   }, []);
 
+  // Google Analytics Page Tracking
+  useEffect(() => {
+    if (typeof (window as any).gtag === "function") {
+      (window as any).gtag("config", "G-YR4GEC9XWL", {
+        page_path: location.pathname + location.search,
+      });
+    }
+  }, [location]);
+
   const menuRef = useRef<HTMLDivElement>(null);
 
   const navLinks = [
