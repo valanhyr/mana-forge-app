@@ -174,59 +174,48 @@ const DeckList: React.FC<DeckListProps> = ({
     <li
       key={`${card.id}-${card.board}`}
       onMouseEnter={() => setHoveredCard(card)}
-      className="flex items-center justify-between px-2 py-1.5 rounded-lg hover:bg-zinc-800 transition-colors group cursor-default"
+      className="flex items-center gap-4 px-2 py-1.5 rounded-lg hover:bg-zinc-800 transition-colors group cursor-default"
     >
       {/* Left: quantity + name */}
-      <div className="flex items-center gap-2 min-w-0 flex-1">
-        {onUpdateQuantity && (
-          <div className="flex flex-col opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
-            <button onClick={() => onUpdateQuantity(card, 1)} className="text-zinc-500 hover:text-orange-500 p-0.5 leading-none">
-              <Plus size={9} />
-            </button>
-            <button onClick={() => onUpdateQuantity(card, -1)} className="text-zinc-500 hover:text-orange-500 p-0.5 leading-none">
-            </button>
-          </div>
-        )}
-        <span className="text-zinc-400 font-mono text-xs font-bold w-5 text-center shrink-0">
-          {card.quantity}
-        </span>
-        {onCardPreview && (
-          <button 
-            onClick={(e) => { e.stopPropagation(); onCardPreview(card.name); }}
-            className="lg:hidden p-1 text-zinc-500 hover:text-orange-500 transition-colors shrink-0"
-            title={t("deckViewer.previewCard" as any) || "Preview Card"}
-          >
-            <Camera size={16} />
-          </button>
-        )}
-        <button
-          onClick={() => onCardClick && onCardClick(card.id)}
-          className={`text-sm truncate text-left transition-colors flex items-center gap-1 ${
-            card.isValid === false
-              ? "text-red-400 hover:text-red-300"
-              : "text-zinc-300 group-hover:text-white hover:underline"
-          }`}
+      <span className="text-zinc-400 font-mono text-xs font-bold w-5 text-center shrink-0">
+        {card.quantity}
+      </span>
+      {onCardPreview && (
+        <button 
+          onClick={(e) => { e.stopPropagation(); onCardPreview(card.name); }}
+          className="lg:hidden p-1 text-zinc-500 hover:text-orange-500 transition-colors shrink-0"
+          title={t("deckViewer.previewCard" as any) || "Preview Card"}
         >
-          {card.name}
-          {card.isGameChanger && (
-            <span title={t("common.gameChangerTooltip")} className="cursor-help inline-flex items-center justify-center bg-orange-500/20 text-orange-400 text-[10px] font-bold px-1.5 py-0.5 rounded border border-orange-500/30 no-underline">
-              GC
-            </span>
-          )}
+          <Camera size={16} />
         </button>
-        {card.isValid === false && (
-          <AlertTriangle size={11} className="text-red-500 shrink-0" />
+      )}
+      <button
+        onClick={() => onCardClick && onCardClick(card.id)}
+        className={`flex-1 text-sm truncate text-left transition-colors flex items-center gap-1 ${
+          card.isValid === false
+            ? "text-red-400 hover:text-red-300"
+            : "text-zinc-300 group-hover:text-white hover:underline"
+        }`}
+      >
+        <span className="truncate">{card.name}</span>
+        {card.isGameChanger && (
+          <span title={t("common.gameChangerTooltip")} className="cursor-help inline-flex items-center justify-center bg-orange-500/20 text-orange-400 text-[10px] font-bold px-1.5 py-0.5 rounded border border-orange-500/30 no-underline shrink-0">
+            GC
+          </span>
         )}
-      </div>
+      </button>
+      {card.isValid === false && (
+        <AlertTriangle size={11} className="text-red-500 shrink-0" />
+      )}
 
-      {/* Right: mana cost + context menu */}
-      <div className="flex items-center gap-3">
+      {/* Right: price + mana cost + context menu */}
+      <div className="flex items-center gap-4 shrink-0">
         {activeShowPrices && (
-          <span className="text-zinc-500 text-xs font-mono w-12 text-right">
+          <span className="text-zinc-500 text-xs font-mono w-14 text-right">
             {((card.price ?? 0) * card.quantity).toFixed(2)} €
           </span>
         )}
-        <div className="w-24 shrink-0 flex justify-end">
+        <div className="w-20 flex justify-end">
           <ManaCost cost={card.manaCost} symbols={manaSymbols} />
         </div>
         <div className="relative">
@@ -242,7 +231,7 @@ const DeckList: React.FC<DeckListProps> = ({
             className={`text-zinc-500 hover:text-white p-1 rounded-md hover:bg-zinc-700 transition-colors cursor-pointer ${
               activeCard?.id === card.id && activeCard?.board === card.board
                 ? "opacity-100 text-white bg-zinc-700"
-                : "opacity-0 group-hover:opacity-100"
+                : "opacity-100"
             }`}
           >
             <MoreVertical size={14} />
@@ -404,7 +393,7 @@ const DeckList: React.FC<DeckListProps> = ({
               </div>
 
               {/* 2-column type groups */}
-              <div className="columns-1 sm:columns-2 gap-6">
+              <div className="columns-1 sm:columns-2 xl:columns-3 gap-6">
                 {types.map(({ typeName, cards: groupCards }) => {
                   const typeTotal = groupCards.reduce((a, c) => a + c.quantity, 0);
                   return (

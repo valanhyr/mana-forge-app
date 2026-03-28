@@ -966,14 +966,6 @@ const DeckBuilder = () => {
                     <Upload size={20} />
                     {t("deckBuilder.importDeckButton")}
                   </button>
-
-                  <button
-                    onClick={() => setIsImportModalOpen(true)}
-                    className="flex-1 flex items-center justify-center gap-2 py-3 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white rounded-xl border border-zinc-700 transition-all shadow-lg font-bold min-h-[46px]"
-                  >
-                    <Upload size={20} />
-                    {t("deckBuilder.importDeckButton")}
-                  </button>
                 </div>
 
               {/* Panel de Errores de Importación */}

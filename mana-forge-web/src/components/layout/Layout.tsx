@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, Outlet, useLocation, useSearchParams } from "react-router-dom";
-import { Anvil, ChevronDown, LogOut, User, Settings, Book, Menu, X, Users, LayoutDashboard, Layers, Wand2, MessageCircle, Sparkles, FlaskConical, Info, MessageSquarePlus } from "lucide-react";
+import { Anvil, ChevronDown, LogOut, User, Settings, Book, Menu, X, Users, LayoutDashboard, Layers, Wand2, MessageCircle, Sparkles, Info, MessageSquarePlus } from "lucide-react";
 import { useUser } from "../../services/UserContext";
 import LanguageSelector from "../ui/LanguageSelector";
 import Footer from "./Footer";
@@ -10,7 +10,7 @@ import BetaWelcomeModal from "../ui/BetaWelcomeModal";
 import { useTranslation } from "../../hooks/useTranslation";
 import { MessageService } from "../../services/MessageService";
 
-const BETA_BANNER_KEY = "beta_banner_dismissed";
+const BETA_BANNER_KEY = "feedback_banner_v1_dismissed";
 const FEEDBACK_TOOLTIP_KEY = "feedback_tooltip_shown";
 
 const Layout = () => {
@@ -22,6 +22,7 @@ const Layout = () => {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  // Feedback banner visibility logic (repurposed from beta)
   const [bannerVisible, setBannerVisible] = useState(() => !sessionStorage.getItem(BETA_BANNER_KEY));
   const [showBannerInfo, setShowBannerInfo] = useState(false);
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
@@ -40,23 +41,6 @@ const Layout = () => {
     return () => clearTimeout(id);
   }, []);
 
-  // Countdown to 2026-03-22 23:59:59
-  const BETA_END = new Date("2026-03-22T23:59:59").getTime();
-  const calcTimeLeft = () => {
-    const diff = BETA_END - Date.now();
-    if (diff <= 0) return null;
-    return {
-      d: Math.floor(diff / 86400000),
-      h: Math.floor((diff % 86400000) / 3600000),
-      m: Math.floor((diff % 3600000) / 60000),
-      s: Math.floor((diff % 60000) / 1000),
-    };
-  };
-  const [timeLeft, setTimeLeft] = useState(calcTimeLeft);
-  useEffect(() => {
-    const id = setInterval(() => setTimeLeft(calcTimeLeft()), 1000);
-    return () => clearInterval(id);
-  }, []);
   const menuRef = useRef<HTMLDivElement>(null);
 
   const navLinks = [
@@ -98,11 +82,11 @@ const Layout = () => {
   return (
     <div className="min-h-screen bg-zinc-950 flex flex-col">
 
-      {/* Beta Banner */}
+      {/* Feedback Banner */}
       {bannerVisible && (
         <div className="w-full bg-zinc-900 border-b border-orange-500/20 px-4 py-2 flex items-center justify-between gap-2 text-sm relative z-40">
           <div className="flex items-center gap-2 min-w-0">
-            <FlaskConical size={15} className="text-orange-400 flex-shrink-0" />
+            <Sparkles size={15} className="text-orange-400 flex-shrink-0" />
             <span className="text-zinc-300 truncate hidden sm:block">{t("beta.bannerText")}</span>
             <span className="text-zinc-300 truncate sm:hidden">{t("beta.bannerTextShort")}</span>
             <button
@@ -112,15 +96,6 @@ const Layout = () => {
             >
               <Info size={14} />
             </button>
-            {timeLeft && (
-              <span className="hidden md:flex items-center gap-1.5 ml-2 text-sm font-mono text-white flex-shrink-0">
-                <span className="text-zinc-400 text-xs font-sans">{t("beta.countdownLabel")}</span>
-                {String(timeLeft.d).padStart(2,"0")}d&nbsp;
-                {String(timeLeft.h).padStart(2,"0")}h&nbsp;
-                {String(timeLeft.m).padStart(2,"0")}m&nbsp;
-                {String(timeLeft.s).padStart(2,"0")}s
-              </span>
-            )}
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
             <button
