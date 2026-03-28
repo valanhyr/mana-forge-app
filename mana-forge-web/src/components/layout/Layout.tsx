@@ -44,7 +44,7 @@ const Layout = () => {
   // Google Analytics Page Tracking
   useEffect(() => {
     if (typeof (window as any).gtag === "function") {
-      (window as any).gtag("config", "G-YR4GEC9XWL", {
+      (window as any).gtag("config", "G-7LKHH7VRPK", {
         page_path: location.pathname + location.search,
       });
     }
