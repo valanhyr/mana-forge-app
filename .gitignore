@@ -2,6 +2,12 @@
 .env
 .env.local
 .env.production
+**/.env
+**/.env.local
+**/.env.production
 
-# Engine secrets
-mana-forge-engine/.env
+# Python cache
+__pycache__/
+**/__pycache__/
+*.pyc
+*.pyo
