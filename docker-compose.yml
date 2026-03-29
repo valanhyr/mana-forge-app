@@ -1,6 +1,7 @@
 services:
   # FRONTEND: Servido por Nginx (Puerto 80)
   web:
+    image: ${WEB_IMAGE:-ghcr.io/valanhyr/mana-forge-web:latest}
     build:
       context: ./mana-forge-web
       dockerfile: Dockerfile
@@ -18,6 +19,7 @@ services:
 
   # BACKEND: Java Spring Boot (Puerto 8080)
   api:
+    image: ${API_IMAGE:-ghcr.io/valanhyr/mana-forge-api:latest}
     build:
       context: ./mana-forge-api
       dockerfile: Dockerfile
@@ -54,6 +56,7 @@ services:
 
   # ENGINE: Python FastAPI (Puerto 8000)
   engine:
+    image: ${ENGINE_IMAGE:-ghcr.io/valanhyr/mana-forge-engine:latest}
     build:
       context: ./mana-forge-engine
       dockerfile: Dockerfile

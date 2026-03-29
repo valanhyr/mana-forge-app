@@ -1,0 +1,129 @@
+pipeline {
+    agent any
+
+    parameters {
+        string(name: 'BRANCH',      defaultValue: 'main',       description: 'Branch to deploy')
+        choice(name: 'ENVIRONMENT', choices: ['production'],     description: 'Target environment')
+    }
+
+    environment {
+        IMAGE_NAME  = 'ghcr.io/valanhyr/mana-forge-api'
+        DEPLOY_HOST = '91.98.206.23'
+        DEPLOY_USER = 'root'
+        DEPLOY_PATH = '/root/mana-forge'
+        SERVICE     = 'api'
+        HEALTH_URL  = 'http://91.98.206.23:8080/actuator/health'
+    }
+
+    stages {
+
+        stage('Checkout') {
+            steps {
+                git branch: params.BRANCH,
+                    url: 'https://github.com/valanhyr/mana-forge-app.git'
+            }
+        }
+
+        stage('Build') {
+            steps {
+                script {
+                    env.IMAGE_TAG  = sh(returnStdout: true, script: 'git rev-parse --short HEAD').trim()
+                    env.IMAGE_FULL = "${env.IMAGE_NAME}:${env.IMAGE_TAG}"
+                }
+                sh "docker build -t ${env.IMAGE_FULL} -t ${env.IMAGE_NAME}:latest ./mana-forge-api"
+            }
+        }
+
+        stage('Test') {
+            steps {
+                echo '⏭️  Tests not yet configured — skipping'
+                // Future:
+                // sh './mvnw test -pl mana-forge-api --no-transfer-progress'
+            }
+        }
+
+        stage('Publish') {
+            steps {
+                withCredentials([usernamePassword(
+                    credentialsId: 'ghcr-credentials',
+                    usernameVariable: 'GHCR_USER',
+                    passwordVariable: 'GHCR_TOKEN'
+                )]) {
+                    sh '''
+                        echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
+                        docker push "$IMAGE_FULL"
+                        docker push "$IMAGE_NAME:latest"
+                    '''
+                }
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                withCredentials([sshUserPrivateKey(
+                    credentialsId: 'hetzner-ssh-key',
+                    keyFileVariable: 'SSH_KEY'
+                )]) {
+                    sh '''
+                        SSH="ssh -i $SSH_KEY -o StrictHostKeyChecking=no $DEPLOY_USER@$DEPLOY_HOST"
+
+                        # Guardar imagen actual para rollback
+                        PREV=$($SSH "docker inspect mana-forge-${SERVICE}-1 --format='{{.Config.Image}}' 2>/dev/null || echo ''")
+                        $SSH "echo '$PREV' > /tmp/previous_${SERVICE}_image"
+
+                        # Desplegar nueva imagen
+                        $SSH "cd $DEPLOY_PATH && docker pull $IMAGE_FULL && API_IMAGE=$IMAGE_FULL docker compose up -d --no-build $SERVICE"
+                    '''
+                }
+            }
+        }
+
+        stage('Healthcheck') {
+            steps {
+                script {
+                    def healthy = false
+                    echo "⏳ Waiting for service to be healthy..."
+                    for (int i = 1; i <= 12; i++) {
+                        sleep(10)
+                        def status = sh(
+                            script: "curl -sf -o /dev/null -w '%{http_code}' ${env.HEALTH_URL} || echo '000'",
+                            returnStdout: true
+                        ).trim()
+                        echo "  Attempt ${i}/12: HTTP ${status}"
+                        if (status ==~ /^[2-4][0-9]{2}$/) {
+                            healthy = true
+                            echo '✅ Service is healthy'
+                            break
+                        }
+                    }
+                    if (!healthy) {
+                        error('❌ Healthcheck failed after 2 minutes — triggering rollback')
+                    }
+                }
+            }
+        }
+    }
+
+    post {
+        failure {
+            withCredentials([sshUserPrivateKey(
+                credentialsId: 'hetzner-ssh-key',
+                keyFileVariable: 'SSH_KEY'
+            )]) {
+                sh '''
+                    SSH="ssh -i $SSH_KEY -o StrictHostKeyChecking=no $DEPLOY_USER@$DEPLOY_HOST"
+                    PREV=$($SSH "cat /tmp/previous_${SERVICE}_image 2>/dev/null || echo ''")
+                    if [ -n "$PREV" ]; then
+                        echo "🔄 Rolling back to $PREV"
+                        $SSH "cd $DEPLOY_PATH && API_IMAGE=$PREV docker compose up -d --no-build $SERVICE"
+                    else
+                        echo "⚠️  No previous image found — manual intervention required"
+                    fi
+                '''
+            }
+        }
+        always {
+            sh 'docker logout ghcr.io || true'
+        }
+    }
+}
