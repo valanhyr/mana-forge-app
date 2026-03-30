@@ -71,7 +71,7 @@ pipeline {
                             echo "$PREV" > /tmp/previous_api_image
                             docker pull "$IMAGE_FULL"
                             cd /var/jenkins_home/workspace/deploy-api
-                            API_IMAGE="$IMAGE_FULL" docker compose up -d --no-build api
+                            API_IMAGE="$IMAGE_FULL" docker-compose up -d --no-build api
                         '''
                     } else {
                         withCredentials([sshUserPrivateKey(
@@ -125,7 +125,7 @@ pipeline {
                         PREV=$(cat /tmp/previous_api_image 2>/dev/null || echo '')
                         if [ -n "$PREV" ]; then
                             echo "🔄 Rolling back to $PREV"
-                            API_IMAGE="$PREV" docker compose -f /var/jenkins_home/workspace/deploy-api/docker-compose.yml up -d --no-build api
+                            API_IMAGE="$PREV" docker-compose -f /var/jenkins_home/workspace/deploy-api/docker-compose.yml up -d --no-build api
                         else
                             echo "⚠️  No previous image found"
                         fi
