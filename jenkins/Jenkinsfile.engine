@@ -103,6 +103,7 @@ pipeline {
                         ]) {
                             sh '''
                                 chmod 600 "$SSH_KEY"
+                                sed -i 's/\r//' "$SSH_KEY"
                                 SSH="ssh -i $SSH_KEY -o StrictHostKeyChecking=no $DEPLOY_USER@$DEPLOY_HOST"
                                 SCP="scp -i $SSH_KEY -o StrictHostKeyChecking=no"
                                 PREV=$($SSH "docker inspect mana-forge-${SERVICE}-1 --format='{{.Config.Image}}' 2>/dev/null || echo ''")
@@ -166,6 +167,7 @@ pipeline {
                     ]) {
                         sh '''
                             chmod 600 "$SSH_KEY"
+                            sed -i 's/\r//' "$SSH_KEY"
                             SSH="ssh -i $SSH_KEY -o StrictHostKeyChecking=no $DEPLOY_USER@$DEPLOY_HOST"
                             SCP="scp -i $SSH_KEY -o StrictHostKeyChecking=no"
                             PREV=$($SSH "cat /tmp/previous_${SERVICE}_image 2>/dev/null || echo ''")
