@@ -146,3 +146,12 @@ logging:
     org.springframework.data.mongodb: DEBUG
     org.springframework.cache: TRACE
     com.couchbase: DEBUG
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: never

@@ -36,10 +36,13 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/api/users", "/api/users/login", "/api/decks/analyze", "/api/decks/random").permitAll()
                 .requestMatchers(HttpMethod.DELETE, "/api/articles/cache", "/api/formats/cache", "/api/v1/content/cache").permitAll()
                 
-                // 2. Todo lo que sea lectura (GET) es público (Web anónima)
+                // 2. Actuator health (usado por Jenkins CI/CD)
+                .requestMatchers("/actuator/health").permitAll()
+
+                // 3. Todo lo que sea lectura (GET) es público (Web anónima)
                 .requestMatchers(HttpMethod.GET, "/api/**", "/content-service/**").permitAll()
 
-                // 3. Todo lo demás (POST, PUT, DELETE en mazos, usuarios, cartas) requiere Login
+                // 4. Todo lo demás (POST, PUT, DELETE en mazos, usuarios, cartas) requiere Login
                 .anyRequest().authenticated()
             );
 
