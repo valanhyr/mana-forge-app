@@ -66,7 +66,7 @@ pipeline {
             steps {
                 script {
                     if (params.ENVIRONMENT == 'local') {
-                        withCredentials([file(credentialsId: 'mana-forge-local-env', variable: 'ENV_FILE')]) {
+                        withCredentials([file(credentialsId: 'mana-forge-api', variable: 'ENV_FILE')]) {
                             sh '''
                                 PREV=$(docker inspect mana-forge-api-1 --format='{{.Config.Image}}' 2>/dev/null || echo '')
                                 echo "$PREV" > /tmp/previous_api_image
@@ -123,7 +123,7 @@ pipeline {
         failure {
             script {
                 if (params.ENVIRONMENT == 'local') {
-                    withCredentials([file(credentialsId: 'mana-forge-local-env', variable: 'ENV_FILE')]) {
+                    withCredentials([file(credentialsId: 'mana-forge-api', variable: 'ENV_FILE')]) {
                         sh '''
                             PREV=$(cat /tmp/previous_api_image 2>/dev/null || echo '')
                             if [ -n "$PREV" ]; then
