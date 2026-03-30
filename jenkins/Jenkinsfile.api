@@ -28,6 +28,31 @@ pipeline {
             }
         }
 
+        stage('Validate') {
+            when { expression { params.ENVIRONMENT == 'production' } }
+            steps {
+                script {
+                    def version = sh(
+                        returnStdout: true,
+                        script: "grep -m1 '<version>' mana-forge-api/pom.xml | sed 's/.*<version>\\(.*\\)<\\/version>/\\1/' | tr -d '[:space:]'"
+                    ).trim()
+                    env.RELEASE_VERSION = version
+                    echo "📦 Version: ${version}"
+                    if (version.contains('SNAPSHOT')) {
+                        error("🚫 Cannot deploy SNAPSHOT (${version}) to production. Remove -SNAPSHOT from pom.xml first.")
+                    }
+                    def tagExists = sh(
+                        returnStatus: true,
+                        script: "git fetch --tags && git tag -l 'api-v${version}' | grep -q ."
+                    )
+                    if (tagExists == 0) {
+                        error("🚫 Version api-v${version} already released. Bump the version in pom.xml.")
+                    }
+                    echo "✅ Version api-v${version} is a new release — proceeding"
+                }
+            }
+        }
+
         stage('Build') {
             steps {
                 script {
@@ -161,6 +186,25 @@ pipeline {
         }
         always {
             sh 'docker logout ghcr.io || true'
+        }
+        success {
+            script {
+                if (params.ENVIRONMENT == 'production' && env.RELEASE_VERSION) {
+                    withCredentials([usernamePassword(
+                        credentialsId: 'ghcr-credentials',
+                        usernameVariable: 'GIT_USER',
+                        passwordVariable: 'GIT_TOKEN'
+                    )]) {
+                        sh '''
+                            git config user.email "jenkins@mana-forge"
+                            git config user.name "Jenkins"
+                            git tag "api-v${RELEASE_VERSION}"
+                            git push "https://${GIT_USER}:${GIT_TOKEN}@github.com/valanhyr/mana-forge-app.git" "api-v${RELEASE_VERSION}"
+                            echo "🏷️  Tagged api-v${RELEASE_VERSION}"
+                        '''
+                    }
+                }
+            }
         }
     }
 }
