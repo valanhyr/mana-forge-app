@@ -33,7 +33,7 @@ pipeline {
                 script {
                     def version = sh(
                         returnStdout: true,
-                        script: "node -e \"process.stdout.write(require('./mana-forge-web/package.json').version)\""
+                        script: "grep '\"version\"' ./mana-forge-web/package.json | head -1 | sed 's/.*\"version\": *\"\\([^\"]*\\)\".*/\\1/'"
                     ).trim()
                     env.RELEASE_VERSION = version
                     echo "📦 Version: ${version}"
