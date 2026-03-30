@@ -76,15 +76,18 @@ pipeline {
                             '''
                         }
                     } else {
-                        withCredentials([sshUserPrivateKey(
-                            credentialsId: 'hetzner-ssh-key',
-                            keyFileVariable: 'SSH_KEY'
-                        )]) {
+                        withCredentials([
+                            sshUserPrivateKey(credentialsId: 'hetzner-ssh-key', keyFileVariable: 'SSH_KEY'),
+                            file(credentialsId: 'mana-forge-api', variable: 'ENV_FILE')
+                        ]) {
                             sh '''
                                 SSH="ssh -i $SSH_KEY -o StrictHostKeyChecking=no $DEPLOY_USER@$DEPLOY_HOST"
+                                SCP="scp -i $SSH_KEY -o StrictHostKeyChecking=no"
                                 PREV=$($SSH "docker inspect mana-forge-${SERVICE}-1 --format='{{.Config.Image}}' 2>/dev/null || echo ''")
                                 $SSH "echo '$PREV' > /tmp/previous_${SERVICE}_image"
-                                $SSH "cd $DEPLOY_PATH && docker pull $IMAGE_FULL && API_IMAGE=$IMAGE_FULL docker compose up -d --no-build $SERVICE"
+                                $SCP "$ENV_FILE" $DEPLOY_USER@$DEPLOY_HOST:/tmp/.env.deploy
+                                $SSH "cd $DEPLOY_PATH && docker pull $IMAGE_FULL && API_IMAGE=$IMAGE_FULL docker compose --env-file /tmp/.env.deploy up -d --no-build --no-deps $SERVICE"
+                                $SSH "rm -f /tmp/.env.deploy"
                             '''
                         }
                     }
@@ -135,16 +138,19 @@ pipeline {
                         '''
                     }
                 } else {
-                    withCredentials([sshUserPrivateKey(
-                        credentialsId: 'hetzner-ssh-key',
-                        keyFileVariable: 'SSH_KEY'
-                    )]) {
+                    withCredentials([
+                        sshUserPrivateKey(credentialsId: 'hetzner-ssh-key', keyFileVariable: 'SSH_KEY'),
+                        file(credentialsId: 'mana-forge-api', variable: 'ENV_FILE')
+                    ]) {
                         sh '''
                             SSH="ssh -i $SSH_KEY -o StrictHostKeyChecking=no $DEPLOY_USER@$DEPLOY_HOST"
+                            SCP="scp -i $SSH_KEY -o StrictHostKeyChecking=no"
                             PREV=$($SSH "cat /tmp/previous_${SERVICE}_image 2>/dev/null || echo ''")
                             if [ -n "$PREV" ]; then
                                 echo "🔄 Rolling back to $PREV"
-                                $SSH "cd $DEPLOY_PATH && API_IMAGE=$PREV docker compose up -d --no-build $SERVICE"
+                                $SCP "$ENV_FILE" $DEPLOY_USER@$DEPLOY_HOST:/tmp/.env.deploy
+                                $SSH "cd $DEPLOY_PATH && API_IMAGE=$PREV docker compose --env-file /tmp/.env.deploy up -d --no-build --no-deps $SERVICE"
+                                $SSH "rm -f /tmp/.env.deploy"
                             else
                                 echo "⚠️  No previous image found"
                             fi
