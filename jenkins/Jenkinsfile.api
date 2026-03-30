@@ -2,17 +2,21 @@ pipeline {
     agent any
 
     parameters {
-        string(name: 'BRANCH',      defaultValue: 'main',       description: 'Branch to deploy')
-        choice(name: 'ENVIRONMENT', choices: ['production'],     description: 'Target environment')
+        string(name: 'BRANCH',      defaultValue: 'main',            description: 'Branch to deploy')
+        choice(name: 'ENVIRONMENT', choices: ['local', 'production'], description: 'Target environment')
     }
 
     environment {
         IMAGE_NAME  = 'ghcr.io/valanhyr/mana-forge-api'
-        DEPLOY_HOST = '91.98.206.23'
-        DEPLOY_USER = 'root'
-        DEPLOY_PATH = '/root/mana-forge'
         SERVICE     = 'api'
-        HEALTH_URL  = 'http://91.98.206.23:8080/actuator/health'
+        COMPOSE_PATH = 'mana-forge'
+        // Production
+        DEPLOY_HOST  = '91.98.206.23'
+        DEPLOY_USER  = 'root'
+        DEPLOY_PATH  = '/root/mana-forge'
+        HEALTH_URL_PROD  = 'http://91.98.206.23:8080/actuator/health'
+        // Local
+        HEALTH_URL_LOCAL = 'http://host.docker.internal:8080/actuator/health'
     }
 
     stages {
@@ -60,20 +64,28 @@ pipeline {
 
         stage('Deploy') {
             steps {
-                withCredentials([sshUserPrivateKey(
-                    credentialsId: 'hetzner-ssh-key',
-                    keyFileVariable: 'SSH_KEY'
-                )]) {
-                    sh '''
-                        SSH="ssh -i $SSH_KEY -o StrictHostKeyChecking=no $DEPLOY_USER@$DEPLOY_HOST"
-
-                        # Guardar imagen actual para rollback
-                        PREV=$($SSH "docker inspect mana-forge-${SERVICE}-1 --format='{{.Config.Image}}' 2>/dev/null || echo ''")
-                        $SSH "echo '$PREV' > /tmp/previous_${SERVICE}_image"
-
-                        # Desplegar nueva imagen
-                        $SSH "cd $DEPLOY_PATH && docker pull $IMAGE_FULL && API_IMAGE=$IMAGE_FULL docker compose up -d --no-build $SERVICE"
-                    '''
+                script {
+                    if (params.ENVIRONMENT == 'local') {
+                        sh '''
+                            PREV=$(docker inspect mana-forge-api-1 --format='{{.Config.Image}}' 2>/dev/null || echo '')
+                            echo "$PREV" > /tmp/previous_api_image
+                            docker pull "$IMAGE_FULL"
+                            cd /var/jenkins_home/workspace/deploy-api
+                            API_IMAGE="$IMAGE_FULL" docker compose up -d --no-build api
+                        '''
+                    } else {
+                        withCredentials([sshUserPrivateKey(
+                            credentialsId: 'hetzner-ssh-key',
+                            keyFileVariable: 'SSH_KEY'
+                        )]) {
+                            sh '''
+                                SSH="ssh -i $SSH_KEY -o StrictHostKeyChecking=no $DEPLOY_USER@$DEPLOY_HOST"
+                                PREV=$($SSH "docker inspect mana-forge-${SERVICE}-1 --format='{{.Config.Image}}' 2>/dev/null || echo ''")
+                                $SSH "echo '$PREV' > /tmp/previous_${SERVICE}_image"
+                                $SSH "cd $DEPLOY_PATH && docker pull $IMAGE_FULL && API_IMAGE=$IMAGE_FULL docker compose up -d --no-build $SERVICE"
+                            '''
+                        }
+                    }
                 }
             }
         }
@@ -81,12 +93,13 @@ pipeline {
         stage('Healthcheck') {
             steps {
                 script {
+                    def healthUrl = params.ENVIRONMENT == 'local' ? env.HEALTH_URL_LOCAL : env.HEALTH_URL_PROD
                     def healthy = false
                     echo "⏳ Waiting for service to be healthy..."
                     for (int i = 1; i <= 12; i++) {
                         sleep(10)
                         def status = sh(
-                            script: "curl -sf -o /dev/null -w '%{http_code}' ${env.HEALTH_URL} || echo '000'",
+                            script: "curl -sf -o /dev/null -w '%{http_code}' ${healthUrl} || echo '000'",
                             returnStdout: true
                         ).trim()
                         echo "  Attempt ${i}/12: HTTP ${status}"
@@ -106,20 +119,34 @@ pipeline {
 
     post {
         failure {
-            withCredentials([sshUserPrivateKey(
-                credentialsId: 'hetzner-ssh-key',
-                keyFileVariable: 'SSH_KEY'
-            )]) {
-                sh '''
-                    SSH="ssh -i $SSH_KEY -o StrictHostKeyChecking=no $DEPLOY_USER@$DEPLOY_HOST"
-                    PREV=$($SSH "cat /tmp/previous_${SERVICE}_image 2>/dev/null || echo ''")
-                    if [ -n "$PREV" ]; then
-                        echo "🔄 Rolling back to $PREV"
-                        $SSH "cd $DEPLOY_PATH && API_IMAGE=$PREV docker compose up -d --no-build $SERVICE"
-                    else
-                        echo "⚠️  No previous image found — manual intervention required"
-                    fi
-                '''
+            script {
+                if (params.ENVIRONMENT == 'local') {
+                    sh '''
+                        PREV=$(cat /tmp/previous_api_image 2>/dev/null || echo '')
+                        if [ -n "$PREV" ]; then
+                            echo "🔄 Rolling back to $PREV"
+                            API_IMAGE="$PREV" docker compose -f /var/jenkins_home/workspace/deploy-api/docker-compose.yml up -d --no-build api
+                        else
+                            echo "⚠️  No previous image found"
+                        fi
+                    '''
+                } else {
+                    withCredentials([sshUserPrivateKey(
+                        credentialsId: 'hetzner-ssh-key',
+                        keyFileVariable: 'SSH_KEY'
+                    )]) {
+                        sh '''
+                            SSH="ssh -i $SSH_KEY -o StrictHostKeyChecking=no $DEPLOY_USER@$DEPLOY_HOST"
+                            PREV=$($SSH "cat /tmp/previous_${SERVICE}_image 2>/dev/null || echo ''")
+                            if [ -n "$PREV" ]; then
+                                echo "🔄 Rolling back to $PREV"
+                                $SSH "cd $DEPLOY_PATH && API_IMAGE=$PREV docker compose up -d --no-build $SERVICE"
+                            else
+                                echo "⚠️  No previous image found"
+                            fi
+                        '''
+                    }
+                }
             }
         }
         always {
