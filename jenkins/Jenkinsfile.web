@@ -104,6 +104,7 @@ pipeline {
                         }
                     } else {
                         withCredentials([
+                            usernamePassword(credentialsId: 'ghcr-credentials', usernameVariable: 'GHCR_USER', passwordVariable: 'GHCR_TOKEN'),
                             file(credentialsId: 'mana-forge-api', variable: 'ENV_FILE')
                         ]) {
                             sh '''
@@ -112,7 +113,7 @@ pipeline {
                                 PREV=$($SSH "docker inspect mana-forge-${SERVICE}-1 --format='{{.Config.Image}}' 2>/dev/null || echo ''")
                                 $SSH "echo '$PREV' > /tmp/previous_${SERVICE}_image"
                                 $SCP "$ENV_FILE" $DEPLOY_USER@$DEPLOY_HOST:/tmp/.env.deploy
-                                $SSH "cd $DEPLOY_PATH && docker pull $IMAGE_FULL && WEB_IMAGE=$IMAGE_FULL docker compose --env-file /tmp/.env.deploy up -d --no-build --no-deps $SERVICE"
+                                $SSH "echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin && cd $DEPLOY_PATH && docker pull $IMAGE_FULL && WEB_IMAGE=$IMAGE_FULL docker compose --env-file /tmp/.env.deploy up -d --no-build --no-deps $SERVICE"
                                 $SSH "rm -f /tmp/.env.deploy"
                             '''
                         }
