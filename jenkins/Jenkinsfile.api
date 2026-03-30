@@ -14,7 +14,7 @@ pipeline {
         DEPLOY_HOST  = '91.98.206.23'
         DEPLOY_USER  = 'root'
         DEPLOY_PATH  = '/root/mana-forge'
-        HEALTH_URL_PROD  = 'http://localhost:8080/actuator/health'
+        HEALTH_URL_PROD  = 'https://mana-forge.com/api/actuator/health'
         // Local
         HEALTH_URL_LOCAL = 'http://host.docker.internal:8080/actuator/health'
     }
@@ -123,23 +123,15 @@ pipeline {
         stage('Healthcheck') {
             steps {
                 script {
+                    def healthUrl = params.ENVIRONMENT == 'local' ? env.HEALTH_URL_LOCAL : env.HEALTH_URL_PROD
                     def healthy = false
                     echo "⏳ Waiting for service to be healthy..."
                     for (int i = 1; i <= 12; i++) {
                         sleep(10)
-                        def status
-                        if (params.ENVIRONMENT == 'local') {
-                            status = sh(
-                                script: "curl -sf -o /dev/null -w '%{http_code}' ${env.HEALTH_URL_LOCAL} || echo '000'",
-                                returnStdout: true
-                            ).trim()
-                        } else {
-                            // Port 8080 is not publicly exposed — check via SSH on the server
-                            status = sh(
-                                script: "ssh -i /var/jenkins_home/.ssh/hetzner_key -o StrictHostKeyChecking=no ${env.DEPLOY_USER}@${env.DEPLOY_HOST} \"curl -sf -o /dev/null -w '%{http_code}' ${env.HEALTH_URL_PROD} || echo '000'\"",
-                                returnStdout: true
-                            ).trim()
-                        }
+                        def status = sh(
+                            script: "curl -sf -o /dev/null -w '%{http_code}' ${healthUrl} || echo '000'",
+                            returnStdout: true
+                        ).trim()
                         echo "  Attempt ${i}/12: HTTP ${status}"
                         if (status ==~ /^[2-4][0-9]{2}$/) {
                             healthy = true
