@@ -107,7 +107,7 @@ pipeline {
                                 PREV=$($SSH "docker inspect mana-forge-${SERVICE}-1 --format='{{.Config.Image}}' 2>/dev/null || echo ''")
                                 $SSH "echo '$PREV' > /tmp/previous_${SERVICE}_image"
                                 $SCP "$ENV_FILE" $DEPLOY_USER@$DEPLOY_HOST:/tmp/.env.deploy
-                                $SSH "echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin && cd $DEPLOY_PATH && docker pull $IMAGE_FULL && ENGINE_IMAGE=$IMAGE_FULL docker compose --env-file /tmp/.env.deploy up -d --no-build --no-deps $SERVICE"
+                                $SSH "echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin && cd $DEPLOY_PATH && docker pull $IMAGE_FULL && ENGINE_IMAGE=$IMAGE_FULL docker compose --env-file /tmp/.env.deploy up -d --no-build --no-deps --force-recreate $SERVICE"
                                 $SSH "rm -f /tmp/.env.deploy"
                             '''
                         }
