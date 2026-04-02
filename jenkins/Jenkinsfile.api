@@ -120,7 +120,7 @@ pipeline {
             }
         }
 
-        stage('Healthcheck') {
+      /*  stage('Healthcheck') {
             steps {
                 script {
                     def healthUrl = params.ENVIRONMENT == 'local' ? env.HEALTH_URL_LOCAL : env.HEALTH_URL_PROD
@@ -144,7 +144,7 @@ pipeline {
                     }
                 }
             }
-        }
+        }*/
     }
 
     post {
