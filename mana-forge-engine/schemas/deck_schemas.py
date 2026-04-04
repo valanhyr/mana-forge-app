@@ -89,3 +89,31 @@ class RandomDeckResponse(BaseModel):
     brief_analysis: str
     main_deck: List[CardOutput]
     sideboard: List[CardOutput]
+
+# --- Schemas for Mana Base Analysis and Suggestion ---
+class ManaBaseChange(BaseModel):
+    card_out: Optional[str] = Field(None, description="Card to remove or replace")
+    card_in: Optional[str] = Field(None, description="Card to add or replace with")
+    quantity: int
+    reason: str
+
+class ManaBaseAnalysisResponse(BaseModel):
+    tier_estimation: str = Field(description="Estimated competitive level (Tier 1, Tier 2, Casual, etc.)")
+    stability_score: float = Field(description="Score from 0 to 10 on mana stability")
+    strategy_summary: str
+    suggested_changes: List[ManaBaseChange]
+    mana_curve_notes: str
+    colors_analysis: str
+    acceleration_summary: str = Field(description="Analysis of mana rocks and dorks")
+
+class ManaBaseRequest(BaseModel):
+    main_deck: List[CardInput]
+    format_name: str
+    locale: str
+    target_level: Optional[str] = Field("competitive", description="Desired level: competitive, semi-competitive, casual")
+
+    @field_validator("locale")
+    @classmethod
+    def validate_locale(cls, v: str) -> str:
+        normalized = v.split("-")[0].lower()
+        return normalized if normalized in SUPPORTED_LOCALES else "en"

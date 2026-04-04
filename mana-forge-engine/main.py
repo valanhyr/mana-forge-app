@@ -5,7 +5,7 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
-from routers import sideboard, analysis, random_deck
+from routers import sideboard, analysis, random_deck, mana_base
 
 load_dotenv()
 
@@ -31,6 +31,7 @@ app.add_middleware(
 app.include_router(sideboard.router)
 app.include_router(analysis.router)
 app.include_router(random_deck.router)
+app.include_router(mana_base.router)
 
 
 @app.get("/health", tags=["Health"])
