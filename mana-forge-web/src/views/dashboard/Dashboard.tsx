@@ -246,14 +246,14 @@ const Dashboard = () => {
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
         </div>
         <div className="relative z-10 flex flex-col justify-between h-80 p-6 text-white">
-          <div className="flex justify-between items-start">
-            <span className="inline-flex items-center gap-2 rounded-full bg-black/60 px-3 py-1 text-xs font-medium text-indigo-400 border border-indigo-500/20 backdrop-blur-sm">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2">
+            <span className="inline-flex shrink-0 items-center gap-2 rounded-full bg-black/60 px-3 py-1 text-xs font-medium text-indigo-400 border border-indigo-500/20 backdrop-blur-sm">
               <Sparkles size={14} /> {t("dashboard.aiDeckOfTheDay")}
             </span>
             
             {/* Star Rating System On Card */}
             <div 
-              className="flex gap-1 bg-black/60 px-2 py-1 rounded-full border border-zinc-500/20 backdrop-blur-sm"
+              className="flex gap-1 bg-black/60 px-2 py-1 rounded-full border border-zinc-500/20 backdrop-blur-sm w-fit"
               onMouseLeave={() => setHoveredStar(0)}
               onClick={e => e.stopPropagation()}
             >
@@ -411,13 +411,13 @@ const Dashboard = () => {
 
       {/* --- Sección Formatos Populares (Sugerencia) --- */}
       <section>
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-2">
           <h2 className="text-3xl font-bold text-white">
             {t("dashboard.exploreFormats")}
           </h2>
           <Link
             to="/formats/all-formats"
-            className="text-sm font-medium text-orange-500 hover:underline flex items-center gap-1"
+            className="text-sm font-medium text-orange-500 hover:underline flex items-center gap-1 self-end"
           >
             {t("common.viewAll")} <ArrowRight size={16} />
           </Link>
@@ -456,14 +456,14 @@ const Dashboard = () => {
             {/* Header */}
             <div className="flex items-center justify-between p-6 border-b border-zinc-800 shrink-0">
               <div>
-                <div className="flex items-center gap-4 mb-1">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mb-1">
                   <h3 className="text-2xl font-bold text-white">
                     {dailyDeck.deck_name}
                   </h3>
                   
                   {/* Star Rating System Modal Header */}
                   <div 
-                    className="flex gap-1 bg-zinc-950/50 px-3 py-1.5 rounded-full border border-zinc-800"
+                    className="flex gap-1 bg-zinc-950/50 px-3 py-1.5 rounded-full border border-zinc-800 w-fit"
                     onMouseLeave={() => setHoveredStar(0)}
                   >
                     {[1, 2, 3, 4, 5].map(star => {
