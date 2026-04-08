@@ -1321,7 +1321,7 @@ const DeckBuilder = () => {
       <div ref={sentinelRef} />
       {isFloating && <div className="h-16" />}
       <div className={isFloating ? "fixed bottom-0 left-0 right-0 z-40 bg-zinc-950/95 backdrop-blur-sm border-t border-zinc-800/80" : "mt-4 rounded-2xl border border-zinc-800 bg-zinc-900"}>
-        <div className="flex items-center gap-4 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+        <div className="flex flex-wrap items-center gap-3 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
           <div className="flex items-center gap-4 flex-1 min-w-0">
             {isCommanderFormat ? (
               <div className="flex items-center gap-1.5 text-sm">
@@ -1346,7 +1346,7 @@ const DeckBuilder = () => {
               </>
             )}
             {totalDeckPrice > 0 && (
-              <div className="flex items-center gap-1.5 text-sm">
+              <div className="flex items-center gap-1.5 text-sm ml-auto">
                 <Euro size={14} className="text-green-400 flex-shrink-0" />
                 <span className="text-green-400 font-bold">{totalDeckPrice.toFixed(2)} €</span>
               </div>
@@ -1355,7 +1355,7 @@ const DeckBuilder = () => {
           <button
             onClick={handleSaveDeck}
             disabled={!isDeckValid || isSaving}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all ${isDeckValid && !isSaving ? "bg-green-600 hover:bg-green-500 text-white active:scale-95" : "bg-zinc-800 text-zinc-500 cursor-not-allowed"}`}
+            className={`flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all w-full sm:w-auto ${isDeckValid && !isSaving ? "bg-green-600 hover:bg-green-500 text-white active:scale-95" : "bg-zinc-800 text-zinc-500 cursor-not-allowed"}`}
           >
             {isSaving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
             {isSaving ? t("common.saving") : deckId ? t("deckBuilder.updateDeck") : t("deckBuilder.saveDeck")}

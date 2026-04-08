@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { ArrowLeft, ArrowUp, ArrowDown, Layers, User, Loader2, Shield, ThumbsUp, Copy, Check, Files, Lightbulb, Euro } from "lucide-react";
+import { ArrowLeft, ArrowUp, ArrowDown, Layers, User, Loader2, Shield, ThumbsUp, Copy, Check, Files, Lightbulb, Euro, Camera, X as XIcon } from "lucide-react";
 import { DeckService, type DeckView, type DeckCardEntry } from "../../services/DeckService";
 import { useUser } from "../../services/UserContext";
 import ManaCost from "../../components/ui/ManaCost";
@@ -71,6 +71,7 @@ const DeckViewer = () => {
   const [showPrices, setShowPrices] = useState(false);
   const sentinelRef = useRef<HTMLDivElement>(null);
   const [isFloating, setIsFloating] = useState(true);
+  const [previewCard, setPreviewCard] = useState<DeckCardEntry | null>(null);
 
   useEffect(() => {
     if (!deckId) { setLoading(false); return; }
@@ -217,7 +218,7 @@ const DeckViewer = () => {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
               <h1 className="text-3xl font-bold text-white">{deck.name}</h1>
-              <div className="flex items-center gap-3 mt-2 text-sm text-zinc-400">
+              <div className="flex flex-wrap items-center gap-2 mt-2 text-sm text-zinc-400">
                 <span className="bg-zinc-800 border border-zinc-700 px-2 py-0.5 rounded-md">
                   {deck.formatName}
                 </span>
@@ -437,6 +438,12 @@ const DeckViewer = () => {
                               className="flex justify-between items-center px-3 py-1.5 rounded-lg hover:bg-zinc-800 transition-colors cursor-default group"
                             >
                               <span className="text-zinc-300 group-hover:text-white text-sm transition-colors flex items-center gap-1">
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); setPreviewCard(card); }}
+                                  className="p-0.5 text-zinc-500 hover:text-orange-500 transition-colors shrink-0"
+                                >
+                                  <Camera size={14} />
+                                </button>
                                 {card.name ?? card.scryfallId}
                                 {card.isGameChanger && (
                                   <span title={t("common.gameChangerTooltip")} className="cursor-help inline-flex items-center justify-center bg-orange-500/20 text-orange-400 text-[10px] font-bold px-1.5 py-0.5 rounded border border-orange-500/30">
@@ -477,6 +484,12 @@ const DeckViewer = () => {
                           className="flex justify-between items-center px-3 py-1.5 rounded-lg hover:bg-zinc-800 transition-colors cursor-default group"
                         >
                           <span className="text-zinc-300 group-hover:text-white text-sm transition-colors flex items-center gap-1">
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); setPreviewCard(card); }}
+                                  className="p-0.5 text-zinc-500 hover:text-orange-500 transition-colors shrink-0"
+                                >
+                                  <Camera size={14} />
+                                </button>
                             {card.name ?? card.scryfallId}
                             {card.isGameChanger && (
                               <span title={t("common.gameChangerTooltip")} className="cursor-help inline-flex items-center justify-center bg-orange-500/20 text-orange-400 text-[10px] font-bold px-1.5 py-0.5 rounded border border-orange-500/30">
@@ -515,6 +528,12 @@ const DeckViewer = () => {
                           className="flex justify-between items-center px-3 py-1.5 rounded-lg hover:bg-zinc-800 transition-colors cursor-default group"
                         >
                           <span className="text-zinc-300 group-hover:text-white text-sm transition-colors flex items-center gap-1">
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); setPreviewCard(card); }}
+                                  className="p-0.5 text-zinc-500 hover:text-orange-500 transition-colors shrink-0"
+                                >
+                                  <Camera size={14} />
+                                </button>
                             {card.name ?? card.scryfallId}
                           </span>
                           <span className="flex items-center gap-1 ml-2 shrink-0">
@@ -711,6 +730,38 @@ const DeckViewer = () => {
           </button>
         </div>
       </div>
+
+      {/* Mobile card preview modal */}
+      {previewCard && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm"
+          onClick={() => setPreviewCard(null)}
+        >
+          <div className="flex flex-col items-center gap-3 p-4" onClick={e => e.stopPropagation()}>
+            <button
+              onClick={() => setPreviewCard(null)}
+              className="self-end p-1.5 rounded-full bg-zinc-800 text-zinc-400 hover:text-white mb-1"
+            >
+              <XIcon size={18} />
+            </button>
+            {previewCard.imageUris?.normal ? (
+              <img
+                src={previewCard.imageUris.normal}
+                alt={previewCard.name}
+                className="rounded-xl shadow-2xl max-w-[280px]"
+              />
+            ) : (
+              <div className="w-64 h-[357px] rounded-xl bg-zinc-800 border border-zinc-700 flex items-center justify-center text-zinc-600">
+                <Layers size={48} />
+              </div>
+            )}
+            <div className="text-center">
+              <p className="text-white font-semibold">{previewCard.name}</p>
+              <p className="text-zinc-400 text-sm">{previewCard.typeLine}</p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

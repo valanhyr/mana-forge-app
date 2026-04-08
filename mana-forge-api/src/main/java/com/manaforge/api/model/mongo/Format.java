@@ -55,11 +55,11 @@ public class Format {
         private int maxSideboard;
 
         // Getters and Setters
-        public int getMinDeckSize() { return minMainDeck; }
-        public void setMinDeckSize(int minMainDeck) { this.minMainDeck = minMainDeck; }
+        public int getMinMainDeck() { return minMainDeck; }
+        public void setMinMainDeck(int minMainDeck) { this.minMainDeck = minMainDeck; }
 
-        public Integer getMaxDeckSize() { return maxDeckSize; }
-        public void setMaxDeckSize(Integer maxDeckSize) { this.maxDeckSize = maxDeckSize; }
+        public Integer getMaxMainDeck() { return maxDeckSize; }
+        public void setMaxMainDeck(Integer maxDeckSize) { this.maxDeckSize = maxDeckSize; }
 
         public int getMaxCopies() { return maxCopies; }
         public void setMaxCopies(int maxCopies) { this.maxCopies = maxCopies; }
