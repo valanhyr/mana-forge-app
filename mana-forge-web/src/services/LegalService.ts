@@ -1,7 +1,7 @@
-import { type LegalPage } from "../core/models/LegalPage";
-import legalMock from "../core/mocks/legalPages.mock.json";
+import { type LegalPage } from '../core/models/LegalPage';
+import legalMock from '../core/mocks/legalPages.mock.json';
 
-type LocaleKey = "en" | "es";
+type LocaleKey = 'en' | 'es';
 
 const mock = legalMock as Record<LocaleKey, LegalPage[]>;
 
@@ -10,8 +10,8 @@ const mock = legalMock as Record<LocaleKey, LegalPage[]>;
 
 export const LegalService = {
   getBySlug: async (slug: string, locale: string): Promise<LegalPage | null> => {
-    const localeKey = (locale === "es" ? "es" : "en") as LocaleKey;
-    const pages = mock[localeKey] ?? mock["en"];
+    const localeKey = (locale === 'es' ? 'es' : 'en') as LocaleKey;
+    const pages = mock[localeKey] ?? mock['en'];
     return pages.find((p) => p.slug === slug) ?? null;
   },
 };

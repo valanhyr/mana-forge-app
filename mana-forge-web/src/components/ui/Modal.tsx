@@ -1,4 +1,4 @@
-import { X } from "lucide-react";
+import { X } from 'lucide-react';
 
 interface ModalProps {
   isOpen: boolean;
@@ -13,7 +13,7 @@ const Modal: React.FC<ModalProps> = ({
   onClose,
   title,
   children,
-  maxWidth = "max-w-lg",
+  maxWidth = 'max-w-lg',
 }) => {
   if (!isOpen) return null;
 

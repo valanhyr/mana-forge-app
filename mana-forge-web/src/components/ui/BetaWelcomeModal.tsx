@@ -1,8 +1,8 @@
-import { useState } from "react";
-import { FlaskConical } from "lucide-react";
-import { useTranslation } from "../../hooks/useTranslation";
-import { api } from "../../services/api";
-import { useNavigate } from "react-router-dom";
+import { useState } from 'react';
+import { FlaskConical } from 'lucide-react';
+import { useTranslation } from '../../hooks/useTranslation';
+import { api } from '../../services/api';
+import { useNavigate } from 'react-router-dom';
 
 interface Props {
   isOpen: boolean;
@@ -19,12 +19,12 @@ const BetaWelcomeModal = ({ isOpen, onAccept }: Props) => {
   const handleAccept = async () => {
     setIsLoading(true);
     try {
-      await api.patch("/users/me", { betaAccepted: true });
+      await api.patch('/users/me', { betaAccepted: true });
     } catch {
       // non-blocking — beta acceptance is best-effort
     } finally {
       setIsLoading(false);
-      navigate("/profile", { replace: true });
+      navigate('/profile', { replace: true });
       onAccept();
     }
   };
@@ -35,15 +35,15 @@ const BetaWelcomeModal = ({ isOpen, onAccept }: Props) => {
         <div className="w-16 h-16 rounded-full bg-orange-500/10 flex items-center justify-center">
           <FlaskConical size={32} className="text-orange-500" />
         </div>
-        <h2 className="text-2xl font-bold text-white">{t("beta.welcomeTitle")}</h2>
-        <p className="text-zinc-400 text-sm leading-relaxed">{t("beta.welcomeBody")}</p>
-        <p className="text-xs text-zinc-500 leading-relaxed">{t("beta.infoBody")}</p>
+        <h2 className="text-2xl font-bold text-white">{t('beta.welcomeTitle')}</h2>
+        <p className="text-zinc-400 text-sm leading-relaxed">{t('beta.welcomeBody')}</p>
+        <p className="text-xs text-zinc-500 leading-relaxed">{t('beta.infoBody')}</p>
         <button
           onClick={handleAccept}
           disabled={isLoading}
           className="mt-2 w-full bg-orange-600 hover:bg-orange-500 disabled:opacity-60 text-white font-bold py-3 rounded-xl transition-all"
         >
-          {t("beta.welcomeAccept")}
+          {t('beta.welcomeAccept')}
         </button>
       </div>
     </div>

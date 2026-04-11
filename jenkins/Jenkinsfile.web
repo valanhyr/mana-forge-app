@@ -49,6 +49,30 @@ pipeline {
             }
         }
 
+        stage('Lint') {
+            steps {
+                sh '''
+                    cd mana-forge-web
+                    npm ci
+                    npm run lint
+                '''
+            }
+        }
+
+        stage('Test') {
+            steps {
+                sh '''
+                    cd mana-forge-web
+                    npx vitest run --reporter=verbose --reporter=junit --outputFile=test-results/junit.xml
+                '''
+            }
+            post {
+                always {
+                    junit testResults: 'mana-forge-web/test-results/junit.xml', allowEmptyResults: true
+                }
+            }
+        }
+
         stage('Build') {
             steps {
                 script {
@@ -62,14 +86,6 @@ pipeline {
                         -t ${env.IMAGE_NAME}:latest \
                         ./mana-forge-web
                 """
-            }
-        }
-
-        stage('Test') {
-            steps {
-                echo '⏭️  Tests not yet configured — skipping'
-                // Future:
-                // sh 'cd mana-forge-web && npm ci && npm test'
             }
         }
 

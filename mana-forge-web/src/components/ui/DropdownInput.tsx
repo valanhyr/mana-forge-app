@@ -1,5 +1,5 @@
-import { useState, useRef, useEffect } from "react";
-import { ChevronDown } from "lucide-react";
+import { useState, useRef, useEffect } from 'react';
+import { ChevronDown } from 'lucide-react';
 
 export interface DropdownOption {
   value: string | number;
@@ -9,6 +9,7 @@ export interface DropdownOption {
 interface DropdownInputProps {
   options: DropdownOption[];
   value: string | number;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onChange: (value: any) => void;
   label?: string;
   placeholder?: string;
@@ -24,7 +25,7 @@ const DropdownInput: React.FC<DropdownInputProps> = ({
   value,
   onChange,
   label,
-  placeholder = "Selecciona una opción",
+  placeholder = 'Selecciona una opción',
   error,
   disabled = false,
 }) => {
@@ -34,16 +35,13 @@ const DropdownInput: React.FC<DropdownInputProps> = ({
   // Cerrar el dropdown si se hace clic fuera
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (
-        wrapperRef.current &&
-        !wrapperRef.current.contains(event.target as Node)
-      ) {
+      if (wrapperRef.current && !wrapperRef.current.contains(event.target as Node)) {
         setIsOpen(false);
       }
     }
-    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener('mousedown', handleClickOutside);
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [wrapperRef]);
 
@@ -66,11 +64,11 @@ const DropdownInput: React.FC<DropdownInputProps> = ({
 
   // Estilos base reutilizables
   const baseInputStyles =
-    "w-full bg-zinc-950 border rounded-xl px-4 py-3 flex justify-between items-center cursor-pointer transition-all outline-none";
-  const errorStyles = "border-orange-500 text-orange-500";
-  const activeStyles = "border-orange-500 ring-2 ring-orange-500/20";
-  const normalStyles = "border-zinc-800 text-white hover:border-zinc-700";
-  const disabledStyles = "opacity-50 cursor-not-allowed bg-zinc-900";
+    'w-full bg-zinc-950 border rounded-xl px-4 py-3 flex justify-between items-center cursor-pointer transition-all outline-none';
+  const errorStyles = 'border-orange-500 text-orange-500';
+  const activeStyles = 'border-orange-500 ring-2 ring-orange-500/20';
+  const normalStyles = 'border-zinc-800 text-white hover:border-zinc-700';
+  const disabledStyles = 'opacity-50 cursor-not-allowed bg-zinc-900';
 
   // Determinar clases dinámicas
   let inputClass = baseInputStyles;
@@ -88,18 +86,14 @@ const DropdownInput: React.FC<DropdownInputProps> = ({
       )}
 
       <div className={inputClass} onClick={toggleDropdown}>
-        <span
-          className={`truncate ${
-            !selectedOption && !error ? "text-zinc-500" : ""
-          }`}
-        >
+        <span className={`truncate ${!selectedOption && !error ? 'text-zinc-500' : ''}`}>
           {displayText}
         </span>
         <ChevronDown
           size={20}
           className={`transition-transform duration-200 ${
-            isOpen ? "rotate-180" : ""
-          } ${error ? "text-orange-500" : "text-zinc-500"}`}
+            isOpen ? 'rotate-180' : ''
+          } ${error ? 'text-orange-500' : 'text-zinc-500'}`}
         />
       </div>
 
@@ -110,8 +104,8 @@ const DropdownInput: React.FC<DropdownInputProps> = ({
               key={option.value}
               className={`px-4 py-3 cursor-pointer transition-colors text-sm ${
                 option.value === value
-                  ? "bg-orange-500/10 text-orange-500 font-medium"
-                  : "text-zinc-300 hover:bg-zinc-800 hover:text-white"
+                  ? 'bg-orange-500/10 text-orange-500 font-medium'
+                  : 'text-zinc-300 hover:bg-zinc-800 hover:text-white'
               }`}
               onClick={() => handleSelect(option.value)}
             >
@@ -121,10 +115,8 @@ const DropdownInput: React.FC<DropdownInputProps> = ({
         </ul>
       )}
 
-      {error && typeof error === "string" && (
-        <span className="text-xs text-orange-500 mt-2 font-medium block">
-          {error}
-        </span>
+      {error && typeof error === 'string' && (
+        <span className="text-xs text-orange-500 mt-2 font-medium block">{error}</span>
       )}
     </div>
   );

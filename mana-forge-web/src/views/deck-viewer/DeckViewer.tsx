@@ -1,23 +1,40 @@
-import { useEffect, useRef, useState } from "react";
-import { useParams, Link, useNavigate } from "react-router-dom";
-import { ArrowLeft, ArrowUp, ArrowDown, Layers, User, Loader2, Shield, ThumbsUp, Copy, Check, Files, Lightbulb, Euro, Camera, X as XIcon } from "lucide-react";
-import { DeckService, type DeckView, type DeckCardEntry } from "../../services/DeckService";
-import { useUser } from "../../services/UserContext";
-import ManaCost from "../../components/ui/ManaCost";
-import ManaCurve from "../../components/ui/ManaCurve";
+import { useEffect, useRef, useState } from 'react';
+import { useParams, Link, useNavigate } from 'react-router-dom';
+import {
+  ArrowLeft,
+  ArrowUp,
+  ArrowDown,
+  Layers,
+  User,
+  Loader2,
+  Shield,
+  ThumbsUp,
+  Copy,
+  Check,
+  Files,
+  Lightbulb,
+  Euro,
+  Camera,
+  X as XIcon,
+} from 'lucide-react';
+import { DeckService, type DeckView, type DeckCardEntry } from '../../services/DeckService';
+import { useUser } from '../../services/UserContext';
+import ManaCost from '../../components/ui/ManaCost';
+import ManaCurve from '../../components/ui/ManaCurve';
 
-import SEO from "../../components/ui/SEO";
-import { useLanguage } from "../../services/LanguageContext";
-import { useTranslation } from "../../hooks/useTranslation";
+import SEO from '../../components/ui/SEO';
+import { useLanguage } from '../../services/LanguageContext';
+import { useTranslation } from '../../hooks/useTranslation';
 
-type GroupMode = "type" | "none";
-type SortMode = "cmc" | "alpha";
-type SortDir = "asc" | "desc";
+type GroupMode = 'type' | 'none';
+type SortMode = 'cmc' | 'alpha';
+type SortDir = 'asc' | 'desc';
 
 const sortCards = (cards: DeckCardEntry[], mode: SortMode, dir: SortDir) => {
-  const mul = dir === "asc" ? 1 : -1;
+  const mul = dir === 'asc' ? 1 : -1;
   const sorted = [...cards];
-  if (mode === "alpha") return sorted.sort((a, b) => mul * (a.name ?? "").localeCompare(b.name ?? ""));
+  if (mode === 'alpha')
+    return sorted.sort((a, b) => mul * (a.name ?? '').localeCompare(b.name ?? ''));
   return sorted.sort((a, b) => mul * ((a.cmc ?? 0) - (b.cmc ?? 0)));
 };
 
@@ -25,24 +42,25 @@ const groupByType = (cards: DeckCardEntry[]) => {
   const groups: Record<string, DeckCardEntry[]> = {};
   for (const card of cards) {
     // Check for commander
-    if ((card as any).category === "commander") {
-      if (!groups["Commander"]) groups["Commander"] = [];
-      groups["Commander"].push(card);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    if ((card as any).category === 'commander') {
+      if (!groups['Commander']) groups['Commander'] = [];
+      groups['Commander'].push(card);
       continue;
     }
 
-    const typeLine = card.typeLine || "";
-    const mainType = typeLine.split("—")[0];
-    
-    let type = "Other";
-    if (mainType.includes("Creature")) type = "Creature";
-    else if (mainType.includes("Planeswalker")) type = "Planeswalker";
-    else if (mainType.includes("Battle")) type = "Battle";
-    else if (mainType.includes("Instant")) type = "Instant";
-    else if (mainType.includes("Sorcery")) type = "Sorcery";
-    else if (mainType.includes("Enchantment")) type = "Enchantment";
-    else if (mainType.includes("Artifact")) type = "Artifact";
-    else if (mainType.includes("Land")) type = "Land";
+    const typeLine = card.typeLine || '';
+    const mainType = typeLine.split('—')[0];
+
+    let type = 'Other';
+    if (mainType.includes('Creature')) type = 'Creature';
+    else if (mainType.includes('Planeswalker')) type = 'Planeswalker';
+    else if (mainType.includes('Battle')) type = 'Battle';
+    else if (mainType.includes('Instant')) type = 'Instant';
+    else if (mainType.includes('Sorcery')) type = 'Sorcery';
+    else if (mainType.includes('Enchantment')) type = 'Enchantment';
+    else if (mainType.includes('Artifact')) type = 'Artifact';
+    else if (mainType.includes('Land')) type = 'Land';
 
     if (!groups[type]) groups[type] = [];
     groups[type].push(card);
@@ -50,17 +68,28 @@ const groupByType = (cards: DeckCardEntry[]) => {
   return groups;
 };
 
-const TYPE_ORDER = ["Commander", "Planeswalker", "Creature", "Battle", "Instant", "Sorcery", "Enchantment", "Artifact", "Land", "Other"];
+const TYPE_ORDER = [
+  'Commander',
+  'Planeswalker',
+  'Creature',
+  'Battle',
+  'Instant',
+  'Sorcery',
+  'Enchantment',
+  'Artifact',
+  'Land',
+  'Other',
+];
 
 const DeckViewer = () => {
   const { deckId } = useParams<{ deckId: string }>();
   const [deck, setDeck] = useState<DeckView | null>(null);
   const [loading, setLoading] = useState(true);
   const [hoveredCard, setHoveredCard] = useState<DeckCardEntry | null>(null);
-  const [sortMode, setSortMode] = useState<SortMode>("cmc");
-  const [sortDir, setSortDir] = useState<SortDir>("asc");
-  const [groupMode, setGroupMode] = useState<GroupMode>("type");
-  const [viewMode, setViewMode] = useState<"list" | "spoiler">("list");
+  const [sortMode, setSortMode] = useState<SortMode>('cmc');
+  const [sortDir, setSortDir] = useState<SortDir>('asc');
+  const [groupMode, setGroupMode] = useState<GroupMode>('type');
+  const [viewMode, setViewMode] = useState<'list' | 'spoiler'>('list');
   const { locale } = useLanguage();
   const { t } = useTranslation();
   const { isAuthenticated, user } = useUser();
@@ -74,7 +103,10 @@ const DeckViewer = () => {
   const [previewCard, setPreviewCard] = useState<DeckCardEntry | null>(null);
 
   useEffect(() => {
-    if (!deckId) { setLoading(false); return; }
+    if (!deckId) {
+      setLoading(false);
+      return;
+    }
     DeckService.getDeckView(deckId).then((data) => {
       setDeck(data);
       if (data?.mainDeck?.length) setHoveredCard(data.mainDeck[0]);
@@ -83,10 +115,9 @@ const DeckViewer = () => {
   }, [deckId, locale]);
 
   useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => setIsFloating(!entry.isIntersecting),
-      { threshold: 0 }
-    );
+    const observer = new IntersectionObserver(([entry]) => setIsFloating(!entry.isIntersecting), {
+      threshold: 0,
+    });
     if (sentinelRef.current) observer.observe(sentinelRef.current);
     return () => observer.disconnect();
   }, []);
@@ -102,9 +133,12 @@ const DeckViewer = () => {
   if (!deck) {
     return (
       <div className="max-w-4xl mx-auto mt-12 text-center px-4">
-        <h2 className="text-3xl font-bold text-white mb-4">{t("deckViewer.notFound")}</h2>
-        <Link to="/" className="inline-flex items-center gap-2 text-orange-500 hover:text-orange-400 transition-colors">
-          <ArrowLeft size={20} /> {t("common.back")}
+        <h2 className="text-3xl font-bold text-white mb-4">{t('deckViewer.notFound')}</h2>
+        <Link
+          to="/"
+          className="inline-flex items-center gap-2 text-orange-500 hover:text-orange-400 transition-colors"
+        >
+          <ArrowLeft size={20} /> {t('common.back')}
         </Link>
       </div>
     );
@@ -112,18 +146,23 @@ const DeckViewer = () => {
 
   const typeGroups = groupByType(deck.mainDeck);
   const mainGroups: Record<string, DeckCardEntry[]> =
-    groupMode === "type"
+    groupMode === 'type'
       ? Object.fromEntries(
-          Object.entries(typeGroups).map(([type, cards]) => [type, sortCards(cards, sortMode, sortDir)])
+          Object.entries(typeGroups).map(([type, cards]) => [
+            type,
+            sortCards(cards, sortMode, sortDir),
+          ])
         )
       : { All: sortCards(deck.mainDeck, sortMode, sortDir) };
   const mainTotal = deck.mainDeck.reduce((s, c) => s + c.quantity, 0);
   const sideTotal = deck.sideboard.reduce((s, c) => s + c.quantity, 0);
-  const maybeTotal = (deck as any).maybeboard?.reduce((s: number, c: any) => s + c.quantity, 0) || 0;
+  const maybeTotal =
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (deck as any).maybeboard?.reduce((s: number, c: any) => s + c.quantity, 0) || 0;
 
   const calcPrice = (cards: DeckCardEntry[]) =>
     cards.reduce((sum, c) => {
-      const eur = parseFloat(c.prices?.eur ?? "");
+      const eur = parseFloat(c.prices?.eur ?? '');
       return sum + (isNaN(eur) ? 0 : eur * c.quantity);
     }, 0);
 
@@ -132,29 +171,29 @@ const DeckViewer = () => {
   const totalPrice = mainPrice + sidePrice;
 
   const GROUP_OPTIONS: { value: GroupMode; label: string }[] = [
-    { value: "type", label: t("deckViewer.groupType") },
-    { value: "none", label: t("deckViewer.groupNone") },
+    { value: 'type', label: t('deckViewer.groupType') },
+    { value: 'none', label: t('deckViewer.groupNone') },
   ];
   const SORT_OPTIONS: { value: SortMode; label: string }[] = [
-    { value: "cmc",   label: t("deckViewer.sortCmc") },
-    { value: "alpha", label: t("deckViewer.sortAlpha") },
+    { value: 'cmc', label: t('deckViewer.sortCmc') },
+    { value: 'alpha', label: t('deckViewer.sortAlpha') },
   ];
 
   const handleLikeToggle = async () => {
     if (!deck || !isAuthenticated || liking) return;
     setLiking(true);
     try {
-      const data = deck.likedByMe 
-      ? await DeckService.unlikeDeck(deck.id)
-      : await DeckService.likeDeck(deck.id);
-      
+      const data = deck.likedByMe
+        ? await DeckService.unlikeDeck(deck.id)
+        : await DeckService.likeDeck(deck.id);
+
       setDeck({
         ...deck,
         likesCount: data.likesCount,
-        likedByMe: data.likedByMe
+        likedByMe: data.likedByMe,
       });
     } catch (error) {
-      console.error("Error toggling like:", error);
+      console.error('Error toggling like:', error);
     } finally {
       setLiking(false);
     }
@@ -163,10 +202,12 @@ const DeckViewer = () => {
   const handleCopyList = () => {
     if (!deck) return;
     const list = [
-      ...deck.mainDeck.map(c => `${c.quantity} ${c.name}`),
-      ...(deck.sideboard.length > 0 ? ["", "Sideboard", ...deck.sideboard.map(c => `${c.quantity} ${c.name}`)] : [])
-    ].join("\n");
-    
+      ...deck.mainDeck.map((c) => `${c.quantity} ${c.name}`),
+      ...(deck.sideboard.length > 0
+        ? ['', 'Sideboard', ...deck.sideboard.map((c) => `${c.quantity} ${c.name}`)]
+        : []),
+    ].join('\n');
+
     navigator.clipboard.writeText(list).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
@@ -180,7 +221,7 @@ const DeckViewer = () => {
       const cloned = await DeckService.cloneDeck(deck.id);
       navigate(`/deck-builder/${cloned.id}`);
     } catch (error) {
-      console.error("Error cloning deck:", error);
+      console.error('Error cloning deck:', error);
     } finally {
       setCloning(false);
     }
@@ -188,31 +229,37 @@ const DeckViewer = () => {
 
   return (
     <div className="min-h-screen pb-16">
-      <SEO 
+      <SEO
         title={deck.name}
-        description={t("seo.deckViewerDescription").replace("{deckName}", deck.name)}
+        description={t('seo.deckViewerDescription').replace('{deckName}', deck.name)}
         ogType="article"
         jsonLd={{
-          "@context": "https://schema.org",
-          "@type": "GameStrategy",
-          "name": deck.name,
-          "description": (deck as any).description || t("seo.deckViewerDescription").replace("{deckName}", deck.name),
-          "author": {
-            "@type": "Person",
-            "name": deck.ownerUsername || "Mana Forge User"
+          '@context': 'https://schema.org',
+          '@type': 'GameStrategy',
+          name: deck.name,
+          description:
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (deck as any).description ||
+            t('seo.deckViewerDescription').replace('{deckName}', deck.name),
+          author: {
+            '@type': 'Person',
+            name: deck.ownerUsername || 'Mana Forge User',
           },
-          "gameItem": {
-            "@type": "Thing",
-            "name": "Magic: The Gathering Deck",
-            "description": `A ${deck.formatName} deck for Magic: The Gathering.`
-          }
+          gameItem: {
+            '@type': 'Thing',
+            name: 'Magic: The Gathering Deck',
+            description: `A ${deck.formatName} deck for Magic: The Gathering.`,
+          },
         }}
       />
       {/* Header */}
       <div className="bg-zinc-900 border-b border-zinc-800">
         <div className="max-w-6xl xl:max-w-7xl 2xl:max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <Link to="/" className="flex items-center gap-2 text-zinc-400 hover:text-white mb-6 transition-colors text-sm w-fit">
-            <ArrowLeft size={16} /> {t("common.back")}
+          <Link
+            to="/"
+            className="flex items-center gap-2 text-zinc-400 hover:text-white mb-6 transition-colors text-sm w-fit"
+          >
+            <ArrowLeft size={16} /> {t('common.back')}
           </Link>
 
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -233,14 +280,15 @@ const DeckViewer = () => {
                   disabled={!isAuthenticated || liking}
                   className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold transition-all ${
                     deck.likedByMe
-                      ? "bg-orange-500/20 text-orange-500 border border-orange-500/30"
+                      ? 'bg-orange-500/20 text-orange-500 border border-orange-500/30'
                       : isAuthenticated
-                      ? "bg-zinc-800 text-zinc-400 border border-zinc-700 hover:border-zinc-500 hover:text-zinc-300"
-                      : "bg-zinc-800/50 text-zinc-600 border border-zinc-800 cursor-not-allowed"
+                        ? 'bg-zinc-800 text-zinc-400 border border-zinc-700 hover:border-zinc-500 hover:text-zinc-300'
+                        : 'bg-zinc-800/50 text-zinc-600 border border-zinc-800 cursor-not-allowed'
                   }`}
-                  title={!isAuthenticated ? t("common.loginToLike" as any) || "Inicia sesión para dar like" : ""}
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  title={!isAuthenticated ? t('common.loginToLike' as any) || 'Inicia sesión para dar like' : ''}
                 >
-                  <ThumbsUp size={14} className={deck.likedByMe ? "fill-orange-500" : ""} />
+                  <ThumbsUp size={14} className={deck.likedByMe ? 'fill-orange-500' : ''} />
                   {deck.likesCount || 0}
                 </button>
 
@@ -252,19 +300,19 @@ const DeckViewer = () => {
                       className="flex items-center gap-1.5 px-3 py-1 bg-orange-600 border border-orange-500 rounded-full text-xs font-bold text-white hover:bg-orange-500 transition-all shrink-0"
                     >
                       <Layers size={14} />
-                      {t("common.edit")}
+                      {t('common.edit')}
                     </Link>
                   </>
                 )}
 
                 <div className="w-px h-3 bg-zinc-700 mx-1 hidden sm:block" />
-                
+
                 <button
                   onClick={handleCopyList}
                   className="flex items-center gap-1.5 px-3 py-1 bg-zinc-800 border border-zinc-700 rounded-full text-xs font-bold text-zinc-400 hover:border-zinc-500 hover:text-white transition-all shrink-0"
                 >
                   {copied ? <Check size={14} className="text-green-500" /> : <Copy size={14} />}
-                  {copied ? t("common.copied") : t("common.copy")}
+                  {copied ? t('common.copied') : t('common.copy')}
                 </button>
 
                 {isAuthenticated && (
@@ -274,7 +322,7 @@ const DeckViewer = () => {
                     className="flex items-center gap-1.5 px-3 py-1 bg-zinc-800 border border-zinc-700 rounded-full text-xs font-bold text-zinc-400 hover:border-zinc-500 hover:text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
                   >
                     {cloning ? <Loader2 size={14} className="animate-spin" /> : <Files size={14} />}
-                    {cloning ? t("common.cloning") : t("common.clone")}
+                    {cloning ? t('common.cloning') : t('common.clone')}
                   </button>
                 )}
               </div>
@@ -283,7 +331,7 @@ const DeckViewer = () => {
             {/* Color pips */}
             {deck.colors && deck.colors.length > 0 && (
               <div className="flex gap-0.5 items-center">
-                <ManaCost cost={deck.colors.map(c => `{${c}}`).join("")} size={22} />
+                <ManaCost cost={deck.colors.map((c) => `{${c}}`).join('')} size={22} />
               </div>
             )}
           </div>
@@ -293,9 +341,8 @@ const DeckViewer = () => {
       {/* Body */}
       <div className="max-w-6xl xl:max-w-7xl 2xl:max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-
           {/* Card preview (sticky) - Only in list mode */}
-          {viewMode === "list" && (
+          {viewMode === 'list' && (
             <div className="hidden lg:flex flex-col items-center gap-4 sticky top-8 self-start">
               {hoveredCard?.imageUris?.normal ? (
                 <img
@@ -312,26 +359,30 @@ const DeckViewer = () => {
                 <div className="text-center">
                   <p className="text-white font-semibold">{hoveredCard.name}</p>
                   <p className="text-zinc-400 text-sm">{hoveredCard.typeLine}</p>
-                  <p className="text-zinc-500 text-sm"><ManaCost cost={hoveredCard.manaCost} size={16} /></p>
+                  <p className="text-zinc-500 text-sm">
+                    <ManaCost cost={hoveredCard.manaCost} size={16} />
+                  </p>
                 </div>
               )}
             </div>
           )}
 
           {/* Card content */}
-          <div className={viewMode === "list" ? "lg:col-span-2 space-y-8" : "lg:col-span-3 space-y-8"}>
+          <div
+            className={viewMode === 'list' ? 'lg:col-span-2 space-y-8' : 'lg:col-span-3 space-y-8'}
+          >
             {/* Sort/Group bar */}
             <div className="flex items-center gap-3 flex-wrap">
               <div className="flex items-center gap-1 p-1 bg-zinc-900 border border-zinc-800 rounded-lg">
-                <span className="text-zinc-600 text-xs px-2">{t("deckViewer.group")}</span>
-                {GROUP_OPTIONS.map(opt => (
+                <span className="text-zinc-600 text-xs px-2">{t('deckViewer.group')}</span>
+                {GROUP_OPTIONS.map((opt) => (
                   <button
                     key={opt.value}
                     onClick={() => setGroupMode(opt.value)}
                     className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
                       groupMode === opt.value
-                        ? "bg-orange-500 text-white"
-                        : "text-zinc-400 hover:text-white hover:bg-zinc-800"
+                        ? 'bg-orange-500 text-white'
+                        : 'text-zinc-400 hover:text-white hover:bg-zinc-800'
                     }`}
                   >
                     {opt.label}
@@ -339,15 +390,15 @@ const DeckViewer = () => {
                 ))}
               </div>
               <div className="flex items-center gap-1 p-1 bg-zinc-900 border border-zinc-800 rounded-lg">
-                <span className="text-zinc-600 text-xs px-2">{t("deckViewer.sort")}</span>
-                {SORT_OPTIONS.map(opt => (
+                <span className="text-zinc-600 text-xs px-2">{t('deckViewer.sort')}</span>
+                {SORT_OPTIONS.map((opt) => (
                   <button
                     key={opt.value}
                     onClick={() => setSortMode(opt.value)}
                     className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
                       sortMode === opt.value
-                        ? "bg-orange-500 text-white"
-                        : "text-zinc-400 hover:text-white hover:bg-zinc-800"
+                        ? 'bg-orange-500 text-white'
+                        : 'text-zinc-400 hover:text-white hover:bg-zinc-800'
                     }`}
                   >
                     {opt.label}
@@ -355,116 +406,135 @@ const DeckViewer = () => {
                 ))}
                 <div className="w-px h-4 bg-zinc-700 mx-1" />
                 <button
-                  onClick={() => setSortDir(d => d === "asc" ? "desc" : "asc")}
+                  onClick={() => setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'))}
                   className="p-1 rounded-md text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors"
-                  title={sortDir === "asc" ? t("deckViewer.sortAsc") : t("deckViewer.sortDesc")}
+                  title={sortDir === 'asc' ? t('deckViewer.sortAsc') : t('deckViewer.sortDesc')}
                 >
-                  {sortDir === "asc" ? <ArrowUp size={13} /> : <ArrowDown size={13} />}
+                  {sortDir === 'asc' ? <ArrowUp size={13} /> : <ArrowDown size={13} />}
                 </button>
               </div>
 
               {/* View Mode */}
               <div className="flex items-center gap-1 p-1 bg-zinc-900 border border-zinc-800 rounded-lg ml-auto sm:ml-0">
                 <button
-                  onClick={() => setViewMode("list")}
+                  onClick={() => setViewMode('list')}
                   className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
-                    viewMode === "list"
-                      ? "bg-orange-500 text-white"
-                      : "text-zinc-400 hover:text-white hover:bg-zinc-800"
+                    viewMode === 'list'
+                      ? 'bg-orange-500 text-white'
+                      : 'text-zinc-400 hover:text-white hover:bg-zinc-800'
                   }`}
                 >
-                  {t("deckViewer.viewList")}
+                  {t('deckViewer.viewList')}
                 </button>
                 <button
-                  onClick={() => setViewMode("spoiler")}
+                  onClick={() => setViewMode('spoiler')}
                   className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
-                    viewMode === "spoiler"
-                      ? "bg-orange-500 text-white"
-                      : "text-zinc-400 hover:text-white hover:bg-zinc-800"
+                    viewMode === 'spoiler'
+                      ? 'bg-orange-500 text-white'
+                      : 'text-zinc-400 hover:text-white hover:bg-zinc-800'
                   }`}
                 >
-                  {t("deckViewer.viewSpoiler")}
+                  {t('deckViewer.viewSpoiler')}
                 </button>
               </div>
 
               {/* Price toggle */}
               <button
-                onClick={() => setShowPrices(p => !p)}
+                onClick={() => setShowPrices((p) => !p)}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-medium transition-colors ${
                   showPrices
-                    ? "bg-green-500/20 text-green-400 border-green-500/40"
-                    : "bg-zinc-900 text-zinc-400 border-zinc-800 hover:text-white hover:border-zinc-600"
+                    ? 'bg-green-500/20 text-green-400 border-green-500/40'
+                    : 'bg-zinc-900 text-zinc-400 border-zinc-800 hover:text-white hover:border-zinc-600'
                 }`}
-                title={showPrices ? t("deckViewer.hidePrices") : t("deckViewer.showPrices")}
+                title={showPrices ? t('deckViewer.hidePrices') : t('deckViewer.showPrices')}
               >
                 <Euro size={13} />
-                {showPrices ? t("deckViewer.hidePrices") : t("deckViewer.showPrices")}
+                {showPrices ? t('deckViewer.hidePrices') : t('deckViewer.showPrices')}
               </button>
 
               {/* Total price badge (visible when prices shown) */}
               {showPrices && totalPrice > 0 && (
                 <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-900 border border-zinc-800 text-xs">
                   <Euro size={13} className="text-green-400" />
-                  <span className="text-zinc-400">{t("deckViewer.totalPrice")}:</span>
+                  <span className="text-zinc-400">{t('deckViewer.totalPrice')}:</span>
                   <span className="text-green-400 font-bold">{totalPrice.toFixed(2)} €</span>
                 </div>
               )}
             </div>
 
-            {viewMode === "list" ? (
+            {viewMode === 'list' ? (
               <>
                 {/* Main deck */}
                 <div>
                   <h2 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
                     <Layers size={18} className="text-orange-500" />
-                    {t("common.mainDeck")}
+                    {t('common.mainDeck')}
                     <span className="text-zinc-500 font-normal text-sm">({mainTotal})</span>
                   </h2>
 
                   <div className="columns-1 sm:columns-2 gap-6">
-                    {TYPE_ORDER.filter(t => mainGroups[t]).concat(mainGroups["All"] ? ["All"] : []).map(type => (
-                      <div key={type} className="break-inside-avoid mb-6">
-                        {type !== "All" && (
-                          <h3 className="text-sm font-bold text-zinc-300 uppercase tracking-widest mb-2 pb-1 border-b border-zinc-800">
-                            <span className="text-orange-500">{t(`deckViewer.cardTypes.${type}` as any) || type}</span>
-                            <span className="text-zinc-600 font-normal ml-2 text-xs">({mainGroups[type].reduce((s, c) => s + c.quantity, 0)})</span>
-                          </h3>
-                        )}
-                        <ul className="space-y-1">
-                          {mainGroups[type].map((card, i) => (
-                            <li
-                              key={i}
-                              onMouseEnter={() => setHoveredCard(card)}
-                              className="flex justify-between items-center px-3 py-1.5 rounded-lg hover:bg-zinc-800 transition-colors cursor-default group"
-                            >
-                              <span className="text-zinc-300 group-hover:text-white text-sm transition-colors flex items-center gap-1">
-                                <button
-                                  onClick={(e) => { e.stopPropagation(); setPreviewCard(card); }}
-                                  className="p-0.5 text-zinc-500 hover:text-orange-500 transition-colors shrink-0"
-                                >
-                                  <Camera size={14} />
-                                </button>
-                                {card.name ?? card.scryfallId}
-                                {card.isGameChanger && (
-                                  <span title={t("common.gameChangerTooltip")} className="cursor-help inline-flex items-center justify-center bg-orange-500/20 text-orange-400 text-[10px] font-bold px-1.5 py-0.5 rounded border border-orange-500/30">
-                                    GC
-                                  </span>
-                                )}
+                    {TYPE_ORDER.filter((t) => mainGroups[t])
+                      .concat(mainGroups['All'] ? ['All'] : [])
+                      .map((type) => (
+                        <div key={type} className="break-inside-avoid mb-6">
+                          {type !== 'All' && (
+                            <h3 className="text-sm font-bold text-zinc-300 uppercase tracking-widest mb-2 pb-1 border-b border-zinc-800">
+                              <span className="text-orange-500">
+                                {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                                {t(`deckViewer.cardTypes.${type}` as any) || type}
                               </span>
-                              <span className="flex items-center gap-1 ml-2 shrink-0">
-                                <ManaCost cost={card.manaCost} size={13} />
-                                {showPrices && (
-                                  <span className={`text-[11px] font-mono px-1 rounded ${card.prices?.eur ? "text-green-400" : "text-zinc-600"}`}>
-                                    {card.prices?.eur ? `${(parseFloat(card.prices.eur) * card.quantity).toFixed(2)}€` : t("deckViewer.noPrice")}
-                                  </span>
-                                )}
-                                <span className="text-zinc-500 text-sm font-mono">×{card.quantity}</span>
+                              <span className="text-zinc-600 font-normal ml-2 text-xs">
+                                ({mainGroups[type].reduce((s, c) => s + c.quantity, 0)})
                               </span>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    ))}
+                            </h3>
+                          )}
+                          <ul className="space-y-1">
+                            {mainGroups[type].map((card, i) => (
+                              <li
+                                key={i}
+                                onMouseEnter={() => setHoveredCard(card)}
+                                className="flex justify-between items-center px-3 py-1.5 rounded-lg hover:bg-zinc-800 transition-colors cursor-default group"
+                              >
+                                <span className="text-zinc-300 group-hover:text-white text-sm transition-colors flex items-center gap-1">
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setPreviewCard(card);
+                                    }}
+                                    className="p-0.5 text-zinc-500 hover:text-orange-500 transition-colors shrink-0"
+                                  >
+                                    <Camera size={14} />
+                                  </button>
+                                  {card.name ?? card.scryfallId}
+                                  {card.isGameChanger && (
+                                    <span
+                                      title={t('common.gameChangerTooltip')}
+                                      className="cursor-help inline-flex items-center justify-center bg-orange-500/20 text-orange-400 text-[10px] font-bold px-1.5 py-0.5 rounded border border-orange-500/30"
+                                    >
+                                      GC
+                                    </span>
+                                  )}
+                                </span>
+                                <span className="flex items-center gap-1 ml-2 shrink-0">
+                                  <ManaCost cost={card.manaCost} size={13} />
+                                  {showPrices && (
+                                    <span
+                                      className={`text-[11px] font-mono px-1 rounded ${card.prices?.eur ? 'text-green-400' : 'text-zinc-600'}`}
+                                    >
+                                      {card.prices?.eur
+                                        ? `${(parseFloat(card.prices.eur) * card.quantity).toFixed(2)}€`
+                                        : t('deckViewer.noPrice')}
+                                    </span>
+                                  )}
+                                  <span className="text-zinc-500 text-sm font-mono">
+                                    ×{card.quantity}
+                                  </span>
+                                </span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      ))}
                   </div>
                 </div>
 
@@ -473,7 +543,7 @@ const DeckViewer = () => {
                   <div>
                     <h2 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
                       <Shield size={18} className="text-zinc-500" />
-                      {t("common.sideboard")}
+                      {t('common.sideboard')}
                       <span className="text-zinc-500 font-normal text-sm">({sideTotal})</span>
                     </h2>
                     <ul className="space-y-1">
@@ -484,15 +554,21 @@ const DeckViewer = () => {
                           className="flex justify-between items-center px-3 py-1.5 rounded-lg hover:bg-zinc-800 transition-colors cursor-default group"
                         >
                           <span className="text-zinc-300 group-hover:text-white text-sm transition-colors flex items-center gap-1">
-                                <button
-                                  onClick={(e) => { e.stopPropagation(); setPreviewCard(card); }}
-                                  className="p-0.5 text-zinc-500 hover:text-orange-500 transition-colors shrink-0"
-                                >
-                                  <Camera size={14} />
-                                </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setPreviewCard(card);
+                              }}
+                              className="p-0.5 text-zinc-500 hover:text-orange-500 transition-colors shrink-0"
+                            >
+                              <Camera size={14} />
+                            </button>
                             {card.name ?? card.scryfallId}
                             {card.isGameChanger && (
-                              <span title={t("common.gameChangerTooltip")} className="cursor-help inline-flex items-center justify-center bg-orange-500/20 text-orange-400 text-[10px] font-bold px-1.5 py-0.5 rounded border border-orange-500/30">
+                              <span
+                                title={t('common.gameChangerTooltip')}
+                                className="cursor-help inline-flex items-center justify-center bg-orange-500/20 text-orange-400 text-[10px] font-bold px-1.5 py-0.5 rounded border border-orange-500/30"
+                              >
                                 GC
                               </span>
                             )}
@@ -500,11 +576,17 @@ const DeckViewer = () => {
                           <span className="flex items-center gap-1 ml-2 shrink-0">
                             <ManaCost cost={card.manaCost} size={13} />
                             {showPrices && (
-                              <span className={`text-[11px] font-mono px-1 rounded ${card.prices?.eur ? "text-green-400" : "text-zinc-600"}`}>
-                                {card.prices?.eur ? `${(parseFloat(card.prices.eur) * card.quantity).toFixed(2)}€` : t("deckViewer.noPrice")}
+                              <span
+                                className={`text-[11px] font-mono px-1 rounded ${card.prices?.eur ? 'text-green-400' : 'text-zinc-600'}`}
+                              >
+                                {card.prices?.eur
+                                  ? `${(parseFloat(card.prices.eur) * card.quantity).toFixed(2)}€`
+                                  : t('deckViewer.noPrice')}
                               </span>
                             )}
-                            <span className="text-zinc-500 text-sm font-mono">×{card.quantity}</span>
+                            <span className="text-zinc-500 text-sm font-mono">
+                              ×{card.quantity}
+                            </span>
                           </span>
                         </li>
                       ))}
@@ -513,14 +595,16 @@ const DeckViewer = () => {
                 )}
 
                 {/* Maybeboard */}
+                {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                 {(deck as any).maybeboard && (deck as any).maybeboard.length > 0 && (
                   <div>
                     <h2 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
                       <Lightbulb size={18} className="text-yellow-500" />
-                      {t("common.maybeboard")}
+                      {t('common.maybeboard')}
                       <span className="text-zinc-500 font-normal text-sm">({maybeTotal})</span>
                     </h2>
                     <ul className="space-y-1">
+                      {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                       {(deck as any).maybeboard.map((card: any, i: number) => (
                         <li
                           key={i}
@@ -528,17 +612,22 @@ const DeckViewer = () => {
                           className="flex justify-between items-center px-3 py-1.5 rounded-lg hover:bg-zinc-800 transition-colors cursor-default group"
                         >
                           <span className="text-zinc-300 group-hover:text-white text-sm transition-colors flex items-center gap-1">
-                                <button
-                                  onClick={(e) => { e.stopPropagation(); setPreviewCard(card); }}
-                                  className="p-0.5 text-zinc-500 hover:text-orange-500 transition-colors shrink-0"
-                                >
-                                  <Camera size={14} />
-                                </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setPreviewCard(card);
+                              }}
+                              className="p-0.5 text-zinc-500 hover:text-orange-500 transition-colors shrink-0"
+                            >
+                              <Camera size={14} />
+                            </button>
                             {card.name ?? card.scryfallId}
                           </span>
                           <span className="flex items-center gap-1 ml-2 shrink-0">
                             <ManaCost cost={card.manaCost} size={13} />
-                            <span className="text-zinc-500 text-sm font-mono">×{card.quantity}</span>
+                            <span className="text-zinc-500 text-sm font-mono">
+                              ×{card.quantity}
+                            </span>
                           </span>
                         </li>
                       ))}
@@ -552,41 +641,50 @@ const DeckViewer = () => {
                 <div>
                   <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2 border-b border-zinc-800 pb-3">
                     <Layers size={22} className="text-orange-500" />
-                    {t("common.mainDeck")}
+                    {t('common.mainDeck')}
                     <span className="text-zinc-500 font-normal text-sm">({mainTotal})</span>
                   </h2>
-                  
-                  {TYPE_ORDER.filter(t => mainGroups[t]).concat(mainGroups["All"] ? ["All"] : []).map(type => (
-                    <div key={type} className={type !== "All" ? "mb-8" : ""}>
-                      {type !== "All" && (
-                        <h3 className="text-sm font-bold text-zinc-300 uppercase tracking-widest mb-4 pb-1 border-b border-zinc-800">
-                          <span className="text-orange-500">{t(`deckViewer.cardTypes.${type}` as any) || type}</span>
-                          <span className="text-zinc-600 font-normal ml-2 text-xs">({mainGroups[type].reduce((s, c) => s + c.quantity, 0)})</span>
-                        </h3>
-                      )}
-                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-                        {mainGroups[type].map((card, i) => (
-                          <div key={i} className="group relative">
-                            {card.imageUris?.normal ? (
-                              <img
-                                src={card.imageUris.normal}
-                                alt={card.name}
-                                className={`rounded-lg shadow-lg w-full transition-transform group-hover:scale-105 group-hover:z-10 ${card.isGameChanger ? 'ring-2 ring-orange-500 shadow-orange-500/30' : ''}`}
-                              />
-                            ) : (
-                              <div className="aspect-[2.5/3.5] rounded-lg bg-zinc-800 border border-zinc-700 flex flex-col items-center justify-center p-4 text-center">
-                                <Layers size={32} className="text-zinc-700 mb-2" />
-                                <span className="text-xs text-zinc-500 font-medium">{card.name}</span>
+
+                  {TYPE_ORDER.filter((t) => mainGroups[t])
+                    .concat(mainGroups['All'] ? ['All'] : [])
+                    .map((type) => (
+                      <div key={type} className={type !== 'All' ? 'mb-8' : ''}>
+                        {type !== 'All' && (
+                          <h3 className="text-sm font-bold text-zinc-300 uppercase tracking-widest mb-4 pb-1 border-b border-zinc-800">
+                            <span className="text-orange-500">
+                              {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                              {t(`deckViewer.cardTypes.${type}` as any) || type}
+                            </span>
+                            <span className="text-zinc-600 font-normal ml-2 text-xs">
+                              ({mainGroups[type].reduce((s, c) => s + c.quantity, 0)})
+                            </span>
+                          </h3>
+                        )}
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+                          {mainGroups[type].map((card, i) => (
+                            <div key={i} className="group relative">
+                              {card.imageUris?.normal ? (
+                                <img
+                                  src={card.imageUris.normal}
+                                  alt={card.name}
+                                  className={`rounded-lg shadow-lg w-full transition-transform group-hover:scale-105 group-hover:z-10 ${card.isGameChanger ? 'ring-2 ring-orange-500 shadow-orange-500/30' : ''}`}
+                                />
+                              ) : (
+                                <div className="aspect-[2.5/3.5] rounded-lg bg-zinc-800 border border-zinc-700 flex flex-col items-center justify-center p-4 text-center">
+                                  <Layers size={32} className="text-zinc-700 mb-2" />
+                                  <span className="text-xs text-zinc-500 font-medium">
+                                    {card.name}
+                                  </span>
+                                </div>
+                              )}
+                              <div className="absolute top-1 right-1 bg-black/80 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-md border border-white/20 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                                ×{card.quantity}
                               </div>
-                            )}
-                            <div className="absolute top-1 right-1 bg-black/80 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-md border border-white/20 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-                              ×{card.quantity}
                             </div>
-                          </div>
-                        ))}
+                          ))}
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    ))}
                 </div>
 
                 {/* Spoiler Mode: Sideboard */}
@@ -594,7 +692,7 @@ const DeckViewer = () => {
                   <div>
                     <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2 border-b border-zinc-800 pb-3">
                       <Shield size={22} className="text-zinc-500" />
-                      {t("common.sideboard")}
+                      {t('common.sideboard')}
                       <span className="text-zinc-500 font-normal text-sm">({sideTotal})</span>
                     </h2>
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 font-mono">
@@ -622,14 +720,16 @@ const DeckViewer = () => {
                 )}
 
                 {/* Spoiler Mode: Maybeboard */}
+                {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                 {(deck as any).maybeboard && (deck as any).maybeboard.length > 0 && (
                   <div>
                     <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2 border-b border-zinc-800 pb-3">
                       <Lightbulb size={22} className="text-yellow-500" />
-                      {t("common.maybeboard")}
+                      {t('common.maybeboard')}
                       <span className="text-zinc-500 font-normal text-sm">({maybeTotal})</span>
                     </h2>
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 font-mono">
+                      {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                       {sortCards((deck as any).maybeboard, sortMode, sortDir).map((card, i) => (
                         <div key={i} className="group relative">
                           {card.imageUris?.normal ? (
@@ -662,20 +762,21 @@ const DeckViewer = () => {
               </div>
               <div className="sm:w-48 bg-zinc-900 border border-zinc-800 rounded-xl p-4">
                 <p className="text-xs font-semibold uppercase tracking-widest text-zinc-500 mb-3">
-                  {t("deckViewer.summary")}
+                  {t('deckViewer.summary')}
                 </p>
                 <ul className="space-y-1.5">
-                  {TYPE_ORDER
-                    .filter(type => typeGroups[type]?.length)
-                    .map(type => {
-                      const count = typeGroups[type].reduce((s, c) => s + c.quantity, 0);
-                      return (
-                        <li key={type} className="flex justify-between items-center text-sm">
-                          <span className="text-zinc-400">{t(`deckViewer.cardTypes.${type}` as any) || type}</span>
-                          <span className="text-white font-mono font-semibold">{count}</span>
-                        </li>
-                      );
-                    })}
+                  {TYPE_ORDER.filter((type) => typeGroups[type]?.length).map((type) => {
+                    const count = typeGroups[type].reduce((s, c) => s + c.quantity, 0);
+                    return (
+                      <li key={type} className="flex justify-between items-center text-sm">
+                        <span className="text-zinc-400">
+                          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                          {t(`deckViewer.cardTypes.${type}` as any) || type}
+                        </span>
+                        <span className="text-white font-mono font-semibold">{count}</span>
+                      </li>
+                    );
+                  })}
                   <li className="flex justify-between items-center text-sm pt-2 mt-1 border-t border-zinc-800">
                     <span className="text-zinc-500 font-semibold">Total</span>
                     <span className="text-orange-500 font-mono font-bold">{mainTotal}</span>
@@ -689,27 +790,33 @@ const DeckViewer = () => {
       {/* Sentinel – floats bar until this element scrolls into view */}
       <div ref={sentinelRef} />
       {isFloating && <div className="h-16" />}
-      <div className={isFloating ? "fixed bottom-0 left-0 right-0 z-40 bg-zinc-950/95 backdrop-blur-sm border-t border-zinc-800/80" : "mt-4 mx-4 sm:mx-6 lg:mx-8 rounded-2xl border border-zinc-800 bg-zinc-900"}>
+      <div
+        className={
+          isFloating
+            ? 'fixed bottom-0 left-0 right-0 z-40 bg-zinc-950/95 backdrop-blur-sm border-t border-zinc-800/80'
+            : 'mt-4 mx-4 sm:mx-6 lg:mx-8 rounded-2xl border border-zinc-800 bg-zinc-900'
+        }
+      >
         <div className="flex items-center gap-4 max-w-6xl xl:max-w-7xl 2xl:max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
           <div className="flex items-center gap-4 flex-1 min-w-0">
-            {deck.formatName.toLowerCase().includes("commander") ? (
+            {deck.formatName.toLowerCase().includes('commander') ? (
               <div className="flex items-center gap-1.5 text-sm">
                 <Layers size={14} className="text-orange-500 flex-shrink-0" />
                 <span className="text-white font-bold">{mainTotal}</span>
-                <span className="text-zinc-500 hidden sm:inline">{t("deckViewer.total")}</span>
+                <span className="text-zinc-500 hidden sm:inline">{t('deckViewer.total')}</span>
               </div>
             ) : (
               <>
                 <div className="flex items-center gap-1.5 text-sm">
                   <Layers size={14} className="text-orange-500 flex-shrink-0" />
                   <span className="text-white font-bold">{mainTotal}</span>
-                  <span className="text-zinc-500 hidden sm:inline">{t("common.mainDeck")}</span>
+                  <span className="text-zinc-500 hidden sm:inline">{t('common.mainDeck')}</span>
                 </div>
                 {sideTotal > 0 && (
                   <div className="flex items-center gap-1.5 text-sm">
                     <Shield size={14} className="text-zinc-500 flex-shrink-0" />
                     <span className="text-white font-bold">{sideTotal}</span>
-                    <span className="text-zinc-500 hidden sm:inline">{t("common.sideboard")}</span>
+                    <span className="text-zinc-500 hidden sm:inline">{t('common.sideboard')}</span>
                   </div>
                 )}
               </>
@@ -722,11 +829,11 @@ const DeckViewer = () => {
             </div>
           )}
           <button
-            onClick={() => setShowPrices(v => !v)}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${showPrices ? "bg-green-500/20 text-green-400 border border-green-500/30" : "bg-zinc-800 text-zinc-400 hover:text-white border border-zinc-700"}`}
+            onClick={() => setShowPrices((v) => !v)}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${showPrices ? 'bg-green-500/20 text-green-400 border border-green-500/30' : 'bg-zinc-800 text-zinc-400 hover:text-white border border-zinc-700'}`}
           >
             <Euro size={13} />
-            {showPrices ? t("deckViewer.hidePrices") : t("deckViewer.showPrices")}
+            {showPrices ? t('deckViewer.hidePrices') : t('deckViewer.showPrices')}
           </button>
         </div>
       </div>
@@ -737,7 +844,10 @@ const DeckViewer = () => {
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm"
           onClick={() => setPreviewCard(null)}
         >
-          <div className="flex flex-col items-center gap-3 p-4" onClick={e => e.stopPropagation()}>
+          <div
+            className="flex flex-col items-center gap-3 p-4"
+            onClick={(e) => e.stopPropagation()}
+          >
             <button
               onClick={() => setPreviewCard(null)}
               className="self-end p-1.5 rounded-full bg-zinc-800 text-zinc-400 hover:text-white mb-1"

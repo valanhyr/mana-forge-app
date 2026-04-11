@@ -1,14 +1,11 @@
-import { useTranslation } from "../../hooks/useTranslation";
+import { useTranslation } from '../../hooks/useTranslation';
 
 interface ForgeSpinnerProps {
   size?: number;
   className?: string;
 }
 
-const ForgeSpinner: React.FC<ForgeSpinnerProps> = ({
-  size = 128,
-  className = "",
-}) => {
+const ForgeSpinner: React.FC<ForgeSpinnerProps> = ({ size = 128, className = '' }) => {
   const { t } = useTranslation();
 
   return (
@@ -53,26 +50,26 @@ const ForgeSpinner: React.FC<ForgeSpinnerProps> = ({
       <div className="absolute inset-0 flex items-center justify-center opacity-60">
         <div
           className="ripple"
-          style={{ width: "100%", height: "100%", animationDelay: "0s" }}
+          style={{ width: '100%', height: '100%', animationDelay: '0s' }}
         ></div>
         <div
           className="ripple"
-          style={{ width: "100%", height: "100%", animationDelay: "0.5s" }}
+          style={{ width: '100%', height: '100%', animationDelay: '0.5s' }}
         ></div>
         <div
           className="ripple"
-          style={{ width: "100%", height: "100%", animationDelay: "1s" }}
+          style={{ width: '100%', height: '100%', animationDelay: '1s' }}
         ></div>
         <div
           className="ripple"
-          style={{ width: "100%", height: "100%", animationDelay: "1.5s" }}
+          style={{ width: '100%', height: '100%', animationDelay: '1.5s' }}
         ></div>
       </div>
 
       {/* Label central */}
       <div className="relative z-10 flex items-center justify-center">
         <span className="text-[10px] font-black uppercase tracking-[0.2em] animate-pulse bg-zinc-950/80 px-3 py-1.5 rounded-full backdrop-blur-md border border-current shadow-lg whitespace-nowrap">
-          {t("common.forging")}
+          {t('common.forging')}
         </span>
       </div>
     </div>

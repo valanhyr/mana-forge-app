@@ -1,4 +1,4 @@
-import { api } from "./api";
+import { api } from './api';
 
 export interface DailyDeck {
   deck_name: string;
@@ -39,7 +39,6 @@ export interface DeckView {
   likedByMe: boolean;
 }
 
-
 export interface FeaturedDeck {
   id: string;
   name: string;
@@ -71,24 +70,24 @@ interface DeckPayload {
   cards: {
     id: string; // scryfallId
     quantity: number;
-    board: "main" | "side";
+    board: 'main' | 'side';
   }[];
 }
 
 export const DeckService = {
   getDailyDeck: async (locale: string): Promise<DailyDeck> => {
-    const response = await api.post<DailyDeck>("/decks/random", { locale });
+    const response = await api.post<DailyDeck>('/decks/random', { locale });
     return response.data;
   },
 
   rateDailyDeck: async (date: string, stars: number): Promise<DailyDeck> => {
-    const response = await api.post<DailyDeck>("/decks/random/rate", { date, stars });
+    const response = await api.post<DailyDeck>('/decks/random/rate', { date, stars });
     return response.data;
   },
 
   getFeaturedDeck: async (): Promise<FeaturedDeck | null> => {
     try {
-      const response = await api.get<FeaturedDeck>("/decks/featured");
+      const response = await api.get<FeaturedDeck>('/decks/featured');
       return response.data;
     } catch {
       return null;
@@ -104,34 +103,42 @@ export const DeckService = {
     }
   },
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   saveDeck: async (payload: DeckPayload): Promise<any> => {
-    const response = await api.post("/decks", payload);
+    const response = await api.post('/decks', payload);
     return response.data;
   },
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   updateDeck: async (id: string, payload: DeckPayload): Promise<any> => {
     const response = await api.put(`/decks/${id}`, payload);
     return response.data;
   },
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   getDeckById: async (id: string): Promise<any> => {
     const response = await api.get(`/decks/${id}`);
     return response.data;
   },
 
-  analyzeDeck: async (payload: any) => {
-    const response = await api.post("/decks/analyze", payload);
+  analyzeDeck: async (payload: unknown) => {
+    const response = await api.post('/decks/analyze', payload);
     return response.data;
   },
   likeDeck: async (deckId: string): Promise<{ likesCount: number; likedByMe: boolean }> => {
-    const response = await api.post<{ likesCount: number; likedByMe: boolean }>(`/decks/${deckId}/like`);
+    const response = await api.post<{ likesCount: number; likedByMe: boolean }>(
+      `/decks/${deckId}/like`
+    );
     return response.data;
   },
   unlikeDeck: async (deckId: string): Promise<{ likesCount: number; likedByMe: boolean }> => {
-    const response = await api.delete<{ likesCount: number; likedByMe: boolean }>(`/decks/${deckId}/like`);
+    const response = await api.delete<{ likesCount: number; likedByMe: boolean }>(
+      `/decks/${deckId}/like`
+    );
     return response.data;
   },
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   cloneDeck: async (deckId: string): Promise<any> => {
     const response = await api.post(`/decks/${deckId}/clone`);
     return response.data;
@@ -141,18 +148,23 @@ export const DeckService = {
     await api.delete(`/decks/${deckId}`);
   },
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   pinDeck: async (deckId: string): Promise<any> => {
     const response = await api.post(`/decks/${deckId}/pin`);
     return response.data;
   },
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   unpinDeck: async (deckId: string): Promise<any> => {
     const response = await api.delete(`/decks/${deckId}/pin`);
     return response.data;
   },
 
-  searchDecks: async (filters: { name?: string; formatId?: string }): Promise<DeckSearchResult[]> => {
-    const response = await api.get<DeckSearchResult[]>("/decks/search", { params: filters });
+  searchDecks: async (filters: {
+    name?: string;
+    formatId?: string;
+  }): Promise<DeckSearchResult[]> => {
+    const response = await api.get<DeckSearchResult[]>('/decks/search', { params: filters });
     return response.data;
   },
 };

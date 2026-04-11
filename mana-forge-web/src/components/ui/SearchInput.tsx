@@ -1,5 +1,5 @@
-import { type ReactNode } from "react";
-import { Search } from "lucide-react";
+import { type ReactNode } from 'react';
+import { Search } from 'lucide-react';
 
 interface SearchInputProps {
   value: string;
@@ -22,7 +22,7 @@ const SearchInput: React.FC<SearchInputProps> = ({
   onChange,
   onSearch,
   label,
-  placeholder = "Buscar...",
+  placeholder = 'Buscar...',
   hint,
   error,
   buttonLabel,
@@ -30,19 +30,19 @@ const SearchInput: React.FC<SearchInputProps> = ({
   disabled = false,
 }) => {
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter" && !disabled && onSearch) {
+    if (e.key === 'Enter' && !disabled && onSearch) {
       onSearch();
     }
   };
 
   // Estilos dinámicos
   const baseInputStyles =
-    "w-full bg-zinc-950 border px-4 py-3 outline-none transition-all rounded-l-xl flex-1";
+    'w-full bg-zinc-950 border px-4 py-3 outline-none transition-all rounded-l-xl flex-1';
   const errorStyles =
-    "border-orange-500 text-orange-500 placeholder-orange-500/50 focus:ring-2 focus:ring-orange-500/20 z-10 relative";
+    'border-orange-500 text-orange-500 placeholder-orange-500/50 focus:ring-2 focus:ring-orange-500/20 z-10 relative';
   const normalStyles =
-    "border-zinc-800 text-white focus:border-zinc-600 focus:ring-2 focus:ring-zinc-800";
-  const disabledStyles = "opacity-50 cursor-not-allowed bg-zinc-900";
+    'border-zinc-800 text-white focus:border-zinc-600 focus:ring-2 focus:ring-zinc-800';
+  const disabledStyles = 'opacity-50 cursor-not-allowed bg-zinc-900';
 
   let inputClass = baseInputStyles;
   if (disabled) inputClass += ` ${disabledStyles}`;
@@ -80,7 +80,7 @@ const SearchInput: React.FC<SearchInputProps> = ({
       {(error || hint) && (
         <span
           className={`text-xs mt-2 font-medium block ${
-            error ? "text-orange-500" : "text-zinc-500"
+            error ? 'text-orange-500' : 'text-zinc-500'
           }`}
         >
           {error || hint}

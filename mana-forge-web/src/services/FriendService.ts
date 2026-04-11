@@ -1,4 +1,4 @@
-import { api } from "./api";
+import { api } from './api';
 
 export interface FriendUser {
   userId: string;
@@ -22,14 +22,13 @@ export interface SentRequest {
 }
 
 export const FriendService = {
-  getFriends: (): Promise<FriendUser[]> =>
-    api.get("/friends").then((r) => r.data),
+  getFriends: (): Promise<FriendUser[]> => api.get('/friends').then((r) => r.data),
 
   getReceivedRequests: (): Promise<ReceivedRequest[]> =>
-    api.get("/friends/requests/received").then((r) => r.data),
+    api.get('/friends/requests/received').then((r) => r.data),
 
   getSentRequests: (): Promise<SentRequest[]> =>
-    api.get("/friends/requests/sent").then((r) => r.data),
+    api.get('/friends/requests/sent').then((r) => r.data),
 
   sendRequest: (targetUserId: string): Promise<void> =>
     api.post(`/friends/requests/${targetUserId}`).then(() => {}),
@@ -44,5 +43,5 @@ export const FriendService = {
     api.delete(`/friends/${friendId}`).then(() => {}),
 
   searchUsers: (q: string): Promise<FriendUser[]> =>
-    api.get("/friends/search", { params: { q } }).then((r) => r.data),
+    api.get('/friends/search', { params: { q } }).then((r) => r.data),
 };

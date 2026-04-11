@@ -1,4 +1,4 @@
-import type { SEOData } from "../../components/ui/SEO";
+import type { SEOData } from '../../components/ui/SEO';
 
 export interface FormatConfig {
   minMainDeck: number;
@@ -16,28 +16,28 @@ export interface Format {
 }
 
 export interface FormatDetail {
-  mongoId: String,
-  slug: string,
-  title: string,
-  subtitle: string,
-  description: FormatSection,
-  rules: FormatSection,
-  imageUrl:string,
+  mongoId: string;
+  slug: string;
+  title: string;
+  subtitle: string;
+  description: FormatSection;
+  rules: FormatSection;
+  imageUrl: string;
   seo?: SEOData;
 }
 export interface FormatCMSBase {
-  mongoId: String,
-  title: String,
-  imageUrl: String,
-  description: String,
+  mongoId: string;
+  title: string;
+  imageUrl: string;
+  description: string;
 }
 export interface FormatSection {
-  name: string,
-  title: string,
-  description: string,
-  rules: FormatRule[],
+  name: string;
+  title: string;
+  description: string;
+  rules: FormatRule[];
 }
 export interface FormatRule {
-  id:number,
-  text: string
+  id: number;
+  text: string;
 }

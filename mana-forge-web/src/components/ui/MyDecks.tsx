@@ -1,8 +1,8 @@
-import { useEffect } from "react";
-import { useUser } from "../../services/UserContext";
-import DeckTable from "../../components/ui/DeckTable";
-import { Plus } from "lucide-react";
-import { Link } from "react-router-dom";
+import { useEffect } from 'react';
+import { useUser } from '../../services/UserContext';
+import DeckTable from '../../components/ui/DeckTable';
+import { Plus } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const MyDecks = () => {
   const { decks, loadDecks } = useUser();

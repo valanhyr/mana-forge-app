@@ -1,6 +1,6 @@
-import { Navigate, Outlet } from "react-router-dom";
-import { useUser } from "../../services/UserContext";
-import ForgeSpinner from "../ui/ForgeSpinner";
+import { Navigate, Outlet } from 'react-router-dom';
+import { useUser } from '../../services/UserContext';
+import ForgeSpinner from '../ui/ForgeSpinner';
 
 const ProtectedRoute = () => {
   const { isAuthenticated, isSessionLoading } = useUser();

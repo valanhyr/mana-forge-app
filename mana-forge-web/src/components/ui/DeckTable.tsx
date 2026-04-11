@@ -1,15 +1,7 @@
-import { useState, useEffect } from "react";
-import {
-  Star,
-  Info,
-  MoreVertical,
-  Shield,
-  Edit,
-  Copy,
-  Trash2,
-} from "lucide-react";
-import { ManaSymbolService } from "../../services/ManaSymbolService";
-import { useTranslation } from "../../hooks/useTranslation";
+import { useState, useEffect } from 'react';
+import { Star, Info, MoreVertical, Shield, Edit, Copy, Trash2 } from 'lucide-react';
+import { ManaSymbolService } from '../../services/ManaSymbolService';
+import { useTranslation } from '../../hooks/useTranslation';
 
 export interface Deck {
   id: string;
@@ -47,11 +39,11 @@ const DeckTable: React.FC<DeckTableProps> = ({
     const handleClickOutside = () => setActiveDeckId(null);
     const handleScroll = () => setActiveDeckId(null);
 
-    window.addEventListener("click", handleClickOutside);
-    window.addEventListener("scroll", handleScroll, true);
+    window.addEventListener('click', handleClickOutside);
+    window.addEventListener('scroll', handleScroll, true);
     return () => {
-      window.removeEventListener("click", handleClickOutside);
-      window.removeEventListener("scroll", handleScroll, true);
+      window.removeEventListener('click', handleClickOutside);
+      window.removeEventListener('scroll', handleScroll, true);
     };
   }, []);
 
@@ -66,32 +58,29 @@ const DeckTable: React.FC<DeckTableProps> = ({
         <thead className="hidden md:table-header-group bg-zinc-900 text-xs uppercase text-zinc-500">
           <tr>
             <th scope="col" className="px-6 py-3 font-medium">
-              {t("myDecks.table.name")}
+              {t('myDecks.table.name')}
             </th>
             <th scope="col" className="px-6 py-3 font-medium">
-              {t("myDecks.table.colors")}
+              {t('myDecks.table.colors')}
             </th>
             <th scope="col" className="px-6 py-3 font-medium">
-              {t("myDecks.table.format")}
+              {t('myDecks.table.format')}
             </th>
             <th scope="col" className="px-6 py-3 font-medium">
-              {t("myDecks.table.updated")}
+              {t('myDecks.table.updated')}
             </th>
             <th scope="col" className="px-6 py-3 text-right font-medium">
-              {t("myDecks.table.actions")}
+              {t('myDecks.table.actions')}
             </th>
           </tr>
         </thead>
         <tbody className="divide-y divide-zinc-800">
           {decks.length === 0 ? (
             <tr>
-              <td
-                colSpan={5}
-                className="px-6 py-12 text-center text-zinc-500 md:table-cell"
-              >
+              <td colSpan={5} className="px-6 py-12 text-center text-zinc-500 md:table-cell">
                 <div className="flex flex-col items-center justify-center gap-2">
-                  <p className="text-lg font-medium">{t("myDecks.noDecks")}</p>
-                  <p className="text-sm">{t("myDecks.noDecksDescription")}</p>
+                  <p className="text-lg font-medium">{t('myDecks.noDecks')}</p>
+                  <p className="text-sm">{t('myDecks.noDecksDescription')}</p>
                 </div>
               </td>
             </tr>
@@ -109,16 +98,13 @@ const DeckTable: React.FC<DeckTableProps> = ({
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          onPin && onPin(deck.id);
+                          onPin?.(deck.id);
                         }}
                         className={`mt-1 transition-colors hover:text-orange-500 ${
-                          deck.isPinned ? "text-orange-500" : "text-zinc-600"
+                          deck.isPinned ? 'text-orange-500' : 'text-zinc-600'
                         }`}
                       >
-                        <Star
-                          size={18}
-                          fill={deck.isPinned ? "currentColor" : "none"}
-                        />
+                        <Star size={18} fill={deck.isPinned ? 'currentColor' : 'none'} />
                       </button>
                       <div className="flex flex-col gap-1">
                         <span className="text-lg font-bold text-white group-hover:text-orange-500 transition-colors break-words leading-tight">
@@ -128,7 +114,7 @@ const DeckTable: React.FC<DeckTableProps> = ({
                           <div className="flex">
                             <span className="inline-flex items-center gap-1 rounded bg-zinc-800/50 px-1.5 py-0.5 text-[10px] font-bold text-zinc-500 border border-zinc-800">
                               <Shield size={10} />
-                              {t("common.private").toUpperCase()}
+                              {t('common.private').toUpperCase()}
                             </span>
                           </div>
                         )}
@@ -171,11 +157,9 @@ const DeckTable: React.FC<DeckTableProps> = ({
                           />
                         ) : null;
                       })}
-                      {deck.colors.length === 0 && (
-                        <span className="text-zinc-600">—</span>
-                      )}
+                      {deck.colors.length === 0 && <span className="text-zinc-600">—</span>}
                     </div>
-                    
+
                     <div className="h-4 w-px bg-zinc-800 md:hidden"></div>
 
                     <span className="inline-flex items-center rounded-full bg-zinc-900 px-2 py-0.5 text-[11px] font-bold text-zinc-400 border border-zinc-800 uppercase tracking-wider md:hidden">
@@ -186,7 +170,7 @@ const DeckTable: React.FC<DeckTableProps> = ({
 
                 {/* Desktop: Formato (Ya incluido arriba para mobile) */}
                 <td className="hidden md:table-cell px-6 py-4">
-                   <span className="inline-flex items-center rounded-full bg-zinc-900 px-2.5 py-0.5 text-xs font-medium text-zinc-400 border border-zinc-800">
+                  <span className="inline-flex items-center rounded-full bg-zinc-900 px-2.5 py-0.5 text-xs font-medium text-zinc-400 border border-zinc-800">
                     {deck.format}
                   </span>
                 </td>
@@ -194,7 +178,8 @@ const DeckTable: React.FC<DeckTableProps> = ({
                 {/* Fecha Desktop/Mobile */}
                 <td className="p-0 mt-3 md:mt-0 md:px-6 md:py-4 md:table-cell">
                   <span className="text-xs text-zinc-500 font-medium md:font-normal uppercase md:capitalize">
-                    <span className="md:hidden">{t("myDecks.table.updated")}: </span>{deck.lastUpdated}
+                    <span className="md:hidden">{t('myDecks.table.updated')}: </span>
+                    {deck.lastUpdated}
                   </span>
                 </td>
 
@@ -204,10 +189,10 @@ const DeckTable: React.FC<DeckTableProps> = ({
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        onInfo && onInfo(deck.id);
+                        onInfo?.(deck.id);
                       }}
                       className="p-2 text-zinc-500 hover:text-zinc-300 transition-colors"
-                      title={t("common.info")}
+                      title={t('common.info')}
                     >
                       <Info size={18} />
                     </button>
@@ -222,7 +207,9 @@ const DeckTable: React.FC<DeckTableProps> = ({
                         setActiveDeckId(activeDeckId === deck.id ? null : deck.id);
                       }}
                       className={`p-2 transition-colors rounded-md ${
-                        activeDeckId === deck.id ? "text-white bg-zinc-800" : "text-zinc-500 hover:text-zinc-300"
+                        activeDeckId === deck.id
+                          ? 'text-white bg-zinc-800'
+                          : 'text-zinc-500 hover:text-zinc-300'
                       }`}
                     >
                       <MoreVertical size={18} />
@@ -245,20 +232,20 @@ const DeckTable: React.FC<DeckTableProps> = ({
             onClick={() => onEdit && onEdit(activeDeckId)}
             className="w-full text-left px-4 py-2.5 text-sm text-zinc-300 hover:bg-zinc-800 hover:text-orange-500 flex items-center gap-2 transition-colors"
           >
-            <Edit size={14} /> {t("common.edit")}
+            <Edit size={14} /> {t('common.edit')}
           </button>
           <button
             onClick={() => onDuplicate && onDuplicate(activeDeckId)}
             className="w-full text-left px-4 py-2.5 text-sm text-zinc-300 hover:bg-zinc-800 hover:text-orange-500 flex items-center gap-2 transition-colors"
           >
-            <Copy size={14} /> {t("common.duplicate")}
+            <Copy size={14} /> {t('common.duplicate')}
           </button>
           <div className="border-t border-zinc-800 my-1"></div>
           <button
             onClick={() => onDelete && onDelete(activeDeckId)}
             className="w-full text-left px-4 py-2.5 text-sm text-red-400 hover:bg-red-500/10 hover:text-red-300 flex items-center gap-2 transition-colors"
           >
-            <Trash2 size={14} /> {t("common.delete")}
+            <Trash2 size={14} /> {t('common.delete')}
           </button>
         </div>
       )}

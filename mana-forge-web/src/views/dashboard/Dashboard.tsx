@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { useState, useEffect } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import {
   ArrowRight,
   Sparkles,
@@ -12,18 +12,18 @@ import {
   ThumbsUp,
   Camera,
   Star,
-} from "lucide-react";
-import { DeckService, type DailyDeck, type FeaturedDeck } from "../../services/DeckService";
-import { ScryfallService } from "../../services/ScryfallService";
-import ForgeSpinner from "../../components/ui/ForgeSpinner";
-import { FormatService } from "../../services/FormatService";
-import { useTranslation } from "../../hooks/useTranslation";
-import { ArticleService } from "../../services/ArticleService";
-import { type Article } from "../../core/models/Article";
-import ManaCost from "../../components/ui/ManaCost";
-import SEO from "../../components/ui/SEO";
-import { useUser } from "../../services/UserContext";
-import { useToast } from "../../services/ToastContext";
+} from 'lucide-react';
+import { DeckService, type DailyDeck, type FeaturedDeck } from '../../services/DeckService';
+import { ScryfallService } from '../../services/ScryfallService';
+import ForgeSpinner from '../../components/ui/ForgeSpinner';
+import { FormatService } from '../../services/FormatService';
+import { useTranslation } from '../../hooks/useTranslation';
+import { ArticleService } from '../../services/ArticleService';
+import { type Article } from '../../core/models/Article';
+import ManaCost from '../../components/ui/ManaCost';
+import SEO from '../../components/ui/SEO';
+import { useUser } from '../../services/UserContext';
+import { useToast } from '../../services/ToastContext';
 
 // --- Mock Data ---
 
@@ -63,28 +63,18 @@ const Dashboard = () => {
         const deckData = await DeckService.getDailyDeck(locale);
 
         // 2. Encontrar una carta representativa para la imagen (la primera que no sea tierra básica)
-        const basicLandNames = [
-          "plains",
-          "island",
-          "swamp",
-          "mountain",
-          "forest",
-          "wastes",
-        ];
+        const basicLandNames = ['plains', 'island', 'swamp', 'mountain', 'forest', 'wastes'];
         const featureCard = deckData.main_deck.find(
-          (card: { name: string }) =>
-            !basicLandNames.includes(card.name.toLowerCase())
+          (card: { name: string }) => !basicLandNames.includes(card.name.toLowerCase())
         );
 
         // Imagen por defecto si algo falla
         let cardArtUrl =
-          "https://cards.scryfall.io/art_crop/front/a/9/a9446d18-904f-4d4c-a1b6-5d7c2a3a55a8.jpg?1562925291";
+          'https://cards.scryfall.io/art_crop/front/a/9/a9446d18-904f-4d4c-a1b6-5d7c2a3a55a8.jpg?1562925291';
 
         if (featureCard) {
           // 3. Obtener la imagen de la carta desde nuestro proxy de Scryfall
-          const cardDetails = await ScryfallService.getCardByName(
-            featureCard.name
-          );
+          const cardDetails = await ScryfallService.getCardByName(featureCard.name);
           if (cardDetails && cardDetails.image_uris) {
             cardArtUrl = cardDetails.image_uris.art_crop;
           }
@@ -93,10 +83,8 @@ const Dashboard = () => {
         // 4. Guardar el mazo y la URL de la imagen en el estado
         setDailyDeck({ ...deckData, cardArtUrl });
       } catch (err) {
-        console.error("Error fetching daily AI deck:", err);
-        setError(
-          "No se pudo cargar el mazo del día. Inténtalo de nuevo más tarde."
-        );
+        console.error('Error fetching daily AI deck:', err);
+        setError('No se pudo cargar el mazo del día. Inténtalo de nuevo más tarde.');
       } finally {
         setIsLoading(false);
       }
@@ -116,7 +104,7 @@ const Dashboard = () => {
     };
     fetchFeaturedDeck();
 
-    const fetchArticles= async () => {
+    const fetchArticles = async () => {
       const fetchedArticles = await ArticleService.getLastArticles();
       setArticles(fetchedArticles);
     };
@@ -126,17 +114,18 @@ const Dashboard = () => {
       try {
         const result = await FormatService.getCMSAllFormats();
         if (Array.isArray(result)) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           setPopularFormats(result as any);
         }
       } catch (error) {
-        console.error("Error fetching formats:", error);
+        console.error('Error fetching formats:', error);
       }
     };
     fetchFormats();
 
     // Check for query param to open daily deck modal
     const searchParams = new URLSearchParams(location.search);
-    if (searchParams.get("daily-deck") === "true") {
+    if (searchParams.get('daily-deck') === 'true') {
       setIsModalOpen(true);
     }
   }, [locale, location.search]); // Recargar si cambia el idioma o la URL
@@ -151,11 +140,11 @@ const Dashboard = () => {
       const cardDetails = await ScryfallService.getCardByName(cardName);
       if (cardDetails && cardDetails.image_uris) {
         const imageUrl = cardDetails.image_uris.normal;
-        setCachedImages(prev => ({ ...prev, [cardName]: imageUrl }));
+        setCachedImages((prev) => ({ ...prev, [cardName]: imageUrl }));
         setPreviewImage(imageUrl);
       }
     } catch (error) {
-      console.error("Error fetching card image:", error);
+      console.error('Error fetching card image:', error);
     }
   };
 
@@ -170,18 +159,18 @@ const Dashboard = () => {
     if (!dailyDeck || ratingLoading) return;
 
     if (!isAuthenticated) {
-      showToast(t("common.loginToRate"), "info");
+      showToast(t('common.loginToRate'), 'info');
       return;
     }
-    
+
     // Validate we are logged in (checking the existence of a likedby feature like in featuredDeck, although if API fails it handles it)
     try {
       setRatingLoading(true);
       // Optimistic visual update
       const previousRating = dailyDeck.userRating;
       const isRemoving = previousRating === stars;
-      
-      setDailyDeck(prev => {
+
+      setDailyDeck((prev) => {
         if (!prev) return prev;
         return {
           ...prev,
@@ -191,14 +180,14 @@ const Dashboard = () => {
 
       if (dailyDeck.date) {
         const updatedDeck = await DeckService.rateDailyDeck(dailyDeck.date, stars);
-        setDailyDeck(prev => ({
+        setDailyDeck((prev) => ({
           ...prev,
           ...updatedDeck,
-          cardArtUrl: prev?.cardArtUrl // Keep the cached image UI url
+          cardArtUrl: prev?.cardArtUrl, // Keep the cached image UI url
         }));
       }
     } catch (err) {
-      console.error("Error rating deck:", err);
+      console.error('Error rating deck:', err);
       // Revert in case of error (reload data or just show toast, here we just let it be)
     } finally {
       setRatingLoading(false);
@@ -211,9 +200,7 @@ const Dashboard = () => {
         <div className="group relative flex items-center justify-center h-80 p-6 text-white bg-zinc-900 rounded-2xl border border-zinc-800">
           <div className="text-center">
             <ForgeSpinner className="mx-auto text-indigo-400" size={128} />
-            <p className="mt-4 text-zinc-400">
-              {t("dashboard.generatingDeck")}
-            </p>
+            <p className="mt-4 text-zinc-400">{t('dashboard.generatingDeck')}</p>
           </div>
         </div>
       );
@@ -224,9 +211,7 @@ const Dashboard = () => {
         <div className="group relative flex items-center justify-center h-80 p-6 text-white bg-zinc-900 rounded-2xl border border-red-500/30">
           <div className="text-center">
             <ServerCrash className="mx-auto h-12 w-12 text-red-400" />
-            <p className="mt-4 text-red-400">
-              {error || t("common.unknownError")}
-            </p>
+            <p className="mt-4 text-red-400">{error || t('common.unknownError')}</p>
           </div>
         </div>
       );
@@ -248,22 +233,23 @@ const Dashboard = () => {
         <div className="relative z-10 flex flex-col justify-between h-80 p-6 text-white">
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2">
             <span className="inline-flex shrink-0 items-center gap-2 rounded-full bg-black/60 px-3 py-1 text-xs font-medium text-indigo-400 border border-indigo-500/20 backdrop-blur-sm">
-              <Sparkles size={14} /> {t("dashboard.aiDeckOfTheDay")}
+              <Sparkles size={14} /> {t('dashboard.aiDeckOfTheDay')}
             </span>
-            
+
             {/* Star Rating System On Card */}
-            <div 
+            <div
               className="flex gap-1 bg-black/60 px-2 py-1 rounded-full border border-zinc-500/20 backdrop-blur-sm w-fit"
               onMouseLeave={() => setHoveredStar(0)}
-              onClick={e => e.stopPropagation()}
+              onClick={(e) => e.stopPropagation()}
             >
-              {[1, 2, 3, 4, 5].map(star => {
+              {[1, 2, 3, 4, 5].map((star) => {
                 const currentRating = dailyDeck.userRating || 0;
                 const averageRating = dailyDeck.averageRating || 0;
                 // If we are hovering, show hovered state. Else show actual rating state.
                 const isFilled = hoveredStar ? star <= hoveredStar : star <= currentRating;
-                const isOrangeBorder = isFilled || (!hoveredStar && star <= Math.round(averageRating));
-                
+                const isOrangeBorder =
+                  isFilled || (!hoveredStar && star <= Math.round(averageRating));
+
                 return (
                   <button
                     key={star}
@@ -273,14 +259,15 @@ const Dashboard = () => {
                     onClick={(e) => handleRateDeck(e, star)}
                     className="p-0.5 focus:outline-none transition-transform hover:scale-125 disabled:opacity-50"
                   >
-                    <Star 
-                      size={18} 
-                      className={isFilled 
-                        ? "text-orange-500 fill-orange-500 transition-colors duration-200"
-                        : isOrangeBorder
-                          ? "text-orange-500 fill-transparent transition-colors duration-200"
-                          : "text-zinc-500 fill-transparent hover:text-orange-400 transition-colors duration-200"
-                      } 
+                    <Star
+                      size={18}
+                      className={
+                        isFilled
+                          ? 'text-orange-500 fill-orange-500 transition-colors duration-200'
+                          : isOrangeBorder
+                            ? 'text-orange-500 fill-transparent transition-colors duration-200'
+                            : 'text-zinc-500 fill-transparent hover:text-orange-400 transition-colors duration-200'
+                      }
                     />
                   </button>
                 );
@@ -305,27 +292,25 @@ const Dashboard = () => {
 
   return (
     <div className="max-w-7xl 2xl:max-w-screen-2xl mx-auto mt-8 px-4 sm:px-6 lg:px-8 space-y-12 mb-12">
-      <SEO 
-        title={t("seo.dashboardTitle")} 
-        description={t("seo.dashboardDescription")}
+      <SEO
+        title={t('seo.dashboardTitle')}
+        description={t('seo.dashboardDescription')}
         jsonLd={{
-          "@context": "https://schema.org",
-          "@type": "WebSite",
-          "name": "Mana Forge",
-          "url": "https://mana-forge.com",
-          "description": t("seo.defaultDescription"),
-          "potentialAction": {
-            "@type": "SearchAction",
-            "target": "https://mana-forge.com/explorer?q={search_term_string}",
-            "query-input": "required name=search_term_string"
-          }
+          '@context': 'https://schema.org',
+          '@type': 'WebSite',
+          name: 'Mana Forge',
+          url: 'https://mana-forge.com',
+          description: t('seo.defaultDescription'),
+          potentialAction: {
+            '@type': 'SearchAction',
+            target: 'https://mana-forge.com/explorer?q={search_term_string}',
+            'query-input': 'required name=search_term_string',
+          },
         }}
       />
       {/* --- Sección de Noticias --- */}
       <section>
-        <h2 className="text-3xl font-bold text-white mb-6">
-          {t("dashboard.newsTitle")}
-        </h2>
+        <h2 className="text-3xl font-bold text-white mb-6">{t('dashboard.newsTitle')}</h2>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {articles.map((item) => (
             <Link
@@ -345,7 +330,7 @@ const Dashboard = () => {
                 <h3 className="text-xl font-bold">{item.title}</h3>
                 <p className="text-sm text-zinc-300 mt-1">{item.subtitle}</p>
                 <div className="mt-4 inline-flex items-center gap-2 text-orange-500 font-semibold text-sm group-hover:underline">
-                  {t("common.readMore")}
+                  {t('common.readMore')}
                   <ArrowRight size={16} />
                 </div>
               </div>
@@ -356,9 +341,7 @@ const Dashboard = () => {
 
       {/* --- Sección Mazo del Día --- */}
       <section>
-        <h2 className="text-3xl font-bold text-white mb-6">
-          {t("dashboard.featuredDecks")}
-        </h2>
+        <h2 className="text-3xl font-bold text-white mb-6">{t('dashboard.featuredDecks')}</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {/* Mazo de la Comunidad */}
           {featuredDeck ? (
@@ -381,7 +364,7 @@ const Dashboard = () => {
               <div className="relative z-10 flex flex-col justify-between h-80 p-6 text-white">
                 <div>
                   <span className="inline-flex items-center gap-2 rounded-full bg-black/60 px-3 py-1 text-xs font-medium text-orange-400 border border-orange-500/20 backdrop-blur-sm">
-                    <Zap size={14} /> {t("dashboard.deckOfTheDay")}
+                    <Zap size={14} /> {t('dashboard.deckOfTheDay')}
                   </span>
                 </div>
                 <div>
@@ -389,10 +372,18 @@ const Dashboard = () => {
                   <p className="text-sm text-zinc-300 mt-1">
                     {featuredDeck.formatName}
                     {featuredDeck.ownerUsername && (
-                      <> &middot; <Users size={12} className="inline mb-0.5" /> {featuredDeck.ownerUsername}</>
+                      <>
+                        {' '}
+                        &middot; <Users size={12} className="inline mb-0.5" />{' '}
+                        {featuredDeck.ownerUsername}
+                      </>
                     )}
                     {featuredDeck.likesCount > 0 && (
-                      <> &middot; <ThumbsUp size={12} className="inline mb-0.5" /> {featuredDeck.likesCount}</>
+                      <>
+                        {' '}
+                        &middot; <ThumbsUp size={12} className="inline mb-0.5" />{' '}
+                        {featuredDeck.likesCount}
+                      </>
                     )}
                   </p>
                 </div>
@@ -400,7 +391,7 @@ const Dashboard = () => {
             </Link>
           ) : (
             <div className="flex items-center justify-center h-80 rounded-2xl bg-zinc-900 border border-zinc-800">
-              <p className="text-zinc-500 text-sm">{t("dashboard.noFeaturedDeck")}</p>
+              <p className="text-zinc-500 text-sm">{t('dashboard.noFeaturedDeck')}</p>
             </div>
           )}
 
@@ -412,14 +403,12 @@ const Dashboard = () => {
       {/* --- Sección Formatos Populares (Sugerencia) --- */}
       <section>
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-2">
-          <h2 className="text-3xl font-bold text-white">
-            {t("dashboard.exploreFormats")}
-          </h2>
+          <h2 className="text-3xl font-bold text-white">{t('dashboard.exploreFormats')}</h2>
           <Link
             to="/formats/all-formats"
             className="text-sm font-medium text-orange-500 hover:underline flex items-center gap-1 self-end"
           >
-            {t("common.viewAll")} <ArrowRight size={16} />
+            {t('common.viewAll')} <ArrowRight size={16} />
           </Link>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -435,9 +424,7 @@ const Dashboard = () => {
                 </div>
                 <h3 className="text-lg font-bold text-white">{format.title}</h3>
               </div>
-              <p className="text-sm text-zinc-400 line-clamp-3">
-                {format.subtitle}
-              </p>
+              <p className="text-sm text-zinc-400 line-clamp-3">{format.subtitle}</p>
             </Link>
           ))}
         </div>
@@ -457,21 +444,20 @@ const Dashboard = () => {
             <div className="flex items-center justify-between p-6 border-b border-zinc-800 shrink-0">
               <div>
                 <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mb-1">
-                  <h3 className="text-2xl font-bold text-white">
-                    {dailyDeck.deck_name}
-                  </h3>
-                  
+                  <h3 className="text-2xl font-bold text-white">{dailyDeck.deck_name}</h3>
+
                   {/* Star Rating System Modal Header */}
-                  <div 
+                  <div
                     className="flex gap-1 bg-zinc-950/50 px-3 py-1.5 rounded-full border border-zinc-800 w-fit"
                     onMouseLeave={() => setHoveredStar(0)}
                   >
-                    {[1, 2, 3, 4, 5].map(star => {
+                    {[1, 2, 3, 4, 5].map((star) => {
                       const currentRating = dailyDeck.userRating || 0;
                       const averageRating = dailyDeck.averageRating || 0;
                       const isFilled = hoveredStar ? star <= hoveredStar : star <= currentRating;
-                      const isOrangeBorder = isFilled || (!hoveredStar && star <= Math.round(averageRating));
-                      
+                      const isOrangeBorder =
+                        isFilled || (!hoveredStar && star <= Math.round(averageRating));
+
                       return (
                         <button
                           key={star}
@@ -481,19 +467,22 @@ const Dashboard = () => {
                           onClick={(e) => handleRateDeck(e, star)}
                           className="p-1 focus:outline-none transition-transform hover:scale-125 disabled:opacity-50"
                         >
-                          <Star 
-                            size={20} 
-                            className={isFilled 
-                              ? "text-orange-500 fill-orange-500" 
-                              : isOrangeBorder
-                                ? "text-orange-500 fill-transparent"
-                                : "text-zinc-600 fill-transparent"
-                            } 
+                          <Star
+                            size={20}
+                            className={
+                              isFilled
+                                ? 'text-orange-500 fill-orange-500'
+                                : isOrangeBorder
+                                  ? 'text-orange-500 fill-transparent'
+                                  : 'text-zinc-600 fill-transparent'
+                            }
                           />
                         </button>
                       );
                     })}
-                    {dailyDeck.averageRating && dailyDeck.totalRatings && dailyDeck.totalRatings > 0 ? (
+                    {dailyDeck.averageRating &&
+                    dailyDeck.totalRatings &&
+                    dailyDeck.totalRatings > 0 ? (
                       <div className="ml-2 pl-2 border-l border-zinc-700 flex flex-col justify-center">
                         <span className="text-xs text-zinc-300 font-bold leading-none">
                           {dailyDeck.averageRating}
@@ -505,7 +494,7 @@ const Dashboard = () => {
                     ) : null}
                   </div>
                 </div>
-                
+
                 <p className="text-zinc-400">
                   {dailyDeck.format_name} &middot; {dailyDeck.archetype}
                 </p>
@@ -525,8 +514,7 @@ const Dashboard = () => {
                 <div className="lg:col-span-1 space-y-6">
                   <div>
                     <h4 className="font-bold text-white mb-3 flex items-center gap-2">
-                      <Layers size={18} className="text-indigo-500" />{" "}
-                      {t("common.mainDeck")}
+                      <Layers size={18} className="text-indigo-500" /> {t('common.mainDeck')}
                     </h4>
                     <ul className="space-y-3">
                       {dailyDeck.main_deck.map((c, i) => (
@@ -536,7 +524,7 @@ const Dashboard = () => {
                           className="flex justify-between items-center border-b border-zinc-800/50 pb-2 last:border-0 gap-3 group"
                         >
                           <div className="flex items-center gap-3 min-w-0 flex-1">
-                            <button 
+                            <button
                               onClick={() => handleOpenPreview(c.name)}
                               className="lg:hidden p-1 text-zinc-500 hover:text-orange-500 transition-colors shrink-0"
                             >
@@ -546,12 +534,19 @@ const Dashboard = () => {
                               <span className="text-white font-medium text-sm leading-tight truncate flex items-center gap-1">
                                 {c.name}
                                 {c.isGameChanger && (
-                                  <span title={t("common.gameChangerTooltip")} className="cursor-help inline-flex items-center justify-center bg-orange-500/20 text-orange-400 text-[10px] font-bold px-1.5 py-0.5 rounded border border-orange-500/30">
+                                  <span
+                                    title={t('common.gameChangerTooltip')}
+                                    className="cursor-help inline-flex items-center justify-center bg-orange-500/20 text-orange-400 text-[10px] font-bold px-1.5 py-0.5 rounded border border-orange-500/30"
+                                  >
                                     GC
                                   </span>
                                 )}
                               </span>
-                              {c.mana_cost && <div className="mt-0.5"><ManaCost cost={c.mana_cost} size={14} /></div>}
+                              {c.mana_cost && (
+                                <div className="mt-0.5">
+                                  <ManaCost cost={c.mana_cost} size={14} />
+                                </div>
+                              )}
                             </div>
                           </div>
                           <span className="text-zinc-500 font-bold text-xs bg-zinc-800/50 px-2 py-1 rounded-lg border border-zinc-700/50 shrink-0">
@@ -565,8 +560,7 @@ const Dashboard = () => {
                   {dailyDeck.sideboard && dailyDeck.sideboard.length > 0 && (
                     <div>
                       <h4 className="font-bold text-white mb-3 flex items-center gap-2">
-                        <Layers size={18} className="text-zinc-500" />{" "}
-                        {t("common.sideboard")}
+                        <Layers size={18} className="text-zinc-500" /> {t('common.sideboard')}
                       </h4>
                       <ul className="space-y-3">
                         {dailyDeck.sideboard.map((c, i) => (
@@ -575,25 +569,32 @@ const Dashboard = () => {
                             onMouseEnter={() => handleMouseEnterCard(c.name)}
                             className="flex justify-between items-center border-b border-zinc-800/50 pb-2 last:border-0 gap-3 group"
                           >
-                          <div className="flex items-center gap-3 min-w-0 flex-1">
-                            <button 
-                              onClick={() => handleOpenPreview(c.name)}
-                              className="lg:hidden p-1 text-zinc-500 hover:text-orange-500 transition-colors shrink-0"
-                            >
-                              <Camera size={18} />
-                            </button>
-                            <div className="flex flex-col min-w-0">
-                              <span className="text-zinc-400 font-medium text-sm leading-tight truncate flex items-center gap-1">
-                                {c.name}
-                                {c.isGameChanger && (
-                                  <span title={t("common.gameChangerTooltip")} className="cursor-help inline-flex items-center justify-center bg-orange-500/20 text-orange-400 text-[10px] font-bold px-1.5 py-0.5 rounded border border-orange-500/30">
-                                    GC
-                                  </span>
+                            <div className="flex items-center gap-3 min-w-0 flex-1">
+                              <button
+                                onClick={() => handleOpenPreview(c.name)}
+                                className="lg:hidden p-1 text-zinc-500 hover:text-orange-500 transition-colors shrink-0"
+                              >
+                                <Camera size={18} />
+                              </button>
+                              <div className="flex flex-col min-w-0">
+                                <span className="text-zinc-400 font-medium text-sm leading-tight truncate flex items-center gap-1">
+                                  {c.name}
+                                  {c.isGameChanger && (
+                                    <span
+                                      title={t('common.gameChangerTooltip')}
+                                      className="cursor-help inline-flex items-center justify-center bg-orange-500/20 text-orange-400 text-[10px] font-bold px-1.5 py-0.5 rounded border border-orange-500/30"
+                                    >
+                                      GC
+                                    </span>
+                                  )}
+                                </span>
+                                {c.mana_cost && (
+                                  <div className="mt-0.5">
+                                    <ManaCost cost={c.mana_cost} size={14} />
+                                  </div>
                                 )}
-                              </span>
-                              {c.mana_cost && <div className="mt-0.5"><ManaCost cost={c.mana_cost} size={14} /></div>}
+                              </div>
                             </div>
-                          </div>
                             <span className="text-zinc-600 font-bold text-xs bg-zinc-800/30 px-2 py-1 rounded-lg border border-zinc-800/50 shrink-0">
                               x{c.quantity}
                             </span>
@@ -619,7 +620,7 @@ const Dashboard = () => {
                       </div>
                     )}
                     <p className="text-center text-xs text-zinc-500 mt-4 italic">
-                      {t("dashboard.previewHint") || "Pasa el ratón para ver la carta"}
+                      {t('dashboard.previewHint') || 'Pasa el ratón para ver la carta'}
                     </p>
                   </div>
                 </div>
@@ -628,22 +629,16 @@ const Dashboard = () => {
                 <div className="lg:col-span-1 space-y-6">
                   <div className="bg-zinc-950/50 p-5 rounded-xl border border-zinc-800">
                     <h4 className="font-bold text-white mb-3 flex items-center gap-2">
-                      <Zap size={18} className="text-orange-500" />{" "}
-                      {t("dashboard.mainStrategy")}
+                      <Zap size={18} className="text-orange-500" /> {t('dashboard.mainStrategy')}
                     </h4>
-                    <p className="text-zinc-300 leading-relaxed">
-                      {dailyDeck.strategy_summary}
-                    </p>
+                    <p className="text-zinc-300 leading-relaxed">{dailyDeck.strategy_summary}</p>
                   </div>
 
                   <div className="bg-zinc-950/50 p-5 rounded-xl border border-zinc-800">
                     <h4 className="font-bold text-white mb-3 flex items-center gap-2">
-                      <BookOpen size={18} className="text-blue-500" />{" "}
-                      {t("dashboard.metaAnalysis")}
+                      <BookOpen size={18} className="text-blue-500" /> {t('dashboard.metaAnalysis')}
                     </h4>
-                    <p className="text-zinc-300 leading-relaxed">
-                      {dailyDeck.brief_analysis}
-                    </p>
+                    <p className="text-zinc-300 leading-relaxed">{dailyDeck.brief_analysis}</p>
                   </div>
                 </div>
               </div>
@@ -653,11 +648,14 @@ const Dashboard = () => {
       )}
       {/* Lightbox para Móvil */}
       {isPreviewModalOpen && (
-        <div 
+        <div
           className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/90 backdrop-blur-sm animate-in fade-in duration-200"
           onClick={() => setIsPreviewModalOpen(false)}
         >
-          <div className="relative max-w-sm w-full animate-in zoom-in duration-300" onClick={e => e.stopPropagation()}>
+          <div
+            className="relative max-w-sm w-full animate-in zoom-in duration-300"
+            onClick={(e) => e.stopPropagation()}
+          >
             <button
               onClick={() => setIsPreviewModalOpen(false)}
               className="absolute -top-12 right-0 p-2 text-white bg-zinc-800 rounded-full hover:bg-zinc-700 transition-colors"

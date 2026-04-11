@@ -1,7 +1,7 @@
-import { Link } from "react-router-dom";
-import { Users, ThumbsUp } from "lucide-react";
-import { type DeckSearchResult } from "../../services/DeckService";
-import ManaCost from "./ManaCost";
+import { Link } from 'react-router-dom';
+import { Users, ThumbsUp } from 'lucide-react';
+import { type DeckSearchResult } from '../../services/DeckService';
+import ManaCost from './ManaCost';
 
 interface DeckCardProps {
   deck: DeckSearchResult;
@@ -26,11 +26,11 @@ const DeckCard = ({ deck }: DeckCardProps) => {
           </div>
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
-        
+
         <div className="absolute bottom-3 left-3 right-3 flex justify-between items-end">
           <div className="flex gap-0.5">
             {deck.colors && deck.colors.length > 0 && (
-              <ManaCost cost={deck.colors.map(c => `{${c}}`).join("")} size={16} />
+              <ManaCost cost={deck.colors.map((c) => `{${c}}`).join('')} size={16} />
             )}
           </div>
           {deck.likesCount > 0 && (

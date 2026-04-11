@@ -1,6 +1,6 @@
-import { Link } from "react-router-dom";
-import { Sword, Home, ArrowLeft } from "lucide-react";
-import { useTranslation } from "../../hooks/useTranslation";
+import { Link } from 'react-router-dom';
+import { Sword, Home, ArrowLeft } from 'lucide-react';
+import { useTranslation } from '../../hooks/useTranslation';
 
 export default function NotFound() {
   const { t } = useTranslation();
@@ -17,8 +17,8 @@ export default function NotFound() {
         </div>
       </div>
 
-      <h1 className="text-2xl font-bold text-white mb-2">{t("notFound.title")}</h1>
-      <p className="text-zinc-400 max-w-sm mb-10">{t("notFound.description")}</p>
+      <h1 className="text-2xl font-bold text-white mb-2">{t('notFound.title')}</h1>
+      <p className="text-zinc-400 max-w-sm mb-10">{t('notFound.description')}</p>
 
       <div className="flex flex-col sm:flex-row gap-3">
         <Link
@@ -26,14 +26,14 @@ export default function NotFound() {
           className="flex items-center gap-2 bg-orange-600 hover:bg-orange-500 text-white font-bold px-6 py-3 rounded-xl transition-all active:scale-95"
         >
           <Home size={18} />
-          {t("notFound.goHome")}
+          {t('notFound.goHome')}
         </Link>
         <button
           onClick={() => window.history.back()}
           className="flex items-center gap-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-medium px-6 py-3 rounded-xl transition-all"
         >
           <ArrowLeft size={18} />
-          {t("notFound.goBack")}
+          {t('notFound.goBack')}
         </button>
       </div>
     </div>

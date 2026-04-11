@@ -1,6 +1,6 @@
-import { createContext, useContext, useState, useCallback } from "react";
+import { createContext, useContext, useState, useCallback } from 'react';
 
-export type ToastType = "success" | "error" | "info";
+export type ToastType = 'success' | 'error' | 'info';
 
 interface Toast {
   id: number;
@@ -19,7 +19,7 @@ let nextId = 0;
 export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [toasts, setToasts] = useState<Toast[]>([]);
 
-  const showToast = useCallback((message: string, type: ToastType = "info") => {
+  const showToast = useCallback((message: string, type: ToastType = 'info') => {
     const id = nextId++;
     setToasts((prev) => [...prev, { id, message, type }]);
     setTimeout(() => {
@@ -27,8 +27,7 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }, 3500);
   }, []);
 
-  const dismiss = (id: number) =>
-    setToasts((prev) => prev.filter((t) => t.id !== id));
+  const dismiss = (id: number) => setToasts((prev) => prev.filter((t) => t.id !== id));
 
   return (
     <ToastContext.Provider value={{ showToast }}>
@@ -44,24 +43,18 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 };
 
 const STYLES: Record<ToastType, string> = {
-  success: "bg-zinc-900 border-green-500/60 text-green-400",
-  error:   "bg-zinc-900 border-red-500/60   text-red-400",
-  info:    "bg-zinc-900 border-orange-500/60 text-orange-400",
+  success: 'bg-zinc-900 border-green-500/60 text-green-400',
+  error: 'bg-zinc-900 border-red-500/60   text-red-400',
+  info: 'bg-zinc-900 border-orange-500/60 text-orange-400',
 };
 
 const ICONS: Record<ToastType, string> = {
-  success: "✓",
-  error:   "✕",
-  info:    "i",
+  success: '✓',
+  error: '✕',
+  info: 'i',
 };
 
-const ToastItem = ({
-  toast,
-  onDismiss,
-}: {
-  toast: Toast;
-  onDismiss: (id: number) => void;
-}) => (
+const ToastItem = ({ toast, onDismiss }: { toast: Toast; onDismiss: (id: number) => void }) => (
   <div
     className={`pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-xl border shadow-2xl min-w-[260px] max-w-sm animate-slide-in ${STYLES[toast.type]}`}
     role="alert"
@@ -78,8 +71,9 @@ const ToastItem = ({
   </div>
 );
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useToast = () => {
   const ctx = useContext(ToastContext);
-  if (!ctx) throw new Error("useToast must be used within ToastProvider");
+  if (!ctx) throw new Error('useToast must be used within ToastProvider');
   return ctx;
 };

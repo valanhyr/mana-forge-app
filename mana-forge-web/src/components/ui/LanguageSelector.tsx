@@ -1,11 +1,11 @@
 // src/components/ui/LanguageSelector.tsx
-import { useState, useRef, useEffect } from "react";
-import { ChevronDown, Check } from "lucide-react";
-import { useLanguage, type Locale } from "../../services/LanguageContext";
+import { useState, useRef, useEffect } from 'react';
+import { ChevronDown, Check } from 'lucide-react';
+import { useLanguage, type Locale } from '../../services/LanguageContext';
 
 const LANGUAGES: { code: Locale; label: string }[] = [
-  { code: "es", label: "Español" },
-  { code: "en", label: "English" },
+  { code: 'es', label: 'Español' },
+  { code: 'en', label: 'English' },
 ];
 
 const LanguageSelector = () => {
@@ -15,16 +15,13 @@ const LanguageSelector = () => {
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node)
-      ) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setIsOpen(false);
       }
     };
 
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   const handleLanguageSelect = (code: Locale) => {
@@ -40,10 +37,7 @@ const LanguageSelector = () => {
         title="Change Language"
       >
         <span className="uppercase font-medium">{locale}</span>
-        <ChevronDown
-          size={12}
-          className={`transition-transform ${isOpen ? "rotate-180" : ""}`}
-        />
+        <ChevronDown size={12} className={`transition-transform ${isOpen ? 'rotate-180' : ''}`} />
       </button>
 
       {isOpen && (
@@ -53,9 +47,7 @@ const LanguageSelector = () => {
               key={lang.code}
               onClick={() => handleLanguageSelect(lang.code)}
               className={`w-full text-left px-4 py-2 text-sm flex items-center justify-between hover:bg-zinc-800 transition-colors ${
-                locale === lang.code
-                  ? "text-orange-500 font-medium"
-                  : "text-zinc-300"
+                locale === lang.code ? 'text-orange-500 font-medium' : 'text-zinc-300'
               }`}
             >
               <span>{lang.label}</span>

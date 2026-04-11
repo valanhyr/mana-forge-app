@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { ManaSymbolService } from "../../services/ManaSymbolService";
+import { useEffect, useState } from 'react';
+import { ManaSymbolService } from '../../services/ManaSymbolService';
 
 interface ManaCostProps {
   cost: string;
@@ -31,7 +31,9 @@ const ManaCost = ({ cost, size = 14 }: ManaCostProps) => {
             className="inline-block"
           />
         ) : (
-          <span key={i} className="text-zinc-400 text-xs font-mono">{token}</span>
+          <span key={i} className="text-zinc-400 text-xs font-mono">
+            {token}
+          </span>
         );
       })}
     </span>
