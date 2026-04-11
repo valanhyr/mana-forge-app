@@ -1,69 +1,82 @@
 {
-  "version": "1.0.2",
-  "features": {
-    "es": [
-      {
-        "icon": "🖱️",
-        "title": "Acceso rápido a tus mazos",
-        "description": "Haz clic en cualquier mazo de tu lista para abrirlo directamente en la Forja, sin pasar por el menú."
-      },
-      {
-        "icon": "🃏",
-        "title": "Movimiento unitario de cartas",
-        "description": "Cuando mueves una carta al Banquillo o a Consideradas, ahora solo se mueve 1 copia a la vez."
-      },
-      {
-        "icon": "📱",
-        "title": "Vista Spoiler optimizada para táctil",
-        "description": "En móvil y tablet, cada carta del modo Spoiler muestra sus controles directamente al pie: cantidad, añadir, quitar y mover entre zonas."
-      },
-      {
-        "icon": "🤖",
-        "title": "Sugerencias de IA interactivas",
-        "description": "Las cartas sugeridas por la IA en el análisis ahora son clicables. Pulsa sobre ellas para ver su imagen y añadirlas al Main, Banquillo o Consideradas con un solo botón."
-      },
-      {
-        "icon": "🔍",
-        "title": "Modal de análisis más amplio",
-        "description": "El panel de resultados del análisis estratégico ahora tiene más espacio para mostrar toda la información de forma cómoda."
-      },
-      {
-        "icon": "🧑",
-        "title": "Avatar de perfil personalizable",
-        "description": "Ahora puedes elegir tu avatar desde tu perfil con un selector visual en modal. En móvil se abre a pantalla completa para que sea más cómodo."
+  "releases": [
+    {
+      "version": "1.0.3",
+      "features": {
+        "es": [
+          {
+            "icon": "🧑",
+            "title": "Avatar de perfil personalizable",
+            "description": "Ahora puedes elegir tu avatar desde tu perfil con un selector visual en modal. En móvil se abre a pantalla completa para que sea más cómodo."
+          }
+        ],
+        "en": [
+          {
+            "icon": "🧑",
+            "title": "Custom profile avatar",
+            "description": "You can now choose your avatar from your profile using a visual modal picker. On mobile it opens full screen for a smoother experience."
+          }
+        ]
       }
-    ],
-    "en": [
-      {
-        "icon": "🖱️",
-        "title": "Quick deck access",
-        "description": "Click on any deck in your list to open it directly in the Forge, no need to go through the menu."
-      },
-      {
-        "icon": "🃏",
-        "title": "Single card movement",
-        "description": "When moving a card to the Sideboard or Maybeboard, only 1 copy is moved at a time."
-      },
-      {
-        "icon": "📱",
-        "title": "Touch-friendly Spoiler view",
-        "description": "On mobile and tablet, each card in Spoiler mode shows its controls directly at the bottom: quantity, add, remove and move between zones."
-      },
-      {
-        "icon": "🤖",
-        "title": "Interactive AI suggestions",
-        "description": "AI-suggested cards in the deck analysis are now clickable. Tap them to preview the card image and add it to your Main, Sideboard or Maybeboard in one click."
-      },
-      {
-        "icon": "🔍",
-        "title": "Wider analysis modal",
-        "description": "The strategic analysis results panel now has more space to display all information comfortably."
-      },
-      {
-        "icon": "🧑",
-        "title": "Custom profile avatar",
-        "description": "You can now choose your avatar from your profile using a visual modal picker. On mobile it opens full screen for a smoother experience."
+    },
+    {
+      "version": "1.0.2",
+      "features": {
+        "es": [
+          {
+            "icon": "🖱️",
+            "title": "Acceso rápido a tus mazos",
+            "description": "Haz clic en cualquier mazo de tu lista para abrirlo directamente en la Forja, sin pasar por el menú."
+          },
+          {
+            "icon": "🃏",
+            "title": "Movimiento unitario de cartas",
+            "description": "Cuando mueves una carta al Banquillo o a Consideradas, ahora solo se mueve 1 copia a la vez."
+          },
+          {
+            "icon": "📱",
+            "title": "Vista Spoiler optimizada para táctil",
+            "description": "En móvil y tablet, cada carta del modo Spoiler muestra sus controles directamente al pie: cantidad, añadir, quitar y mover entre zonas."
+          },
+          {
+            "icon": "🤖",
+            "title": "Sugerencias de IA interactivas",
+            "description": "Las cartas sugeridas por la IA en el análisis ahora son clicables. Pulsa sobre ellas para ver su imagen y añadirlas al Main, Banquillo o Consideradas con un solo botón."
+          },
+          {
+            "icon": "🔍",
+            "title": "Modal de análisis más amplio",
+            "description": "El panel de resultados del análisis estratégico ahora tiene más espacio para mostrar toda la información de forma cómoda."
+          }
+        ],
+        "en": [
+          {
+            "icon": "🖱️",
+            "title": "Quick deck access",
+            "description": "Click on any deck in your list to open it directly in the Forge, no need to go through the menu."
+          },
+          {
+            "icon": "🃏",
+            "title": "Single card movement",
+            "description": "When moving a card to the Sideboard or Maybeboard, only 1 copy is moved at a time."
+          },
+          {
+            "icon": "📱",
+            "title": "Touch-friendly Spoiler view",
+            "description": "On mobile and tablet, each card in Spoiler mode shows its controls directly at the bottom: quantity, add, remove and move between zones."
+          },
+          {
+            "icon": "🤖",
+            "title": "Interactive AI suggestions",
+            "description": "AI-suggested cards in the deck analysis are now clickable. Tap them to preview the card image and add it to your Main, Sideboard or Maybeboard in one click."
+          },
+          {
+            "icon": "🔍",
+            "title": "Wider analysis modal",
+            "description": "The strategic analysis results panel now has more space to display all information comfortably."
+          }
+        ]
       }
-    ]
-  }
+    }
+  ]
 }
