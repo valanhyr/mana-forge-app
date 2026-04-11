@@ -34,7 +34,7 @@ pipeline {
                 script {
                     def version = sh(
                         returnStdout: true,
-                        script: "grep -m1 '<version>' mana-forge-api/pom.xml | sed 's/.*<version>\\(.*\\)<\\/version>/\\1/' | tr -d '[:space:]'"
+                        script: "cd mana-forge-api && ./mvnw help:evaluate -Dexpression=project.version -q -DforceStdout | tail -n 1 | tr -d '[:space:]'"
                     ).trim()
                     env.RELEASE_VERSION = version
                     echo "📦 Version: ${version}"
