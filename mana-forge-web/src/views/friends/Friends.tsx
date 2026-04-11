@@ -21,6 +21,7 @@ import { useToast } from "../../services/ToastContext";
 import { useTranslation } from "../../hooks/useTranslation";
 import ForgeSpinner from "../../components/ui/ForgeSpinner";
 import SEO from "../../components/ui/SEO";
+import { getAvatarUrl } from "../../core/utils/avatar";
 
 type Tab = "friends" | "requests";
 
@@ -193,11 +194,18 @@ export default function Friends() {
                 searchResults.map((user) => {
                   const isFriend = friendIds.has(user.userId);
                   const isPending = sentIds.has(user.userId);
-                  return (
-                    <div key={user.userId} className="flex flex-col sm:flex-row sm:items-center justify-between bg-zinc-800/50 rounded-xl px-4 py-3 gap-4">
-                      <div className="flex-1 min-w-0">
-                        <p className="text-white text-sm font-bold">{user.username}</p>
-                        {user.biography && <p className="text-zinc-500 text-xs truncate">{user.biography}</p>}
+                    return (
+                      <div key={user.userId} className="flex flex-col sm:flex-row sm:items-center justify-between bg-zinc-800/50 rounded-xl px-4 py-3 gap-4">
+                      <div className="flex items-center gap-3 flex-1 min-w-0">
+                        <img
+                          src={getAvatarUrl(user.avatar)}
+                          alt={user.username}
+                          className="w-11 h-11 rounded-full object-cover border border-zinc-700 shrink-0"
+                        />
+                        <div className="min-w-0">
+                          <p className="text-white text-sm font-bold">{user.username}</p>
+                          {user.biography && <p className="text-zinc-500 text-xs truncate">{user.biography}</p>}
+                        </div>
                       </div>
                       <div className="flex items-center gap-2">
                         {isFriend ? (
@@ -310,9 +318,16 @@ function FriendsList({ friends, pendingAction, onRemove, followingIds, pendingFo
     <div className="space-y-3">
       {friends.map((f) => (
         <div key={f.userId} className="bg-zinc-900 border border-zinc-800 rounded-xl px-5 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex-1 min-w-0">
-            <p className="text-white font-bold text-lg">{f.username}</p>
-            {f.biography && <p className="text-zinc-500 text-sm mt-1">{f.biography}</p>}
+          <div className="flex items-center gap-3 flex-1 min-w-0">
+            <img
+              src={getAvatarUrl(f.avatar)}
+              alt={f.username}
+              className="w-12 h-12 rounded-full object-cover border border-zinc-700 shrink-0"
+            />
+            <div className="min-w-0">
+              <p className="text-white font-bold text-lg">{f.username}</p>
+              {f.biography && <p className="text-zinc-500 text-sm mt-1">{f.biography}</p>}
+            </div>
           </div>
           <div className="flex items-center gap-3">
             <button
@@ -363,12 +378,19 @@ function RequestsList({ received, sent, pendingAction, onAccept, onReject, t }: 
           <div className="space-y-3">
             {received.map((req) => (
               <div key={req.requestId} className="bg-zinc-900 border border-zinc-800 rounded-xl px-5 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div className="flex-1 min-w-0">
-                  <p className="text-white font-bold text-lg">{req.sender.username}</p>
-                  <p className="text-zinc-500 text-xs mt-1 flex items-center gap-1.5">
-                    <Clock size={12} />
-                    {new Date(req.createdAt).toLocaleDateString()}
-                  </p>
+                <div className="flex items-center gap-3 flex-1 min-w-0">
+                  <img
+                    src={getAvatarUrl(req.sender.avatar)}
+                    alt={req.sender.username}
+                    className="w-12 h-12 rounded-full object-cover border border-zinc-700 shrink-0"
+                  />
+                  <div className="min-w-0">
+                    <p className="text-white font-bold text-lg">{req.sender.username}</p>
+                    <p className="text-zinc-500 text-xs mt-1 flex items-center gap-1.5">
+                      <Clock size={12} />
+                      {new Date(req.createdAt).toLocaleDateString()}
+                    </p>
+                  </div>
                 </div>
                 <div className="flex gap-2">
                   <button
@@ -403,12 +425,19 @@ function RequestsList({ received, sent, pendingAction, onAccept, onReject, t }: 
           <div className="space-y-3">
             {sent.map((req) => (
               <div key={req.requestId} className="bg-zinc-900 border border-zinc-800 rounded-xl px-5 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div className="flex-1 min-w-0">
-                  <p className="text-white font-bold text-lg">{req.receiver.username}</p>
-                  <p className="text-zinc-500 text-xs mt-1 flex items-center gap-1.5">
-                    <Clock size={12} />
-                    {new Date(req.createdAt).toLocaleDateString()}
-                  </p>
+                <div className="flex items-center gap-3 flex-1 min-w-0">
+                  <img
+                    src={getAvatarUrl(req.receiver.avatar)}
+                    alt={req.receiver.username}
+                    className="w-12 h-12 rounded-full object-cover border border-zinc-700 shrink-0"
+                  />
+                  <div className="min-w-0">
+                    <p className="text-white font-bold text-lg">{req.receiver.username}</p>
+                    <p className="text-zinc-500 text-xs mt-1 flex items-center gap-1.5">
+                      <Clock size={12} />
+                      {new Date(req.createdAt).toLocaleDateString()}
+                    </p>
+                  </div>
                 </div>
                 <button
                   onClick={() => onReject(req.requestId)}

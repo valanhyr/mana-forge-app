@@ -6,6 +6,7 @@ export interface FriendUser {
   username: string;
   email: string;
   biography?: string;
+  avatar?: string;
 }
 
 export interface ReceivedRequest {

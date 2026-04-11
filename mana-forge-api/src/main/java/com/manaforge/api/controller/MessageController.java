@@ -106,7 +106,7 @@ public class MessageController {
             // 1 query por peer para obtener info del usuario (sólo los peers que tienen mensajes)
             UserDto friend = userRepository.findById(peerId).map(u -> UserDto.builder()
                     .userId(u.getId()).name(u.getName()).username(u.getUsername())
-                    .email(u.getEmail()).biography(u.getBiography()).build()).orElse(null);
+                    .email(u.getEmail()).biography(u.getBiography()).avatar(u.getAvatar()).build()).orElse(null);
 
             if (friend == null) return null;
 

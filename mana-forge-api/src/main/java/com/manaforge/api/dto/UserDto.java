@@ -12,4 +12,5 @@ public class UserDto {
     private String email;
     private String biography;
     private String[] friends;
+    private String avatar;
 }

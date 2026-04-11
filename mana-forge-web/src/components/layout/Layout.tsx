@@ -9,6 +9,7 @@ import FeedbackModal from "../ui/FeedbackModal";
 import BetaWelcomeModal from "../ui/BetaWelcomeModal";
 import { useTranslation } from "../../hooks/useTranslation";
 import { MessageService } from "../../services/MessageService";
+import { getAvatarUrl } from "../../core/utils/avatar";
 
 const BETA_BANNER_KEY = "feedback_banner_v1_dismissed";
 const FEEDBACK_TOOLTIP_KEY = "feedback_tooltip_shown";
@@ -194,6 +195,11 @@ const Layout = () => {
                   onClick={() => setIsMenuOpen(!isMenuOpen)}
                   className="flex items-center gap-2 text-zinc-300 hover:text-white transition-colors focus:outline-none"
                 >
+                  <img
+                    src={getAvatarUrl(user.avatar)}
+                    alt={user.username}
+                    className="w-8 h-8 rounded-full object-cover border border-zinc-700"
+                  />
                   <span className="text-orange-500 font-semibold">
                     {user.username}
                   </span>
@@ -358,6 +364,11 @@ const Layout = () => {
           {isAuthenticated && user ? (
             <>
               <div className="px-3 py-2">
+                <img
+                  src={getAvatarUrl(user.avatar)}
+                  alt={user.username}
+                  className="w-14 h-14 rounded-full object-cover border border-zinc-700 mb-3"
+                />
                 <p className="text-xs text-zinc-500 uppercase tracking-wider">
                   {t("userOptions.connectedAs")}
                 </p>

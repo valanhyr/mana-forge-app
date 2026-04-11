@@ -25,7 +25,8 @@ interface UserContextType {
     email: string,
     password: string
   ) => Promise<void>;
-  logout: () => void;
+  logout: () => Promise<void>;
+  updateUser: (user: User) => void;
   loadDecks: (force?: boolean) => Promise<void>;
   deleteDeck: (deckId: string) => Promise<void>;
   togglePinDeck: (deckId: string) => Promise<void>;
@@ -59,17 +60,28 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
   const [isSessionLoading, setIsSessionLoading] = useState(true);
   const lastLoadedLocale = useRef<string>(locale);
 
+  const persistSession = useCallback((userData: User | null) => {
+    if (!userData) {
+      localStorage.removeItem(STORAGE_KEY);
+      return;
+    }
+
+    const expiry = new Date().getTime() + 30 * 24 * 60 * 60 * 1000;
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({ user: userData, expiry })
+    );
+  }, []);
+
+  const updateUser = useCallback((userData: User) => {
+    setUser(userData);
+    persistSession(userData);
+  }, [persistSession]);
+
   const login = async (username: string, password: string) => {
     try {
       const userData = await AuthService.login(username, password);
-      setUser(userData);
-
-      // Guardar sesión por 30 días
-      const expiry = new Date().getTime() + 30 * 24 * 60 * 60 * 1000;
-      localStorage.setItem(
-        STORAGE_KEY,
-        JSON.stringify({ user: userData, expiry })
-      );
+      updateUser(userData);
     } catch (error) {
       console.error("Login error:", error);
       throw error;
@@ -98,7 +110,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
     }
     setUser(null);
     setDecks([]);
-    localStorage.removeItem(STORAGE_KEY);
+    persistSession(null);
     // Intentar borrar las cookies (isLoged no suele ser HttpOnly, JSESSIONID sí lo es)
     document.cookie =
       "isLogged=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;";
@@ -110,7 +122,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
   useEffect(() => {
     AuthService.checkSession()
       .then((userData) => {
-        setUser(userData);
+        updateUser(userData);
       })
       .catch(() => {
         logout();
@@ -229,6 +241,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
         login,
         register,
         logout,
+        updateUser,
         loadDecks,
         deleteDeck,
         togglePinDeck,

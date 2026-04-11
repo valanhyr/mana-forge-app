@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { X, Sparkles } from "lucide-react";
+import { useEffect, useState } from "react";
+import { ChevronDown, Sparkles, X } from "lucide-react";
 import { useLanguage } from "../../services/LanguageContext";
 
 const STORAGE_KEY = "manaforge_whats_new_seen";
@@ -10,7 +10,7 @@ interface Feature {
   description: string;
 }
 
-interface WhatsNewData {
+interface ReleaseNotes {
   version: string;
   features: {
     es: Feature[];
@@ -18,19 +18,46 @@ interface WhatsNewData {
   };
 }
 
+interface WhatsNewData {
+  releases: ReleaseNotes[];
+}
+
+const compareVersionsDesc = (left: string, right: string) => {
+  const leftParts = left.split(".").map(Number);
+  const rightParts = right.split(".").map(Number);
+  const maxParts = Math.max(leftParts.length, rightParts.length);
+
+  for (let index = 0; index < maxParts; index += 1) {
+    const leftPart = leftParts[index] ?? 0;
+    const rightPart = rightParts[index] ?? 0;
+
+    if (leftPart !== rightPart) {
+      return rightPart - leftPart;
+    }
+  }
+
+  return 0;
+};
+
 const WhatsNewModal = () => {
   const { locale } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
   const [data, setData] = useState<WhatsNewData | null>(null);
+  const [showOlderReleases, setShowOlderReleases] = useState(false);
 
   useEffect(() => {
     const load = async () => {
       try {
         const res = await fetch("/whats-new.json");
         const json: WhatsNewData = await res.json();
+        const releases = [...json.releases].sort((a, b) =>
+          compareVersionsDesc(a.version, b.version),
+        );
+        const latestRelease = releases[0];
+        if (!latestRelease) return;
         const seenVersion = localStorage.getItem(STORAGE_KEY);
-        if (seenVersion !== json.version) {
-          setData(json);
+        if (seenVersion !== latestRelease.version) {
+          setData({ releases });
           setIsOpen(true);
         }
       } catch {
@@ -41,16 +68,25 @@ const WhatsNewModal = () => {
   }, []);
 
   const handleClose = () => {
-    if (data) {
-      localStorage.setItem(STORAGE_KEY, data.version);
+    if (data?.releases[0]) {
+      localStorage.setItem(STORAGE_KEY, data.releases[0].version);
     }
     setIsOpen(false);
+    setShowOlderReleases(false);
   };
 
   if (!isOpen || !data) return null;
 
   const lang = locale === "es" ? "es" : "en";
-  const features = data.features[lang] ?? data.features.en;
+  const [latestRelease, ...olderReleases] = data.releases;
+  const latestFeatures = latestRelease.features[lang] ?? latestRelease.features.en;
+  const toggleLabel = showOlderReleases
+    ? lang === "es"
+      ? "Ocultar versiones anteriores"
+      : "Hide previous versions"
+    : lang === "es"
+      ? "Ver versiones anteriores"
+      : "See previous versions";
 
   return (
     <div
@@ -72,8 +108,8 @@ const WhatsNewModal = () => {
             </h2>
             <p className="text-zinc-400 text-xs mt-0.5">
               {lang === "es"
-                ? `Versión ${data.version} · Gracias a vuestro feedback durante la beta`
-                : `Version ${data.version} · Thanks to your beta feedback`}
+                ? `Versión ${latestRelease.version} · Gracias a vuestro feedback durante la beta`
+                : `Version ${latestRelease.version} · Thanks to your beta feedback`}
             </p>
           </div>
           <button
@@ -86,15 +122,71 @@ const WhatsNewModal = () => {
 
         {/* Feature list */}
         <div className="px-6 py-4 space-y-4 max-h-[55vh] overflow-y-auto">
-          {features.map((f, i) => (
-            <div key={i} className="flex gap-3">
-              <span className="text-xl leading-tight flex-shrink-0 mt-0.5">{f.icon}</span>
-              <div>
-                <p className="text-white font-semibold text-sm">{f.title}</p>
-                <p className="text-zinc-400 text-xs mt-0.5 leading-relaxed">{f.description}</p>
-              </div>
+          <section className="space-y-4">
+            <div className="flex items-center justify-between gap-3">
+              <h3 className="text-sm font-bold text-orange-400 uppercase tracking-[0.2em]">
+                {lang === "es" ? `Versión ${latestRelease.version}` : `Version ${latestRelease.version}`}
+              </h3>
+              <span className="text-[11px] text-zinc-500 uppercase tracking-[0.2em]">
+                {lang === "es" ? "Último release" : "Latest release"}
+              </span>
             </div>
-          ))}
+
+            {latestFeatures.map((feature, index) => (
+              <div key={`${latestRelease.version}-${index}`} className="flex gap-3">
+                <span className="text-xl leading-tight flex-shrink-0 mt-0.5">{feature.icon}</span>
+                <div>
+                  <p className="text-white font-semibold text-sm">{feature.title}</p>
+                  <p className="text-zinc-400 text-xs mt-0.5 leading-relaxed">
+                    {feature.description}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </section>
+
+          {olderReleases.length > 0 && (
+            <section className="border-t border-zinc-800 pt-4">
+              <button
+                onClick={() => setShowOlderReleases((current) => !current)}
+                className="w-full flex items-center justify-between gap-3 text-left text-sm font-semibold text-zinc-300 hover:text-white transition-colors"
+              >
+                <span>{toggleLabel}</span>
+                <ChevronDown
+                  size={18}
+                  className={`transition-transform ${showOlderReleases ? "rotate-180" : ""}`}
+                />
+              </button>
+
+              {showOlderReleases && (
+                <div className="mt-4 space-y-6">
+                  {olderReleases.map((release) => {
+                    const releaseFeatures = release.features[lang] ?? release.features.en;
+                    return (
+                      <div key={release.version} className="space-y-4">
+                        <h4 className="text-xs font-bold text-zinc-500 uppercase tracking-[0.2em]">
+                          {lang === "es" ? `Versión ${release.version}` : `Version ${release.version}`}
+                        </h4>
+                        {releaseFeatures.map((feature, index) => (
+                          <div key={`${release.version}-${index}`} className="flex gap-3">
+                            <span className="text-xl leading-tight flex-shrink-0 mt-0.5">
+                              {feature.icon}
+                            </span>
+                            <div>
+                              <p className="text-white font-semibold text-sm">{feature.title}</p>
+                              <p className="text-zinc-400 text-xs mt-0.5 leading-relaxed">
+                                {feature.description}
+                              </p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </section>
+          )}
         </div>
 
         {/* Footer */}

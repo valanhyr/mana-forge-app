@@ -19,7 +19,7 @@ const BetaWelcomeModal = ({ isOpen, onAccept }: Props) => {
   const handleAccept = async () => {
     setIsLoading(true);
     try {
-      await api.patch("/api/users/me", { betaAccepted: true });
+      await api.patch("/users/me", { betaAccepted: true });
     } catch {
       // non-blocking — beta acceptance is best-effort
     } finally {

@@ -4,5 +4,6 @@ export interface User {
   username: string;
   email: string;
   biography: string;
-  friends: string[]
+  friends: string[];
+  avatar: string;
 }
