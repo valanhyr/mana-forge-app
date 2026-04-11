@@ -52,9 +52,11 @@ pipeline {
         stage('Lint') {
             steps {
                 sh '''
-                    cd mana-forge-web
-                    npm ci
-                    npm run lint
+                    docker run --rm \
+                        -v "$WORKSPACE/mana-forge-web":/app \
+                        -w /app \
+                        node:22-alpine \
+                        sh -c "npm ci && npm run lint"
                 '''
             }
         }
@@ -62,8 +64,11 @@ pipeline {
         stage('Test') {
             steps {
                 sh '''
-                    cd mana-forge-web
-                    npx vitest run --reporter=verbose --reporter=junit --outputFile=test-results/junit.xml
+                    docker run --rm \
+                        -v "$WORKSPACE/mana-forge-web":/app \
+                        -w /app \
+                        node:22-alpine \
+                        sh -c "npx vitest run --reporter=verbose --reporter=junit --outputFile=test-results/junit.xml"
                 '''
             }
             post {
