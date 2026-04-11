@@ -11,6 +11,8 @@ import lombok.NoArgsConstructor;
 @Document(collection = "users")
 public class User {
 
+    public static final String DEFAULT_AVATAR = "ava1.jpg";
+
     @Id
     private String id;
     private String name;
@@ -21,6 +23,7 @@ public class User {
     private Boolean active;
     private Boolean validated;
     private String[] friends;
+    private String avatar = DEFAULT_AVATAR;
     private String verificationToken;
     private Boolean betaAccepted;
 
@@ -42,5 +45,6 @@ public class User {
         this.active = active;
         this.validated = validated;
         this.friends = friends;
+        this.avatar = DEFAULT_AVATAR;
     }
 }

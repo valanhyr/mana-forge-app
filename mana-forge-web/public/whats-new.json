@@ -1,5 +1,5 @@
 {
-  "version": "1.0.1",
+  "version": "1.0.2",
   "features": {
     "es": [
       {
@@ -26,6 +26,11 @@
         "icon": "🔍",
         "title": "Modal de análisis más amplio",
         "description": "El panel de resultados del análisis estratégico ahora tiene más espacio para mostrar toda la información de forma cómoda."
+      },
+      {
+        "icon": "🧑",
+        "title": "Avatar de perfil personalizable",
+        "description": "Ahora puedes elegir tu avatar desde tu perfil con un selector visual en modal. En móvil se abre a pantalla completa para que sea más cómodo."
       }
     ],
     "en": [
@@ -53,6 +58,11 @@
         "icon": "🔍",
         "title": "Wider analysis modal",
         "description": "The strategic analysis results panel now has more space to display all information comfortably."
+      },
+      {
+        "icon": "🧑",
+        "title": "Custom profile avatar",
+        "description": "You can now choose your avatar from your profile using a visual modal picker. On mobile it opens full screen for a smoother experience."
       }
     ]
   }

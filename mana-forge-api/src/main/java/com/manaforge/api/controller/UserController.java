@@ -33,6 +33,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 import java.net.URI;
+import java.util.regex.Pattern;
 import java.util.UUID;
 
 import lombok.extern.slf4j.Slf4j;
@@ -41,6 +42,8 @@ import lombok.extern.slf4j.Slf4j;
 @RestController
 @RequestMapping("/api/users")
 public class UserController extends BaseMongoController<User, String> {
+
+    private static final Pattern AVATAR_FILE_PATTERN = Pattern.compile("^ava(?:[1-9]|[1-9][0-9]|10[0-5])\\.jpg$");
 
     private final UserRepository userRepository;
     private final EmailService emailService;
@@ -56,6 +59,46 @@ public class UserController extends BaseMongoController<User, String> {
         this.emailService = emailService;
     }
 
+    private User getAuthenticatedUser() {
+        SecurityContext context = SecurityContextHolder.getContext();
+        Authentication authentication = context.getAuthentication();
+
+        if (authentication == null || !authentication.isAuthenticated() || "anonymousUser".equals(authentication.getPrincipal())) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+        }
+
+        Object principal = authentication.getPrincipal();
+        String identifier = principal instanceof OAuth2User oAuth2User
+                ? oAuth2User.getAttribute("email")
+                : principal.toString();
+
+        return userRepository.findByUsername(identifier)
+                .or(() -> userRepository.findByEmail(identifier))
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED));
+    }
+
+    private UserDto toDto(User user) {
+        return UserDto.builder()
+                .userId(user.getId())
+                .name(user.getName())
+                .username(user.getUsername())
+                .email(user.getEmail())
+                .biography(user.getBiography())
+                .friends(user.getFriends())
+                .avatar(user.getAvatar())
+                .build();
+    }
+
+    private String normalizeAvatar(String avatar) {
+        if (avatar == null || avatar.isBlank()) {
+            return User.DEFAULT_AVATAR;
+        }
+        if (!AVATAR_FILE_PATTERN.matcher(avatar).matches()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid avatar");
+        }
+        return avatar;
+    }
+
     @GetMapping("/username/{username}")
     public ResponseEntity<User> getByUsername(@PathVariable String username) {
         return userRepository.findByUsername(username)
@@ -65,34 +108,7 @@ public class UserController extends BaseMongoController<User, String> {
 
     @GetMapping("/me")
     public ResponseEntity<UserDto> me() {
-        SecurityContext context = SecurityContextHolder.getContext();
-        Authentication authentication = context.getAuthentication();
-
-        if (authentication == null || !authentication.isAuthenticated() || "anonymousUser".equals(authentication.getPrincipal())) {
-            return ResponseEntity.status(401).build();
-        }
-
-        Object principal = authentication.getPrincipal();
-        String identifier;
-
-        if (principal instanceof OAuth2User oAuth2User) {
-            identifier = oAuth2User.getAttribute("email");
-        } else {
-            identifier = principal.toString();
-        }
-
-        return userRepository.findByUsername(identifier)
-                .or(() -> userRepository.findByEmail(identifier))
-                .map(user -> UserDto.builder()
-                        .userId(user.getId())
-                        .name(user.getName())
-                        .username(user.getUsername())
-                        .email(user.getEmail())
-                        .biography(user.getBiography())
-                        .friends(user.getFriends())
-                        .build())
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.status(401).build());
+        return ResponseEntity.ok(toDto(getAuthenticatedUser()));
     }
 
     @Override
@@ -109,6 +125,7 @@ public class UserController extends BaseMongoController<User, String> {
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         user.setValidated(false);
         user.setVerificationToken(UUID.randomUUID().toString());
+        user.setAvatar(normalizeAvatar(user.getAvatar()));
         ResponseEntity<User> response = super.create(user);
         if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
             emailService.sendVerificationEmail(response.getBody());
@@ -161,6 +178,7 @@ public class UserController extends BaseMongoController<User, String> {
                             .email(user.getEmail())
                             .biography(user.getBiography())
                             .friends(user.getFriends())
+                            .avatar(user.getAvatar())
                             .build();
 
                     return ResponseEntity.ok()
@@ -168,6 +186,24 @@ public class UserController extends BaseMongoController<User, String> {
                             .body(userDto);
                 })
                 .orElse(ResponseEntity.status(401).build());
+    }
+
+    @PatchMapping("/me")
+    public ResponseEntity<UserDto> updateMe(@RequestBody UpdateMeRequest req) {
+        User user = getAuthenticatedUser();
+
+        if (req.getBiography() != null) {
+            user.setBiography(req.getBiography().trim());
+        }
+        if (req.getAvatar() != null) {
+            user.setAvatar(normalizeAvatar(req.getAvatar()));
+        }
+        if (req.getBetaAccepted() != null) {
+            user.setBetaAccepted(req.getBetaAccepted());
+        }
+
+        userRepository.save(user);
+        return ResponseEntity.ok(toDto(user));
     }
 
     @PostMapping("/logout")
@@ -219,6 +255,19 @@ public class UserController extends BaseMongoController<User, String> {
         public void setCurrentPassword(String currentPassword) { this.currentPassword = currentPassword; }
         public String getNewPassword() { return newPassword; }
         public void setNewPassword(String newPassword) { this.newPassword = newPassword; }
+    }
+
+    public static class UpdateMeRequest {
+        private String biography;
+        private String avatar;
+        private Boolean betaAccepted;
+
+        public String getBiography() { return biography; }
+        public void setBiography(String biography) { this.biography = biography; }
+        public String getAvatar() { return avatar; }
+        public void setAvatar(String avatar) { this.avatar = avatar; }
+        public Boolean getBetaAccepted() { return betaAccepted; }
+        public void setBetaAccepted(Boolean betaAccepted) { this.betaAccepted = betaAccepted; }
     }
 
     public static class LoginRequest {

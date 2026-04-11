@@ -5,6 +5,7 @@ import { MessageService, type Conversation, type ChatMessage } from "../../servi
 import { useUser } from "../../services/UserContext";
 import { useToast } from "../../services/ToastContext";
 import { useTranslation } from "../../hooks/useTranslation";
+import { getAvatarUrl } from "../../core/utils/avatar";
 
 const POLL_INTERVAL = 5000;
 
@@ -160,9 +161,11 @@ export default function Messages() {
                     : ""
                 }`}
               >
-                <div className="w-11 h-11 rounded-full bg-orange-500/20 border border-orange-500/40 flex items-center justify-center shrink-0 text-orange-400 font-bold text-sm">
-                  {(conv.friend.name || conv.friend.username || "?")[0].toUpperCase()}
-                </div>
+                <img
+                  src={getAvatarUrl(conv.friend.avatar)}
+                  alt={conv.friend.username}
+                  className="w-11 h-11 rounded-full border border-orange-500/40 object-cover shrink-0"
+                />
                 <div className="flex-1 min-w-0">
                   <div className="flex justify-between items-center">
                     <span className="text-sm font-semibold text-white truncate">
@@ -212,9 +215,11 @@ export default function Messages() {
             >
               <ArrowLeft size={20} />
             </button>
-            <div className="w-9 h-9 rounded-full bg-orange-500/20 border border-orange-500/40 flex items-center justify-center text-orange-400 font-bold text-sm shrink-0">
-              {(activeConv?.friend.name || activeConv?.friend.username || "?")[0].toUpperCase()}
-            </div>
+            <img
+              src={getAvatarUrl(activeConv?.friend.avatar)}
+              alt={activeConv?.friend.username}
+              className="w-9 h-9 rounded-full border border-orange-500/40 object-cover shrink-0"
+            />
             <div className="min-w-0">
               <p className="text-white font-semibold text-sm truncate">
                 {activeConv?.friend.name || activeConv?.friend.username}

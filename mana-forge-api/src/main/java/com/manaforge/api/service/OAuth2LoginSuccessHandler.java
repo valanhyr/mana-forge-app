@@ -52,6 +52,7 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
             newUser.setBetaAccepted(false);
             newUser.setFriends(new String[0]);
             newUser.setBiography("");
+            newUser.setAvatar(User.DEFAULT_AVATAR);
             userRepository.save(newUser);
         }
         

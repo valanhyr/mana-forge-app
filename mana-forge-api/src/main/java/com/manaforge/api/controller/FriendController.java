@@ -52,6 +52,7 @@ public class FriendController {
                 .username(u.getUsername())
                 .email(u.getEmail())
                 .biography(u.getBiography())
+                .avatar(u.getAvatar())
                 .build();
     }
 

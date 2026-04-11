@@ -1,5 +1,10 @@
 import { type User } from "../core/models/User";
-import { API_URL } from "./api";
+import { api, API_URL } from "./api";
+
+interface UpdateProfilePayload {
+  biography: string;
+  avatar: string;
+}
 
 export const AuthService = {
   login: async (username: string, password: string): Promise<User> => {
@@ -78,6 +83,11 @@ export const AuthService = {
     });
     if (response.status === 401) throw new Error("wrongPassword");
     if (!response.ok) throw new Error("changePasswordFailed");
+  },
+
+  updateProfile: async (payload: UpdateProfilePayload): Promise<User> => {
+    const response = await api.patch<User>("/users/me", payload);
+    return response.data;
   },
 
   verifyEmail: async (token: string): Promise<void> => {
