@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react";
-import { ChevronDown, Sparkles, X } from "lucide-react";
-import { useLanguage } from "../../services/LanguageContext";
+import { useEffect, useState } from 'react';
+import { ChevronDown, Sparkles, X } from 'lucide-react';
+import { useLanguage } from '../../services/LanguageContext';
 
-const STORAGE_KEY = "manaforge_whats_new_seen";
+const STORAGE_KEY = 'manaforge_whats_new_seen';
 
 interface Feature {
   icon: string;
@@ -23,8 +23,8 @@ interface WhatsNewData {
 }
 
 const compareVersionsDesc = (left: string, right: string) => {
-  const leftParts = left.split(".").map(Number);
-  const rightParts = right.split(".").map(Number);
+  const leftParts = left.split('.').map(Number);
+  const rightParts = right.split('.').map(Number);
   const maxParts = Math.max(leftParts.length, rightParts.length);
 
   for (let index = 0; index < maxParts; index += 1) {
@@ -48,10 +48,10 @@ const WhatsNewModal = () => {
   useEffect(() => {
     const load = async () => {
       try {
-        const res = await fetch("/whats-new.json");
+        const res = await fetch('/whats-new.json');
         const json: WhatsNewData = await res.json();
         const releases = [...json.releases].sort((a, b) =>
-          compareVersionsDesc(a.version, b.version),
+          compareVersionsDesc(a.version, b.version)
         );
         const latestRelease = releases[0];
         if (!latestRelease) return;
@@ -77,16 +77,16 @@ const WhatsNewModal = () => {
 
   if (!isOpen || !data) return null;
 
-  const lang = locale === "es" ? "es" : "en";
+  const lang = locale === 'es' ? 'es' : 'en';
   const [latestRelease, ...olderReleases] = data.releases;
   const latestFeatures = latestRelease.features[lang] ?? latestRelease.features.en;
   const toggleLabel = showOlderReleases
-    ? lang === "es"
-      ? "Ocultar versiones anteriores"
-      : "Hide previous versions"
-    : lang === "es"
-      ? "Ver versiones anteriores"
-      : "See previous versions";
+    ? lang === 'es'
+      ? 'Ocultar versiones anteriores'
+      : 'Hide previous versions'
+    : lang === 'es'
+      ? 'Ver versiones anteriores'
+      : 'See previous versions';
 
   return (
     <div
@@ -104,10 +104,10 @@ const WhatsNewModal = () => {
           </div>
           <div>
             <h2 className="text-white font-bold text-lg leading-tight">
-              {lang === "es" ? "¡Novedades de Mana Forge!" : "What's New in Mana Forge!"}
+              {lang === 'es' ? '¡Novedades de Mana Forge!' : "What's New in Mana Forge!"}
             </h2>
             <p className="text-zinc-400 text-xs mt-0.5">
-              {lang === "es"
+              {lang === 'es'
                 ? `Versión ${latestRelease.version} · Gracias a vuestro feedback durante la beta`
                 : `Version ${latestRelease.version} · Thanks to your beta feedback`}
             </p>
@@ -125,10 +125,12 @@ const WhatsNewModal = () => {
           <section className="space-y-4">
             <div className="flex items-center justify-between gap-3">
               <h3 className="text-sm font-bold text-orange-400 uppercase tracking-[0.2em]">
-                {lang === "es" ? `Versión ${latestRelease.version}` : `Version ${latestRelease.version}`}
+                {lang === 'es'
+                  ? `Versión ${latestRelease.version}`
+                  : `Version ${latestRelease.version}`}
               </h3>
               <span className="text-[11px] text-zinc-500 uppercase tracking-[0.2em]">
-                {lang === "es" ? "Último release" : "Latest release"}
+                {lang === 'es' ? 'Último release' : 'Latest release'}
               </span>
             </div>
 
@@ -154,7 +156,7 @@ const WhatsNewModal = () => {
                 <span>{toggleLabel}</span>
                 <ChevronDown
                   size={18}
-                  className={`transition-transform ${showOlderReleases ? "rotate-180" : ""}`}
+                  className={`transition-transform ${showOlderReleases ? 'rotate-180' : ''}`}
                 />
               </button>
 
@@ -165,7 +167,9 @@ const WhatsNewModal = () => {
                     return (
                       <div key={release.version} className="space-y-4">
                         <h4 className="text-xs font-bold text-zinc-500 uppercase tracking-[0.2em]">
-                          {lang === "es" ? `Versión ${release.version}` : `Version ${release.version}`}
+                          {lang === 'es'
+                            ? `Versión ${release.version}`
+                            : `Version ${release.version}`}
                         </h4>
                         {releaseFeatures.map((feature, index) => (
                           <div key={`${release.version}-${index}`} className="flex gap-3">
@@ -195,7 +199,7 @@ const WhatsNewModal = () => {
             onClick={handleClose}
             className="px-5 py-2 bg-orange-600 hover:bg-orange-500 text-white font-bold rounded-xl text-sm transition-colors active:scale-95"
           >
-            {lang === "es" ? "¡Entendido!" : "Got it!"}
+            {lang === 'es' ? '¡Entendido!' : 'Got it!'}
           </button>
         </div>
       </div>

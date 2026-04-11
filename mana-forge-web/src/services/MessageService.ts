@@ -1,5 +1,5 @@
-import { api } from "./api";
-import type { FriendUser } from "./FriendService";
+import { api } from './api';
+import type { FriendUser } from './FriendService';
 
 export interface ChatMessage {
   id: string;
@@ -20,7 +20,7 @@ export interface Conversation {
 
 export const MessageService = {
   getConversations: (): Promise<Conversation[]> =>
-    api.get("/messages/conversations").then((r) => r.data),
+    api.get('/messages/conversations').then((r) => r.data),
 
   getConversation: (friendId: string): Promise<ChatMessage[]> =>
     api.get(`/messages/${friendId}`).then((r) => r.data),
@@ -32,5 +32,5 @@ export const MessageService = {
     api.put(`/messages/${friendId}/read`).then(() => {}),
 
   getUnreadCount: (): Promise<number> =>
-    api.get("/messages/unread-count").then((r) => r.data.count),
+    api.get('/messages/unread-count').then((r) => r.data.count),
 };

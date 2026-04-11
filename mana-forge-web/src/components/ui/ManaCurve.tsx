@@ -8,18 +8,19 @@ interface ManaCurveProps {
 }
 
 const BUCKETS = [0, 1, 2, 3, 4, 5, 6];
-const BUCKET_LABEL = ["0", "1", "2", "3", "4", "5", "6+"];
+const BUCKET_LABEL = ['0', '1', '2', '3', '4', '5', '6+'];
 
 interface ManaCurveProps {
   cards: CurveEntry[];
   className?: string;
 }
 
-const ManaCurve = ({ cards, className = "" }: ManaCurveProps) => {
-  const counts = BUCKETS.map(cmc => {
-    const bucket = cmc === 6
-      ? cards.filter(c => (c.cmc ?? 0) >= 6)
-      : cards.filter(c => Math.floor(c.cmc ?? 0) === cmc);
+const ManaCurve = ({ cards, className = '' }: ManaCurveProps) => {
+  const counts = BUCKETS.map((cmc) => {
+    const bucket =
+      cmc === 6
+        ? cards.filter((c) => (c.cmc ?? 0) >= 6)
+        : cards.filter((c) => Math.floor(c.cmc ?? 0) === cmc);
     return bucket.reduce((s, c) => s + c.quantity, 0);
   });
 

@@ -1,31 +1,28 @@
-import { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
-import { ArrowLeft, Calendar, Loader2 } from "lucide-react";
-import { LegalService } from "../../services/LegalService";
-import { type LegalPage } from "../../core/models/LegalPage";
-import { useLanguage } from "../../services/LanguageContext";
-import { useTranslation } from "../../hooks/useTranslation";
+import { useEffect, useState } from 'react';
+import { useParams, Link } from 'react-router-dom';
+import { ArrowLeft, Calendar, Loader2 } from 'lucide-react';
+import { LegalService } from '../../services/LegalService';
+import { type LegalPage } from '../../core/models/LegalPage';
+import { useLanguage } from '../../services/LanguageContext';
+import { useTranslation } from '../../hooks/useTranslation';
 
 const SLUG_LABELS: Record<string, string> = {
-  "privacy-policy": "footer.privacy",
-  "terms-and-conditions": "footer.terms",
-  "cookie-policy": "footer.cookies",
+  'privacy-policy': 'footer.privacy',
+  'terms-and-conditions': 'footer.terms',
+  'cookie-policy': 'footer.cookies',
 };
 
 const LegalPageView = () => {
   const { slug } = useParams<{ slug: string }>();
   const [page, setPage] = useState<LegalPage | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(() => !!slug);
   const { locale } = useLanguage();
   const { t } = useTranslation();
 
   useEffect(() => {
-    if (!slug) {
-      setPage(null);
-      setLoading(false);
-      return;
-    }
+    if (!slug) return;
 
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoading(true);
     LegalService.getBySlug(slug, locale).then((data) => {
       setPage(data);
@@ -44,15 +41,13 @@ const LegalPageView = () => {
   if (!page) {
     return (
       <div className="max-w-4xl mx-auto mt-12 text-center px-4">
-        <h2 className="text-3xl font-bold text-white mb-4">
-          {t("legal.notFoundTitle")}
-        </h2>
-        <p className="text-zinc-400 mb-8">{t("legal.notFoundDescription")}</p>
+        <h2 className="text-3xl font-bold text-white mb-4">{t('legal.notFoundTitle')}</h2>
+        <p className="text-zinc-400 mb-8">{t('legal.notFoundDescription')}</p>
         <Link
           to="/"
           className="inline-flex items-center gap-2 text-orange-500 hover:text-orange-400 transition-colors"
         >
-          <ArrowLeft size={20} /> {t("legal.backToHome")}
+          <ArrowLeft size={20} /> {t('legal.backToHome')}
         </Link>
       </div>
     );
@@ -69,13 +64,13 @@ const LegalPageView = () => {
             to="/"
             className="flex items-center gap-2 text-zinc-400 hover:text-white mb-8 transition-colors text-sm w-fit"
           >
-            <ArrowLeft size={16} /> {t("common.back")}
+            <ArrowLeft size={16} /> {t('common.back')}
           </Link>
 
           <div>
             {sectionLabel && (
               <span className="block text-xs font-semibold uppercase tracking-widest text-orange-500 mb-3">
-                {t("footer.legal")}
+                {t('footer.legal')}
               </span>
             )}
             <h1 className="text-4xl font-bold text-white">{page.title}</h1>
@@ -83,11 +78,11 @@ const LegalPageView = () => {
 
           <p className="mt-3 flex items-center gap-2 text-zinc-500 text-sm">
             <Calendar size={14} />
-            {t("legal.lastUpdated")}{" "}
+            {t('legal.lastUpdated')}{' '}
             {new Date(page.lastUpdated).toLocaleDateString(locale, {
-              year: "numeric",
-              month: "long",
-              day: "numeric",
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric',
             })}
           </p>
         </div>
@@ -97,7 +92,7 @@ const LegalPageView = () => {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 mt-10">
         <nav className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 mb-10">
           <p className="text-xs font-semibold uppercase tracking-widest text-zinc-500 mb-4">
-            {t("legal.tableOfContents")}
+            {t('legal.tableOfContents')}
           </p>
           <ol className="list-decimal list-inside space-y-1">
             {page.sections.map((section, idx) => (

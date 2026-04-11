@@ -23,21 +23,21 @@ const TextAreaInput: React.FC<TextAreaInputProps> = ({
   hint,
   error,
   disabled = false,
-  minHeight = "120px",
-  maxHeight = "300px",
+  minHeight = '120px',
+  maxHeight = '300px',
   rows = 4,
 }) => {
   // Estilos dinámicos
   const baseInputStyles =
-    "w-full bg-zinc-950 border px-4 py-3 outline-none transition-all rounded-xl resize-y scrollbar-thin scrollbar-thumb-zinc-700 scrollbar-track-transparent";
+    'w-full bg-zinc-950 border px-4 py-3 outline-none transition-all rounded-xl resize-y scrollbar-thin scrollbar-thumb-zinc-700 scrollbar-track-transparent';
 
   const errorStyles =
-    "border-orange-500 text-orange-500 placeholder-orange-500/50 focus:ring-2 focus:ring-orange-500/20";
+    'border-orange-500 text-orange-500 placeholder-orange-500/50 focus:ring-2 focus:ring-orange-500/20';
 
   const normalStyles =
-    "border-zinc-800 text-white focus:border-zinc-600 focus:ring-2 focus:ring-zinc-800 placeholder-zinc-600";
+    'border-zinc-800 text-white focus:border-zinc-600 focus:ring-2 focus:ring-zinc-800 placeholder-zinc-600';
 
-  const disabledStyles = "opacity-50 cursor-not-allowed bg-zinc-900";
+  const disabledStyles = 'opacity-50 cursor-not-allowed bg-zinc-900';
 
   let inputClass = baseInputStyles;
   if (disabled) inputClass += ` ${disabledStyles}`;
@@ -65,7 +65,7 @@ const TextAreaInput: React.FC<TextAreaInputProps> = ({
       {(error || hint) && (
         <span
           className={`text-xs mt-1 font-medium block ${
-            error ? "text-orange-500" : "text-zinc-500"
+            error ? 'text-orange-500' : 'text-zinc-500'
           }`}
         >
           {error || hint}

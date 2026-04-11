@@ -1,5 +1,5 @@
-import { type User } from "../core/models/User";
-import { api, API_URL } from "./api";
+import { type User } from '../core/models/User';
+import { api, API_URL } from './api';
 
 interface UpdateProfilePayload {
   biography: string;
@@ -9,36 +9,32 @@ interface UpdateProfilePayload {
 export const AuthService = {
   login: async (username: string, password: string): Promise<User> => {
     const response = await fetch(`${API_URL}/users/login`, {
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
       },
-      credentials: "include", // CRÍTICO: Permite recibir y guardar las cookies (JSESSIONID, isLoged) del backend
+      credentials: 'include', // CRÍTICO: Permite recibir y guardar las cookies (JSESSIONID, isLoged) del backend
       body: JSON.stringify({ username, password }),
     });
 
     if (!response.ok) {
       if (response.status === 403) {
         const data = await response.json().catch(() => ({}));
-        if (data.error === "EMAIL_NOT_VERIFIED") {
-          throw new Error("EMAIL_NOT_VERIFIED");
+        if (data.error === 'EMAIL_NOT_VERIFIED') {
+          throw new Error('EMAIL_NOT_VERIFIED');
         }
       }
-      throw new Error("Error en las credenciales");
+      throw new Error('Error en las credenciales');
     }
 
     return response.json();
   },
 
-  register: async (
-    username: string,
-    email: string,
-    password: string,
-  ): Promise<User> => {
+  register: async (username: string, email: string, password: string): Promise<User> => {
     const response = await fetch(`${API_URL}/users`, {
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify({ username, email, password }),
     });
@@ -46,9 +42,7 @@ export const AuthService = {
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
       // Spring Boot devuelve el mensaje en 'message', fallback a 'error' o texto genérico
-      throw new Error(
-        errorData.message || errorData.error || "Error en el registro",
-      );
+      throw new Error(errorData.message || errorData.error || 'Error en el registro');
     }
 
     return response.json();
@@ -56,12 +50,12 @@ export const AuthService = {
 
   checkSession: async (): Promise<User> => {
     const response = await fetch(`${API_URL}/users/me`, {
-      method: "GET",
-      credentials: "include", // Envía la cookie JSESSIONID para validar la sesión
+      method: 'GET',
+      credentials: 'include', // Envía la cookie JSESSIONID para validar la sesión
     });
 
     if (!response.ok) {
-      throw new Error("Sesión inválida o expirada");
+      throw new Error('Sesión inválida o expirada');
     }
     return response.json();
   },
@@ -69,41 +63,42 @@ export const AuthService = {
   logout: async (): Promise<void> => {
     // Llamada al backend para invalidar la sesión y borrar la cookie HttpOnly
     await fetch(`${API_URL}/users/logout`, {
-      method: "POST",
-      credentials: "include",
+      method: 'POST',
+      credentials: 'include',
     });
   },
 
   changePassword: async (currentPassword: string, newPassword: string): Promise<void> => {
     const response = await fetch(`${API_URL}/users/me/password`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify({ currentPassword, newPassword }),
     });
-    if (response.status === 401) throw new Error("wrongPassword");
-    if (!response.ok) throw new Error("changePasswordFailed");
+    if (response.status === 401) throw new Error('wrongPassword');
+    if (!response.ok) throw new Error('changePasswordFailed');
   },
 
   updateProfile: async (payload: UpdateProfilePayload): Promise<User> => {
-    const response = await api.patch<User>("/users/me", payload);
+    const response = await api.patch<User>('/users/me', payload);
     return response.data;
   },
 
   verifyEmail: async (token: string): Promise<void> => {
     const response = await fetch(`${API_URL}/users/verify?token=${encodeURIComponent(token)}`, {
-      credentials: "include",
+      credentials: 'include',
     });
     if (!response.ok) {
-      throw new Error("INVALID_TOKEN");
+      throw new Error('INVALID_TOKEN');
     }
   },
 
   // Simulación de fetch de mazos (conectaremos con el backend real luego)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   getUserDecks: async (userId: string): Promise<any[]> => {
     const response = await fetch(`${API_URL}/decks/user/${userId}`);
     if (!response.ok) {
-      throw new Error("Error fetching user decks");
+      throw new Error('Error fetching user decks');
     }
     return response.json();
   },

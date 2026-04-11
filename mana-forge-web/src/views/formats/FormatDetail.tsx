@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useEffect, useState } from 'react';
+import { useParams, Link } from 'react-router-dom';
 import {
   ArrowLeft,
   BookOpen,
@@ -9,13 +9,13 @@ import {
   ArrowRight,
   LayoutGrid,
   List,
-} from "lucide-react";
-import { useTranslation } from "../../hooks/useTranslation";
-import ForgeSpinner from "../../components/ui/ForgeSpinner";
-import SEO from "../../components/ui/SEO";
-import Modal from "../../components/ui/Modal";
-import { FormatService } from "../../services/FormatService";
-import { CardService } from "../../services/CardService";
+} from 'lucide-react';
+import { useTranslation } from '../../hooks/useTranslation';
+import ForgeSpinner from '../../components/ui/ForgeSpinner';
+import SEO from '../../components/ui/SEO';
+import Modal from '../../components/ui/Modal';
+import { FormatService } from '../../services/FormatService';
+import { CardService } from '../../services/CardService';
 
 // --- CMS Data Structure ---
 interface FormatRule {
@@ -60,9 +60,10 @@ const FormatDetail = () => {
   const [allFormats, setAllFormats] = useState<FormatSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [isBanlistModalOpen, setIsBanlistModalOpen] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [bannedCards, setBannedCards] = useState<any[]>([]);
   const [loadingBanlist, setLoadingBanlist] = useState(false);
-  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
   const handleViewBanlist = async () => {
     setIsBanlistModalOpen(true);
@@ -73,8 +74,8 @@ const FormatDetail = () => {
 
         // Manejar si el servicio devuelve Response (fetch) o ya el JSON parseado directamente
         let result = response;
-        if (response && typeof response.json === "function") {
-          if (!response.ok) throw new Error("Failed to fetch banlist");
+        if (response && typeof response.json === 'function') {
+          if (!response.ok) throw new Error('Failed to fetch banlist');
           result = await response.json();
         }
 
@@ -84,14 +85,14 @@ const FormatDetail = () => {
           setBannedCards(result?.data || result?.cards || []);
         }
       } catch (error) {
-        console.error("Error fetching banlist:", error);
+        console.error('Error fetching banlist:', error);
       } finally {
         setLoadingBanlist(false);
       }
     }
   };
 
-  const isAllFormats = !formatName || formatName === "all-formats";
+  const isAllFormats = !formatName || formatName === 'all-formats';
 
   useEffect(() => {
     const fetchData = async () => {
@@ -102,6 +103,7 @@ const FormatDetail = () => {
         let formatsList: FormatSummary[] = [];
 
         if (Array.isArray(allFormatsResult)) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           formatsList = allFormatsResult as any;
           setAllFormats(formatsList);
         }
@@ -116,16 +118,15 @@ const FormatDetail = () => {
 
           if (formatSummary) {
             // 3. Usamos el mongoId para obtener el detalle
-            const result = await FormatService.getCMSFormatDetail(
-              formatSummary.mongoId
-            );
+            const result = await FormatService.getCMSFormatDetail(formatSummary.mongoId);
             if (result) {
-              setData(result as any);
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            setData(result as any);
             }
           }
         }
       } catch (error) {
-        console.error("Error fetching format data:", error);
+        console.error('Error fetching format data:', error);
       } finally {
         setLoading(false);
       }
@@ -149,9 +150,7 @@ const FormatDetail = () => {
           <div className="bg-orange-600 p-2 rounded-lg">
             <Users className="text-white" size={24} />
           </div>
-          <h1 className="text-3xl font-bold text-white">
-            {t("dashboard.exploreFormats")}
-          </h1>
+          <h1 className="text-3xl font-bold text-white">{t('dashboard.exploreFormats')}</h1>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -187,19 +186,17 @@ const FormatDetail = () => {
   if (!data) {
     return (
       <div className="max-w-4xl mx-auto mt-12 text-center px-4">
-        <h2 className="text-3xl font-bold text-white mb-4">
-          {t("formatDetail.notFoundTitle")}
-        </h2>
+        <h2 className="text-3xl font-bold text-white mb-4">{t('formatDetail.notFoundTitle')}</h2>
         <p className="text-zinc-400 mb-8">
-          {t("formatDetail.notFoundDescription", {
-            formatName: formatName || "",
+          {t('formatDetail.notFoundDescription', {
+            formatName: formatName || '',
           })}
         </p>
         <Link
           to="/"
           className="inline-flex items-center gap-2 text-orange-500 hover:text-orange-400 transition-colors"
         >
-          <ArrowLeft size={20} /> {t("formatDetail.backToHome")}
+          <ArrowLeft size={20} /> {t('formatDetail.backToHome')}
         </Link>
       </div>
     );
@@ -207,26 +204,22 @@ const FormatDetail = () => {
 
   return (
     <div className="min-h-screen pb-12">
-      <SEO 
+      <SEO
         title={data.title}
         description={data.subtitle || data.description?.description}
         ogImage={data.imageUrl}
         jsonLd={{
-          "@context": "https://schema.org",
-          "@type": "Thing",
-          "name": data.title,
-          "description": data.description?.description,
-          "image": data.imageUrl
+          '@context': 'https://schema.org',
+          '@type': 'Thing',
+          name: data.title,
+          description: data.description?.description,
+          image: data.imageUrl,
         }}
       />
       {/* Hero Header */}
       <div className="relative h-[40vh] w-full overflow-hidden">
         <div className="absolute inset-0">
-          <img
-            src={data.imageUrl}
-            alt={data.title}
-            className="w-full h-full object-cover"
-          />
+          <img src={data.imageUrl} alt={data.title} className="w-full h-full object-cover" />
           <div className="absolute inset-0 bg-linear-to-t from-zinc-950 via-zinc-950/60 to-transparent"></div>
         </div>
         <div className="absolute bottom-0 left-0 right-0 max-w-7xl 2xl:max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
@@ -234,14 +227,12 @@ const FormatDetail = () => {
             to="/"
             className="inline-flex items-center gap-2 text-zinc-300 hover:text-white mb-6 transition-colors bg-black/30 backdrop-blur-sm px-3 py-1 rounded-full border border-white/10 w-fit"
           >
-            <ArrowLeft size={16} /> {t("common.back")}
+            <ArrowLeft size={16} /> {t('common.back')}
           </Link>
           <h1 className="text-5xl md:text-6xl font-bold text-white mb-2 tracking-tight">
             {data.title}
           </h1>
-          <p className="text-xl text-orange-400 font-medium max-w-2xl">
-            {data.subtitle}
-          </p>
+          <p className="text-xl text-orange-400 font-medium max-w-2xl">{data.subtitle}</p>
         </div>
       </div>
 
@@ -256,7 +247,7 @@ const FormatDetail = () => {
                 <div className="flex items-center gap-3 mb-4">
                   <BookOpen className="text-orange-500" size={24} />
                   <h2 className="text-2xl font-bold text-white">
-                    {data.description.title || t("common.description")}
+                    {data.description.title || t('common.description')}
                   </h2>
                 </div>
                 <div className="prose prose-invert max-w-none text-zinc-300 leading-relaxed">
@@ -271,15 +262,12 @@ const FormatDetail = () => {
                 <div className="flex items-center gap-3 mb-4">
                   <Layers className="text-indigo-500" size={24} />
                   <h2 className="text-2xl font-bold text-white">
-                    {data.rules.title || t("formatDetail.mainRules")}
+                    {data.rules.title || t('formatDetail.mainRules')}
                   </h2>
                 </div>
                 <ul className="space-y-3">
                   {data.rules.rules?.map((rule, index) => (
-                    <li
-                      key={rule.id || index}
-                      className="flex items-start gap-3 text-zinc-300"
-                    >
+                    <li key={rule.id || index} className="flex items-start gap-3 text-zinc-300">
                       <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-indigo-500 shrink-0"></span>
                       <span>{rule.text}</span>
                     </li>
@@ -295,33 +283,27 @@ const FormatDetail = () => {
             {data.metadata && (
               <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 shadow-xl">
                 <h3 className="text-lg font-bold text-white mb-4 border-b border-zinc-800 pb-2">
-                  {t("formatDetail.deckStructure")}
+                  {t('formatDetail.deckStructure')}
                 </h3>
                 <div className="space-y-4">
                   <div className="flex justify-between items-center">
-                    <span className="text-zinc-400">
-                      {t("common.mainDeck")}
-                    </span>
+                    <span className="text-zinc-400">{t('common.mainDeck')}</span>
                     <span className="text-white font-mono font-bold">
                       {data.metadata.minDeckSize}+
                     </span>
                   </div>
                   {data.metadata.sideboardSize > 0 && (
                     <div className="flex justify-between items-center">
-                      <span className="text-zinc-400">
-                        {t("common.sideboard")}
-                      </span>
+                      <span className="text-zinc-400">{t('common.sideboard')}</span>
                       <span className="text-white font-mono font-bold">
-                        {t("formatDetail.upTo", {
+                        {t('formatDetail.upTo', {
                           count: data.metadata.sideboardSize,
                         })}
                       </span>
                     </div>
                   )}
                   <div className="flex justify-between items-center">
-                    <span className="text-zinc-400">
-                      {t("formatDetail.maxCopies")}
-                    </span>
+                    <span className="text-zinc-400">{t('formatDetail.maxCopies')}</span>
                     <span className="text-white font-mono font-bold">
                       {data.metadata.maxCopies}
                     </span>
@@ -334,12 +316,10 @@ const FormatDetail = () => {
             <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 shadow-xl">
               <div className="flex items-center gap-3 mb-3">
                 <Ban className="text-red-500" size={20} />
-                <h3 className="text-lg font-bold text-white">
-                  {t("formatDetail.bannedCards")}
-                </h3>
+                <h3 className="text-lg font-bold text-white">{t('formatDetail.bannedCards')}</h3>
               </div>
               <p className="text-sm text-zinc-400 mb-4">
-                {t("formatDetail.bannedCardsDescription", {
+                {t('formatDetail.bannedCardsDescription', {
                   formatTitle: data.title,
                 })}
               </p>
@@ -347,7 +327,7 @@ const FormatDetail = () => {
                 onClick={handleViewBanlist}
                 className="w-full py-2 px-4 bg-zinc-800 hover:bg-zinc-700 text-white rounded-lg transition-colors text-sm font-medium border border-zinc-700"
               >
-                {t("formatDetail.viewBanlist")}
+                {t('formatDetail.viewBanlist')}
               </button>
             </div>
           </div>
@@ -357,7 +337,7 @@ const FormatDetail = () => {
       <Modal
         isOpen={isBanlistModalOpen}
         onClose={() => setIsBanlistModalOpen(false)}
-        title={t("formatDetail.bannedCards")}
+        title={t('formatDetail.bannedCards')}
         maxWidth="max-w-6xl"
       >
         {loadingBanlist ? (
@@ -370,21 +350,21 @@ const FormatDetail = () => {
               <div className="flex justify-end px-4 mb-4">
                 <div className="flex bg-zinc-950 rounded-lg p-1 border border-zinc-800">
                   <button
-                    onClick={() => setViewMode("grid")}
+                    onClick={() => setViewMode('grid')}
                     className={`p-2 rounded-md transition-colors ${
-                      viewMode === "grid"
-                        ? "bg-zinc-800 text-white"
-                        : "text-zinc-500 hover:text-zinc-300"
+                      viewMode === 'grid'
+                        ? 'bg-zinc-800 text-white'
+                        : 'text-zinc-500 hover:text-zinc-300'
                     }`}
                   >
                     <LayoutGrid size={20} />
                   </button>
                   <button
-                    onClick={() => setViewMode("list")}
+                    onClick={() => setViewMode('list')}
                     className={`p-2 rounded-md transition-colors ${
-                      viewMode === "list"
-                        ? "bg-zinc-800 text-white"
-                        : "text-zinc-500 hover:text-zinc-300"
+                      viewMode === 'list'
+                        ? 'bg-zinc-800 text-white'
+                        : 'text-zinc-500 hover:text-zinc-300'
                     }`}
                   >
                     <List size={20} />
@@ -394,9 +374,9 @@ const FormatDetail = () => {
             )}
 
             {bannedCards.length > 0 ? (
-              viewMode === "grid" ? (
+              viewMode === 'grid' ? (
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6 max-h-[70vh] overflow-y-auto p-2">
-                  {bannedCards.map((card: any, idx: number) => (
+                  {bannedCards.map((card, idx: number) => (
                     <div key={idx} className="flex flex-col items-center group">
                       <div className="relative rounded-lg overflow-hidden aspect-[2.5/3.5] w-full mb-2 bg-zinc-800">
                         {card.image_uris?.normal ? (
@@ -421,14 +401,12 @@ const FormatDetail = () => {
               ) : (
                 <div className="max-h-[70vh] overflow-y-auto p-2">
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-                    {bannedCards.map((card: any, idx: number) => (
+                    {bannedCards.map((card, idx: number) => (
                       <div
                         key={idx}
                         className="flex items-center p-3 bg-zinc-900 border border-zinc-800 rounded-lg hover:border-zinc-700 transition-colors"
                       >
-                        <span className="text-zinc-300 font-medium">
-                          {card.name}
-                        </span>
+                        <span className="text-zinc-300 font-medium">{card.name}</span>
                       </div>
                     ))}
                   </div>
@@ -437,8 +415,7 @@ const FormatDetail = () => {
             ) : (
               <div className="col-span-full text-center text-zinc-400 py-8">
                 <p className="mb-4">
-                  {t("common.info")}: Banlist visual not available for this
-                  format yet.
+                  {t('common.info')}: Banlist visual not available for this format yet.
                 </p>
                 <a
                   href="https://magic.wizards.com/en/banned-restricted-list"

@@ -1,5 +1,5 @@
-import { api } from "./api";
-import { type Format, type FormatCMSBase, type FormatDetail } from "../core/models/Format";
+import { api } from './api';
+import { type Format, type FormatCMSBase, type FormatDetail } from '../core/models/Format';
 
 // Variable local para caché en memoria (Singleton del módulo)
 let cachedFormats: Format[] | null = null;
@@ -12,12 +12,12 @@ export const FormatService = {
     }
 
     try {
-      const response = await api.get<Format[]>("/formats/active");
+      const response = await api.get<Format[]>('/formats/active');
       const data = response.data;
       cachedFormats = data; // Guardamos en caché
       return data;
     } catch (error) {
-      console.error("FormatService error:", error);
+      console.error('FormatService error:', error);
       return []; // Retornamos array vacío en caso de error para no romper la UI
     }
   },
@@ -32,18 +32,18 @@ export const FormatService = {
       const data = response.data;
       return data;
     } catch (error) {
-      console.error("FormatService error:", error);
-      return {} as FormatDetail ; // Retornamos array vacío en caso de error para no romper la UI
+      console.error('FormatService error:', error);
+      return {} as FormatDetail; // Retornamos array vacío en caso de error para no romper la UI
     }
   },
-  getCMSAllFormats: async (): Promise<FormatCMSBase> =>{
+  getCMSAllFormats: async (): Promise<FormatCMSBase> => {
     try {
-      const response = await api.get<FormatCMSBase>("/formats");
+      const response = await api.get<FormatCMSBase>('/formats');
       const data = response.data;
       return data;
     } catch (error) {
-      console.error("FormatService error:", error);
-      return {} as FormatCMSBase ; // Retornamos array vacío en caso de error para no romper la UI
+      console.error('FormatService error:', error);
+      return {} as FormatCMSBase; // Retornamos array vacío en caso de error para no romper la UI
     }
-  }
+  },
 };

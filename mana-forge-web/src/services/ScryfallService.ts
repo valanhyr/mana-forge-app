@@ -1,4 +1,5 @@
 export const ScryfallService = {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   getCardByName: async (name: string): Promise<any> => {
     const response = await fetch(
       `https://api.scryfall.com/cards/named?exact=${encodeURIComponent(name)}`
@@ -13,6 +14,7 @@ export const ScryfallService = {
     return response.json();
   },
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   getCardById: async (scryfallId: string): Promise<any> => {
     const response = await fetch(`https://api.scryfall.com/cards/${scryfallId}`);
     if (!response.ok) {

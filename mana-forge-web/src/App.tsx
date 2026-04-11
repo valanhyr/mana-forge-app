@@ -1,28 +1,28 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Layout from "./components/layout/Layout";
-import Dashboard from "./views/dashboard/Dashboard";
-import Login from "./views/auth/Login";
-import { UserProvider } from "./services/UserContext";
-import MyDecks from "./views/my-decks/MyDecks";
-import DeckBuilder from "./views/deck-builder/DeckBuilder";
-import FormatDetail from "./views/formats/FormatDetail";
-import Profile from "./views/profile/Profile";
-import ArticleDetail from "./views/articles/articleDetail";
-import Friends from "./views/friends/Friends";
-import NotFound from "./views/errors/NotFound";
-import VerifyEmail from "./views/auth/VerifyEmail";
-import { LanguageProvider } from "./services/LanguageContext";
-import ScrollToTop from "./components/layout/ScrollToTop";
-import ProtectedRoute from "./components/layout/ProtectedRoute";
-import { ToastProvider } from "./services/ToastContext";
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import Layout from './components/layout/Layout';
+import Dashboard from './views/dashboard/Dashboard';
+import Login from './views/auth/Login';
+import { UserProvider } from './services/UserContext';
+import MyDecks from './views/my-decks/MyDecks';
+import DeckBuilder from './views/deck-builder/DeckBuilder';
+import FormatDetail from './views/formats/FormatDetail';
+import Profile from './views/profile/Profile';
+import ArticleDetail from './views/articles/articleDetail';
+import Friends from './views/friends/Friends';
+import NotFound from './views/errors/NotFound';
+import VerifyEmail from './views/auth/VerifyEmail';
+import { LanguageProvider } from './services/LanguageContext';
+import ScrollToTop from './components/layout/ScrollToTop';
+import ProtectedRoute from './components/layout/ProtectedRoute';
+import { ToastProvider } from './services/ToastContext';
 
-import LegalPageView from "./views/legal/LegalPage";
-import DeckViewer from "./views/deck-viewer/DeckViewer";
+import LegalPageView from './views/legal/LegalPage';
+import DeckViewer from './views/deck-viewer/DeckViewer';
 
-import CookieConsent from "./components/ui/CookieConsent";
-import WhatsNewModal from "./components/ui/WhatsNewModal";
-import Messages from "./views/messages/Messages";
-import DeckExplorer from "./views/deck-explorer/DeckExplorer";
+import CookieConsent from './components/ui/CookieConsent';
+import WhatsNewModal from './components/ui/WhatsNewModal';
+import Messages from './views/messages/Messages';
+import DeckExplorer from './views/deck-explorer/DeckExplorer';
 
 function App() {
   return (
@@ -47,10 +47,7 @@ function App() {
                 <Route element={<ProtectedRoute />}>
                   <Route path="my-decks" element={<MyDecks />} />
                   <Route path="deck-builder" element={<DeckBuilder />} />
-                  <Route
-                    path="deck-builder/:deckId"
-                    element={<DeckBuilder />}
-                  />
+                  <Route path="deck-builder/:deckId" element={<DeckBuilder />} />
                   <Route path="profile" element={<Profile />} />
                   <Route path="friends" element={<Friends />} />
                   <Route path="messages" element={<Messages />} />

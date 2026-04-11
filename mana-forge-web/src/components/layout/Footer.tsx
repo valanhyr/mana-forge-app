@@ -1,9 +1,9 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
-import { Sword, Github, Twitter, Linkedin, ChevronDown } from "lucide-react";
-import { useTranslation } from "../../hooks/useTranslation";
+import { useState } from 'react';
+import { Link } from 'react-router-dom';
+import { Sword, Github, Twitter, Linkedin, ChevronDown } from 'lucide-react';
+import { useTranslation } from '../../hooks/useTranslation';
 
-type AccordionSection = "product" | "resources" | "legal";
+type AccordionSection = 'product' | 'resources' | 'legal';
 
 const Footer = () => {
   const { t } = useTranslation();
@@ -27,53 +27,42 @@ const Footer = () => {
                 MANA<span className="text-orange-500">FORGE</span>
               </span>
             </Link>
-            <p className="text-zinc-500 text-sm leading-relaxed">
-              {t("footer.description")}
-            </p>
+            <p className="text-zinc-500 text-sm leading-relaxed">{t('footer.description')}</p>
           </div>
 
           {/* Product Links */}
           <div className="border-t border-zinc-800 md:border-none">
             <button
               className="flex w-full items-center justify-between py-3 md:py-0 md:cursor-default text-white font-bold"
-              onClick={() => toggle("product")}
-              aria-expanded={openSection === "product"}
+              onClick={() => toggle('product')}
+              aria-expanded={openSection === 'product'}
             >
-              {t("footer.product")}
+              {t('footer.product')}
               <ChevronDown
                 size={18}
-                className={`md:hidden transition-transform duration-200 ${openSection === "product" ? "rotate-180" : ""}`}
+                className={`md:hidden transition-transform duration-200 ${openSection === 'product' ? 'rotate-180' : ''}`}
               />
             </button>
             <ul
               className={`space-y-2 text-sm text-zinc-400 overflow-hidden transition-all duration-300 md:!max-h-none md:!opacity-100 md:mb-0 ${
-                openSection === "product"
-                  ? "max-h-40 opacity-100 mb-3"
-                  : "max-h-0 opacity-0 md:max-h-none"
+                openSection === 'product'
+                  ? 'max-h-40 opacity-100 mb-3'
+                  : 'max-h-0 opacity-0 md:max-h-none'
               }`}
             >
               <li>
-                <Link
-                  to="/explorer"
-                  className="hover:text-orange-500 transition-colors"
-                >
-                  {t("nav.explorer")}
+                <Link to="/explorer" className="hover:text-orange-500 transition-colors">
+                  {t('nav.explorer')}
                 </Link>
               </li>
               <li>
-                <Link
-                  to="/formats/all-formats"
-                  className="hover:text-orange-500 transition-colors"
-                >
-                  {t("dashboard.exploreFormats")}
+                <Link to="/formats/all-formats" className="hover:text-orange-500 transition-colors">
+                  {t('dashboard.exploreFormats')}
                 </Link>
               </li>
               <li>
-                <Link
-                  to="/?daily-deck=true"
-                  className="hover:text-orange-500 transition-colors"
-                >
-                  {t("dashboard.aiDeckOfTheDay")}
+                <Link to="/?daily-deck=true" className="hover:text-orange-500 transition-colors">
+                  {t('dashboard.aiDeckOfTheDay')}
                 </Link>
               </li>
             </ul>
@@ -83,35 +72,50 @@ const Footer = () => {
           <div className="border-t border-zinc-800 md:border-none">
             <button
               className="flex w-full items-center justify-between py-3 md:py-0 md:cursor-default text-white font-bold"
-              onClick={() => toggle("resources")}
-              aria-expanded={openSection === "resources"}
+              onClick={() => toggle('resources')}
+              aria-expanded={openSection === 'resources'}
             >
-              {t("footer.resources")}
+              {t('footer.resources')}
               <ChevronDown
                 size={18}
-                className={`md:hidden transition-transform duration-200 ${openSection === "resources" ? "rotate-180" : ""}`}
+                className={`md:hidden transition-transform duration-200 ${openSection === 'resources' ? 'rotate-180' : ''}`}
               />
             </button>
             <ul
               className={`space-y-2 text-sm text-zinc-400 overflow-hidden transition-all duration-300 md:!max-h-none md:!opacity-100 md:mb-0 ${
-                openSection === "resources"
-                  ? "max-h-40 opacity-100 mb-3"
-                  : "max-h-0 opacity-0 md:max-h-none"
+                openSection === 'resources'
+                  ? 'max-h-40 opacity-100 mb-3'
+                  : 'max-h-0 opacity-0 md:max-h-none'
               }`}
             >
               <li>
-                <a href="https://scryfall.com" target="_blank" rel="noopener noreferrer" className="hover:text-orange-500 transition-colors">
-                  {t("footer.scryfall")}
+                <a
+                  href="https://scryfall.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-orange-500 transition-colors"
+                >
+                  {t('footer.scryfall')}
                 </a>
               </li>
               <li>
-                <a href="https://www.moxfield.com" target="_blank" rel="noopener noreferrer" className="hover:text-orange-500 transition-colors">
-                  {t("footer.moxfield")}
+                <a
+                  href="https://www.moxfield.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-orange-500 transition-colors"
+                >
+                  {t('footer.moxfield')}
                 </a>
               </li>
               <li>
-                <a href="https://magic.wizards.com" target="_blank" rel="noopener noreferrer" className="hover:text-orange-500 transition-colors">
-                  {t("footer.magicOfficial")}
+                <a
+                  href="https://magic.wizards.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-orange-500 transition-colors"
+                >
+                  {t('footer.magicOfficial')}
                 </a>
               </li>
             </ul>
@@ -121,45 +125,51 @@ const Footer = () => {
           <div className="border-t border-zinc-800 md:border-none">
             <button
               className="flex w-full items-center justify-between py-3 md:py-0 md:cursor-default text-white font-bold"
-              onClick={() => toggle("legal")}
-              aria-expanded={openSection === "legal"}
+              onClick={() => toggle('legal')}
+              aria-expanded={openSection === 'legal'}
             >
-              {t("footer.legal")}
+              {t('footer.legal')}
               <ChevronDown
                 size={18}
-                className={`md:hidden transition-transform duration-200 ${openSection === "legal" ? "rotate-180" : ""}`}
+                className={`md:hidden transition-transform duration-200 ${openSection === 'legal' ? 'rotate-180' : ''}`}
               />
             </button>
             <ul
               className={`space-y-2 text-sm text-zinc-400 overflow-hidden transition-all duration-300 md:!max-h-none md:!opacity-100 md:mb-0 ${
-                openSection === "legal"
-                  ? "max-h-40 opacity-100 mb-3"
-                  : "max-h-0 opacity-0 md:max-h-none"
+                openSection === 'legal'
+                  ? 'max-h-40 opacity-100 mb-3'
+                  : 'max-h-0 opacity-0 md:max-h-none'
               }`}
             >
               <li>
-                <Link to="/legal/privacy-policy" className="hover:text-orange-500 transition-colors">
-                  {t("footer.privacy")}
+                <Link
+                  to="/legal/privacy-policy"
+                  className="hover:text-orange-500 transition-colors"
+                >
+                  {t('footer.privacy')}
                 </Link>
               </li>
               <li>
-                <Link to="/legal/terms-and-conditions" className="hover:text-orange-500 transition-colors">
-                  {t("footer.terms")}
+                <Link
+                  to="/legal/terms-and-conditions"
+                  className="hover:text-orange-500 transition-colors"
+                >
+                  {t('footer.terms')}
                 </Link>
               </li>
               <li>
                 <Link to="/legal/cookie-policy" className="hover:text-orange-500 transition-colors">
-                  {t("footer.cookies")}
+                  {t('footer.cookies')}
                 </Link>
               </li>
             </ul>
           </div>
         </div>
-
+
         {/* Legal Disclaimer */}
         <div className="border-t border-zinc-800 pt-6 mb-6">
           <p className="text-zinc-600 text-xs leading-relaxed">
-            {t("footer.legalDisclaimer").replace("{year}", String(currentYear))}{" "}
+            {t('footer.legalDisclaimer').replace('{year}', String(currentYear))}{' '}
             <a
               href="https://company.wizards.com/"
               target="_blank"
@@ -175,7 +185,7 @@ const Footer = () => {
         {/* Bottom Bar */}
         <div className="border-t border-zinc-800 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-zinc-600 text-sm">
-            © {currentYear} ManaForge. {t("footer.rightsReserved")}
+            © {currentYear} ManaForge. {t('footer.rightsReserved')}
           </p>
           {/* <p className="text-zinc-600 text-sm">
             {t("footer.builtBy")}

@@ -1,4 +1,4 @@
-import { API_URL } from "./api";
+import { API_URL } from './api';
 
 export interface ManaSymbol {
   symbol: string;
@@ -30,10 +30,15 @@ export const ManaSymbolService = {
         return symbolCache;
       })
       .catch((err) => {
-        console.error("Error loading mana symbols:", err);
+        console.error('Error loading mana symbols:', err);
         return {};
       });
 
     return loadingPromise;
+  },
+  clearCache: () => {
+    symbolCache = {};
+    isLoaded = false;
+    loadingPromise = null;
   },
 };

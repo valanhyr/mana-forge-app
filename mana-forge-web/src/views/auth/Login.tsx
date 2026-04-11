@@ -1,10 +1,10 @@
-import { useState, useEffect } from "react";
-import { useUser } from "../../services/UserContext";
-import { useTranslation } from "../../hooks/useTranslation";
-import { API_URL } from "../../services/api";
-import { Loader2, Mail } from "lucide-react";
-import { useSearchParams, useNavigate } from "react-router-dom";
-import { useToast } from "../../services/ToastContext";
+import { useState, useEffect } from 'react';
+import { useUser } from '../../services/UserContext';
+import { useTranslation } from '../../hooks/useTranslation';
+import { API_URL } from '../../services/api';
+import { Loader2, Mail } from 'lucide-react';
+import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useToast } from '../../services/ToastContext';
 
 interface AuthModalProps {
   isOpen?: boolean;
@@ -18,38 +18,37 @@ const AuthModal = ({ isOpen = true, onClose }: AuthModalProps) => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [isLogin, setIsLogin] = useState(true);
-  const [username, setUsername] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [registrationDone, setRegistrationDone] = useState(false);
-  const [registeredEmail, setRegisteredEmail] = useState("");
+  const [registeredEmail, setRegisteredEmail] = useState('');
   const [betaAccepted, setBetaAccepted] = useState(false);
 
   useEffect(() => {
-    if (searchParams.get("verified") === "true") {
-      showToast(t("auth.verifiedSuccess"), "success");
+    if (searchParams.get('verified') === 'true') {
+      showToast(t('auth.verifiedSuccess'), 'success');
     }
     // Si ya está autenticado y accede a esta "página", redirigir fuera
     if (isAuthenticated && !onClose) {
-      navigate("/");
+      navigate('/');
     }
   }, [isAuthenticated, onClose, navigate, searchParams, showToast, t]);
 
   if (!isOpen) return null;
 
   const validate = (): string => {
-    if (!username.trim()) return t("auth.error.usernameRequired");
-    if (!password) return t("auth.error.passwordRequired");
-    if (password.length < 6) return t("auth.error.passwordMinLength");
+    if (!username.trim()) return t('auth.error.usernameRequired');
+    if (!password) return t('auth.error.passwordRequired');
+    if (password.length < 6) return t('auth.error.passwordMinLength');
     if (!isLogin) {
-      if (!email.trim()) return t("auth.error.emailRequired");
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
-        return t("auth.error.emailInvalid");
-      if (!betaAccepted) return t("beta.betaCheckboxRequired");
+      if (!email.trim()) return t('auth.error.emailRequired');
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return t('auth.error.emailInvalid');
+      if (!betaAccepted) return t('beta.betaCheckboxRequired');
     }
-    return "";
+    return '';
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -59,7 +58,7 @@ const AuthModal = ({ isOpen = true, onClose }: AuthModalProps) => {
       setError(validationError);
       return;
     }
-    setError("");
+    setError('');
     setIsLoading(true);
     try {
       if (isLogin) {
@@ -67,21 +66,18 @@ const AuthModal = ({ isOpen = true, onClose }: AuthModalProps) => {
         if (onClose) {
           onClose();
         } else {
-          navigate("/");
+          navigate('/');
         }
       } else {
         await register(username, email, password);
         setRegisteredEmail(email);
         setRegistrationDone(true);
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       setError(
-        err.message === "EMAIL_NOT_VERIFIED"
-          ? t("auth.error.emailNotVerified")
-          : err.message ||
-              (isLogin
-                ? t("auth.error.credentials")
-                : t("auth.error.notImplemented")),
+        (err as Error).message === 'EMAIL_NOT_VERIFIED'
+          ? t('auth.error.emailNotVerified')
+          : (err as Error).message || (isLogin ? t('auth.error.credentials') : t('auth.error.notImplemented'))
       );
     } finally {
       setIsLoading(false);
@@ -90,10 +86,10 @@ const AuthModal = ({ isOpen = true, onClose }: AuthModalProps) => {
 
   const handleTabSwitch = (toLogin: boolean) => {
     setIsLogin(toLogin);
-    setError("");
-    setUsername("");
-    setEmail("");
-    setPassword("");
+    setError('');
+    setUsername('');
+    setEmail('');
+    setPassword('');
     setBetaAccepted(false);
     setRegistrationDone(false);
   };
@@ -111,18 +107,18 @@ const AuthModal = ({ isOpen = true, onClose }: AuthModalProps) => {
           <div className="w-16 h-16 rounded-full bg-orange-500/10 flex items-center justify-center">
             <Mail size={32} className="text-orange-500" />
           </div>
-          <h2 className="text-2xl font-bold text-white">{t("auth.verifyEmail.title")}</h2>
+          <h2 className="text-2xl font-bold text-white">{t('auth.verifyEmail.title')}</h2>
           <p className="text-zinc-400 text-sm leading-relaxed">
-            {t("auth.verifyEmail.description")}{" "}
+            {t('auth.verifyEmail.description')}{' '}
             <span className="text-orange-400 font-medium">{registeredEmail}</span>.
             <br />
-            {t("auth.verifyEmail.hint")}
+            {t('auth.verifyEmail.hint')}
           </p>
           <button
             className="mt-2 text-sm text-zinc-500 hover:text-white transition-colors"
             onClick={() => handleTabSwitch(true)}
           >
-            {t("auth.verifyEmail.backToLogin")}
+            {t('auth.verifyEmail.backToLogin')}
           </button>
         </div>
       </div>
@@ -142,42 +138,42 @@ const AuthModal = ({ isOpen = true, onClose }: AuthModalProps) => {
           <button
             className={`flex-1 py-4 text-sm font-medium transition-colors ${
               isLogin
-                ? "text-orange-500 border-b-2 border-orange-500 bg-zinc-800/50"
-                : "text-zinc-400 hover:text-white hover:bg-zinc-800/30"
+                ? 'text-orange-500 border-b-2 border-orange-500 bg-zinc-800/50'
+                : 'text-zinc-400 hover:text-white hover:bg-zinc-800/30'
             }`}
             onClick={() => handleTabSwitch(true)}
           >
-            {t("auth.loginTab")}
+            {t('auth.loginTab')}
           </button>
           <button
             className={`flex-1 py-4 text-sm font-medium transition-colors ${
               !isLogin
-                ? "text-orange-500 border-b-2 border-orange-500 bg-zinc-800/50"
-                : "text-zinc-400 hover:text-white hover:bg-zinc-800/30"
+                ? 'text-orange-500 border-b-2 border-orange-500 bg-zinc-800/50'
+                : 'text-zinc-400 hover:text-white hover:bg-zinc-800/30'
             }`}
             onClick={() => handleTabSwitch(false)}
           >
-            {t("auth.registerTab")}
+            {t('auth.registerTab')}
           </button>
         </div>
 
         <div className="p-8">
           <h2 className="text-2xl font-bold text-white mb-6 text-center">
-            {isLogin ? t("auth.welcomeBack") : t("auth.createAccount")}
+            {isLogin ? t('auth.welcomeBack') : t('auth.createAccount')}
           </h2>
           <form className="space-y-4" onSubmit={handleSubmit} noValidate>
             <div>
               <label className="block text-sm font-medium text-zinc-500 mb-2">
-                {t("auth.username")}
+                {t('auth.username')}
               </label>
               <input
                 type="text"
                 className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-orange-500/50 transition-all disabled:opacity-50"
-                placeholder={t("auth.usernamePlaceholder")}
+                placeholder={t('auth.usernamePlaceholder')}
                 value={username}
                 onChange={(e) => {
                   setUsername(e.target.value);
-                  setError("");
+                  setError('');
                 }}
                 disabled={isLoading}
               />
@@ -186,16 +182,16 @@ const AuthModal = ({ isOpen = true, onClose }: AuthModalProps) => {
             {!isLogin && (
               <div>
                 <label className="block text-sm font-medium text-zinc-500 mb-2">
-                  {t("auth.email")}
+                  {t('auth.email')}
                 </label>
                 <input
                   type="email"
                   className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-orange-500/50 transition-all disabled:opacity-50"
-                  placeholder={t("auth.emailPlaceholder")}
+                  placeholder={t('auth.emailPlaceholder')}
                   value={email}
                   onChange={(e) => {
                     setEmail(e.target.value);
-                    setError("");
+                    setError('');
                   }}
                   disabled={isLoading}
                 />
@@ -204,16 +200,16 @@ const AuthModal = ({ isOpen = true, onClose }: AuthModalProps) => {
 
             <div>
               <label className="block text-sm font-medium text-zinc-500 mb-2">
-                {t("auth.password")}
+                {t('auth.password')}
               </label>
               <input
                 type="password"
                 className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-orange-500/50 transition-all disabled:opacity-50"
-                placeholder={t("auth.passwordPlaceholder")}
+                placeholder={t('auth.passwordPlaceholder')}
                 value={password}
                 onChange={(e) => {
                   setPassword(e.target.value);
-                  setError("");
+                  setError('');
                 }}
                 disabled={isLoading}
               />
@@ -225,11 +221,14 @@ const AuthModal = ({ isOpen = true, onClose }: AuthModalProps) => {
                   type="checkbox"
                   className="mt-0.5 h-4 w-4 flex-shrink-0 rounded border-zinc-600 bg-zinc-950 text-orange-500 focus:ring-orange-500/50 cursor-pointer"
                   checked={betaAccepted}
-                  onChange={(e) => { setBetaAccepted(e.target.checked); setError(""); }}
+                  onChange={(e) => {
+                    setBetaAccepted(e.target.checked);
+                    setError('');
+                  }}
                   disabled={isLoading}
                 />
                 <span className="text-xs text-zinc-400 group-hover:text-zinc-300 transition-colors leading-relaxed">
-                  {t("beta.betaCheckbox")}
+                  {t('beta.betaCheckbox')}
                 </span>
               </label>
             )}
@@ -242,7 +241,7 @@ const AuthModal = ({ isOpen = true, onClose }: AuthModalProps) => {
               className="w-full bg-orange-600 hover:bg-orange-500 disabled:opacity-60 disabled:cursor-not-allowed text-white font-bold py-3 rounded-xl shadow-lg shadow-orange-900/20 transition-all active:scale-95 mt-4 flex items-center justify-center gap-2"
             >
               {isLoading && <Loader2 size={18} className="animate-spin" />}
-              {isLogin ? t("auth.loginButton") : t("auth.registerButton")}
+              {isLogin ? t('auth.loginButton') : t('auth.registerButton')}
             </button>
 
             <div className="relative my-6">
@@ -250,9 +249,7 @@ const AuthModal = ({ isOpen = true, onClose }: AuthModalProps) => {
                 <div className="w-full border-t border-zinc-800"></div>
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-zinc-900 text-zinc-500">
-                  {t("auth.continueWith")}
-                </span>
+                <span className="px-2 bg-zinc-900 text-zinc-500">{t('auth.continueWith')}</span>
               </div>
             </div>
 

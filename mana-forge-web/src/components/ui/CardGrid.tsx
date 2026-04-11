@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo } from 'react';
 
 export interface CardDisplayData {
   id: string;
@@ -40,9 +40,7 @@ const CardGrid: React.FC<CardGridProps> = ({ cards, stacked = false }) => {
           key={`group-${groupIdx}-${item.name}`}
           className="relative aspect-[63/88]"
           style={{
-            marginBottom: stacked
-              ? `${(item.group.length - 1) * 28}px`
-              : undefined,
+            marginBottom: stacked ? `${(item.group.length - 1) * 28}px` : undefined,
           }}
         >
           {item.group.map((card, cardIdx) => {

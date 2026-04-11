@@ -19,11 +19,23 @@ interface CategoryProps {
   recommendedLabel?: string;
 }
 
-const PreferenceCategory: React.FC<CategoryProps> = ({ title, description, checked, onChange, disabled = false, alwaysActiveLabel, recommendedLabel }) => {
+const PreferenceCategory: React.FC<CategoryProps> = ({
+  title,
+  description,
+  checked,
+  onChange,
+  disabled = false,
+  alwaysActiveLabel,
+  recommendedLabel,
+}) => {
   const [isOpen, setIsOpen] = useState(disabled); // Functional is open by default
 
   return (
-    <details open={isOpen} onToggle={(e) => setIsOpen((e.target as HTMLDetailsElement).open)} className="border-b border-zinc-800 last:border-b-0">
+    <details
+      open={isOpen}
+      onToggle={(e) => setIsOpen((e.target as HTMLDetailsElement).open)}
+      className="border-b border-zinc-800 last:border-b-0"
+    >
       <summary className="flex items-center justify-between py-3 cursor-pointer list-none -webkit-details-marker:hidden">
         <div className="flex items-center gap-3">
           <label className="relative inline-flex items-center cursor-pointer">
@@ -39,22 +51,28 @@ const PreferenceCategory: React.FC<CategoryProps> = ({ title, description, check
           <span className="font-semibold text-zinc-200 text-sm">{title}</span>
         </div>
         <div className="flex items-center gap-2">
-          {disabled && <span className="text-xs text-green-400 font-bold">{alwaysActiveLabel}</span>}
-          {recommendedLabel && <span className="text-xs text-blue-400 font-bold">{recommendedLabel}</span>}
-          <ChevronDown size={20} className={`text-zinc-500 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
+          {disabled && (
+            <span className="text-xs text-green-400 font-bold">{alwaysActiveLabel}</span>
+          )}
+          {recommendedLabel && (
+            <span className="text-xs text-blue-400 font-bold">{recommendedLabel}</span>
+          )}
+          <ChevronDown
+            size={20}
+            className={`text-zinc-500 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`}
+          />
         </div>
       </summary>
-      <div className="pb-4 pl-12 text-xs text-zinc-400">
-        {description}
-      </div>
+      <div className="pb-4 pl-12 text-xs text-zinc-400">{description}</div>
     </details>
   );
 };
 
 const CookieConsent = () => {
   const { t } = useTranslation();
-  const [isVisible, setIsVisible] = useState(false);
-  const [isMinimized, setIsMinimized] = useState(false);
+  const storedConsent = localStorage.getItem('cookie_consent');
+  const [isVisible, setIsVisible] = useState(!!storedConsent);
+  const [isMinimized, setIsMinimized] = useState(!!storedConsent);
   const [showPreferences, setShowPreferences] = useState(false);
   const [cookiePrefs, setCookiePrefs] = useState<CookiePreferences>({
     preferences: true,
@@ -70,9 +88,6 @@ const CookieConsent = () => {
         setIsMinimized(false);
       }, 1500);
       return () => clearTimeout(timer);
-    } else {
-      setIsVisible(true);
-      setIsMinimized(true);
     }
   }, []);
 
@@ -84,7 +99,12 @@ const CookieConsent = () => {
   };
 
   const handleDeny = () => {
-    const minimalConsent = { functional: true, preferences: false, statistics: false, marketing: false };
+    const minimalConsent = {
+      functional: true,
+      preferences: false,
+      statistics: false,
+      marketing: false,
+    };
     localStorage.setItem('cookie_consent', JSON.stringify(minimalConsent));
     setIsMinimized(true);
     setShowPreferences(false);
@@ -99,7 +119,7 @@ const CookieConsent = () => {
   };
 
   const handleTogglePreference = (key: keyof CookiePreferences) => {
-    setCookiePrefs(prev => ({ ...prev, [key]: !prev[key] }));
+    setCookiePrefs((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
   if (!isVisible) {
@@ -125,18 +145,23 @@ const CookieConsent = () => {
       <div className="bg-zinc-900/95 backdrop-blur-lg border border-zinc-800 rounded-t-2xl sm:rounded-2xl shadow-2xl">
         <div className="flex items-center justify-between p-4 border-b border-zinc-800">
           <h3 className="font-bold text-white">{t('legal.cookies.title')}</h3>
-          <button onClick={handleDeny} className="p-1 text-zinc-500 hover:text-white transition-colors" aria-label={t('legal.cookies.reject')}>
+          <button
+            onClick={handleDeny}
+            className="p-1 text-zinc-500 hover:text-white transition-colors"
+            aria-label={t('legal.cookies.reject')}
+          >
             <X size={20} />
           </button>
         </div>
 
         <div className="p-4">
-          <p className="text-xs text-zinc-400 italic">
-            {t('legal.cookies.bannerTextLong')}
-          </p>
+          <p className="text-xs text-zinc-400 italic">{t('legal.cookies.bannerTextLong')}</p>
           <p className="text-xs text-zinc-400 mt-2">
             {t('legal.cookies.bannerHint').replace('{policyLink}', '')}
-            <Link to="/legal/cookie-policy" className="font-semibold text-orange-500 hover:underline">
+            <Link
+              to="/legal/cookie-policy"
+              className="font-semibold text-orange-500 hover:underline"
+            >
               {t('legal.cookies.policyLink')}
             </Link>
           </p>
@@ -176,26 +201,53 @@ const CookieConsent = () => {
 
         <div className="p-4 border-t border-zinc-800 bg-zinc-950/50 rounded-b-2xl">
           <div className="grid grid-cols-3 gap-3">
-            <button onClick={handleAccept} className="bg-green-600 hover:bg-green-500 text-white font-bold py-2 px-4 rounded-lg transition-colors text-sm">
+            <button
+              onClick={handleAccept}
+              className="bg-green-600 hover:bg-green-500 text-white font-bold py-2 px-4 rounded-lg transition-colors text-sm"
+            >
               {t('legal.cookies.accept')}
             </button>
-            <button onClick={handleDeny} className="bg-zinc-700 hover:bg-zinc-600 text-zinc-200 font-bold py-2 px-4 rounded-lg transition-colors text-sm">
+            <button
+              onClick={handleDeny}
+              className="bg-zinc-700 hover:bg-zinc-600 text-zinc-200 font-bold py-2 px-4 rounded-lg transition-colors text-sm"
+            >
               {t('legal.cookies.reject')}
             </button>
             {showPreferences ? (
-              <button onClick={handleSavePreferences} className="bg-orange-600 hover:bg-orange-500 text-white font-bold py-2 px-4 rounded-lg transition-colors text-sm">
+              <button
+                onClick={handleSavePreferences}
+                className="bg-orange-600 hover:bg-orange-500 text-white font-bold py-2 px-4 rounded-lg transition-colors text-sm"
+              >
                 {t('legal.cookies.savePreferences')}
               </button>
             ) : (
-              <button onClick={() => setShowPreferences(true)} className="bg-zinc-700 hover:bg-zinc-600 text-zinc-200 font-bold py-2 px-4 rounded-lg transition-colors text-sm">
+              <button
+                onClick={() => setShowPreferences(true)}
+                className="bg-zinc-700 hover:bg-zinc-600 text-zinc-200 font-bold py-2 px-4 rounded-lg transition-colors text-sm"
+              >
                 {t('legal.cookies.viewPreferences')}
               </button>
             )}
           </div>
           <div className="flex justify-center gap-4 mt-4 text-xs">
-            <Link to="/legal/cookie-policy" className="text-zinc-500 hover:text-orange-500 transition-colors">{t('footer.cookies')}</Link>
-            <Link to="/legal/privacy-policy" className="text-zinc-500 hover:text-orange-500 transition-colors">{t('footer.privacy')}</Link>
-            <Link to="/legal/terms-and-conditions" className="text-zinc-500 hover:text-orange-500 transition-colors">{t('footer.terms')}</Link>
+            <Link
+              to="/legal/cookie-policy"
+              className="text-zinc-500 hover:text-orange-500 transition-colors"
+            >
+              {t('footer.cookies')}
+            </Link>
+            <Link
+              to="/legal/privacy-policy"
+              className="text-zinc-500 hover:text-orange-500 transition-colors"
+            >
+              {t('footer.privacy')}
+            </Link>
+            <Link
+              to="/legal/terms-and-conditions"
+              className="text-zinc-500 hover:text-orange-500 transition-colors"
+            >
+              {t('footer.terms')}
+            </Link>
           </div>
         </div>
       </div>
