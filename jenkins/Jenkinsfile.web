@@ -1,6 +1,10 @@
 pipeline {
     agent any
 
+    tools {
+        nodejs 'NodeJS'
+    }
+
     parameters {
         string(name: 'BRANCH',      defaultValue: 'main',            description: 'Branch to deploy')
         choice(name: 'ENVIRONMENT', choices: ['local', 'production'], description: 'Target environment')
@@ -52,11 +56,9 @@ pipeline {
         stage('Lint') {
             steps {
                 sh '''
-                    docker run --rm \
-                        -v "$WORKSPACE/mana-forge-web":/app \
-                        -w /app \
-                        node:22-alpine \
-                        sh -c "npm ci && npm run lint"
+                    cd mana-forge-web
+                    npm ci
+                    npm run lint
                 '''
             }
         }
@@ -64,11 +66,8 @@ pipeline {
         stage('Test') {
             steps {
                 sh '''
-                    docker run --rm \
-                        -v "$WORKSPACE/mana-forge-web":/app \
-                        -w /app \
-                        node:22-alpine \
-                        sh -c "npx vitest run --reporter=verbose --reporter=junit --outputFile=test-results/junit.xml"
+                    cd mana-forge-web
+                    npx vitest run --reporter=verbose --reporter=junit --outputFile=test-results/junit.xml
                 '''
             }
             post {
