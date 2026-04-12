@@ -182,6 +182,9 @@ export const handlers = [
     HttpResponse.json({ following: false, followersCount: 0, followingCount: 0 })
   ),
 
+  // Contact
+  http.post(`${BASE}/contact`, () => new HttpResponse(null, { status: 200 })),
+
   // Messages
   http.get(`${BASE}/messages/conversations`, () => HttpResponse.json([])),
   http.get(`${BASE}/messages/unread-count`, () => HttpResponse.json({ count: 0 })),
