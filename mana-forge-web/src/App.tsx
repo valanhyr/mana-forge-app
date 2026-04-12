@@ -23,6 +23,7 @@ import CookieConsent from './components/ui/CookieConsent';
 import WhatsNewModal from './components/ui/WhatsNewModal';
 import Messages from './views/messages/Messages';
 import DeckExplorer from './views/deck-explorer/DeckExplorer';
+import Contact from './views/contact/Contact';
 
 function App() {
   return (
@@ -42,6 +43,7 @@ function App() {
                 <Route path="/legal/:slug" element={<LegalPageView />} />
                 <Route path="/deck-viewer/:deckId" element={<DeckViewer />} />
                 <Route path="/explorer" element={<DeckExplorer />} />
+                <Route path="/contact" element={<Contact />} />
 
                 {/* Rutas protegidas — requieren autenticación */}
                 <Route element={<ProtectedRoute />}>

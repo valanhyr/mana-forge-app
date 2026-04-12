@@ -4,7 +4,8 @@
       "home": "Inicio",
       "formats": "Formatos",
       "deckBuilder": "Forja de Mazo",
-      "explorer": "Explorador"
+      "explorer": "Explorador",
+      "contact": "Contacto"
     },
     "common": {
       "back": "Volver",
@@ -442,6 +443,38 @@
       "profileTitle": "Mi Perfil",
       "profileDescription": "Configura tus preferencias para personalizar tu experiencia en la plataforma.",
       "deckViewerDescription": "Analiza y perfecciona el mazo {deckName} en Mana Forge con análisis estratégico de IA."
+    },
+    "contact": {
+      "title": "Contacto",
+      "subtitle": "¿Tienes alguna pregunta, sugerencia o propuesta? Escríbenos y te responderemos en breve.",
+      "name": "Nombre",
+      "namePlaceholder": "Tu nombre",
+      "email": "Correo electrónico",
+      "emailPlaceholder": "tu@email.com",
+      "subjectLabel": "Asunto",
+      "subjectPlaceholder": "Selecciona un asunto",
+      "message": "Mensaje",
+      "messagePlaceholder": "Escribe tu mensaje aquí...",
+      "send": "Enviar mensaje",
+      "sending": "Enviando...",
+      "successTitle": "¡Mensaje enviado!",
+      "successMessage": "Gracias por contactarnos. Te responderemos en la dirección de correo proporcionada.",
+      "sendAnother": "Enviar otro mensaje",
+      "subject": {
+        "general": "Consulta general",
+        "support": "Soporte técnico",
+        "business": "Colaboración",
+        "other": "Otro"
+      },
+      "error": {
+        "nameRequired": "El nombre es obligatorio.",
+        "emailRequired": "El correo electrónico es obligatorio.",
+        "emailInvalid": "El formato del correo no es válido.",
+        "subjectRequired": "Selecciona un asunto.",
+        "messageRequired": "El mensaje es obligatorio.",
+        "messageTooShort": "El mensaje debe tener al menos 10 caracteres.",
+        "sendFailed": "No se pudo enviar el mensaje. Inténtalo de nuevo."
+      }
     }
   },
   "en": {
@@ -449,7 +482,8 @@
       "home": "Home",
       "formats": "Formats",
       "deckBuilder": "Deck Forge",
-      "explorer": "Explorer"
+      "explorer": "Explorer",
+      "contact": "Contact"
     },
     "common": {
       "back": "Back",
@@ -886,6 +920,38 @@
       "profileTitle": "My Profile",
       "profileDescription": "Configure your preferences to personalize your experience on the platform.",
       "deckViewerDescription": "Analyze and perfect the {deckName} deck on Mana Forge with strategic AI analysis."
+    },
+    "contact": {
+      "title": "Contact Us",
+      "subtitle": "Have a question, suggestion or proposal? Write to us and we will get back to you shortly.",
+      "name": "Name",
+      "namePlaceholder": "Your name",
+      "email": "Email address",
+      "emailPlaceholder": "you@email.com",
+      "subjectLabel": "Subject",
+      "subjectPlaceholder": "Select a subject",
+      "message": "Message",
+      "messagePlaceholder": "Write your message here...",
+      "send": "Send message",
+      "sending": "Sending...",
+      "successTitle": "Message sent!",
+      "successMessage": "Thank you for reaching out. We will reply to the email address you provided.",
+      "sendAnother": "Send another message",
+      "subject": {
+        "general": "General inquiry",
+        "support": "Technical support",
+        "business": "Partnership",
+        "other": "Other"
+      },
+      "error": {
+        "nameRequired": "Name is required.",
+        "emailRequired": "Email address is required.",
+        "emailInvalid": "Invalid email format.",
+        "subjectRequired": "Please select a subject.",
+        "messageRequired": "Message is required.",
+        "messageTooShort": "Message must be at least 10 characters long.",
+        "sendFailed": "Failed to send message. Please try again."
+      }
     }
   }
 }

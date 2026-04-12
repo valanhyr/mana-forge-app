@@ -118,6 +118,7 @@ spring:
 # Email
 mail:
   from: ${SMTP_FROM:noreply@localhost}
+  admin: ${MAIL_ADMIN:admin@localhost}
 
 # CONFIGURACIÓN PERSONALIZADA: Conexión con el motor de Python (FastAPI)
 services:
