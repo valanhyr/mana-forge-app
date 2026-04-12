@@ -53,12 +53,17 @@ pipeline {
         }
 
         stage('Test') {
+            agent {
+                docker {
+                    image 'python:3.11-slim'
+                    reuseNode true
+                }
+            }
             steps {
                 sh '''
                     cd mana-forge-engine
-                    python3 -m venv .venv-ci
-                    .venv-ci/bin/pip install --quiet -r requirements.txt -r requirements-test.txt
-                    .venv-ci/bin/pytest tests/ \
+                    pip install --quiet -r requirements.txt -r requirements-test.txt
+                    pytest tests/ \
                         --junit-xml=test-results.xml \
                         --cov-report=xml:coverage.xml \
                         --cov-report=term-missing \
