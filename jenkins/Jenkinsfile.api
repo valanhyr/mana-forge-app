@@ -64,11 +64,9 @@ pipeline {
                 always {
                     junit testResults: 'mana-forge-api/target/surefire-reports/*.xml',
                           allowEmptyResults: true
-                    jacoco(
-                        execPattern: 'mana-forge-api/target/jacoco.exec',
-                        classPattern: 'mana-forge-api/target/classes',
-                        sourcePattern: 'mana-forge-api/src/main/java',
-                        exclusionPattern: '**/model/**,**/config/**,**/*Application*'
+                    recordCoverage(
+                        tools: [[parser: 'JACOCO', pattern: 'mana-forge-api/target/site/jacoco/jacoco.xml']],
+                        sourceDirectories: [[path: 'mana-forge-api/src/main/java']]
                     )
                 }
             }
