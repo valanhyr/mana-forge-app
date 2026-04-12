@@ -1,10 +1,6 @@
 pipeline {
     agent any
 
-    tools {
-        jdk 'JDK-25'
-    }
-
     parameters {
         string(name: 'BRANCH',      defaultValue: 'main',            description: 'Branch to deploy')
         choice(name: 'ENVIRONMENT', choices: ['local', 'production'], description: 'Target environment')
@@ -58,6 +54,9 @@ pipeline {
         }
 
         stage('Test') {
+            tools {
+                jdk 'JDK-25'
+            }
             steps {
                 sh '''
                     chmod +x mana-forge-api/mvnw
