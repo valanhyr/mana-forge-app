@@ -183,7 +183,7 @@ const Footer = () => {
         </div>
 
         {/* Bottom Bar */}
-        <div className="border-t border-zinc-800 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
+        <div className="border-t border-zinc-800 pt-8 flex flex-col md:flex-row justify-center items-center gap-6">
           <p className="text-zinc-600 text-sm">
             © {currentYear} ManaForge. {t('footer.rightsReserved')}
           </p>
