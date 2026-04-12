@@ -51,6 +51,11 @@ const Footer = () => {
               }`}
             >
               <li>
+                <Link to="/contact" className="hover:text-orange-500 transition-colors">
+                  {t('nav.contact')}
+                </Link>
+              </li>
+              <li>
                 <Link to="/explorer" className="hover:text-orange-500 transition-colors">
                   {t('nav.explorer')}
                 </Link>
