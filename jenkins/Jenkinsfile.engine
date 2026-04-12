@@ -55,16 +55,14 @@ pipeline {
         stage('Test') {
             steps {
                 sh '''
-                    docker run --rm \
-                        -v "$WORKSPACE/mana-forge-engine:/app" \
-                        -w /app \
-                        python:3.11-slim \
-                        sh -c "pip install --quiet -r requirements.txt -r requirements-test.txt && \
-                               pytest tests/ \
-                                   --junit-xml=test-results.xml \
-                                   --cov-report=xml:coverage.xml \
-                                   --cov-report=term-missing \
-                                   --no-header -q"
+                    cd mana-forge-engine
+                    pip3 install --break-system-packages --quiet \
+                        -r requirements.txt -r requirements-test.txt
+                    python3 -m pytest tests/ \
+                        --junit-xml=test-results.xml \
+                        --cov-report=xml:coverage.xml \
+                        --cov-report=term-missing \
+                        --no-header -q
                 '''
             }
             post {
