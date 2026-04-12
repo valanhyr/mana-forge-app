@@ -55,11 +55,10 @@ pipeline {
         stage('Test') {
             steps {
                 sh '''
-                    apt-get install -y --no-install-recommends python3-pip -q
                     cd mana-forge-engine
-                    python3 -m pip install --break-system-packages --quiet \
-                        -r requirements.txt -r requirements-test.txt
-                    python3 -m pytest tests/ \
+                    python3 -m venv .venv-ci
+                    .venv-ci/bin/pip install --quiet -r requirements.txt -r requirements-test.txt
+                    .venv-ci/bin/python3 -m pytest tests/ \
                         --junit-xml=test-results.xml \
                         --cov-report=xml:coverage.xml \
                         --cov-report=term-missing \
