@@ -56,13 +56,14 @@ pipeline {
         stage('Test') {
             steps {
                 sh '''
-                    cd mana-forge-api
-                    ./mvnw test -Dspring.profiles.active=test --no-transfer-progress
+                    chmod +x mana-forge-api/mvnw
+                    cd mana-forge-api && ./mvnw test -Dspring.profiles.active=test --no-transfer-progress -B
                 '''
             }
             post {
                 always {
-                    junit 'mana-forge-api/target/surefire-reports/*.xml'
+                    junit testResults: 'mana-forge-api/target/surefire-reports/*.xml',
+                          allowEmptyResults: true
                     jacoco(
                         execPattern: 'mana-forge-api/target/jacoco.exec',
                         classPattern: 'mana-forge-api/target/classes',
