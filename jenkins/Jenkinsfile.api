@@ -63,10 +63,12 @@ pipeline {
             post {
                 always {
                     junit testResults: 'mana-forge-api/target/surefire-reports/*.xml',
-                          allowEmptyResults: true
+                          allowEmptyResults: true,
+                          skipPublishingChecks: true
                     recordCoverage(
                         tools: [[parser: 'JACOCO', pattern: 'mana-forge-api/target/site/jacoco/jacoco.xml']],
-                        sourceDirectories: [[path: 'mana-forge-api/src/main/java']]
+                        sourceDirectories: [[path: 'mana-forge-api/src/main/java']],
+                        skipPublishingChecks: true
                     )
                 }
             }
