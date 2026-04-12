@@ -54,9 +54,6 @@ pipeline {
         }
 
         stage('Test') {
-            tools {
-                jdk 'JDK-25'
-            }
             steps {
                 sh '''
                     chmod +x mana-forge-api/mvnw
