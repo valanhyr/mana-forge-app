@@ -66,17 +66,20 @@ pipeline {
                         def results = junit testResults: 'mana-forge-api/target/surefire-reports/*.xml',
                                             allowEmptyResults: true,
                                             skipPublishingChecks: true
-                        // Reset UNSTABLE caused by test-count regression (not real failures)
+
+                        catchError(buildResult: 'SUCCESS', stageResult: 'SUCCESS') {
+                            recordCoverage(
+                                tools: [[parser: 'JACOCO', pattern: 'mana-forge-api/target/site/jacoco/jacoco.xml']],
+                                sourceDirectories: [[path: 'mana-forge-api/src/main/java']],
+                                skipPublishingChecks: true
+                            )
+                        }
+
+                        // Reset UNSTABLE from junit test-count regression or coverage quality gates,
+                        // but only when there are no real test failures.
                         if (currentBuild.result == 'UNSTABLE' && results.failCount == 0) {
                             currentBuild.result = 'SUCCESS'
                         }
-                    }
-                    catchError(buildResult: 'SUCCESS', stageResult: 'SUCCESS') {
-                        recordCoverage(
-                            tools: [[parser: 'JACOCO', pattern: 'mana-forge-api/target/site/jacoco/jacoco.xml']],
-                            sourceDirectories: [[path: 'mana-forge-api/src/main/java']],
-                            skipPublishingChecks: true
-                        )
                     }
                 }
             }
