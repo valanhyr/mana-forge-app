@@ -67,12 +67,24 @@ pipeline {
             steps {
                 sh '''
                     cd mana-forge-web
-                    npx vitest run --reporter=verbose --reporter=junit --outputFile=test-results/junit.xml
+                    npx vitest run --coverage --reporter=verbose --reporter=junit --outputFile=test-results/junit.xml
                 '''
             }
             post {
                 always {
-                    junit testResults: 'mana-forge-web/test-results/junit.xml', allowEmptyResults: true
+                    script {
+                        junit testResults: 'mana-forge-web/test-results/junit.xml',
+                              allowEmptyResults: true,
+                              skipPublishingChecks: true
+
+                        catchError(buildResult: 'SUCCESS', stageResult: 'SUCCESS') {
+                            recordCoverage(
+                                tools: [[parser: 'COBERTURA', pattern: 'mana-forge-web/coverage/cobertura-coverage.xml']],
+                                sourceDirectories: [[path: 'mana-forge-web/src']],
+                                skipPublishingChecks: true
+                            )
+                        }
+                    }
                 }
             }
         }
