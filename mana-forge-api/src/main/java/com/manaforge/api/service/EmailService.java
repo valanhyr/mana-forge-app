@@ -194,7 +194,6 @@ public class EmailService {
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
             helper.setFrom(fromAddress);
             helper.setTo(adminAddress);
-            helper.setReplyTo(req.getEmail());
             helper.setSubject("[ManaForge Contact] " + req.getSubject() + " — " + req.getName());
             helper.setText(buildContactNotificationHtml(req), true);
             mailSender.send(message);
