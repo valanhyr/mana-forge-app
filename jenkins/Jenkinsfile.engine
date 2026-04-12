@@ -55,8 +55,9 @@ pipeline {
         stage('Test') {
             steps {
                 sh '''
+                    apt-get install -y --no-install-recommends python3-pip -q
                     cd mana-forge-engine
-                    pip3 install --break-system-packages --quiet \
+                    python3 -m pip install --break-system-packages --quiet \
                         -r requirements.txt -r requirements-test.txt
                     python3 -m pytest tests/ \
                         --junit-xml=test-results.xml \
