@@ -53,6 +53,26 @@ pipeline {
             }
         }
 
+        stage('Test') {
+            steps {
+                sh '''
+                    cd mana-forge-api
+                    ./mvnw test -Dspring.profiles.active=test --no-transfer-progress
+                '''
+            }
+            post {
+                always {
+                    junit 'mana-forge-api/target/surefire-reports/*.xml'
+                    jacoco(
+                        execPattern: 'mana-forge-api/target/jacoco.exec',
+                        classPattern: 'mana-forge-api/target/classes',
+                        sourcePattern: 'mana-forge-api/src/main/java',
+                        exclusionPattern: '**/model/**,**/config/**,**/*Application*'
+                    )
+                }
+            }
+        }
+
         stage('Build') {
             steps {
                 script {
@@ -60,14 +80,6 @@ pipeline {
                     env.IMAGE_FULL = "${env.IMAGE_NAME}:${env.IMAGE_TAG}"
                 }
                 sh "docker build -t ${env.IMAGE_FULL} -t ${env.IMAGE_NAME}:latest ./mana-forge-api"
-            }
-        }
-
-        stage('Test') {
-            steps {
-                echo '⏭️  Tests not yet configured — skipping'
-                // Future:
-                // sh './mvnw test -pl mana-forge-api --no-transfer-progress'
             }
         }
 

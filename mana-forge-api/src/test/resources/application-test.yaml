@@ -1,0 +1,65 @@
+spring:
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration
+      - org.springframework.boot.autoconfigure.mail.MailSenderAutoConfiguration
+      - org.springframework.boot.data.redis.autoconfigure.RedisAutoConfiguration
+      - org.springframework.boot.data.redis.autoconfigure.RedisRepositoriesAutoConfiguration
+      - org.springframework.boot.data.redis.autoconfigure.DataRedisReactiveAutoConfiguration
+      - org.springframework.boot.data.redis.autoconfigure.health.DataRedisHealthContributorAutoConfiguration
+      - org.springframework.boot.data.redis.autoconfigure.health.DataRedisReactiveHealthContributorAutoConfiguration
+  session:
+    store-type: none
+  data:
+    mongodb:
+      uri: mongodb://localhost:27017/mana-forge-test
+    redis:
+      password: ""
+  mail:
+    host: localhost
+    port: 25
+    username: test
+    password: test
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: test-client-id
+            client-secret: test-client-secret
+
+de:
+  flapdoodle:
+    mongodb:
+      embedded:
+        version: 7.0.0
+
+MONGODB_URI: mongodb://localhost:27017/mana-forge-test
+REDIS_PASSWORD: ""
+SMTP_PASSWORD: test
+SMTP_USERNAME: test
+SMTP_HOST: localhost
+SMTP_PORT: "25"
+SMTP_FROM: test@localhost
+GOOGLE_CLIENT_ID: test-client-id
+GOOGLE_CLIENT_SECRET: test-client-secret
+
+strapi:
+  api:
+    url: http://localhost:9999/api
+    token: test-token
+
+services:
+  python-engine:
+    url: http://localhost:9999
+  frontend:
+    url: http://localhost:5173
+
+mail:
+  from: test@localhost
+
+logging:
+  level:
+    root: WARN
+    com.manaforge: INFO

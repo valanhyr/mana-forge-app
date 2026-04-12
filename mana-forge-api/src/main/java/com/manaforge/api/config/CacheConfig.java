@@ -9,8 +9,11 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
+import org.springframework.cache.concurrent.ConcurrentMapCacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.cache.RedisCacheConfiguration;
@@ -27,6 +30,14 @@ public class CacheConfig {
     private static final Logger logger = LoggerFactory.getLogger(CacheConfig.class);
 
     @Bean
+    @ConditionalOnMissingBean(CacheManager.class)
+    public CacheManager fallbackCacheManager() {
+        logger.info("⚠️  Redis not available — using in-memory ConcurrentMapCacheManager");
+        return new ConcurrentMapCacheManager();
+    }
+
+    @Bean
+    @ConditionalOnBean(RedisConnectionFactory.class)
     public CacheManager cacheManager(RedisConnectionFactory connectionFactory) {
         ObjectMapper mapper = new ObjectMapper();
         mapper.activateDefaultTyping(
