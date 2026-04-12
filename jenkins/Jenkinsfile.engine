@@ -53,21 +53,18 @@ pipeline {
         }
 
         stage('Test') {
-            agent {
-                docker {
-                    image 'python:3.11-slim'
-                    reuseNode true
-                }
-            }
             steps {
                 sh '''
-                    cd mana-forge-engine
-                    pip install --quiet -r requirements.txt -r requirements-test.txt
-                    pytest tests/ \
-                        --junit-xml=test-results.xml \
-                        --cov-report=xml:coverage.xml \
-                        --cov-report=term-missing \
-                        --no-header -q
+                    docker run --rm \
+                        -v "$WORKSPACE/mana-forge-engine:/app" \
+                        -w /app \
+                        python:3.11-slim \
+                        sh -c "pip install --quiet -r requirements.txt -r requirements-test.txt && \
+                               pytest tests/ \
+                                   --junit-xml=test-results.xml \
+                                   --cov-report=xml:coverage.xml \
+                                   --cov-report=term-missing \
+                                   --no-header -q"
                 '''
             }
             post {
