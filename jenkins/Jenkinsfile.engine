@@ -64,7 +64,35 @@ pipeline {
 
         stage('Test') {
             steps {
-                echo '⏭️  Tests not yet configured — skipping'
+                sh '''
+                    cd mana-forge-engine
+                    python3 -m venv .venv-ci
+                    .venv-ci/bin/pip install --quiet -r requirements.txt -r requirements-test.txt
+                    .venv-ci/bin/pytest tests/ \
+                        --junit-xml=test-results.xml \
+                        --cov-report=xml:coverage.xml \
+                        --cov-report=term-missing \
+                        --no-header -q
+                '''
+            }
+            post {
+                always {
+                    script {
+                        def results = junit testResults: 'mana-forge-engine/test-results.xml',
+                                            allowEmptyResults: true,
+                                            skipPublishingChecks: true
+                        if (currentBuild.result == 'UNSTABLE' && results.failCount == 0) {
+                            currentBuild.result = 'SUCCESS'
+                        }
+                    }
+                    catchError(buildResult: 'SUCCESS', stageResult: 'SUCCESS') {
+                        recordCoverage(
+                            tools: [[parser: 'COBERTURA', pattern: 'mana-forge-engine/coverage.xml']],
+                            sourceDirectories: [[path: 'mana-forge-engine']],
+                            skipPublishingChecks: true
+                        )
+                    }
+                }
             }
         }
 

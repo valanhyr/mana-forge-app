@@ -1,6 +1,12 @@
 venv
+.venv-ci
 __pycache__
 *.pyc
 .git
 .vscode
 .env
+tests
+pytest.ini
+.coveragerc
+requirements-test.txt
+*.xml
