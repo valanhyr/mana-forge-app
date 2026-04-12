@@ -57,7 +57,7 @@ pipeline {
             steps {
                 sh '''
                     chmod +x mana-forge-api/mvnw
-                    cd mana-forge-api && ./mvnw test -Dspring.profiles.active=test --no-transfer-progress -B
+                    cd mana-forge-api && ./mvnw test -Pci -Dspring.profiles.active=test --no-transfer-progress -B
                 '''
             }
             post {
