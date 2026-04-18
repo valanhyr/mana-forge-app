@@ -82,10 +82,10 @@ const DeckStats: React.FC<DeckStatsProps> = ({ cards }) => {
     });
     const totalPips = Object.values(colorCounts).reduce((s, v) => s + v, 0);
 
-    return { curve, maxCurve, avgCmc, typeGroups, totalMain, colorCounts, totalPips };
+    return { curve, maxCurve, avgCmc, typeGroups, totalMain, totalSpells: totalSpellQty, colorCounts, totalPips };
   }, [cards]);
 
-  if (stats.totalMain === 0) return null;
+  if (stats.totalMain === 0 || stats.totalSpells === 0) return null;
 
   const typesToShow = Object.entries(stats.typeGroups).filter(([, count]) => count > 0);
   const colorsToShow = Object.entries(stats.colorCounts)
