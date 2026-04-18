@@ -21,6 +21,7 @@ import { DeckService, type DeckView, type DeckCardEntry } from '../../services/D
 import { useUser } from '../../services/UserContext';
 import ManaCost from '../../components/ui/ManaCost';
 import ManaCurve from '../../components/ui/ManaCurve';
+import RadarChart from '../../components/ui/RadarChart';
 
 import SEO from '../../components/ui/SEO';
 import { useLanguage } from '../../services/LanguageContext';
@@ -784,6 +785,65 @@ const DeckViewer = () => {
                 </ul>
               </div>
             </div>
+
+            {/* Deck Profile radar (only when scores are saved) */}
+            {deck.analysisScores && (() => {
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              const sc = deck.analysisScores as any;
+              const DIMS = [
+                { key: 'speed', label: t('deckBuilder.scoreSpeed') },
+                { key: 'consistency', label: t('deckBuilder.scoreConsistency') },
+                { key: 'aggression', label: t('deckBuilder.scoreAggression') },
+                { key: 'resilience', label: t('deckBuilder.scoreResilience') },
+                { key: 'interaction', label: t('deckBuilder.scoreInteraction') },
+                { key: 'combo_potential', label: t('deckBuilder.scoreCombo') },
+              ];
+              return (
+                <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+                  <p className="text-xs font-semibold uppercase tracking-widest text-zinc-500 mb-4">
+                    {t('deckBuilder.deckProfile')}
+                  </p>
+                  <div className="flex flex-col md:flex-row items-start gap-6">
+                    <div className="shrink-0 mx-auto md:mx-0">
+                      <RadarChart
+                        size={220}
+                        axes={DIMS.map(({ key, label }) => ({
+                          key,
+                          label,
+                          value: sc[key]?.value ?? sc[key] ?? 0,
+                          keyCards: sc[key]?.key_cards,
+                        }))}
+                      />
+                    </div>
+                    <div className="flex-1 space-y-3 text-sm w-full">
+                      {DIMS.map(({ key, label }) => {
+                        const val = sc[key]?.value ?? sc[key] ?? 0;
+                        const cards: string[] = sc[key]?.key_cards ?? [];
+                        return (
+                          <div key={key}>
+                            <div className="flex items-center gap-2 mb-0.5">
+                              <span className="text-zinc-400 w-24 shrink-0">{label}</span>
+                              <div className="flex-1 h-1.5 bg-zinc-700 rounded-full overflow-hidden">
+                                <div
+                                  className="h-full rounded-full bg-orange-500 transition-all duration-500"
+                                  style={{ width: `${val * 10}%` }}
+                                />
+                              </div>
+                              <span className="text-orange-400 font-bold tabular-nums">{val}</span>
+                            </div>
+                            {cards.length > 0 && (
+                              <p className="text-xs text-zinc-500 pl-[6.5rem] leading-tight">
+                                {t('deckBuilder.scoreKeyCards')}: {cards.join(', ')}
+                              </p>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
           </div>
         </div>
       </div>

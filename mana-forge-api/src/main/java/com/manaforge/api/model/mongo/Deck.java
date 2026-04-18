@@ -5,6 +5,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 @Data
@@ -20,6 +21,7 @@ public class Deck {
     private boolean isPinned;
     private List<String> colors;
     private List<DeckCardEntry> cards;
+    private Map<String, Object> analysisScores;
 
     private Set<String> likedBy = new HashSet<>();
     private int likesCount = 0;

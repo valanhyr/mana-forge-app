@@ -16,6 +16,7 @@ public class DeckViewDTO {
     private List<CardEntryDTO> maybeboard;
     private int likesCount;
     private boolean likedByMe;
+    private Map<String, Object> analysisScores;
 
     @Data
     public static class CardEntryDTO {
