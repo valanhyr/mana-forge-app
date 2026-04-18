@@ -124,22 +124,6 @@
 		<scope>test</scope>
 	</dependency>
 
-	<!-- Web MVC test slice (@WebMvcTest, @AutoConfigureMockMvc) -->
-	<dependency>
-		<groupId>org.springframework.boot</groupId>
-		<artifactId>spring-boot-starter-webmvc-test</artifactId>
-		<version>4.0.2</version>
-		<scope>test</scope>
-	</dependency>
-
-	<!-- MongoDB test slice (@DataMongoTest) -->
-	<dependency>
-		<groupId>org.springframework.boot</groupId>
-		<artifactId>spring-boot-starter-data-mongodb-test</artifactId>
-		<version>4.0.2</version>
-		<scope>test</scope>
-	</dependency>
-
 	<dependency>
 		<groupId>org.springframework.security</groupId>
 		<artifactId>spring-security-test</artifactId>

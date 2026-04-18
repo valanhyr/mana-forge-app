@@ -667,8 +667,8 @@ const DeckBuilder = () => {
     }
   };
 
-  // Filter cards for the main DeckList component (exclude maybeboard to avoid confusion if DeckList doesn't support it)
-  const mainDeckCards = deckCards.filter((c) => c.board !== 'maybe');
+  // Filter cards for the main DeckList component (exclude maybeboard and sideboard)
+  const mainDeckCards = deckCards.filter((c) => c.board !== 'maybe' && c.board !== 'side');
   const maybeCards = deckCards.filter((c) => c.board === 'maybe');
   const sideCards = deckCards.filter((c) => c.board === 'side');
   const mainBarCount = deckCards
