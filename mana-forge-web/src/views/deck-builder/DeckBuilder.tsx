@@ -616,6 +616,14 @@ const DeckBuilder = () => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         board: (card.board || 'main') as any,
       })),
+      analysisScores: analysisResult?.scores
+        ? Object.fromEntries(
+            Object.entries(analysisResult.scores).map(([k, v]: [string, any]) => [
+              k,
+              { value: v.value, key_cards: v.key_cards ?? [] },
+            ])
+          )
+        : undefined,
     };
 
     setIsSaving(true);
@@ -1525,45 +1533,87 @@ const DeckBuilder = () => {
         {analysisResult && (
           <div className="space-y-6 text-zinc-300 max-h-[70vh] overflow-y-auto pr-2">
             {/* ── Deck Profile radar ── */}
-            {analysisResult.scores && (
-              <div className="bg-zinc-800/50 p-4 rounded-xl border border-zinc-700">
-                <h4 className="text-orange-500 font-bold mb-4">{t('deckBuilder.deckProfile')}</h4>
-                <div className="flex flex-col md:flex-row items-center gap-6">
-                  <RadarChart
-                    size={220}
-                    axes={[
-                      { key: 'speed', label: t('deckBuilder.scoreSpeed'), value: analysisResult.scores.speed },
-                      { key: 'consistency', label: t('deckBuilder.scoreConsistency'), value: analysisResult.scores.consistency },
-                      { key: 'aggression', label: t('deckBuilder.scoreAggression'), value: analysisResult.scores.aggression },
-                      { key: 'resilience', label: t('deckBuilder.scoreResilience'), value: analysisResult.scores.resilience },
-                      { key: 'interaction', label: t('deckBuilder.scoreInteraction'), value: analysisResult.scores.interaction },
-                      { key: 'combo', label: t('deckBuilder.scoreCombo'), value: analysisResult.scores.combo_potential },
-                    ]}
-                  />
-                  <div className="grid grid-cols-2 gap-x-8 gap-y-2 text-sm">
-                    {[
-                      { label: t('deckBuilder.scoreSpeed'), value: analysisResult.scores.speed },
-                      { label: t('deckBuilder.scoreConsistency'), value: analysisResult.scores.consistency },
-                      { label: t('deckBuilder.scoreAggression'), value: analysisResult.scores.aggression },
-                      { label: t('deckBuilder.scoreResilience'), value: analysisResult.scores.resilience },
-                      { label: t('deckBuilder.scoreInteraction'), value: analysisResult.scores.interaction },
-                      { label: t('deckBuilder.scoreCombo'), value: analysisResult.scores.combo_potential },
-                    ].map(({ label, value }) => (
-                      <div key={label} className="flex items-center gap-2">
-                        <span className="text-zinc-400 w-24 shrink-0">{label}</span>
-                        <div className="flex-1 h-1.5 bg-zinc-700 rounded-full overflow-hidden">
-                          <div
-                            className="h-full rounded-full bg-orange-500 transition-all duration-500"
-                            style={{ width: `${value * 10}%` }}
-                          />
-                        </div>
-                        <span className="text-orange-400 font-bold w-5 text-right tabular-nums">{value}</span>
+            {analysisResult.scores && (() => {
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              const s = analysisResult.scores as any;
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              const ps = analysisResult.projected_scores as any;
+              const DIMS = [
+                { key: 'speed', label: t('deckBuilder.scoreSpeed') },
+                { key: 'consistency', label: t('deckBuilder.scoreConsistency') },
+                { key: 'aggression', label: t('deckBuilder.scoreAggression') },
+                { key: 'resilience', label: t('deckBuilder.scoreResilience') },
+                { key: 'interaction', label: t('deckBuilder.scoreInteraction') },
+                { key: 'combo_potential', label: t('deckBuilder.scoreCombo') },
+              ];
+              return (
+                <div className="bg-zinc-800/50 p-4 rounded-xl border border-zinc-700">
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className="text-orange-500 font-bold">{t('deckBuilder.deckProfile')}</h4>
+                    {ps && (
+                      <div className="flex items-center gap-4 text-xs text-zinc-400">
+                        <span className="flex items-center gap-1.5">
+                          <span className="inline-block w-3 h-3 rounded-full bg-orange-500" />
+                          {t('deckBuilder.scoreCurrent')}
+                        </span>
+                        <span className="flex items-center gap-1.5">
+                          <span className="inline-block w-3 h-3 rounded-full bg-green-500" />
+                          {t('deckBuilder.scoreProjected')}
+                        </span>
                       </div>
-                    ))}
+                    )}
+                  </div>
+                  <div className="flex flex-col md:flex-row items-start gap-6">
+                    <div className="shrink-0 mx-auto md:mx-0">
+                      <RadarChart
+                        size={220}
+                        axes={DIMS.map(({ key, label }) => ({
+                          key,
+                          label,
+                          value: s[key]?.value ?? s[key] ?? 0,
+                          projectedValue: ps?.[key]?.value ?? ps?.[key],
+                          keyCards: s[key]?.key_cards,
+                        }))}
+                      />
+                    </div>
+                    <div className="flex-1 space-y-3 text-sm w-full">
+                      {DIMS.map(({ key, label }) => {
+                        const cur = s[key]?.value ?? s[key] ?? 0;
+                        const proj = ps?.[key]?.value ?? ps?.[key];
+                        const cards: string[] = s[key]?.key_cards ?? [];
+                        return (
+                          <div key={key}>
+                            <div className="flex items-center gap-2 mb-0.5">
+                              <span className="text-zinc-400 w-24 shrink-0">{label}</span>
+                              <div className="flex-1 h-1.5 bg-zinc-700 rounded-full overflow-hidden relative">
+                                <div
+                                  className="h-full rounded-full bg-orange-500 transition-all duration-500"
+                                  style={{ width: `${cur * 10}%` }}
+                                />
+                                {proj !== undefined && (
+                                  <div
+                                    className="absolute top-0 h-full rounded-full bg-green-500/50 transition-all duration-500"
+                                    style={{ width: `${proj * 10}%` }}
+                                  />
+                                )}
+                              </div>
+                              <span className="text-orange-400 font-bold tabular-nums">
+                                {cur}{proj !== undefined && proj !== cur ? <span className="text-green-400"> → {proj}</span> : null}
+                              </span>
+                            </div>
+                            {cards.length > 0 && (
+                              <p className="text-xs text-zinc-500 pl-[6.5rem] leading-tight">
+                                {t('deckBuilder.scoreKeyCards')}: {cards.join(', ')}
+                              </p>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
                 </div>
-              </div>
-            )}
+              );
+            })()}
 
             <div className="bg-zinc-800/50 p-4 rounded-xl border border-zinc-700">
               <h4 className="text-orange-500 font-bold mb-2">{t('deckBuilder.generalSummary')}</h4>

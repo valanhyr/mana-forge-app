@@ -61,19 +61,23 @@ def get_analysis_user_prompt(main_deck_str: str, sideboard_str: str, format_name
        - Key cards the opponent plays that threaten this deck.
        - Sideboard Guide: EXACTLY which cards to bring IN from sideboard and take OUT from main deck.
     4. Suggested Changes: Recommend specific card swaps to improve the deck. Only suggest legal cards in {format_name}.
-    5. Deck Scores: Rate this deck on 6 dimensions from 1 (very low) to 10 (exceptional):
+    5. Deck Scores (current deck): Rate this deck on 6 dimensions from 1 (very low) to 10 (exceptional).
+       For EACH dimension, also list up to 3 key cards from the deck that most influence that score.
        - speed: How fast can the deck win? (1 = very slow control, 10 = turn 1-2 combo/aggro)
        - consistency: How reliably does it execute its game plan? (1 = highly inconsistent, 10 = very consistent)
        - aggression: How proactively does it apply pressure? (1 = pure reactive, 10 = relentless aggro)
        - resilience: How well does it recover from disruption and removal? (1 = fragile, 10 = very resilient)
        - interaction: How much does it interact with the opponent's game plan? (1 = no interaction, 10 = full of answers)
        - combo_potential: How combo-oriented is the deck? (1 = pure fair magic, 10 = all-in combo)
+    6. Projected Scores: Re-score the same 6 dimensions AS IF all suggested_changes were applied.
+       Also list up to 3 key cards (from the modified deck) per dimension.
 
     Rules:
     - NEVER suggest or reference banned cards.
     - Only use real, existing Magic: The Gathering card names. If unsure, omit.
     - win_rate_pre and win_rate_post must be integers between 0 and 100.
-    - All scores must be integers between 1 and 10.
+    - All score values must be integers between 1 and 10.
+    - key_cards must only contain real card names that exist in the deck (current or projected).
 
     The output language for all text fields MUST be: {locale}.
 
@@ -100,12 +104,20 @@ def get_analysis_user_prompt(main_deck_str: str, sideboard_str: str, format_name
         ],
         "general_summary": "Overall conclusion about the deck's viability.",
         "scores": {{
-            "speed": 7,
-            "consistency": 8,
-            "aggression": 5,
-            "resilience": 6,
-            "interaction": 7,
-            "combo_potential": 3
+            "speed":            {{"value": 7, "key_cards": ["Card A", "Card B"]}},
+            "consistency":      {{"value": 8, "key_cards": ["Card C"]}},
+            "aggression":       {{"value": 5, "key_cards": ["Card D", "Card E"]}},
+            "resilience":       {{"value": 6, "key_cards": ["Card F"]}},
+            "interaction":      {{"value": 7, "key_cards": ["Card G", "Card H"]}},
+            "combo_potential":  {{"value": 3, "key_cards": []}}
+        }},
+        "projected_scores": {{
+            "speed":            {{"value": 8, "key_cards": ["Card A", "Card X"]}},
+            "consistency":      {{"value": 9, "key_cards": ["Card C", "Card Y"]}},
+            "aggression":       {{"value": 6, "key_cards": ["Card D"]}},
+            "resilience":       {{"value": 7, "key_cards": ["Card F", "Card Z"]}},
+            "interaction":      {{"value": 7, "key_cards": ["Card G"]}},
+            "combo_potential":  {{"value": 3, "key_cards": []}}
         }}
     }}
     """

@@ -39,6 +39,22 @@ VALID_ANALYSIS_JSON = json.dumps({
     ],
     "suggested_changes": [],
     "general_summary": "Solid aggro.",
+    "scores": {
+        "speed":           {"value": 9, "key_cards": ["Jackal Pup"]},
+        "consistency":     {"value": 7, "key_cards": ["Cursed Scroll"]},
+        "aggression":      {"value": 10, "key_cards": ["Ball Lightning"]},
+        "resilience":      {"value": 3, "key_cards": []},
+        "interaction":     {"value": 4, "key_cards": ["Incinerate"]},
+        "combo_potential": {"value": 2, "key_cards": []},
+    },
+    "projected_scores": {
+        "speed":           {"value": 9, "key_cards": ["Jackal Pup"]},
+        "consistency":     {"value": 8, "key_cards": ["Cursed Scroll"]},
+        "aggression":      {"value": 10, "key_cards": ["Ball Lightning"]},
+        "resilience":      {"value": 3, "key_cards": []},
+        "interaction":     {"value": 4, "key_cards": ["Incinerate"]},
+        "combo_potential": {"value": 2, "key_cards": []},
+    },
 })
 
 VALID_RANDOM_DECK_JSON = json.dumps({

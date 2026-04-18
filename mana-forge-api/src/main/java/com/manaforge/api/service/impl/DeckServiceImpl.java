@@ -61,8 +61,8 @@ public class DeckServiceImpl implements DeckService {
         }).collect(Collectors.toList());
 
         deck.setCards(cardEntries);
+        deck.setAnalysisScores(dto.getAnalysisScores());
         calculateAndSetDeckColors(deck);
-
         return deckRepository.save(deck);
     }
 
@@ -87,15 +87,13 @@ public class DeckServiceImpl implements DeckService {
                     }).collect(Collectors.toList());
 
                     existingDeck.setCards(cardEntries);
+                    existingDeck.setAnalysisScores(dto.getAnalysisScores());
                     calculateAndSetDeckColors(existingDeck);
 
                     return deckRepository.save(existingDeck);
                 })
                 .orElseThrow(() -> new RuntimeException("Deck not found"));
     }
-
-    @Override
-    public Deck getDeckById(String id) {
         return deckRepository.findById(id)
                 .map(deck -> {
                     if (deck.getColors() == null || deck.getColors().isEmpty()) {
@@ -198,6 +196,7 @@ public class DeckServiceImpl implements DeckService {
             dto.setMainDeck(main);
             dto.setSideboard(side);
             dto.setMaybeboard(maybe);
+            dto.setAnalysisScores(deck.getAnalysisScores());
             return dto;
         }).orElseThrow(() -> new RuntimeException("Deck not found"));
     }

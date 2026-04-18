@@ -37,6 +37,7 @@ export interface DeckView {
   sideboard: DeckCardEntry[];
   likesCount: number;
   likedByMe: boolean;
+  analysisScores?: Record<string, { value: number; key_cards: string[] }>;
 }
 
 export interface FeaturedDeck {
@@ -72,6 +73,7 @@ interface DeckPayload {
     quantity: number;
     board: 'main' | 'side';
   }[];
+  analysisScores?: Record<string, { value: number; key_cards: string[] }>;
 }
 
 export const DeckService = {

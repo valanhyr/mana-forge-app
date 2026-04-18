@@ -2,6 +2,7 @@ package com.manaforge.api.dto;
 
 import lombok.Data;
 import java.util.List;
+import java.util.Map;
 
 @Data
 public class DeckRequestDTO {
@@ -10,6 +11,7 @@ public class DeckRequestDTO {
     private String userId;
     private boolean isPrivate;
     private List<CardEntry> cards;
+    private Map<String, Object> analysisScores;
 
     @Data
     public static class CardEntry {

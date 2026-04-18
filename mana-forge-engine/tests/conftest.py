@@ -8,7 +8,7 @@ from services.ai_service import AIService
 from services.dependencies import get_ai_service
 from schemas.deck_schemas import (
     SideboardResponse, SideboardSuggestion,
-    DeckAnalysisResponse, MatchupAnalysis, SuggestedChange, DeckScores,
+    DeckAnalysisResponse, MatchupAnalysis, SuggestedChange, DeckScores, DimensionScore,
     RandomDeckResponse, CardOutput,
 )
 
@@ -44,12 +44,20 @@ MOCK_ANALYSIS_RESPONSE = DeckAnalysisResponse(
     ],
     general_summary="Strong mono-red aggro deck.",
     scores=DeckScores(
-        speed=9,
-        consistency=7,
-        aggression=10,
-        resilience=3,
-        interaction=4,
-        combo_potential=2,
+        speed=DimensionScore(value=9, key_cards=["Jackal Pup", "Mogg Fanatic"]),
+        consistency=DimensionScore(value=7, key_cards=["Cursed Scroll"]),
+        aggression=DimensionScore(value=10, key_cards=["Ball Lightning", "Price of Progress"]),
+        resilience=DimensionScore(value=3, key_cards=[]),
+        interaction=DimensionScore(value=4, key_cards=["Incinerate"]),
+        combo_potential=DimensionScore(value=2, key_cards=[]),
+    ),
+    projected_scores=DeckScores(
+        speed=DimensionScore(value=9, key_cards=["Jackal Pup", "Fireblast"]),
+        consistency=DimensionScore(value=8, key_cards=["Cursed Scroll", "Fireblast"]),
+        aggression=DimensionScore(value=10, key_cards=["Ball Lightning", "Fireblast"]),
+        resilience=DimensionScore(value=3, key_cards=[]),
+        interaction=DimensionScore(value=4, key_cards=["Incinerate"]),
+        combo_potential=DimensionScore(value=2, key_cards=[]),
     ),
 )
 

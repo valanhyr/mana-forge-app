@@ -45,13 +45,17 @@ class SuggestedChange(BaseModel):
     quantity: int
     reason: str
 
+class DimensionScore(BaseModel):
+    value: int = Field(ge=1, le=10)
+    key_cards: List[str] = Field(default_factory=list)
+
 class DeckScores(BaseModel):
-    speed: int = Field(ge=1, le=10)
-    consistency: int = Field(ge=1, le=10)
-    aggression: int = Field(ge=1, le=10)
-    resilience: int = Field(ge=1, le=10)
-    interaction: int = Field(ge=1, le=10)
-    combo_potential: int = Field(ge=1, le=10)
+    speed: DimensionScore
+    consistency: DimensionScore
+    aggression: DimensionScore
+    resilience: DimensionScore
+    interaction: DimensionScore
+    combo_potential: DimensionScore
 
 class DeckAnalysisResponse(BaseModel):
     mana_curve_analysis: str
@@ -61,6 +65,7 @@ class DeckAnalysisResponse(BaseModel):
     suggested_changes: List[SuggestedChange]
     general_summary: str
     scores: Optional[DeckScores] = None
+    projected_scores: Optional[DeckScores] = None
 
 class DeckAnalysisRequest(BaseModel):
     main_deck: List[CardInput]
