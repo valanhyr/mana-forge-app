@@ -618,10 +618,10 @@ const DeckBuilder = () => {
       })),
       analysisScores: analysisResult?.scores
         ? Object.fromEntries(
-            Object.entries(analysisResult.scores).map(([k, v]: [string, any]) => [
-              k,
-              { value: v.value, key_cards: v.key_cards ?? [] },
-            ])
+            Object.entries(analysisResult.scores).map(([k, v]) => {
+              const dim = v as { value: number; key_cards?: string[] };
+              return [k, { value: dim.value, key_cards: dim.key_cards ?? [] }];
+            })
           )
         : undefined,
     };
