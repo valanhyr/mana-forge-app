@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, Link } from 'react-router-dom';
 import DropdownInput from '../../components/ui/DropdownInput';
 import SearchInput from '../../components/ui/SearchInput';
 import DeckList, { type DeckCard } from '../../components/ui/DeckList';
@@ -764,9 +764,17 @@ const DeckBuilder = () => {
   return (
     <div className="max-w-6xl xl:max-w-7xl 2xl:max-w-screen-2xl mx-auto mt-8">
       <SEO title={t('seo.deckBuilderTitle')} description={t('seo.deckBuilderDescription')} />
-      <div className="flex items-center gap-3 mb-6">
-        <Settings className="text-orange-500" size={28} />
-        <h2 className="text-2xl font-bold text-white">{t('deckBuilder.title')}</h2>
+      <div className="flex items-center justify-between gap-3 mb-6">
+        <div className="flex items-center gap-3">
+          <Settings className="text-orange-500" size={28} />
+          <h2 className="text-2xl font-bold text-white">{t('deckBuilder.title')}</h2>
+        </div>
+        <Link
+          to="/my-decks"
+          className="text-sm text-orange-400 hover:text-orange-300 transition-colors"
+        >
+          {t('deckBuilder.viewMyDecks')} →
+        </Link>
       </div>
 
       {/* Panel de Configuración */}

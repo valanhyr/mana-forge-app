@@ -217,7 +217,8 @@
       "validationMaxSideboard": "El sideboard no puede superar {max} cartas.",
       "validationIllegalCards": "Hay cartas no permitidas en el formato seleccionado.",
       "validationMaxCopies": "Alguna carta supera el límite de {max} copias.",
-      "allFormats": "Todos los formatos"
+      "allFormats": "Todos los formatos",
+      "viewMyDecks": "Ver todos mis mazos"
     },
     "formatDetail": {
       "notFoundTitle": "Formato no encontrado",
@@ -694,7 +695,8 @@
       "validationMaxSideboard": "Sideboard cannot exceed {max} cards.",
       "validationIllegalCards": "Some cards are not legal in the selected format.",
       "validationMaxCopies": "A card exceeds the {max} copy limit.",
-      "allFormats": "All Formats"
+      "allFormats": "All Formats",
+      "viewMyDecks": "View all my decks"
     },
     "formatDetail": {
       "notFoundTitle": "Format not found",
