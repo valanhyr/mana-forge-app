@@ -772,9 +772,10 @@ const DeckBuilder = () => {
         </div>
         <Link
           to="/my-decks"
-          className="text-sm text-orange-400 hover:text-orange-300 transition-colors"
+          className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-orange-400 border border-orange-500/40 rounded-xl hover:border-orange-400 hover:bg-orange-500/10 transition-all"
         >
-          {t('deckBuilder.viewMyDecks')} →
+          <Library size={16} />
+          {t('deckBuilder.viewMyDecks')}
         </Link>
       </div>
 
