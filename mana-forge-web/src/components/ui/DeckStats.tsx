@@ -93,51 +93,50 @@ const DeckStats: React.FC<DeckStatsProps> = ({ cards }) => {
     .sort((a, b) => b[1] - a[1]);
 
   return (
-    <div className="mt-6 pt-6 border-t border-zinc-800 space-y-5">
-      {/* ── Mana Curve ── */}
-      <div>
-        <div className="flex items-center justify-between mb-3">
-          <h3 className="text-sm font-bold text-zinc-400 uppercase tracking-wider">
-            {t('deckBuilder.manaCurve')}
-          </h3>
-          <span className="text-xs text-zinc-500">
-            {t('deckBuilder.avgCmc')}:{' '}
-            <span className="text-orange-400 font-bold">{stats.avgCmc.toFixed(2)}</span>
-          </span>
-        </div>
-        <div className="bg-zinc-950/50 border border-zinc-800 rounded-xl px-4 pt-2 pb-3">
-          <div className="flex items-end justify-between gap-2" style={{ height: '6rem' }}>
-            {stats.curve.map((count, i) => {
-              const pct = (count / stats.maxCurve) * 100;
-              return (
-                <div key={i} className="flex-1 flex flex-col items-center gap-1 h-full justify-end">
-                  <span
-                    className="text-[11px] font-bold text-orange-400 leading-none"
-                    style={{ visibility: count > 0 ? 'visible' : 'hidden' }}
-                  >
-                    {count}
-                  </span>
-                  <div className="w-full flex items-end" style={{ height: '72%' }}>
-                    <div
-                      className="w-full rounded-t-sm transition-all duration-500 ease-out"
-                      style={{
-                        height: `${Math.max(pct, count > 0 ? 4 : 0)}%`,
-                        backgroundColor: count > 0 ? '#ea580c' : '#27272a',
-                        opacity: count > 0 ? 0.85 : 0.3,
-                      }}
-                    />
+    <div className="mt-6 pt-6 border-t border-zinc-800">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+        {/* ── Mana Curve ── */}
+        <div>
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-sm font-bold text-zinc-400 uppercase tracking-wider">
+              {t('deckBuilder.manaCurve')}
+            </h3>
+            <span className="text-xs text-zinc-500">
+              {t('deckBuilder.avgCmc')}:{' '}
+              <span className="text-orange-400 font-bold">{stats.avgCmc.toFixed(2)}</span>
+            </span>
+          </div>
+          <div className="bg-zinc-950/50 border border-zinc-800 rounded-xl px-4 pt-2 pb-3 h-[calc(100%-2rem)]">
+            <div className="flex items-end justify-between gap-2" style={{ height: '6rem' }}>
+              {stats.curve.map((count, i) => {
+                const pct = (count / stats.maxCurve) * 100;
+                return (
+                  <div key={i} className="flex-1 flex flex-col items-center gap-1 h-full justify-end">
+                    <span
+                      className="text-[11px] font-bold text-orange-400 leading-none"
+                      style={{ visibility: count > 0 ? 'visible' : 'hidden' }}
+                    >
+                      {count}
+                    </span>
+                    <div className="w-full flex items-end" style={{ height: '72%' }}>
+                      <div
+                        className="w-full rounded-t-sm transition-all duration-500 ease-out"
+                        style={{
+                          height: `${Math.max(pct, count > 0 ? 4 : 0)}%`,
+                          backgroundColor: count > 0 ? '#ea580c' : '#27272a',
+                          opacity: count > 0 ? 0.85 : 0.3,
+                        }}
+                      />
+                    </div>
+                    <span className="text-[11px] text-zinc-500">{i === 7 ? '7+' : i}</span>
                   </div>
-                  <span className="text-[11px] text-zinc-500">{i === 7 ? '7+' : i}</span>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* ── Type Distribution + Color Distribution ── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {/* Types */}
+        {/* ── Type Distribution ── */}
         <div>
           <h3 className="text-sm font-bold text-zinc-400 uppercase tracking-wider mb-3">
             {t('deckBuilder.typeDistribution')}
@@ -162,7 +161,7 @@ const DeckStats: React.FC<DeckStatsProps> = ({ cards }) => {
           </div>
         </div>
 
-        {/* Colors */}
+        {/* ── Color Distribution ── */}
         <div>
           <h3 className="text-sm font-bold text-zinc-400 uppercase tracking-wider mb-3">
             {t('deckBuilder.colorDistribution')}
