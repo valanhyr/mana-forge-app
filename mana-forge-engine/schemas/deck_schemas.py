@@ -45,6 +45,14 @@ class SuggestedChange(BaseModel):
     quantity: int
     reason: str
 
+class DeckScores(BaseModel):
+    speed: int = Field(ge=1, le=10)
+    consistency: int = Field(ge=1, le=10)
+    aggression: int = Field(ge=1, le=10)
+    resilience: int = Field(ge=1, le=10)
+    interaction: int = Field(ge=1, le=10)
+    combo_potential: int = Field(ge=1, le=10)
+
 class DeckAnalysisResponse(BaseModel):
     mana_curve_analysis: str
     strengths: List[str]
@@ -52,6 +60,7 @@ class DeckAnalysisResponse(BaseModel):
     matchups: List[MatchupAnalysis]
     suggested_changes: List[SuggestedChange]
     general_summary: str
+    scores: Optional[DeckScores] = None
 
 class DeckAnalysisRequest(BaseModel):
     main_deck: List[CardInput]

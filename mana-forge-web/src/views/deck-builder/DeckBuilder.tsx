@@ -28,6 +28,7 @@ import { CardService } from '../../services/CardService';
 import { DeckService } from '../../services/DeckService';
 import Modal from '../../components/ui/Modal';
 import TextAreaInput from '../../components/ui/TextAreaInput';
+import RadarChart from '../../components/ui/RadarChart';
 import { useUser } from '../../services/UserContext';
 import { useTranslation } from '../../hooks/useTranslation';
 import SEO from '../../components/ui/SEO';
@@ -1523,6 +1524,47 @@ const DeckBuilder = () => {
       >
         {analysisResult && (
           <div className="space-y-6 text-zinc-300 max-h-[70vh] overflow-y-auto pr-2">
+            {/* ── Deck Profile radar ── */}
+            {analysisResult.scores && (
+              <div className="bg-zinc-800/50 p-4 rounded-xl border border-zinc-700">
+                <h4 className="text-orange-500 font-bold mb-4">{t('deckBuilder.deckProfile')}</h4>
+                <div className="flex flex-col md:flex-row items-center gap-6">
+                  <RadarChart
+                    size={220}
+                    axes={[
+                      { key: 'speed', label: t('deckBuilder.scoreSpeed'), value: analysisResult.scores.speed },
+                      { key: 'consistency', label: t('deckBuilder.scoreConsistency'), value: analysisResult.scores.consistency },
+                      { key: 'aggression', label: t('deckBuilder.scoreAggression'), value: analysisResult.scores.aggression },
+                      { key: 'resilience', label: t('deckBuilder.scoreResilience'), value: analysisResult.scores.resilience },
+                      { key: 'interaction', label: t('deckBuilder.scoreInteraction'), value: analysisResult.scores.interaction },
+                      { key: 'combo', label: t('deckBuilder.scoreCombo'), value: analysisResult.scores.combo_potential },
+                    ]}
+                  />
+                  <div className="grid grid-cols-2 gap-x-8 gap-y-2 text-sm">
+                    {[
+                      { label: t('deckBuilder.scoreSpeed'), value: analysisResult.scores.speed },
+                      { label: t('deckBuilder.scoreConsistency'), value: analysisResult.scores.consistency },
+                      { label: t('deckBuilder.scoreAggression'), value: analysisResult.scores.aggression },
+                      { label: t('deckBuilder.scoreResilience'), value: analysisResult.scores.resilience },
+                      { label: t('deckBuilder.scoreInteraction'), value: analysisResult.scores.interaction },
+                      { label: t('deckBuilder.scoreCombo'), value: analysisResult.scores.combo_potential },
+                    ].map(({ label, value }) => (
+                      <div key={label} className="flex items-center gap-2">
+                        <span className="text-zinc-400 w-24 shrink-0">{label}</span>
+                        <div className="flex-1 h-1.5 bg-zinc-700 rounded-full overflow-hidden">
+                          <div
+                            className="h-full rounded-full bg-orange-500 transition-all duration-500"
+                            style={{ width: `${value * 10}%` }}
+                          />
+                        </div>
+                        <span className="text-orange-400 font-bold w-5 text-right tabular-nums">{value}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div className="bg-zinc-800/50 p-4 rounded-xl border border-zinc-700">
               <h4 className="text-orange-500 font-bold mb-2">{t('deckBuilder.generalSummary')}</h4>
               <p className="text-sm">{analysisResult.general_summary}</p>

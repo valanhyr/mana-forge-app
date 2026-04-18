@@ -61,11 +61,19 @@ def get_analysis_user_prompt(main_deck_str: str, sideboard_str: str, format_name
        - Key cards the opponent plays that threaten this deck.
        - Sideboard Guide: EXACTLY which cards to bring IN from sideboard and take OUT from main deck.
     4. Suggested Changes: Recommend specific card swaps to improve the deck. Only suggest legal cards in {format_name}.
+    5. Deck Scores: Rate this deck on 6 dimensions from 1 (very low) to 10 (exceptional):
+       - speed: How fast can the deck win? (1 = very slow control, 10 = turn 1-2 combo/aggro)
+       - consistency: How reliably does it execute its game plan? (1 = highly inconsistent, 10 = very consistent)
+       - aggression: How proactively does it apply pressure? (1 = pure reactive, 10 = relentless aggro)
+       - resilience: How well does it recover from disruption and removal? (1 = fragile, 10 = very resilient)
+       - interaction: How much does it interact with the opponent's game plan? (1 = no interaction, 10 = full of answers)
+       - combo_potential: How combo-oriented is the deck? (1 = pure fair magic, 10 = all-in combo)
 
     Rules:
     - NEVER suggest or reference banned cards.
     - Only use real, existing Magic: The Gathering card names. If unsure, omit.
     - win_rate_pre and win_rate_post must be integers between 0 and 100.
+    - All scores must be integers between 1 and 10.
 
     The output language for all text fields MUST be: {locale}.
 
@@ -90,6 +98,14 @@ def get_analysis_user_prompt(main_deck_str: str, sideboard_str: str, format_name
             {{"card_out": "Card Name", "card_in": "Card Name", "quantity": 1, "reason": "Why make this swap..."}},
             ...
         ],
-        "general_summary": "Overall conclusion about the deck's viability."
+        "general_summary": "Overall conclusion about the deck's viability.",
+        "scores": {{
+            "speed": 7,
+            "consistency": 8,
+            "aggression": 5,
+            "resilience": 6,
+            "interaction": 7,
+            "combo_potential": 3
+        }}
     }}
     """

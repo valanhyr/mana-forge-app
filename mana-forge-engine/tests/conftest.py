@@ -8,7 +8,7 @@ from services.ai_service import AIService
 from services.dependencies import get_ai_service
 from schemas.deck_schemas import (
     SideboardResponse, SideboardSuggestion,
-    DeckAnalysisResponse, MatchupAnalysis, SuggestedChange,
+    DeckAnalysisResponse, MatchupAnalysis, SuggestedChange, DeckScores,
     RandomDeckResponse, CardOutput,
 )
 
@@ -43,6 +43,14 @@ MOCK_ANALYSIS_RESPONSE = DeckAnalysisResponse(
         SuggestedChange(card_out="Lava Spike", card_in="Fireblast", quantity=2, reason="More reach")
     ],
     general_summary="Strong mono-red aggro deck.",
+    scores=DeckScores(
+        speed=9,
+        consistency=7,
+        aggression=10,
+        resilience=3,
+        interaction=4,
+        combo_potential=2,
+    ),
 )
 
 MOCK_RANDOM_DECK_RESPONSE = RandomDeckResponse(
