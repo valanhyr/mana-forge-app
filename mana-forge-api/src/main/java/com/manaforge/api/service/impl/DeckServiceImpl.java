@@ -94,6 +94,9 @@ public class DeckServiceImpl implements DeckService {
                 })
                 .orElseThrow(() -> new RuntimeException("Deck not found"));
     }
+
+    @Override
+    public Deck getDeckById(String id) {
         return deckRepository.findById(id)
                 .map(deck -> {
                     if (deck.getColors() == null || deck.getColors().isEmpty()) {
