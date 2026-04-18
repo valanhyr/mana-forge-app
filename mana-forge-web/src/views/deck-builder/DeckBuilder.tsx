@@ -20,6 +20,7 @@ import {
   Euro,
   ArrowUp,
   ArrowDown,
+  Library,
 } from 'lucide-react';
 import { type Format } from '../../core/models/Format';
 import { FormatService } from '../../services/FormatService';
