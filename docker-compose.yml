@@ -46,6 +46,7 @@ services:
       - MAIL_ADMIN=${MAIL_ADMIN}
       - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
       - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - EMAIL_ENCRYPTION_KEY=${EMAIL_ENCRYPTION_KEY}
     depends_on:
       engine:
         condition: service_started

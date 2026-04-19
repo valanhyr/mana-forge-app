@@ -27,12 +27,14 @@ import org.springframework.web.server.ResponseStatusException;
 import com.manaforge.api.dto.UserDto;
 import com.manaforge.api.model.mongo.User;
 import com.manaforge.api.repository.UserRepository;
+import com.manaforge.api.service.EmailEncryptionService;
 import com.manaforge.api.service.EmailService;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-import java.net.URI;
+import java.util.List;
+import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.UUID;
 
@@ -47,16 +49,18 @@ public class UserController extends BaseMongoController<User, String> {
 
     private final UserRepository userRepository;
     private final EmailService emailService;
+    private final EmailEncryptionService emailEncryptionService;
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
     private final SecurityContextRepository securityContextRepository = new HttpSessionSecurityContextRepository();
 
     @Value("${services.frontend.url}")
     private String frontendUrl;
 
-    public UserController(UserRepository repository, EmailService emailService) {
+    public UserController(UserRepository repository, EmailService emailService, EmailEncryptionService emailEncryptionService) {
         super(repository);
         this.userRepository = repository;
         this.emailService = emailService;
+        this.emailEncryptionService = emailEncryptionService;
     }
 
     private User getAuthenticatedUser() {
@@ -68,12 +72,15 @@ public class UserController extends BaseMongoController<User, String> {
         }
 
         Object principal = authentication.getPrincipal();
-        String identifier = principal instanceof OAuth2User oAuth2User
-                ? oAuth2User.getAttribute("email")
-                : principal.toString();
+        if (principal instanceof OAuth2User oAuth2User) {
+            // OAuth2: principal is the Google email (plain text) — must encrypt to search DB
+            String encryptedEmail = emailEncryptionService.encrypt(oAuth2User.getAttribute("email"));
+            return userRepository.findByEmail(encryptedEmail)
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED));
+        }
 
-        return userRepository.findByUsername(identifier)
-                .or(() -> userRepository.findByEmail(identifier))
+        String username = principal.toString();
+        return userRepository.findByUsername(username)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED));
     }
 
@@ -82,7 +89,7 @@ public class UserController extends BaseMongoController<User, String> {
                 .userId(user.getId())
                 .name(user.getName())
                 .username(user.getUsername())
-                .email(user.getEmail())
+                .email(emailEncryptionService.decrypt(user.getEmail()))
                 .biography(user.getBiography())
                 .friends(user.getFriends())
                 .avatar(user.getAvatar())
@@ -102,7 +109,10 @@ public class UserController extends BaseMongoController<User, String> {
     @GetMapping("/username/{username}")
     public ResponseEntity<User> getByUsername(@PathVariable String username) {
         return userRepository.findByUsername(username)
-                .map(ResponseEntity::ok)
+                .map(user -> {
+                    user.setEmail(emailEncryptionService.decrypt(user.getEmail()));
+                    return ResponseEntity.ok(user);
+                })
                 .orElse(ResponseEntity.notFound().build());
     }
 
@@ -117,12 +127,13 @@ public class UserController extends BaseMongoController<User, String> {
         if (userRepository.findByUsername(user.getUsername()).isPresent()) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "El nombre de usuario ya está en uso");
         }
-        // Asumiendo que UserRepository tiene findByEmail, si no, añádelo a la interfaz
-        if (userRepository.findByEmail(user.getEmail()).isPresent()) {
+        String encryptedEmail = emailEncryptionService.encrypt(user.getEmail());
+        if (userRepository.findByEmail(encryptedEmail).isPresent()) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "El correo electrónico ya está registrado");
         }
 
         user.setPassword(passwordEncoder.encode(user.getPassword()));
+        user.setEmail(encryptedEmail);
         user.setValidated(false);
         user.setVerificationToken(UUID.randomUUID().toString());
         user.setAvatar(normalizeAvatar(user.getAvatar()));
@@ -155,35 +166,24 @@ public class UserController extends BaseMongoController<User, String> {
                 .map(user -> {
                     if (!Boolean.TRUE.equals(user.getValidated())) {
                         return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                                .body(java.util.Map.of("error", "EMAIL_NOT_VERIFIED"));
+                                .body(Map.of("error", "EMAIL_NOT_VERIFIED"));
                     }
-                    // 1. Crear autenticación de Spring Security (JSESSIONID)
                     UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
                         user.getUsername(), null, AuthorityUtils.createAuthorityList("ROLE_USER")
                     );
                     SecurityContext context = SecurityContextHolder.createEmptyContext();
                     context.setAuthentication(authentication);
                     SecurityContextHolder.setContext(context);
-                    securityContextRepository.saveContext(context, request, response); // Esto genera la cookie JSESSIONID
+                    securityContextRepository.saveContext(context, request, response);
 
                     ResponseCookie cookie = ResponseCookie.from("isLogged", "true")
-                            .maxAge(30L * 24 * 60 * 60) // 30 días en segundos
+                            .maxAge(30L * 24 * 60 * 60)
                             .path("/")
-                            .build();
-
-                    UserDto userDto = UserDto.builder()
-                            .userId(user.getId())
-                            .name(user.getName())
-                            .username(user.getUsername())
-                            .email(user.getEmail())
-                            .biography(user.getBiography())
-                            .friends(user.getFriends())
-                            .avatar(user.getAvatar())
                             .build();
 
                     return ResponseEntity.ok()
                             .header(HttpHeaders.SET_COOKIE, cookie.toString())
-                            .body(userDto);
+                            .body(toDto(user));
                 })
                 .orElse(ResponseEntity.status(401).build());
     }
@@ -208,13 +208,11 @@ public class UserController extends BaseMongoController<User, String> {
 
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(HttpServletRequest request) {
-        // 1. Invalidar sesión de Spring Security
         SecurityContextHolder.clearContext();
         var session = request.getSession(false);
         if (session != null) {
             session.invalidate();
         }
-        // 2. Limpiar tu cookie manual
         ResponseCookie cookie = ResponseCookie.from("isLogged", "").maxAge(0).path("/").build();
         return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, cookie.toString()).build();
     }
@@ -226,13 +224,15 @@ public class UserController extends BaseMongoController<User, String> {
             return ResponseEntity.status(401).build();
         }
 
-        String identifier = authentication.getPrincipal() instanceof OAuth2User oAuth2User
-                ? oAuth2User.getAttribute("email")
-                : authentication.getPrincipal().toString();
-
-        User user = userRepository.findByUsername(identifier)
-                .or(() -> userRepository.findByEmail(identifier))
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+        User user;
+        if (authentication.getPrincipal() instanceof OAuth2User oAuth2User) {
+            String encryptedEmail = emailEncryptionService.encrypt(oAuth2User.getAttribute("email"));
+            user = userRepository.findByEmail(encryptedEmail)
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+        } else {
+            user = userRepository.findByUsername(authentication.getPrincipal().toString())
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+        }
 
         if (!passwordEncoder.matches(req.getCurrentPassword(), user.getPassword())) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Current password is incorrect");
@@ -245,6 +245,36 @@ public class UserController extends BaseMongoController<User, String> {
         user.setPassword(passwordEncoder.encode(req.getNewPassword()));
         userRepository.save(user);
         return ResponseEntity.noContent().build();
+    }
+
+    /**
+     * One-time migration: encrypts all existing plain-text emails in the database.
+     * Safe to run multiple times — already-encrypted emails (no '@') are skipped.
+     */
+    @PostMapping("/admin/migrate/encrypt-emails")
+    public ResponseEntity<Map<String, Object>> migrateEncryptEmails() {
+        List<User> users = userRepository.findAll();
+        int migrated = 0;
+        int skipped = 0;
+
+        for (User user : users) {
+            String email = user.getEmail();
+            if (email == null || email.isEmpty()) {
+                skipped++;
+                continue;
+            }
+            // Plain emails always contain '@'; Base64-encoded strings never do
+            if (email.contains("@")) {
+                user.setEmail(emailEncryptionService.encrypt(email));
+                userRepository.save(user);
+                migrated++;
+            } else {
+                skipped++;
+            }
+        }
+
+        log.info("Email migration: {} migrated, {} skipped", migrated, skipped);
+        return ResponseEntity.ok(Map.of("migrated", migrated, "skipped", skipped));
     }
 
     public static class ChangePasswordRequest {
@@ -280,3 +310,4 @@ public class UserController extends BaseMongoController<User, String> {
         public void setPassword(String password) { this.password = password; }
     }
 }
+

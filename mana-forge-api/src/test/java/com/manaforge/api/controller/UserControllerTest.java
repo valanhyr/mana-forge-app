@@ -3,6 +3,7 @@ package com.manaforge.api.controller;
 import com.manaforge.api.config.SecurityConfig;
 import com.manaforge.api.model.mongo.User;
 import com.manaforge.api.repository.UserRepository;
+import com.manaforge.api.service.EmailEncryptionService;
 import com.manaforge.api.service.EmailService;
 import com.manaforge.api.service.OAuth2LoginSuccessHandler;
 import org.junit.jupiter.api.BeforeEach;
@@ -42,23 +43,33 @@ class UserControllerTest {
     private EmailService emailService;
 
     @MockitoBean
+    private EmailEncryptionService emailEncryptionService;
+
+    @MockitoBean
     private OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
 
     private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
     private User mockUser;
+
+    // Simulated encrypted form of "test@example.com"
+    private static final String PLAIN_EMAIL = "test@example.com";
+    private static final String ENC_EMAIL = "ENC_dGVzdEBleGFtcGxlLmNvbQ==";
 
     @BeforeEach
     void setUp() {
         mockUser = new User();
         mockUser.setId("user1");
         mockUser.setUsername("testuser");
-        mockUser.setEmail("test@example.com");
+        mockUser.setEmail(ENC_EMAIL);
         mockUser.setName("Test User");
         mockUser.setPassword(encoder.encode("password123"));
         mockUser.setValidated(true);
 
         when(userRepository.findByUsername("testuser")).thenReturn(Optional.of(mockUser));
         when(userRepository.findByEmail("testuser")).thenReturn(Optional.empty());
+
+        when(emailEncryptionService.encrypt(PLAIN_EMAIL)).thenReturn(ENC_EMAIL);
+        when(emailEncryptionService.decrypt(ENC_EMAIL)).thenReturn(PLAIN_EMAIL);
     }
 
     private UsernamePasswordAuthenticationToken mockAuth() {
@@ -68,12 +79,13 @@ class UserControllerTest {
 
     @Test
     void createUser_withValidData_returns200() throws Exception {
+        when(emailEncryptionService.encrypt("new@example.com")).thenReturn("ENC_new");
         when(userRepository.findByUsername("newuser")).thenReturn(Optional.empty());
-        when(userRepository.findByEmail("new@example.com")).thenReturn(Optional.empty());
+        when(userRepository.findByEmail("ENC_new")).thenReturn(Optional.empty());
         User savedUser = new User();
         savedUser.setId("new-user-id");
         savedUser.setUsername("newuser");
-        savedUser.setEmail("new@example.com");
+        savedUser.setEmail("ENC_new");
         when(userRepository.save(any(User.class))).thenReturn(savedUser);
 
         mockMvc.perform(post("/api/users")
@@ -82,6 +94,28 @@ class UserControllerTest {
                 .andExpect(status().is2xxSuccessful());
 
         verify(emailService, atLeastOnce()).sendVerificationEmail(any());
+    }
+
+    @Test
+    void createUser_emailIsEncryptedBeforePersisting() throws Exception {
+        when(emailEncryptionService.encrypt("new@example.com")).thenReturn("ENC_new");
+        when(userRepository.findByUsername("newuser")).thenReturn(Optional.empty());
+        when(userRepository.findByEmail("ENC_new")).thenReturn(Optional.empty());
+        User savedUser = new User();
+        savedUser.setId("new-user-id");
+        savedUser.setUsername("newuser");
+        savedUser.setEmail("ENC_new");
+        when(userRepository.save(any(User.class))).thenReturn(savedUser);
+
+        mockMvc.perform(post("/api/users")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"name\":\"New User\",\"username\":\"newuser\",\"password\":\"pass123\",\"email\":\"new@example.com\"}"))
+                .andExpect(status().is2xxSuccessful());
+
+        // Verify encrypted email was used when searching and saving
+        verify(emailEncryptionService).encrypt("new@example.com");
+        verify(userRepository).findByEmail("ENC_new");
+        verify(userRepository).save(argThat(u -> "ENC_new".equals(u.getEmail())));
     }
 
     @Test
@@ -96,8 +130,9 @@ class UserControllerTest {
 
     @Test
     void createUser_withDuplicateEmail_returns409() throws Exception {
+        when(emailEncryptionService.encrypt(PLAIN_EMAIL)).thenReturn(ENC_EMAIL);
         when(userRepository.findByUsername("anotheruser")).thenReturn(Optional.empty());
-        when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(mockUser));
+        when(userRepository.findByEmail(ENC_EMAIL)).thenReturn(Optional.of(mockUser));
 
         mockMvc.perform(post("/api/users")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -112,6 +147,15 @@ class UserControllerTest {
                         .content("{\"username\":\"testuser\",\"password\":\"password123\"}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.userId").value("user1"));
+    }
+
+    @Test
+    void login_withValidCredentials_returnsDecryptedEmail() throws Exception {
+        mockMvc.perform(post("/api/users/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"username\":\"testuser\",\"password\":\"password123\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.email").value(PLAIN_EMAIL));
     }
 
     @Test
@@ -141,18 +185,20 @@ class UserControllerTest {
     }
 
     @Test
-    void getMe_withAuth_returns200WithUserDto() throws Exception {
+    void getMe_withAuth_returns200WithDecryptedEmail() throws Exception {
         mockMvc.perform(get("/api/users/me")
                         .with(authentication(mockAuth())))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.username").value("testuser"));
+                .andExpect(jsonPath("$.username").value("testuser"))
+                .andExpect(jsonPath("$.email").value(PLAIN_EMAIL));
     }
 
     @Test
-    void getByUsername_found_returns200() throws Exception {
+    void getByUsername_found_returns200WithDecryptedEmail() throws Exception {
         mockMvc.perform(get("/api/users/username/testuser"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.username").value("testuser"));
+                .andExpect(jsonPath("$.username").value("testuser"))
+                .andExpect(jsonPath("$.email").value(PLAIN_EMAIL));
     }
 
     @Test
@@ -200,4 +246,31 @@ class UserControllerTest {
                         .content("{\"currentPassword\":\"wrong-password\",\"newPassword\":\"newpass123\"}"))
                 .andExpect(status().isUnauthorized());
     }
+
+    @Test
+    void migrateEncryptEmails_withPlainEmails_encryptsThemAll() throws Exception {
+        User plainUser1 = new User();
+        plainUser1.setId("u1");
+        plainUser1.setEmail("alice@example.com");
+        User plainUser2 = new User();
+        plainUser2.setId("u2");
+        plainUser2.setEmail("bob@example.com");
+        User alreadyEncrypted = new User();
+        alreadyEncrypted.setId("u3");
+        alreadyEncrypted.setEmail("dGVzdA=="); // no '@', treated as already encrypted
+
+        when(userRepository.findAll()).thenReturn(List.of(plainUser1, plainUser2, alreadyEncrypted));
+        when(emailEncryptionService.encrypt("alice@example.com")).thenReturn("ENC_alice");
+        when(emailEncryptionService.encrypt("bob@example.com")).thenReturn("ENC_bob");
+
+        mockMvc.perform(post("/api/users/admin/migrate/encrypt-emails")
+                        .with(authentication(mockAuth()))
+                        .with(csrf()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.migrated").value(2))
+                .andExpect(jsonPath("$.skipped").value(1));
+
+        verify(userRepository, times(2)).save(any(User.class));
+    }
 }
+

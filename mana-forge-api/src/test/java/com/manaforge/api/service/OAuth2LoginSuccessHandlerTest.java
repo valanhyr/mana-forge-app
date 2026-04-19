@@ -28,6 +28,9 @@ class OAuth2LoginSuccessHandlerTest {
     private UserRepository userRepository;
 
     @Mock
+    private EmailEncryptionService emailEncryptionService;
+
+    @Mock
     private HttpServletRequest request;
 
     @Mock
@@ -42,18 +45,22 @@ class OAuth2LoginSuccessHandlerTest {
     @InjectMocks
     private OAuth2LoginSuccessHandler handler;
 
+    private static final String PLAIN_EMAIL = "user@test.com";
+    private static final String ENC_EMAIL = "ENC_dXNlckB0ZXN0LmNvbQ==";
+
     @BeforeEach
     void setUp() {
         ReflectionTestUtils.setField(handler, "frontendUrl", "http://localhost:5173");
         when(authentication.getPrincipal()).thenReturn(oAuth2User);
-        when(oAuth2User.getAttribute("email")).thenReturn("user@test.com");
+        when(oAuth2User.getAttribute("email")).thenReturn(PLAIN_EMAIL);
         when(oAuth2User.getAttribute("name")).thenReturn("Test User");
+        when(emailEncryptionService.encrypt(PLAIN_EMAIL)).thenReturn(ENC_EMAIL);
     }
 
     @Test
     void newUser_isCreatedAndRedirectedToBetaWelcome() throws Exception {
         when(oAuth2User.getAttribute("given_name")).thenReturn("Test");
-        when(userRepository.findByEmail("user@test.com")).thenReturn(Optional.empty());
+        when(userRepository.findByEmail(ENC_EMAIL)).thenReturn(Optional.empty());
 
         handler.onAuthenticationSuccess(request, response, authentication);
 
@@ -62,8 +69,20 @@ class OAuth2LoginSuccessHandlerTest {
     }
 
     @Test
+    void newUser_emailIsStoredEncrypted() throws Exception {
+        when(oAuth2User.getAttribute("given_name")).thenReturn("Test");
+        when(userRepository.findByEmail(ENC_EMAIL)).thenReturn(Optional.empty());
+
+        ArgumentCaptor<User> captor = ArgumentCaptor.forClass(User.class);
+        handler.onAuthenticationSuccess(request, response, authentication);
+
+        verify(userRepository).save(captor.capture());
+        assertThat(captor.getValue().getEmail()).isEqualTo(ENC_EMAIL);
+    }
+
+    @Test
     void existingUser_isNotSavedAndRedirectedToHome() throws Exception {
-        when(userRepository.findByEmail("user@test.com")).thenReturn(Optional.of(new User()));
+        when(userRepository.findByEmail(ENC_EMAIL)).thenReturn(Optional.of(new User()));
 
         handler.onAuthenticationSuccess(request, response, authentication);
 
@@ -72,9 +91,20 @@ class OAuth2LoginSuccessHandlerTest {
     }
 
     @Test
+    void existingUser_lookupUsesEncryptedEmail() throws Exception {
+        when(userRepository.findByEmail(ENC_EMAIL)).thenReturn(Optional.of(new User()));
+
+        handler.onAuthenticationSuccess(request, response, authentication);
+
+        verify(emailEncryptionService).encrypt(PLAIN_EMAIL);
+        verify(userRepository).findByEmail(ENC_EMAIL);
+        verify(userRepository, never()).findByEmail(PLAIN_EMAIL);
+    }
+
+    @Test
     void newUser_usesGivenNameAsUsername() throws Exception {
         when(oAuth2User.getAttribute("given_name")).thenReturn("Valan");
-        when(userRepository.findByEmail("user@test.com")).thenReturn(Optional.empty());
+        when(userRepository.findByEmail(ENC_EMAIL)).thenReturn(Optional.empty());
 
         ArgumentCaptor<User> captor = ArgumentCaptor.forClass(User.class);
         handler.onAuthenticationSuccess(request, response, authentication);
@@ -86,7 +116,7 @@ class OAuth2LoginSuccessHandlerTest {
     @Test
     void newUser_fallsBackToEmailPrefixWhenGivenNameIsBlank() throws Exception {
         when(oAuth2User.getAttribute("given_name")).thenReturn("");
-        when(userRepository.findByEmail("user@test.com")).thenReturn(Optional.empty());
+        when(userRepository.findByEmail(ENC_EMAIL)).thenReturn(Optional.empty());
 
         ArgumentCaptor<User> captor = ArgumentCaptor.forClass(User.class);
         handler.onAuthenticationSuccess(request, response, authentication);
@@ -98,7 +128,7 @@ class OAuth2LoginSuccessHandlerTest {
     @Test
     void newUser_fallsBackToEmailPrefixWhenGivenNameIsNull() throws Exception {
         when(oAuth2User.getAttribute("given_name")).thenReturn(null);
-        when(userRepository.findByEmail("user@test.com")).thenReturn(Optional.empty());
+        when(userRepository.findByEmail(ENC_EMAIL)).thenReturn(Optional.empty());
 
         ArgumentCaptor<User> captor = ArgumentCaptor.forClass(User.class);
         handler.onAuthenticationSuccess(request, response, authentication);
@@ -110,7 +140,7 @@ class OAuth2LoginSuccessHandlerTest {
     @Test
     void newUser_hasDefaultAvatarAndEmptyFriendsArray() throws Exception {
         when(oAuth2User.getAttribute("given_name")).thenReturn("Valan");
-        when(userRepository.findByEmail("user@test.com")).thenReturn(Optional.empty());
+        when(userRepository.findByEmail(ENC_EMAIL)).thenReturn(Optional.empty());
 
         ArgumentCaptor<User> captor = ArgumentCaptor.forClass(User.class);
         handler.onAuthenticationSuccess(request, response, authentication);
@@ -123,3 +153,4 @@ class OAuth2LoginSuccessHandlerTest {
         assertThat(saved.getValidated()).isTrue();
     }
 }
+

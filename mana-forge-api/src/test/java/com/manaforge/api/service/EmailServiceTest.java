@@ -23,8 +23,14 @@ class EmailServiceTest {
     @Mock
     private JavaMailSender mailSender;
 
+    @Mock
+    private EmailEncryptionService emailEncryptionService;
+
     @InjectMocks
     private EmailService emailService;
+
+    private static final String ENC_EMAIL = "ENC_dmFsYW5AdGVzdC5jb20=";
+    private static final String PLAIN_EMAIL = "valan@test.com";
 
     private User user;
 
@@ -35,8 +41,10 @@ class EmailServiceTest {
 
         user = new User();
         user.setName("Valan");
-        user.setEmail("valan@test.com");
+        user.setEmail(ENC_EMAIL);
         user.setVerificationToken("tok-abc-123");
+
+        when(emailEncryptionService.decrypt(ENC_EMAIL)).thenReturn(PLAIN_EMAIL);
 
         Session session = Session.getInstance(new Properties());
         when(mailSender.createMimeMessage()).thenReturn(new MimeMessage(session));
@@ -52,6 +60,12 @@ class EmailServiceTest {
     void sendVerificationEmail_createsNewMimeMessage() {
         emailService.sendVerificationEmail(user);
         verify(mailSender).createMimeMessage();
+    }
+
+    @Test
+    void sendVerificationEmail_decryptsEmailBeforeSending() {
+        emailService.sendVerificationEmail(user);
+        verify(emailEncryptionService).decrypt(ENC_EMAIL);
     }
 
     @Test
@@ -72,6 +86,12 @@ class EmailServiceTest {
     }
 
     @Test
+    void sendWelcomeEmail_decryptsEmailBeforeSending() {
+        emailService.sendWelcomeEmail(user);
+        verify(emailEncryptionService).decrypt(ENC_EMAIL);
+    }
+
+    @Test
     void sendWelcomeEmail_doesNotThrowOnSmtpFailure() {
         doThrow(new org.springframework.mail.MailSendException("SMTP error"))
                 .when(mailSender).send(any(MimeMessage.class));
@@ -81,3 +101,4 @@ class EmailServiceTest {
         verify(mailSender).send(any(MimeMessage.class));
     }
 }
+

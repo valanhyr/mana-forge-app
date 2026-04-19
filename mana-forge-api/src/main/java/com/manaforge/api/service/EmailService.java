@@ -19,6 +19,7 @@ import lombok.extern.slf4j.Slf4j;
 public class EmailService {
 
     private final JavaMailSender mailSender;
+    private final EmailEncryptionService emailEncryptionService;
 
     @Value("${mail.from}")
     private String fromAddress;
@@ -31,19 +32,20 @@ public class EmailService {
 
     @Async
     public void sendVerificationEmail(User user) {
+        String plainEmail = emailEncryptionService.decrypt(user.getEmail());
         try {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
             helper.setFrom(fromAddress);
-            helper.setTo(user.getEmail());
+            helper.setTo(plainEmail);
             helper.setSubject("Confirma tu cuenta en ManaForge");
             helper.setText(buildVerificationHtml(user), true);
 
             mailSender.send(message);
-            log.info("Verification email sent to {}", user.getEmail());
+            log.info("Verification email sent to {}", plainEmail);
         } catch (Exception e) {
-            log.error("Failed to send verification email to {}: {}", user.getEmail(), e.getMessage());
+            log.error("Failed to send verification email to {}: {}", plainEmail, e.getMessage());
         }
     }
 
@@ -98,19 +100,20 @@ public class EmailService {
 
     @Async
     public void sendWelcomeEmail(User user) {
+        String plainEmail = emailEncryptionService.decrypt(user.getEmail());
         try {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
             helper.setFrom(fromAddress);
-            helper.setTo(user.getEmail());
+            helper.setTo(plainEmail);
             helper.setSubject("¡Bienvenido a ManaForge, " + user.getName() + "!");
             helper.setText(buildWelcomeHtml(user), true);
 
             mailSender.send(message);
-            log.info("Welcome email sent to {}", user.getEmail());
+            log.info("Welcome email sent to {}", plainEmail);
         } catch (Exception e) {
-            log.error("Failed to send welcome email to {}: {}", user.getEmail(), e.getMessage());
+            log.error("Failed to send welcome email to {}: {}", plainEmail, e.getMessage());
         }
     }
 
