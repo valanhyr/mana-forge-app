@@ -6,6 +6,7 @@ import com.manaforge.api.model.mongo.Deck;
 import com.manaforge.api.model.mongo.User;
 import com.manaforge.api.repository.UserRepository;
 import com.manaforge.api.service.DeckService;
+import com.manaforge.api.service.EmailEncryptionService;
 import com.manaforge.api.service.OAuth2LoginSuccessHandler;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -43,6 +44,9 @@ class DeckControllerTest {
 
     @MockitoBean
     private OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
+
+    @MockitoBean
+    private EmailEncryptionService emailEncryptionService;
 
     private User mockUser;
 
