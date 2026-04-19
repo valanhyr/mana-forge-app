@@ -47,6 +47,24 @@ public class AiService {
         }
     }
 
+    public Map<String, Object> getDeckScores(Map<String, Object> deckPayload) {
+        String url = engineUrl + "/deck-scores";
+        logger.info("Calling AI Engine (Scores): {}", url);
+
+        try {
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            HttpEntity<Map<String, Object>> request = new HttpEntity<>(deckPayload, headers);
+
+            @SuppressWarnings("unchecked")
+            Map<String, Object> response = restTemplate.postForObject(url, request, Map.class);
+            return response != null ? response : Collections.emptyMap();
+        } catch (Exception e) {
+            logger.error("Error getting deck scores from AI: {}", e.getMessage());
+            return Map.of("error", "AI Service unavailable", "details", e.getMessage());
+        }
+    }
+
     public Map<String, Object> generateRandomDeck(Map<String, Object> payload) {
         String url = engineUrl + "/generate-random-deck";
         logger.info("Calling AI Engine (Random): {} [Thread: {}]", url, Thread.currentThread().getName());

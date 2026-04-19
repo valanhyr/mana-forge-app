@@ -28,7 +28,7 @@ import { CardService } from '../../services/CardService';
 import { DeckService } from '../../services/DeckService';
 import Modal from '../../components/ui/Modal';
 import TextAreaInput from '../../components/ui/TextAreaInput';
-import RadarChart from '../../components/ui/RadarChart';
+import DeckProfileChart from '../../components/ui/DeckProfileChart';
 import { useUser } from '../../services/UserContext';
 import { useTranslation } from '../../hooks/useTranslation';
 import SEO from '../../components/ui/SEO';
@@ -149,6 +149,10 @@ const DeckBuilder = () => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [analysisResult, setAnalysisResult] = useState<any>(null);
   const [isAnalysisModalOpen, setIsAnalysisModalOpen] = useState(false);
+  const [deckScores, setDeckScores] = useState<Record<
+    string,
+    { value: number; key_cards: string[] }
+  > | null>(null);
   const sentinelRef = useRef<HTMLDivElement>(null);
   const [isFloating, setIsFloating] = useState(true);
 
@@ -228,6 +232,7 @@ const DeckBuilder = () => {
           const loadedCards = await Promise.all(cardsPromises);
           // Filtramos las cartas que fallaron (null)
           setDeckCards(loadedCards.filter((c) => c !== null) as DeckCardWithImage[]);
+          if (deck.analysisScores) setDeckScores(deck.analysisScores);
         } catch (error) {
           console.error('Error loading deck:', error);
         }
@@ -605,29 +610,46 @@ const DeckBuilder = () => {
     }
     if (!isDeckValid) return;
 
-    const payload = {
-      name: deckName,
-      formatId: selectedFormat.id,
-      userId: user.userId,
-      isPrivate: isPrivate,
-      cards: deckCards.map((card) => ({
-        id: card.id,
-        quantity: card.quantity,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        board: (card.board || 'main') as any,
-      })),
-      analysisScores: analysisResult?.scores
-        ? Object.fromEntries(
-            Object.entries(analysisResult.scores).map(([k, v]) => {
-              const dim = v as { value: number; key_cards?: string[] };
-              return [k, { value: dim.value, key_cards: dim.key_cards ?? [] }];
-            })
-          )
-        : undefined,
-    };
-
     setIsSaving(true);
     try {
+      // Obtain scores from analysis modal, saved state, or auto-generate them
+      let scores: Record<string, { value: number; key_cards: string[] }> | undefined =
+        analysisResult?.scores
+          ? Object.fromEntries(
+              Object.entries(analysisResult.scores).map(([k, v]) => {
+                const dim = v as { value: number; key_cards?: string[] };
+                return [k, { value: dim.value, key_cards: dim.key_cards ?? [] }];
+              })
+            )
+          : deckScores ?? undefined;
+
+      if (!scores) {
+        const mainDeck = deckCards
+          .filter((c) => c.board === 'main' || !c.board)
+          .map((c) => ({ name: c.name, quantity: c.quantity }));
+        const scoreResult = await DeckService.getDeckScores({
+          main_deck: mainDeck,
+          format_name: selectedFormat.name.en || selectedFormat.scryfallKey,
+          locale,
+        });
+        scores = scoreResult.scores;
+        setDeckScores(scores);
+      }
+
+      const payload = {
+        name: deckName,
+        formatId: selectedFormat.id,
+        userId: user.userId,
+        isPrivate: isPrivate,
+        cards: deckCards.map((card) => ({
+          id: card.id,
+          quantity: card.quantity,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          board: (card.board || 'main') as any,
+        })),
+        analysisScores: scores,
+      };
+
       if (deckId) {
         await DeckService.updateDeck(deckId, payload);
         showToast(t('deckBuilder.deckUpdated'), 'success');
@@ -1438,6 +1460,11 @@ const DeckBuilder = () => {
 
             {/* Footer con Estadísticas */}
             <DeckStats cards={deckCards} />
+
+            {/* Deck Profile */}
+            {deckScores && (
+              <DeckProfileChart scores={deckScores} containerClassName="mt-6 bg-zinc-900 border border-zinc-800 rounded-xl p-4" />
+            )}
           </>
         )}
       </div>
@@ -1528,92 +1555,19 @@ const DeckBuilder = () => {
         isOpen={isAnalysisModalOpen}
         onClose={() => setIsAnalysisModalOpen(false)}
         title={t('deckBuilder.analysisModalTitle')}
-        maxWidth="max-w-4xl"
+        maxWidth="sm:max-w-[80vw]"
+        fullScreenMobile
       >
         {analysisResult && (
-          <div className="space-y-6 text-zinc-300 max-h-[70vh] overflow-y-auto pr-2">
+          <div className="space-y-6 text-zinc-300 sm:max-h-[70vh] overflow-y-auto pr-2 pb-6">
             {/* ── Deck Profile radar ── */}
-            {analysisResult.scores && (() => {
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              const s = analysisResult.scores as any;
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              const ps = analysisResult.projected_scores as any;
-              const DIMS = [
-                { key: 'speed', label: t('deckBuilder.scoreSpeed') },
-                { key: 'consistency', label: t('deckBuilder.scoreConsistency') },
-                { key: 'aggression', label: t('deckBuilder.scoreAggression') },
-                { key: 'resilience', label: t('deckBuilder.scoreResilience') },
-                { key: 'interaction', label: t('deckBuilder.scoreInteraction') },
-                { key: 'combo_potential', label: t('deckBuilder.scoreCombo') },
-              ];
-              return (
-                <div className="bg-zinc-800/50 p-4 rounded-xl border border-zinc-700">
-                  <div className="flex items-center justify-between mb-3">
-                    <h4 className="text-orange-500 font-bold">{t('deckBuilder.deckProfile')}</h4>
-                    {ps && (
-                      <div className="flex items-center gap-4 text-xs text-zinc-400">
-                        <span className="flex items-center gap-1.5">
-                          <span className="inline-block w-3 h-3 rounded-full bg-orange-500" />
-                          {t('deckBuilder.scoreCurrent')}
-                        </span>
-                        <span className="flex items-center gap-1.5">
-                          <span className="inline-block w-3 h-3 rounded-full bg-green-500" />
-                          {t('deckBuilder.scoreProjected')}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                  <div className="flex flex-col md:flex-row items-start gap-6">
-                    <div className="shrink-0 mx-auto md:mx-0">
-                      <RadarChart
-                        size={220}
-                        axes={DIMS.map(({ key, label }) => ({
-                          key,
-                          label,
-                          value: s[key]?.value ?? s[key] ?? 0,
-                          projectedValue: ps?.[key]?.value ?? ps?.[key],
-                          keyCards: s[key]?.key_cards,
-                        }))}
-                      />
-                    </div>
-                    <div className="flex-1 space-y-3 text-sm w-full">
-                      {DIMS.map(({ key, label }) => {
-                        const cur = s[key]?.value ?? s[key] ?? 0;
-                        const proj = ps?.[key]?.value ?? ps?.[key];
-                        const cards: string[] = s[key]?.key_cards ?? [];
-                        return (
-                          <div key={key}>
-                            <div className="flex items-center gap-2 mb-0.5">
-                              <span className="text-zinc-400 w-24 shrink-0">{label}</span>
-                              <div className="flex-1 h-1.5 bg-zinc-700 rounded-full overflow-hidden relative">
-                                <div
-                                  className="h-full rounded-full bg-orange-500 transition-all duration-500"
-                                  style={{ width: `${cur * 10}%` }}
-                                />
-                                {proj !== undefined && (
-                                  <div
-                                    className="absolute top-0 h-full rounded-full bg-green-500/50 transition-all duration-500"
-                                    style={{ width: `${proj * 10}%` }}
-                                  />
-                                )}
-                              </div>
-                              <span className="text-orange-400 font-bold tabular-nums">
-                                {cur}{proj !== undefined && proj !== cur ? <span className="text-green-400"> → {proj}</span> : null}
-                              </span>
-                            </div>
-                            {cards.length > 0 && (
-                              <p className="text-xs text-zinc-500 pl-[6.5rem] leading-tight">
-                                {t('deckBuilder.scoreKeyCards')}: {cards.join(', ')}
-                              </p>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                </div>
-              );
-            })()}
+            {analysisResult.scores && (
+              <DeckProfileChart
+                scores={analysisResult.scores}
+                projectedScores={analysisResult.projected_scores}
+                containerClassName="bg-zinc-800/50 p-4 rounded-xl border border-zinc-700"
+              />
+            )}
 
             <div className="bg-zinc-800/50 p-4 rounded-xl border border-zinc-700">
               <h4 className="text-orange-500 font-bold mb-2">{t('deckBuilder.generalSummary')}</h4>
