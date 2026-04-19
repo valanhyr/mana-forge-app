@@ -5,6 +5,7 @@ import com.manaforge.api.model.mongo.Message;
 import com.manaforge.api.model.mongo.User;
 import com.manaforge.api.repository.MessageRepository;
 import com.manaforge.api.repository.UserRepository;
+import com.manaforge.api.service.EmailEncryptionService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -26,10 +27,13 @@ public class MessageController {
 
     private final UserRepository userRepository;
     private final MessageRepository messageRepository;
+    private final EmailEncryptionService emailEncryptionService;
 
-    public MessageController(UserRepository userRepository, MessageRepository messageRepository) {
+    public MessageController(UserRepository userRepository, MessageRepository messageRepository,
+                             EmailEncryptionService emailEncryptionService) {
         this.userRepository = userRepository;
         this.messageRepository = messageRepository;
+        this.emailEncryptionService = emailEncryptionService;
     }
 
     // ── Helpers ──────────────────────────────────────────────────────────────
@@ -40,7 +44,7 @@ public class MessageController {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
         }
         String identifier = auth.getPrincipal() instanceof OAuth2User oAuth2User
-                ? oAuth2User.getAttribute("email")
+                ? emailEncryptionService.encrypt(oAuth2User.getAttribute("email"))
                 : auth.getPrincipal().toString();
         return userRepository.findByUsername(identifier)
                 .or(() -> userRepository.findByEmail(identifier))
@@ -106,7 +110,7 @@ public class MessageController {
             // 1 query por peer para obtener info del usuario (sólo los peers que tienen mensajes)
             UserDto friend = userRepository.findById(peerId).map(u -> UserDto.builder()
                     .userId(u.getId()).name(u.getName()).username(u.getUsername())
-                    .email(u.getEmail()).biography(u.getBiography()).avatar(u.getAvatar()).build()).orElse(null);
+                    .email(emailEncryptionService.decrypt(u.getEmail())).biography(u.getBiography()).avatar(u.getAvatar()).build()).orElse(null);
 
             if (friend == null) return null;
 

@@ -5,6 +5,7 @@ import com.manaforge.api.model.mongo.Follow;
 import com.manaforge.api.model.mongo.User;
 import com.manaforge.api.repository.FollowRepository;
 import com.manaforge.api.repository.UserRepository;
+import com.manaforge.api.service.EmailEncryptionService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -22,10 +23,13 @@ public class FollowController {
 
     private final UserRepository userRepository;
     private final FollowRepository followRepository;
+    private final EmailEncryptionService emailEncryptionService;
 
-    public FollowController(UserRepository userRepository, FollowRepository followRepository) {
+    public FollowController(UserRepository userRepository, FollowRepository followRepository,
+                            EmailEncryptionService emailEncryptionService) {
         this.userRepository = userRepository;
         this.followRepository = followRepository;
+        this.emailEncryptionService = emailEncryptionService;
     }
 
     // ── Helpers ──────────────────────────────────────────────────────────────
@@ -36,7 +40,7 @@ public class FollowController {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
         }
         String identifier = auth.getPrincipal() instanceof OAuth2User oAuth2User
-                ? oAuth2User.getAttribute("email")
+                ? emailEncryptionService.encrypt(oAuth2User.getAttribute("email"))
                 : auth.getPrincipal().toString();
         return userRepository.findByUsername(identifier)
                 .or(() -> userRepository.findByEmail(identifier))
@@ -48,7 +52,7 @@ public class FollowController {
                 .userId(u.getId())
                 .name(u.getName())
                 .username(u.getUsername())
-                .email(u.getEmail())
+                .email(emailEncryptionService.decrypt(u.getEmail()))
                 .biography(u.getBiography())
                 .avatar(u.getAvatar())
                 .build();

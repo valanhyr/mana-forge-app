@@ -7,6 +7,7 @@ import com.manaforge.api.dto.FeaturedDeckDTO;
 import com.manaforge.api.model.mongo.Deck;
 import com.manaforge.api.repository.UserRepository;
 import com.manaforge.api.service.DeckService;
+import com.manaforge.api.service.EmailEncryptionService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -25,10 +26,13 @@ public class DeckController {
 
     private final DeckService deckService;
     private final UserRepository userRepository;
+    private final EmailEncryptionService emailEncryptionService;
 
-    public DeckController(DeckService deckService, UserRepository userRepository) {
+    public DeckController(DeckService deckService, UserRepository userRepository,
+                          EmailEncryptionService emailEncryptionService) {
         this.deckService = deckService;
         this.userRepository = userRepository;
+        this.emailEncryptionService = emailEncryptionService;
     }
 
     // ── Auth helper ───────────────────────────────────────────────────────────
@@ -38,7 +42,7 @@ public class DeckController {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getPrincipal())) return null;
         String identifier = auth.getPrincipal() instanceof OAuth2User oAuth2User
-                ? oAuth2User.getAttribute("email")
+                ? emailEncryptionService.encrypt(oAuth2User.getAttribute("email"))
                 : auth.getPrincipal().toString();
         return userRepository.findByUsername(identifier)
                 .or(() -> userRepository.findByEmail(identifier))

@@ -5,6 +5,7 @@ import com.manaforge.api.model.mongo.FriendRequest;
 import com.manaforge.api.model.mongo.User;
 import com.manaforge.api.repository.FriendRequestRepository;
 import com.manaforge.api.repository.UserRepository;
+import com.manaforge.api.service.EmailEncryptionService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -24,10 +25,13 @@ public class FriendController {
 
     private final UserRepository userRepository;
     private final FriendRequestRepository friendRequestRepository;
+    private final EmailEncryptionService emailEncryptionService;
 
-    public FriendController(UserRepository userRepository, FriendRequestRepository friendRequestRepository) {
+    public FriendController(UserRepository userRepository, FriendRequestRepository friendRequestRepository,
+                            EmailEncryptionService emailEncryptionService) {
         this.userRepository = userRepository;
         this.friendRequestRepository = friendRequestRepository;
+        this.emailEncryptionService = emailEncryptionService;
     }
 
     // ── Helpers ──────────────────────────────────────────────────────────────
@@ -38,7 +42,7 @@ public class FriendController {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
         }
         String identifier = auth.getPrincipal() instanceof OAuth2User oAuth2User
-                ? oAuth2User.getAttribute("email")
+                ? emailEncryptionService.encrypt(oAuth2User.getAttribute("email"))
                 : auth.getPrincipal().toString();
         return userRepository.findByUsername(identifier)
                 .or(() -> userRepository.findByEmail(identifier))
@@ -50,7 +54,7 @@ public class FriendController {
                 .userId(u.getId())
                 .name(u.getName())
                 .username(u.getUsername())
-                .email(u.getEmail())
+                .email(emailEncryptionService.decrypt(u.getEmail()))
                 .biography(u.getBiography())
                 .avatar(u.getAvatar())
                 .build();
