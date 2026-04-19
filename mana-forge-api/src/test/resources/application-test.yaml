@@ -59,6 +59,11 @@ services:
 mail:
   from: test@localhost
 
+email:
+  encryption:
+    # manaforge-test-key-32-bytes-1234 (32 bytes) — only for tests
+    key: bWFuYWZvcmdlLXRlc3Qta2V5LTMyLWJ5dGVzLTEyMzQ=
+
 logging:
   level:
     root: WARN
