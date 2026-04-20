@@ -80,7 +80,22 @@ class DeckAnalysisRequest(BaseModel):
         normalized = v.split("-")[0].lower()
         return normalized if normalized in SUPPORTED_LOCALES else "en"
 
-# --- Schemas for Random Deck Generation ---
+# --- Schemas for Deck Scores (lightweight, no matchups/suggestions) ---
+class DeckScoresRequest(BaseModel):
+    main_deck: List[CardInput]
+    format_name: str
+    locale: str
+
+    @field_validator("locale")
+    @classmethod
+    def validate_locale_scores(cls, v: str) -> str:
+        normalized = v.split("-")[0].lower()
+        return normalized if normalized in SUPPORTED_LOCALES else "en"
+
+class DeckScoresOnlyResponse(BaseModel):
+    scores: DeckScores
+
+
 class RandomDeckRequest(BaseModel):
     locale: str
     format_name: Optional[str] = None

@@ -22,6 +22,7 @@ public interface DeckService {
     List<DeckSearchResultDTO> searchDecks(String name, String formatId, String locale);
     FeaturedDeckDTO getFeaturedDeck(String locale);
     List<Deck> getDecksByUser(String userId);
+    Map<String, Object> getDeckScores(Map<String, Object> deckPayload);
     Map<String, Object> analyzeDeck(Map<String, Object> deckPayload);
     Map<String, Object> generateRandomDeck(Map<String, Object> payload);
     Deck pinDeck(String id, String userId);

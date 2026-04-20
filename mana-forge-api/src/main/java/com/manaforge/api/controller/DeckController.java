@@ -94,6 +94,11 @@ public class DeckController {
         return ResponseEntity.ok(deckService.getDecksByUser(userId));
     }
 
+    @PostMapping("/scores")
+    public Map<String, Object> getDeckScores(@RequestBody Map<String, Object> deckPayload) {
+        return deckService.getDeckScores(deckPayload);
+    }
+
     @PostMapping("/analyze")
     public Map<String, Object> analyzeDeck(@RequestBody Map<String, Object> deckPayload) {
         return deckService.analyzeDeck(deckPayload);

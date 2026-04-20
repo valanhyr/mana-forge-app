@@ -137,7 +137,7 @@ const RadarChart: React.FC<RadarChartProps> = ({ axes, size = 260 }) => {
           <text
             x={l.x}
             y={l.y}
-            dy={l.dominantBaseline === 'hanging' ? 13 : l.dominantBaseline === 'auto' ? -13 : 0}
+            dy={l.dominantBaseline === 'hanging' ? 20 : l.dominantBaseline === 'auto' ? -13 : 0}
             textAnchor={l.textAnchor}
             dominantBaseline={l.dominantBaseline === 'middle' ? 'middle' : 'auto'}
             fontSize={11}

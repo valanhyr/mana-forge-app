@@ -6,11 +6,12 @@ from typing import List, Optional
 from groq import AsyncGroq, RateLimitError
 from pydantic import ValidationError
 from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
-from schemas.deck_schemas import SideboardResponse, CardInput, DeckAnalysisResponse, RandomDeckResponse
+from schemas.deck_schemas import SideboardResponse, CardInput, DeckAnalysisResponse, RandomDeckResponse, DeckScoresOnlyResponse
 from prompts.sideboard_prompts import get_sideboard_system_prompt, get_sideboard_user_prompt
 from prompts.analysis_prompts import get_analysis_system_prompt, get_analysis_user_prompt
 from prompts.random_deck_prompts import get_random_deck_system_prompt, get_random_deck_user_prompt
 from prompts.deck_review_prompts import get_deck_review_system_prompt, get_deck_review_user_prompt
+from prompts.scores_prompts import get_scores_system_prompt, get_scores_user_prompt
 from prompts.format_context import get_tier1_archetypes, get_deck_size, requires_sideboard, is_singleton
 
 logger = logging.getLogger(__name__)
@@ -142,6 +143,23 @@ class AIService:
         except Exception as e:
             logger.warning("Deck review pass failed (%s); returning original deck.", str(e))
             return deck
+
+    async def get_deck_scores(self, main_deck: list[CardInput], format_name: str, locale: str) -> DeckScoresOnlyResponse:
+        self._ensure_client()
+        deck_str = "\n".join([f"{c.quantity} {c.name}" for c in main_deck])
+        messages = [
+            {"role": "system", "content": get_scores_system_prompt()},
+            {"role": "user",   "content": get_scores_user_prompt(deck_str, format_name, locale)},
+        ]
+        try:
+            content = await self._call_groq(messages, temperature=0.5)
+            logger.debug("Deck scores raw response (first 500): %s", content[:500])
+            return _parse_ai_response(content, DeckScoresOnlyResponse)
+        except (ValueError, RuntimeError):
+            raise
+        except Exception as e:
+            logger.error("Error calling Groq API (deck scores): %s", str(e))
+            raise
 
     async def generate_random_deck(self, locale: str, format_name: Optional[str] = None) -> RandomDeckResponse:
         self._ensure_client()

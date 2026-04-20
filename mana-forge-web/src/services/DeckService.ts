@@ -123,6 +123,15 @@ export const DeckService = {
     return response.data;
   },
 
+  getDeckScores: async (payload: {
+    main_deck: { name: string; quantity: number }[];
+    format_name: string;
+    locale: string;
+  }): Promise<{ scores: Record<string, { value: number; key_cards: string[] }> }> => {
+    const response = await api.post('/decks/scores', payload);
+    return response.data;
+  },
+
   analyzeDeck: async (payload: unknown) => {
     const response = await api.post('/decks/analyze', payload);
     return response.data;

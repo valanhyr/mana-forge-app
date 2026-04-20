@@ -345,6 +345,11 @@ public class DeckServiceImpl implements DeckService {
     }
 
     @Override
+    public Map<String, Object> getDeckScores(Map<String, Object> deckPayload) {
+        return aiService.getDeckScores(deckPayload);
+    }
+
+    @Override
     public Map<String, Object> analyzeDeck(Map<String, Object> deckPayload) {
         return aiService.analyzeDeck(deckPayload);
     }
