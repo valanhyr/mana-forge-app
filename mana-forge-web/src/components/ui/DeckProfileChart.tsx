@@ -11,14 +11,6 @@ interface DeckProfileChartProps {
   containerClassName?: string;
 }
 
-export const MOCK_SCORES: ScoreMap = {
-  speed: { value: 7, key_cards: ['Goblin Piledriver', 'Goblin Warchief'] },
-  consistency: { value: 6, key_cards: ['Goblin Matron', 'Goblin Lackey'] },
-  aggression: { value: 8, key_cards: ['Goblin Piledriver', 'Goblin Warchief'] },
-  resilience: { value: 5, key_cards: ['Goblin King'] },
-  interaction: { value: 4, key_cards: ['Naturalize'] },
-  combo_potential: { value: 2 },
-};
 
 const resolve = (map: ScoreMap, key: string): number => {
   const v = map[key];
