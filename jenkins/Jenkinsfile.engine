@@ -155,12 +155,12 @@ pipeline {
                         def status
                         if (params.ENVIRONMENT == 'local') {
                             status = sh(
-                                script: "docker exec ${env.CONTAINER_NAME} curl -sf -o /dev/null -w '%{http_code}' http://localhost:8000/health 2>/dev/null || echo '000'",
+                                script: "docker exec ${env.CONTAINER_NAME} python3 -c \"import urllib.request,sys; r=urllib.request.urlopen('http://localhost:8000/health'); print(r.status)\" 2>/dev/null || echo '000'",
                                 returnStdout: true
                             ).trim()
                         } else {
                             status = sh(
-                                script: "ssh -i /var/jenkins_home/.ssh/hetzner_key -o StrictHostKeyChecking=no ${env.DEPLOY_USER}@${env.DEPLOY_HOST} \"docker exec ${env.CONTAINER_NAME} curl -sf -o /dev/null -w '%{http_code}' http://localhost:8000/health 2>/dev/null || echo '000'\"",
+                                script: "ssh -i /var/jenkins_home/.ssh/hetzner_key -o StrictHostKeyChecking=no ${env.DEPLOY_USER}@${env.DEPLOY_HOST} \"docker exec ${env.CONTAINER_NAME} python3 -c \\\"import urllib.request,sys; r=urllib.request.urlopen('http://localhost:8000/health'); print(r.status)\\\" 2>/dev/null || echo '000'\"",
                                 returnStdout: true
                             ).trim()
                         }
