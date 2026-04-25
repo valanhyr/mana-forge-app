@@ -13,6 +13,7 @@ from prompts.random_deck_prompts import get_random_deck_system_prompt, get_rando
 from prompts.deck_review_prompts import get_deck_review_system_prompt, get_deck_review_user_prompt
 from prompts.scores_prompts import get_scores_system_prompt, get_scores_user_prompt
 from prompts.format_context import get_tier1_archetypes, get_deck_size, requires_sideboard, is_singleton
+from utils.sanitize import sanitize_card_name, sanitize_format_name, sanitize_locale, sanitize_archetypes
 
 logger = logging.getLogger(__name__)
 
@@ -71,7 +72,9 @@ class AIService:
 
     async def suggest_sideboard(self, main_deck: list[CardInput], format_name: str, locale: str) -> SideboardResponse:
         self._ensure_client()
-        deck_str = "\n".join([f"{c.quantity} {c.name}" for c in main_deck])
+        locale = sanitize_locale(locale)
+        format_name = sanitize_format_name(format_name) or format_name
+        deck_str = "\n".join([f"{c.quantity} {sanitize_card_name(c.name)}" for c in main_deck if sanitize_card_name(c.name)])
         messages = [
             {"role": "system", "content": get_sideboard_system_prompt()},
             {"role": "user",   "content": get_sideboard_user_prompt(deck_str, format_name, locale)},
@@ -95,8 +98,11 @@ class AIService:
         meta_archetypes: Optional[List[str]] = None,
     ) -> DeckAnalysisResponse:
         self._ensure_client()
-        main_str = "\n".join([f"{c.quantity} {c.name}" for c in main_deck])
-        side_str = "\n".join([f"{c.quantity} {c.name}" for c in sideboard]) if sideboard else "No Sideboard provided."
+        locale = sanitize_locale(locale)
+        format_name = sanitize_format_name(format_name) or format_name
+        meta_archetypes = sanitize_archetypes(meta_archetypes) if meta_archetypes else None
+        main_str = "\n".join([f"{c.quantity} {sanitize_card_name(c.name)}" for c in main_deck if sanitize_card_name(c.name)])
+        side_str = "\n".join([f"{c.quantity} {sanitize_card_name(c.name)}" for c in sideboard if sanitize_card_name(c.name)]) if sideboard else "No Sideboard provided."
 
         target_archetypes = meta_archetypes or get_tier1_archetypes(format_name) or None
 
@@ -146,7 +152,9 @@ class AIService:
 
     async def get_deck_scores(self, main_deck: list[CardInput], format_name: str, locale: str) -> DeckScoresOnlyResponse:
         self._ensure_client()
-        deck_str = "\n".join([f"{c.quantity} {c.name}" for c in main_deck])
+        locale = sanitize_locale(locale)
+        format_name = sanitize_format_name(format_name) or format_name
+        deck_str = "\n".join([f"{c.quantity} {sanitize_card_name(c.name)}" for c in main_deck if sanitize_card_name(c.name)])
         messages = [
             {"role": "system", "content": get_scores_system_prompt()},
             {"role": "user",   "content": get_scores_user_prompt(deck_str, format_name, locale)},
@@ -163,6 +171,8 @@ class AIService:
 
     async def generate_random_deck(self, locale: str, format_name: Optional[str] = None) -> RandomDeckResponse:
         self._ensure_client()
+        locale = sanitize_locale(locale)
+        format_name = sanitize_format_name(format_name) if format_name else None
 
         tier1 = get_tier1_archetypes(format_name)
         archetype_hint = random.choice(tier1) if tier1 else None

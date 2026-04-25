@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft, Calendar, User, Loader2 } from 'lucide-react';
+import DOMPurify from 'dompurify';
 import { ArticleService } from '../../services/ArticleService';
 import { type Article } from '../../core/models/Article';
 import { useLanguage } from '../../services/LanguageContext';
@@ -106,7 +107,7 @@ const ArticleDetail = () => {
 
           <div
             className="prose prose-invert max-w-none prose-headings:text-white prose-p:text-zinc-300 prose-a:text-orange-500 hover:prose-a:text-orange-400 prose-strong:text-white prose-li:text-zinc-300"
-            dangerouslySetInnerHTML={{ __html: article.content || '' }}
+            dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(article.content || '') }}
           />
         </div>
       </div>

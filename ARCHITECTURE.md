@@ -463,11 +463,21 @@ User → Frontend → Backend → Couchbase (hit/miss)
 - **OAuth2 Code Flow** con Google
 - Redirect: `https://mana-forge.com/api/login/oauth2/code/google`
 - Success Handler crea sesión y redirige al frontend
+- Usernames autogenerados desde `given_name` de Google con sufijo numérico de ser necesario para garantizar unicidad.
 
 ### Autorización
-- JWT tokens (Spring Security)
-- CORS configurado para `http://localhost:5173` (dev)
-- Production: Solo `https://mana-forge.com`
+- Session-based (Spring Security). No hay JWT tokens en el frontend.
+- CORS configurado explícitamente: `http://localhost:5173` (dev) + `FRONTEND_URL` (prod). Nunca `allowedOriginPatterns("*")` con `allowCredentials=true`.
+- Las cookies de sesión tienen `HttpOnly`, `Secure`, `SameSite=Lax` configurados en `application.yaml`.
+- Cache invalidation endpoints (`DELETE /api/*/cache`) requieren autenticación — no son accesibles de forma anónima.
+
+### Seguridad del Motor IA
+- El motor FastAPI **no tiene autenticación propia** — depende de no estar expuesto públicamente.
+- En producción Docker, el puerto 8000 del engine **no se publica al host** (`ports: "8000:8000"` eliminado). El Spring API lo llama como `http://engine:8000` via la red interna `mana-forge-network`.
+- Todos los inputs de usuario (card names, format_name, locale, archetypes) son sanitizados en `utils/sanitize.py` antes de ser interpolados en prompts LLM para mitigar prompt injection.
+
+### Cifrado de Email
+⚠️ **Riesgo Conocido y Aceptado**: El servicio `EmailEncryptionService` usa **AES/ECB** (sin IV). Este modo es criptográficamente débil (emails idénticos producen ciphertexts idénticos). Sin embargo, el comportamiento determinista es **intencional y necesario**: el email cifrado se usa como clave de búsqueda en MongoDB (`findByEmail(encrypt(email))`). Cambiar a AES/GCM requeriría una migración completa de la base de datos. Mitigación futura recomendada: usar HMAC del email como clave de lookup en lugar del ciphertext.
 
 ### Secrets Management
 ⚠️ **WARNING**: Actualmente hay credenciales hardcodeadas en:

@@ -12,7 +12,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/articles")
-@CrossOrigin(origins = "http://localhost:5173")
 @Tag(name = "Articles", description = "Endpoints for retrieving articles from Strapi")
 public class ArticleController {
 

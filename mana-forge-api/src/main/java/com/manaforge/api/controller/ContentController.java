@@ -12,8 +12,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/content")
-@RequiredArgsConstructor // Genera el constructor automáticamente (Lombok)
-@CrossOrigin(origins = "http://localhost:5173") // Para que React pueda conectar
+@RequiredArgsConstructor
 public class ContentController {
 
     private final StrapiService strapiService;

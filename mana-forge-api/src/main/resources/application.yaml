@@ -50,6 +50,11 @@ spring:
     redis:
       flush-mode: on-save
       namespace: mana-forge:session
+    cookie:
+      http-only: true
+      secure: true
+      same-site: lax
+      max-age: 86400  # 24 hours
 
   # CACHE: Couchbase (Distributed Cache para Strapi/Scryfall)
   couchbase:
@@ -68,7 +73,7 @@ spring:
   # Herramienta visual H2 en: http://localhost:8080/h2-console
   h2:
     console:
-      enabled: true
+      enabled: false
       path: /h2-console
       settings:
         trace: false
@@ -79,11 +84,11 @@ spring:
     database-platform: org.hibernate.dialect.H2Dialect
     hibernate:
       ddl-auto: update
-    show-sql: true
+    show-sql: false
     properties:
       hibernate:
-        format_sql: true
-        highlight_sql: true
+        format_sql: false
+        highlight_sql: false
 
   docker:
     compose:
@@ -146,11 +151,11 @@ strapi:
 logging:
   level:
     root: INFO
-    com.manaforge.api: DEBUG
-    org.hibernate.SQL: DEBUG
-    org.springframework.data.mongodb: DEBUG
-    org.springframework.cache: TRACE
-    com.couchbase: DEBUG
+    com.manaforge.api: INFO
+    org.hibernate.SQL: WARN
+    org.springframework.data.mongodb: WARN
+    org.springframework.cache: WARN
+    com.couchbase: WARN
 
 management:
   endpoints:

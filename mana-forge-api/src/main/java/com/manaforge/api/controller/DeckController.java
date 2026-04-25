@@ -21,7 +21,6 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/decks")
-@CrossOrigin(origins = "http://localhost:5173")
 public class DeckController {
 
     private final DeckService deckService;
@@ -72,7 +71,7 @@ public class DeckController {
     @GetMapping("/{id}")
     public ResponseEntity<Deck> getDeckById(@PathVariable String id) {
         try {
-            return ResponseEntity.ok(deckService.getDeckById(id));
+            return ResponseEntity.ok(deckService.getDeckById(id, getCurrentUserId()));
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }
@@ -91,7 +90,7 @@ public class DeckController {
 
     @GetMapping("/user/{userId}")
     public ResponseEntity<List<Deck>> getDecksByUser(@PathVariable String userId) {
-        return ResponseEntity.ok(deckService.getDecksByUser(userId));
+        return ResponseEntity.ok(deckService.getDecksByUser(userId, getCurrentUserId()));
     }
 
     @PostMapping("/scores")

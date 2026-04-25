@@ -1,0 +1,25 @@
+{
+  "main_deck": [
+    {"card_name": "Goblin Lackey", "quantity": 4},
+    {"card_name": "Mogg Fanatic", "quantity": 4},
+    {"card_name": "Jackal Pup", "quantity": 4},
+    {"card_name": "Goblin Piledriver", "quantity": 4},
+    {"card_name": "Goblin Recruiter", "quantity": 4},
+    {"card_name": "Goblin Matron", "quantity": 3},
+    {"card_name": "Goblin Ringleader", "quantity": 4},
+    {"card_name": "Gempalm Incinerator", "quantity": 2},
+    {"card_name": "Goblin Warchief", "quantity": 4},
+    {"card_name": "Siege-Gang Commander", "quantity": 2},
+    {"card_name": "Rishadan Port", "quantity": 4},
+    {"card_name": "Wasteland", "quantity": 4},
+    {"card_name": "Mountain", "quantity": 17}
+  ],
+  "sideboard": [
+    {"card_name": "Pyrokinesis", "quantity": 4},
+    {"card_name": "Shattering Pulse", "quantity": 4},
+    {"card_name": "Phyrexian Furnace", "quantity": 3},
+    {"card_name": "Pyroblast", "quantity": 4}
+  ],
+  "format_name": "Premodern",
+  "locale": "en"
+}

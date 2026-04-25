@@ -96,9 +96,13 @@ public class DeckServiceImpl implements DeckService {
     }
 
     @Override
-    public Deck getDeckById(String id) {
+    public Deck getDeckById(String id, String requesterId) {
         return deckRepository.findById(id)
                 .map(deck -> {
+                    // Enforce privacy: private decks are only visible to their owner.
+                    if (deck.isPrivate() && !deck.getUserId().equals(requesterId)) {
+                        throw new RuntimeException("Deck not found");
+                    }
                     if (deck.getColors() == null || deck.getColors().isEmpty()) {
                         calculateAndSetDeckColors(deck);
                         return deckRepository.save(deck);
@@ -205,8 +209,11 @@ public class DeckServiceImpl implements DeckService {
     }
 
     @Override
-    public List<Deck> getDecksByUser(String userId) {
-        List<Deck> decks = deckRepository.findByUserId(userId);
+    public List<Deck> getDecksByUser(String userId, String requesterId) {
+        // Owners see all their decks; other users only see public ones.
+        List<Deck> decks = userId.equals(requesterId)
+                ? deckRepository.findByUserId(userId)
+                : deckRepository.findByUserIdAndIsPrivateFalse(userId);
         return decks.stream().map(deck -> {
             if (deck.getColors() == null || deck.getColors().isEmpty()) {
                 calculateAndSetDeckColors(deck);

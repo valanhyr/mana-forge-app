@@ -92,8 +92,8 @@ class FormatControllerTest {
     }
 
     @Test
-    void evictFormatsCache_publicEndpoint_returns204() throws Exception {
+    void evictFormatsCache_requiresAuth_returns401() throws Exception {
         mockMvc.perform(delete("/api/formats/cache").with(csrf()))
-                .andExpect(status().isNoContent());
+                .andExpect(status().isUnauthorized());
     }
 }

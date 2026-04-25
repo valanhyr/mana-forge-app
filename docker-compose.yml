@@ -57,14 +57,14 @@ services:
       - mana-forge-network
 
   # ENGINE: Python FastAPI (Puerto 8000)
+  # Port 8000 is NOT published to the host — reachable only inside mana-forge-network.
+  # The Spring API calls it as http://engine:8000 via the internal network.
   engine:
     image: ${ENGINE_IMAGE:-ghcr.io/valanhyr/mana-forge-engine:latest}
     build:
       context: ./mana-forge-engine
       dockerfile: Dockerfile
     container_name: mana-forge-engine-1
-    ports:
-      - "8000:8000"
     environment:
       - GROQ_API_KEY=${GROQ_API_KEY}
     restart: always

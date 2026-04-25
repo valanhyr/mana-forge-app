@@ -13,7 +13,7 @@ import java.time.LocalDate;
 public interface DeckService {
     Deck saveDeck(DeckRequestDTO dto, String userId);
     Deck updateDeck(String id, DeckRequestDTO dto, String userId);
-    Deck getDeckById(String id);
+    Deck getDeckById(String id, String requesterId);
     DeckViewDTO getDeckView(String id, String locale, String currentUserId);
     Map<String, Object> likeDeck(String id, String userId);
     Map<String, Object> unlikeDeck(String id, String userId);
@@ -21,7 +21,7 @@ public interface DeckService {
     void deleteDeck(String id, String userId);
     List<DeckSearchResultDTO> searchDecks(String name, String formatId, String locale);
     FeaturedDeckDTO getFeaturedDeck(String locale);
-    List<Deck> getDecksByUser(String userId);
+    List<Deck> getDecksByUser(String userId, String requesterId);
     Map<String, Object> getDeckScores(Map<String, Object> deckPayload);
     Map<String, Object> analyzeDeck(Map<String, Object> deckPayload);
     Map<String, Object> generateRandomDeck(Map<String, Object> payload);

@@ -117,6 +117,13 @@
 		<artifactId>spring-boot-starter-actuator</artifactId>
 	</dependency>
 
+	<!-- Rate limiting (in-memory token bucket) -->
+	<dependency>
+		<groupId>com.bucket4j</groupId>
+		<artifactId>bucket4j_jdk17-core</artifactId>
+		<version>8.18.0</version>
+	</dependency>
+
 	<!-- ===== TEST DEPENDENCIES ===== -->
 	<dependency>
 		<groupId>org.springframework.boot</groupId>

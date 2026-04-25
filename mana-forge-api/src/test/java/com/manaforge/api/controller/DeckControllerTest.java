@@ -134,7 +134,7 @@ class DeckControllerTest {
         Deck deck = new Deck();
         deck.setId("deck1");
         deck.setCards(List.of());
-        when(deckService.getDeckById("deck1")).thenReturn(deck);
+        when(deckService.getDeckById(eq("deck1"), any())).thenReturn(deck);
 
         mockMvc.perform(get("/api/decks/deck1"))
                 .andExpect(status().isOk())
@@ -143,7 +143,7 @@ class DeckControllerTest {
 
     @Test
     void getDeckById_notFound_returns404() throws Exception {
-        when(deckService.getDeckById("missing")).thenThrow(new RuntimeException("Deck not found"));
+        when(deckService.getDeckById(eq("missing"), any())).thenThrow(new RuntimeException("Deck not found"));
 
         mockMvc.perform(get("/api/decks/missing"))
                 .andExpect(status().isNotFound());

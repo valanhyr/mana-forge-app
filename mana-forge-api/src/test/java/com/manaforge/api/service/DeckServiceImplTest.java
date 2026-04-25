@@ -110,7 +110,7 @@ class DeckServiceImplTest {
         deck.setColors(List.of("R"));
         when(deckRepository.findById("d1")).thenReturn(Optional.of(deck));
 
-        Deck result = deckService.getDeckById("d1");
+        Deck result = deckService.getDeckById("d1", "user1");
 
         assertThat(result.getId()).isEqualTo("d1");
     }
@@ -119,7 +119,7 @@ class DeckServiceImplTest {
     void getDeckById_throwsWhenNotFound() {
         when(deckRepository.findById("x")).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> deckService.getDeckById("x"))
+        assertThatThrownBy(() -> deckService.getDeckById("x", null))
                 .isInstanceOf(RuntimeException.class);
     }
 

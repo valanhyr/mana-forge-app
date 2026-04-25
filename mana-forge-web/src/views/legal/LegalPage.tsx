@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft, Calendar, Loader2 } from 'lucide-react';
+import DOMPurify from 'dompurify';
 import { LegalService } from '../../services/LegalService';
 import { type LegalPage } from '../../core/models/LegalPage';
 import { useLanguage } from '../../services/LanguageContext';
@@ -117,7 +118,7 @@ const LegalPageView = () => {
               </h2>
               <div
                 className="prose prose-invert max-w-none prose-p:text-zinc-300 prose-li:text-zinc-300 prose-a:text-orange-500 hover:prose-a:text-orange-400 prose-strong:text-white"
-                dangerouslySetInnerHTML={{ __html: section.content }}
+                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(section.content) }}
               />
             </section>
           ))}

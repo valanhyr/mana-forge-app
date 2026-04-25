@@ -39,13 +39,21 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
         boolean isNewUser = userRepository.findByEmail(encryptedEmail).isEmpty();
         if (isNewUser) {
             String givenName = oAuth2User.getAttribute("given_name");
-            String defaultUsername = (givenName != null && !givenName.isBlank())
-                ? givenName
+            String baseUsername = (givenName != null && !givenName.isBlank())
+                ? givenName.strip()
                 : email.split("@")[0];
+
+            // Ensure username is unique by appending a numeric suffix when a collision exists.
+            String username = baseUsername;
+            int suffix = 1;
+            while (userRepository.findByUsername(username).isPresent()) {
+                username = baseUsername + suffix;
+                suffix++;
+            }
 
             User newUser = new User();
             newUser.setEmail(encryptedEmail);
-            newUser.setUsername(defaultUsername);
+            newUser.setUsername(username);
             newUser.setName(name);
             newUser.setActive(true);
             newUser.setPassword("");

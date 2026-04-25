@@ -67,8 +67,8 @@ class ContentControllerTest {
     }
 
     @Test
-    void evictContentCache_returns204() throws Exception {
+    void evictContentCache_requiresAuth_returns401() throws Exception {
         mockMvc.perform(delete("/api/v1/content/cache"))
-                .andExpect(status().isNoContent());
+                .andExpect(status().isUnauthorized());
     }
 }

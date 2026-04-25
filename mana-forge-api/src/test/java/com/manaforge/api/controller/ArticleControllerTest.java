@@ -68,9 +68,9 @@ class ArticleControllerTest {
     }
 
     @Test
-    void evictArticlesCache_returns204() throws Exception {
+    void evictArticlesCache_requiresAuth_returns401() throws Exception {
         mockMvc.perform(delete("/api/articles/cache"))
-                .andExpect(status().isNoContent());
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
