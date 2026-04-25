@@ -49,15 +49,8 @@ export const AuthService = {
   },
 
   checkSession: async (): Promise<User> => {
-    const response = await fetch(`${API_URL}/users/me`, {
-      method: 'GET',
-      credentials: 'include', // Envía la cookie JSESSIONID para validar la sesión
-    });
-
-    if (!response.ok) {
-      throw new Error('Sesión inválida o expirada');
-    }
-    return response.json();
+    const response = await api.get<User>('/users/me');
+    return response.data;
   },
 
   logout: async (): Promise<void> => {

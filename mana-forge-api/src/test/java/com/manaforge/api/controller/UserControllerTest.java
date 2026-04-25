@@ -194,11 +194,12 @@ class UserControllerTest {
     }
 
     @Test
-    void getByUsername_found_returns200WithDecryptedEmail() throws Exception {
+    void getByUsername_found_returns200WithPublicFieldsOnly() throws Exception {
         mockMvc.perform(get("/api/users/username/testuser"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.username").value("testuser"))
-                .andExpect(jsonPath("$.email").value(PLAIN_EMAIL));
+                .andExpect(jsonPath("$.email").doesNotExist())
+                .andExpect(jsonPath("$.password").doesNotExist());
     }
 
     @Test
@@ -247,30 +248,5 @@ class UserControllerTest {
                 .andExpect(status().isUnauthorized());
     }
 
-    @Test
-    void migrateEncryptEmails_withPlainEmails_encryptsThemAll() throws Exception {
-        User plainUser1 = new User();
-        plainUser1.setId("u1");
-        plainUser1.setEmail("alice@example.com");
-        User plainUser2 = new User();
-        plainUser2.setId("u2");
-        plainUser2.setEmail("bob@example.com");
-        User alreadyEncrypted = new User();
-        alreadyEncrypted.setId("u3");
-        alreadyEncrypted.setEmail("dGVzdA=="); // no '@', treated as already encrypted
-
-        when(userRepository.findAll()).thenReturn(List.of(plainUser1, plainUser2, alreadyEncrypted));
-        when(emailEncryptionService.encrypt("alice@example.com")).thenReturn("ENC_alice");
-        when(emailEncryptionService.encrypt("bob@example.com")).thenReturn("ENC_bob");
-
-        mockMvc.perform(post("/api/users/admin/migrate/encrypt-emails")
-                        .with(authentication(mockAuth()))
-                        .with(csrf()))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.migrated").value(2))
-                .andExpect(jsonPath("$.skipped").value(1));
-
-        verify(userRepository, times(2)).save(any(User.class));
-    }
 }
 

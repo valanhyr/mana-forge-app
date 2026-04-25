@@ -24,6 +24,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
+import com.manaforge.api.dto.PublicUserDto;
 import com.manaforge.api.dto.UserDto;
 import com.manaforge.api.model.mongo.User;
 import com.manaforge.api.repository.UserRepository;
@@ -33,7 +34,6 @@ import com.manaforge.api.service.EmailService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.UUID;
@@ -93,6 +93,7 @@ public class UserController extends BaseMongoController<User, String> {
                 .biography(user.getBiography())
                 .friends(user.getFriends())
                 .avatar(user.getAvatar())
+                .betaAccepted(user.getBetaAccepted())
                 .build();
     }
 
@@ -107,12 +108,15 @@ public class UserController extends BaseMongoController<User, String> {
     }
 
     @GetMapping("/username/{username}")
-    public ResponseEntity<User> getByUsername(@PathVariable String username) {
+    public ResponseEntity<PublicUserDto> getByUsername(@PathVariable String username) {
         return userRepository.findByUsername(username)
-                .map(user -> {
-                    user.setEmail(emailEncryptionService.decrypt(user.getEmail()));
-                    return ResponseEntity.ok(user);
-                })
+                .map(user -> ResponseEntity.ok(PublicUserDto.builder()
+                        .userId(user.getId())
+                        .name(user.getName())
+                        .username(user.getUsername())
+                        .biography(user.getBiography())
+                        .avatar(user.getAvatar())
+                        .build()))
                 .orElse(ResponseEntity.notFound().build());
     }
 
@@ -245,36 +249,6 @@ public class UserController extends BaseMongoController<User, String> {
         user.setPassword(passwordEncoder.encode(req.getNewPassword()));
         userRepository.save(user);
         return ResponseEntity.noContent().build();
-    }
-
-    /**
-     * One-time migration: encrypts all existing plain-text emails in the database.
-     * Safe to run multiple times — already-encrypted emails (no '@') are skipped.
-     */
-    @PostMapping("/admin/migrate/encrypt-emails")
-    public ResponseEntity<Map<String, Object>> migrateEncryptEmails() {
-        List<User> users = userRepository.findAll();
-        int migrated = 0;
-        int skipped = 0;
-
-        for (User user : users) {
-            String email = user.getEmail();
-            if (email == null || email.isEmpty()) {
-                skipped++;
-                continue;
-            }
-            // Plain emails always contain '@'; Base64-encoded strings never do
-            if (email.contains("@")) {
-                user.setEmail(emailEncryptionService.encrypt(email));
-                userRepository.save(user);
-                migrated++;
-            } else {
-                skipped++;
-            }
-        }
-
-        log.info("Email migration: {} migrated, {} skipped", migrated, skipped);
-        return ResponseEntity.ok(Map.of("migrated", migrated, "skipped", skipped));
     }
 
     public static class ChangePasswordRequest {
