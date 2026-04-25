@@ -48,9 +48,13 @@ export const AuthService = {
     return response.json();
   },
 
-  checkSession: async (): Promise<User> => {
-    const response = await api.get<User>('/users/me');
-    return response.data;
+  checkSession: async (): Promise<User | null> => {
+    try {
+      const response = await api.get<User>('/users/me');
+      return response.data;
+    } catch {
+      return null;
+    }
   },
 
   logout: async (): Promise<void> => {

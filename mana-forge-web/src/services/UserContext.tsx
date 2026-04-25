@@ -103,10 +103,16 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     AuthService.checkSession()
       .then((userData) => {
-        updateUser(userData);
+        if (userData) {
+          updateUser(userData);
+        } else {
+          setUser(null);
+          persistSession(null);
+        }
       })
       .catch(() => {
-        logout();
+        setUser(null);
+        persistSession(null);
       })
       .finally(() => {
         setIsSessionLoading(false);

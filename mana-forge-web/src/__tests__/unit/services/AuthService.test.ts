@@ -57,9 +57,10 @@ describe('AuthService', () => {
       expect(user.userId).toBe(mockUser.userId);
     });
 
-    it('lanza error si la sesión no es válida', async () => {
+    it('retorna null si la sesión no es válida', async () => {
       server.use(http.get(`${BASE}/users/me`, () => new HttpResponse(null, { status: 401 })));
-      await expect(AuthService.checkSession()).rejects.toThrow();
+      const result = await AuthService.checkSession();
+      expect(result).toBeNull();
     });
   });
 

@@ -54,7 +54,7 @@ describe('UserContext', () => {
         <UserDisplay />
       </AllProviders>
     );
-    // Wait for checkSession to complete (returns 401 → logout → auth=false)
+    // Wait for checkSession to complete (returns null on 401 → auth=false)
     await waitFor(() => {
       expect(screen.getByTestId('auth').textContent).toBe('false');
     });
