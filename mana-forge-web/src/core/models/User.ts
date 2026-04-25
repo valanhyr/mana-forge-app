@@ -6,4 +6,5 @@ export interface User {
   biography: string;
   friends: string[];
   avatar: string;
+  betaAccepted?: boolean;
 }

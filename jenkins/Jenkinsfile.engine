@@ -13,9 +13,9 @@ pipeline {
         DEPLOY_HOST      = '91.98.206.23'
         DEPLOY_USER      = 'root'
         DEPLOY_PATH      = '/root/mana-forge'
-        HEALTH_URL_PROD  = 'http://91.98.206.23:8000/health'
-        // Local
-        HEALTH_URL_LOCAL = 'http://host.docker.internal:8000/health'
+        // Port 8000 is NOT published to the host (security hardening).
+        // Healthcheck uses 'docker exec' to reach the container internally.
+        CONTAINER_NAME   = 'mana-forge-engine-1'
     }
 
     stages {
@@ -106,6 +106,7 @@ pipeline {
                     sh '''
                         echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
                         docker push "$IMAGE_FULL"
+                        echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
                         docker push "$IMAGE_NAME:latest"
                     '''
                 }
@@ -147,15 +148,22 @@ pipeline {
         stage('Healthcheck') {
             steps {
                 script {
-                    def healthUrl = params.ENVIRONMENT == 'local' ? env.HEALTH_URL_LOCAL : env.HEALTH_URL_PROD
                     def healthy = false
                     echo "⏳ Waiting for service to be healthy..."
                     for (int i = 1; i <= 12; i++) {
                         sleep(10)
-                        def status = sh(
-                            script: "curl -sf -o /dev/null -w '%{http_code}' ${healthUrl} || echo '000'",
-                            returnStdout: true
-                        ).trim()
+                        def status
+                        if (params.ENVIRONMENT == 'local') {
+                            status = sh(
+                                script: "docker exec ${env.CONTAINER_NAME} curl -sf -o /dev/null -w '%{http_code}' http://localhost:8000/health 2>/dev/null || echo '000'",
+                                returnStdout: true
+                            ).trim()
+                        } else {
+                            status = sh(
+                                script: "ssh -i /var/jenkins_home/.ssh/hetzner_key -o StrictHostKeyChecking=no ${env.DEPLOY_USER}@${env.DEPLOY_HOST} \"docker exec ${env.CONTAINER_NAME} curl -sf -o /dev/null -w '%{http_code}' http://localhost:8000/health 2>/dev/null || echo '000'\"",
+                                returnStdout: true
+                            ).trim()
+                        }
                         echo "  Attempt ${i}/12: HTTP ${status}"
                         if (status ==~ /^[2-4][0-9]{2}$/) {
                             healthy = true
