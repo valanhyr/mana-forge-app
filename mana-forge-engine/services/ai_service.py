@@ -172,7 +172,7 @@ class AIService:
     async def generate_random_deck(self, locale: str, format_name: Optional[str] = None) -> RandomDeckResponse:
         self._ensure_client()
         locale = sanitize_locale(locale)
-        format_name = sanitize_format_name(format_name) if format_name else None
+        format_name = sanitize_format_name(format_name) if format_name else "Premodern"
 
         tier1 = get_tier1_archetypes(format_name)
         archetype_hint = random.choice(tier1) if tier1 else None
