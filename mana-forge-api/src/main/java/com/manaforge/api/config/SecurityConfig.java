@@ -56,7 +56,7 @@ public class SecurityConfig {
                 // Públicos POST
                 .requestMatchers(HttpMethod.POST, "/api/users", "/api/users/login", "/api/users/logout", "/api/decks/analyze", "/api/decks/scores", "/api/decks/random", "/api/contact").permitAll()
                 // Públicos GET (Contenido)
-                .requestMatchers(HttpMethod.GET, "/api/decks/**", "/api/articles/**", "/api/formats/**", "/api/cards/**", "/api/legal/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/decks/**", "/api/articles/**", "/api/formats/**", "/api/cards/**", "/api/legal/**", "/api/users/verify", "/api/users/username/*", "/api/v1/content/**", "/api/premodern/**").permitAll()
                 .requestMatchers("/actuator/health", "/content-service/**").permitAll()
                 // El resto (incluyendo /api/users/me y listados de usuarios) requiere AUTH
                 .anyRequest().authenticated()
