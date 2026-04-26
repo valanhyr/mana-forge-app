@@ -10,9 +10,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.core.user.OAuth2User;
-import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -50,17 +49,22 @@ public class UserController extends BaseMongoController<User, String> {
     private final UserRepository userRepository;
     private final EmailService emailService;
     private final EmailEncryptionService emailEncryptionService;
-    private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-    private final SecurityContextRepository securityContextRepository = new HttpSessionSecurityContextRepository();
+    private final PasswordEncoder passwordEncoder;
+    private final SecurityContextRepository securityContextRepository;
 
     @Value("${services.frontend.url}")
     private String frontendUrl;
 
-    public UserController(UserRepository repository, EmailService emailService, EmailEncryptionService emailEncryptionService) {
+    public UserController(UserRepository repository, EmailService emailService, 
+                          EmailEncryptionService emailEncryptionService,
+                          PasswordEncoder passwordEncoder,
+                          SecurityContextRepository securityContextRepository) {
         super(repository);
         this.userRepository = repository;
         this.emailService = emailService;
         this.emailEncryptionService = emailEncryptionService;
+        this.passwordEncoder = passwordEncoder;
+        this.securityContextRepository = securityContextRepository;
     }
 
     private User getAuthenticatedUser() {

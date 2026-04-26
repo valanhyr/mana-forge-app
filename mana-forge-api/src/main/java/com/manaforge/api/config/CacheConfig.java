@@ -9,13 +9,13 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cache.concurrent.ConcurrentMapCacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.data.redis.cache.RedisCacheConfiguration;
 import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -30,15 +30,15 @@ public class CacheConfig {
     private static final Logger logger = LoggerFactory.getLogger(CacheConfig.class);
 
     @Bean
-    @ConditionalOnMissingBean(CacheManager.class)
-    public CacheManager fallbackCacheManager() {
-        logger.info("⚠️  Redis not available — using in-memory ConcurrentMapCacheManager");
-        return new ConcurrentMapCacheManager();
-    }
+    @Primary
+    public CacheManager cacheManager(ObjectProvider<RedisConnectionFactory> connectionFactoryProvider) {
+        RedisConnectionFactory connectionFactory = connectionFactoryProvider.getIfAvailable();
 
-    @Bean
-    @ConditionalOnBean(RedisConnectionFactory.class)
-    public CacheManager cacheManager(RedisConnectionFactory connectionFactory) {
+        if (connectionFactory == null) {
+            logger.info("⚠️  RedisConnectionFactory not available — using in-memory ConcurrentMapCacheManager");
+            return new ConcurrentMapCacheManager();
+        }
+
         ObjectMapper mapper = new ObjectMapper();
         mapper.activateDefaultTyping(
             mapper.getPolymorphicTypeValidator(),
@@ -95,7 +95,7 @@ public class CacheConfig {
         // Caché de Premodern - 24 horas
         addCacheConfig(cacheConfigurations, List.of("premodern_banned"), Duration.ofHours(24), serializer);
 
-        logger.info("✅ RedisCacheManager created with {} cache configurations", cacheConfigurations.size());
+        logger.info("✅ RedisCacheManager created with {} specific configurations", cacheConfigurations.size());
 
         return RedisCacheManager.builder(connectionFactory)
                 .cacheDefaults(defaultConfig)

@@ -52,7 +52,7 @@ spring:
       namespace: mana-forge:session
     cookie:
       http-only: true
-      secure: true
+      secure: ${SESSION_COOKIE_SECURE:false}
       same-site: lax
       max-age: 86400  # 24 hours
 
@@ -64,7 +64,7 @@ spring:
     bucket-name: manaforge-cache
   
   cache:
-    type: simple  # Spring usará CacheManager configurado manualmente
+    type: redis
     cache-names:
       - strapiFormats
       - strapiArticles

@@ -12,8 +12,12 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
+import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -32,16 +36,29 @@ public class SecurityConfig {
     private String frontendUrl;
 
     @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public SecurityContextRepository securityContextRepository() {
+        return new HttpSessionSecurityContextRepository();
+    }
+
+    @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .csrf(AbstractHttpConfigurer::disable)
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
-            .securityContext(context -> context.requireExplicitSave(false))
+            .securityContext(context -> context.securityContextRepository(securityContextRepository()))
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers(HttpMethod.POST, "/api/users", "/api/users/login", "/api/decks/analyze", "/api/decks/scores", "/api/decks/random", "/api/contact").permitAll()
-                .requestMatchers("/actuator/health").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/**", "/content-service/**").permitAll()
+                // Públicos POST
+                .requestMatchers(HttpMethod.POST, "/api/users", "/api/users/login", "/api/users/logout", "/api/decks/analyze", "/api/decks/scores", "/api/decks/random", "/api/contact").permitAll()
+                // Públicos GET (Contenido)
+                .requestMatchers(HttpMethod.GET, "/api/decks/**", "/api/articles/**", "/api/formats/**", "/api/cards/**", "/api/legal/**").permitAll()
+                .requestMatchers("/actuator/health", "/content-service/**").permitAll()
+                // El resto (incluyendo /api/users/me y listados de usuarios) requiere AUTH
                 .anyRequest().authenticated()
             )
             .exceptionHandling(e -> e
@@ -56,7 +73,10 @@ public class SecurityConfig {
                 )
                 .successHandler(oAuth2LoginSuccessHandler)
             )
-            .logout(logout -> logout.logoutSuccessHandler((req, res, auth) -> res.setStatus(200)));
+            .logout(logout -> logout
+                .logoutUrl("/api/users/logout")
+                .logoutSuccessHandler((req, res, auth) -> res.setStatus(200))
+            );
 
         return http.build();
     }
@@ -66,8 +86,8 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
 
         // Explicit origin allowlist — never use wildcard with credentials.
-        // The dev origin (localhost:5173) is always included; the production URL is read from env.
-        List<String> allowedOrigins = List.of("http://localhost:5173", frontendUrl);
+        // The dev origin (localhost:5173), Docker local (localhost) and production URL are included.
+        List<String> allowedOrigins = List.of("http://localhost:5173", "http://localhost", frontendUrl);
         configuration.setAllowedOrigins(allowedOrigins);
 
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
