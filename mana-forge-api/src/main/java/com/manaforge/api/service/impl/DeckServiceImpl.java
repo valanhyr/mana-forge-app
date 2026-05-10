@@ -525,20 +525,28 @@ public class DeckServiceImpl implements DeckService {
                     String cardName = (String) mutableCardMap.get("name");
                     if (cardName != null) {
                         cardName = cardName.trim();
-                        // Intentar buscar en repositorio local primero (exacto)
+                        // Intentar buscar en repositorio local primero (puede haber multiples impresiones por nombre)
                         String finalName = cardName;
-                        String manaCost = cardRepository.findByName(finalName)
-                            .map(com.manaforge.api.model.mongo.Card::getManaCost)
-                            .orElse(null);
-                        
-                        // Si falla exacto, probar con el buscador de "contiene"
-                        if (manaCost == null) {
+
+                        Optional<com.manaforge.api.model.mongo.Card> cachedCard = cardRepository.findFirstByNameIgnoreCase(finalName);
+                        if (cachedCard.isEmpty()) {
+                            // Fallback: buscar por "contiene" y tomar el primer match
                             List<com.manaforge.api.model.mongo.Card> matches = cardRepository.findByNameContainingIgnoreCase(finalName);
                             if (!matches.isEmpty()) {
-                                manaCost = matches.get(0).getManaCost();
+                                cachedCard = Optional.of(matches.get(0));
                             }
                         }
-                        
+
+                        String manaCost = cachedCard
+                            .map(com.manaforge.api.model.mongo.Card::getManaCost)
+                            .orElse(null);
+
+                        cachedCard.ifPresent(c -> {
+                            if (Boolean.TRUE.equals(c.getGameChanger())) {
+                                mutableCardMap.put("isGameChanger", true);
+                            }
+                        });
+
                         if (manaCost == null) {
                             try {
                                 Map<String, Object> scryData = scryfallService.getCardNamed(finalName, null, null);
@@ -551,13 +559,6 @@ public class DeckServiceImpl implements DeckService {
                             } catch (Exception e) {
                                 // Ignorar errores de red
                             }
-                        } else {
-                            // Si lo encontramos en cache, intentar sacar el gameChanger si existe
-                            cardRepository.findByName(finalName).ifPresent(c -> {
-                                if (Boolean.TRUE.equals(c.getGameChanger())) {
-                                    mutableCardMap.put("isGameChanger", true);
-                                }
-                            });
                         }
                         
                         if (manaCost != null) {
