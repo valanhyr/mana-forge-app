@@ -229,6 +229,14 @@ class UserControllerTest {
     }
 
     @Test
+    void patchMe_withoutAuth_returns401() throws Exception {
+        mockMvc.perform(patch("/api/users/me")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"avatar\":\"invalid.png\"}"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
     void patchMe_withInvalidAvatar_returns400() throws Exception {
         mockMvc.perform(patch("/api/users/me")
                         .with(authentication(mockAuth()))
