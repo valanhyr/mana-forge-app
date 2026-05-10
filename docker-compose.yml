@@ -75,7 +75,10 @@ services:
   redis:
     image: redis:7-alpine
     container_name: mana-forge-cache-1
-    command: redis-server
+    # Fuerza el usuario default sin password (evita NOAUTH)
+    command: ["redis-server", "--user", "default", "on", "nopass", "~*", "+@all"]
+    ports:
+      - "6379:6379"
     restart: always
     networks:
       - mana-forge-network
