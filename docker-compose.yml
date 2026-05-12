@@ -1,5 +1,5 @@
 services:
-  # FRONTEND: Servido por Nginx (Puerto 80)
+  # FRONTEND: Servido por Nginx (Puerto 80 y 443 para Cloudflare Full SSL)
   web:
     image: ${WEB_IMAGE:-ghcr.io/valanhyr/mana-forge-web:latest}
     build:
@@ -11,6 +11,7 @@ services:
     container_name: mana-forge-web-1
     ports:
       - "80:80"
+      - "443:443"
     depends_on:
       - api
     restart: always
@@ -36,6 +37,7 @@ services:
       - SPRING_DATA_MONGODB_URI=${MONGODB_URI}
       - SPRING_DATA_REDIS_HOST=redis
       - SPRING_DATA_REDIS_PORT=6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
       - SESSION_STORE_TYPE=redis
       # SMTP: Resend
       - SMTP_HOST=${SMTP_HOST:-smtp.resend.com}
@@ -75,8 +77,8 @@ services:
   redis:
     image: redis:7-alpine
     container_name: mana-forge-cache-1
-    # Fuerza el usuario default sin password (evita NOAUTH)
-    command: ["redis-server", "--user", "default", "on", "nopass", "~*", "+@all"]
+    # Secure with password from .env
+    command: ["redis-server", "--requirepass", "${REDIS_PASSWORD}"]
     ports:
       - "6379:6379"
     restart: always
