@@ -8,17 +8,22 @@ import com.manaforge.api.service.EmailService;
 import com.manaforge.api.service.OAuth2LoginSuccessHandler;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Assertions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockHttpSession;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 
+import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Optional;
 
@@ -93,6 +98,10 @@ class UserControllerTest {
                         .content("{\"name\":\"New User\",\"username\":\"newuser\",\"password\":\"pass123\",\"email\":\"new@example.com\"}"))
                 .andExpect(status().is2xxSuccessful());
 
+        verify(userRepository).save(argThat(u -> u.getFriends() != null && u.getFriends().length == 0));
+        verify(userRepository).save(argThat(u -> "".equals(u.getBiography())));
+        verify(userRepository).save(argThat(u -> Boolean.TRUE.equals(u.getActive())));
+        verify(userRepository).save(argThat(u -> Boolean.FALSE.equals(u.getBetaAccepted())));
         verify(emailService, atLeastOnce()).sendVerificationEmail(any());
     }
 
@@ -194,6 +203,81 @@ class UserControllerTest {
     }
 
     @Test
+    void patchMe_canChangeUsername_andSessionKeepsWorking() throws Exception {
+        when(userRepository.findByUsername("newuser")).thenReturn(Optional.of(mockUser));
+
+        MvcResult loginResult = mockMvc.perform(post("/api/users/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"username\":\"testuser\",\"password\":\"password123\"}"))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        MockHttpSession session = (MockHttpSession) loginResult.getRequest().getSession(false);
+        Assertions.assertNotNull(session);
+
+        mockMvc.perform(patch("/api/users/me")
+                        .session(session)
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"username\":\"newuser\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.username").value("newuser"));
+
+        mockMvc.perform(get("/api/users/me")
+                        .session(session))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.username").value("newuser"));
+    }
+
+    @Test
+    void patchMe_emailChange_isRejectedForOAuthAccounts() throws Exception {
+        mockUser.setPassword("");
+
+        OAuth2User oAuth2User = mock(OAuth2User.class);
+        when(oAuth2User.getAttribute("email")).thenReturn("oauth@example.com");
+        when(emailEncryptionService.encrypt("oauth@example.com")).thenReturn("ENC_OAUTH");
+        when(userRepository.findByEmail("ENC_OAUTH")).thenReturn(Optional.of(mockUser));
+
+        mockMvc.perform(patch("/api/users/me")
+                        .with(authentication(new UsernamePasswordAuthenticationToken(
+                                oAuth2User,
+                                null,
+                                List.of(new SimpleGrantedAuthority("ROLE_USER")))))
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"email\":\"new@example.com\"}"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void patchMe_emailChange_setsPendingEmail_andSendsEmail() throws Exception {
+        when(emailEncryptionService.encrypt("new@example.com")).thenReturn("ENC_new");
+        when(userRepository.findByEmail("ENC_new")).thenReturn(Optional.empty());
+
+        MvcResult loginResult = mockMvc.perform(post("/api/users/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"username\":\"testuser\",\"password\":\"password123\"}"))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        MockHttpSession session = (MockHttpSession) loginResult.getRequest().getSession(false);
+        Assertions.assertNotNull(session);
+
+        mockMvc.perform(patch("/api/users/me")
+                        .session(session)
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"email\":\"new@example.com\"}"))
+                .andExpect(status().isOk());
+
+        verify(userRepository).save(argThat(user ->
+                hasFieldValue(user, "pendingEmail", "ENC_new")
+                        && user.getVerificationToken() != null));
+
+        Assertions.assertTrue(emailChangeVerificationWasSent("new@example.com"));
+    }
+
+    @Test
     void getByUsername_found_returns200WithPublicFieldsOnly() throws Exception {
         mockMvc.perform(get("/api/users/username/testuser"))
                 .andExpect(status().isOk())
@@ -248,5 +332,23 @@ class UserControllerTest {
                 .andExpect(status().isUnauthorized());
     }
 
-}
+    private boolean emailChangeVerificationWasSent(String email) {
+        return mockingDetails(emailService).getInvocations().stream()
+                .anyMatch(invocation -> invocation.getMethod().getName().equals("sendEmailChangeVerificationEmail")
+                        && invocation.getArguments().length == 2
+                        && invocation.getArguments()[0] instanceof User
+                        && email.equals(invocation.getArguments()[1]));
+    }
 
+    private boolean hasFieldValue(User user, String fieldName, String expectedValue) {
+        try {
+            Field field = User.class.getDeclaredField(fieldName);
+            field.setAccessible(true);
+            Object actualValue = field.get(user);
+            return expectedValue.equals(actualValue);
+        } catch (ReflectiveOperationException ex) {
+            return false;
+        }
+    }
+
+}
