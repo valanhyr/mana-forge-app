@@ -17,10 +17,22 @@ const VerifyEmail = () => {
   useEffect(() => {
     const token = searchParams.get('token');
     if (!token) return;
+
     AuthService.verifyEmail(token)
-      .then(() => {
+      .then(async () => {
         setStatus('success');
-        setTimeout(() => navigate('/login?verified=true'), 2000);
+
+        let target = '/login?verified=true';
+        try {
+          const sessionUser = await AuthService.checkSession();
+          if (sessionUser) {
+            target = '/profile?verified=true';
+          }
+        } catch {
+          // ignore
+        }
+
+        setTimeout(() => navigate(target), 2000);
       })
       .catch(() => setStatus('error'));
   }, [searchParams, navigate]);
@@ -47,9 +59,7 @@ const VerifyEmail = () => {
           <>
             <XCircle size={48} className="text-red-500" />
             <h2 className="text-2xl font-bold text-white">{t('auth.verifyEmail.title')}</h2>
-            <p className="text-zinc-400 text-sm">
-              El enlace de verificación no es válido o ha expirado.
-            </p>
+            <p className="text-zinc-400 text-sm">{t('auth.verifyEmail.invalidLink')}</p>
             <button
               className="mt-2 text-sm text-orange-500 hover:text-orange-400 transition-colors"
               onClick={() => navigate('/login')}

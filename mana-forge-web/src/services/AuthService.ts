@@ -2,8 +2,12 @@ import { type User } from '../core/models/User';
 import { api, API_URL } from './api';
 
 interface UpdateProfilePayload {
-  biography: string;
-  avatar: string;
+  username?: string;
+  biography?: string;
+  avatar?: string;
+  betaAccepted?: boolean;
+  newEmail?: string;
+  currentPassword?: string;
 }
 
 export const AuthService = {

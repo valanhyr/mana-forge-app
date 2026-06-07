@@ -32,11 +32,20 @@ const Profile = () => {
   const [activeTab, setActiveTab] = useState<'personalInfo' | 'preferences'>('personalInfo');
   const [newsletter, setNewsletter] = useState(true);
 
+  const [username, setUsername] = useState('');
   const [biography, setBiography] = useState('');
   const [selectedAvatar, setSelectedAvatar] = useState(DEFAULT_AVATAR);
   const [draftAvatar, setDraftAvatar] = useState(DEFAULT_AVATAR);
   const [isAvatarModalOpen, setIsAvatarModalOpen] = useState(false);
   const [profileLoading, setProfileLoading] = useState(false);
+
+  // Email change state
+  const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
+  const [newEmail, setNewEmail] = useState('');
+  const [emailPassword, setEmailPassword] = useState('');
+  const [showEmailPassword, setShowEmailPassword] = useState(false);
+  const [emailLoading, setEmailLoading] = useState(false);
+  const [emailError, setEmailError] = useState('');
 
   // Password change state
   const [showPasswordForm, setShowPasswordForm] = useState(false);
@@ -53,6 +62,7 @@ const Profile = () => {
   useEffect(() => {
     if (!user) return;
 
+    setUsername(user.username ?? '');
     setBiography(user.biography ?? '');
     setSelectedAvatar(user.avatar || DEFAULT_AVATAR);
     setDraftAvatar(user.avatar || DEFAULT_AVATAR);
@@ -77,20 +87,32 @@ const Profile = () => {
 
   const hasProfileChanges =
     !!user &&
-    (biography.trim() !== (user.biography ?? '') ||
+    (username.trim() !== (user.username ?? '') ||
+      biography.trim() !== (user.biography ?? '') ||
       selectedAvatar !== (user.avatar || DEFAULT_AVATAR));
 
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user || !hasProfileChanges) return;
 
+    const payload: Parameters<typeof AuthService.updateProfile>[0] = {};
+    if (username.trim() !== (user.username ?? '')) {
+      payload.username = username.trim();
+    }
+    if (biography.trim() !== (user.biography ?? '')) {
+      payload.biography = biography.trim();
+    }
+    if (selectedAvatar !== (user.avatar || DEFAULT_AVATAR)) {
+      payload.avatar = selectedAvatar;
+    }
+
+    if (Object.keys(payload).length === 0) return;
+
     setProfileLoading(true);
     try {
-      const updatedUser = await AuthService.updateProfile({
-        biography: biography.trim(),
-        avatar: selectedAvatar,
-      });
+      const updatedUser = await AuthService.updateProfile(payload);
       updateUser(updatedUser);
+      setUsername(updatedUser.username ?? '');
       setBiography(updatedUser.biography ?? '');
       setSelectedAvatar(updatedUser.avatar || DEFAULT_AVATAR);
       showToast(t('profile.saveSuccess'), 'success');
@@ -98,6 +120,39 @@ const Profile = () => {
       showToast(t('profile.saveError'), 'error');
     } finally {
       setProfileLoading(false);
+    }
+  };
+
+  const handleRequestEmailChange = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newEmail.trim()) return;
+
+    setEmailError('');
+    setEmailLoading(true);
+    try {
+      const updatedUser = await AuthService.updateProfile({
+        newEmail: newEmail.trim(),
+        currentPassword: emailPassword,
+      });
+      updateUser(updatedUser);
+      showToast(t('profile.emailChangeRequested'), 'success');
+      setIsEmailModalOpen(false);
+      setNewEmail('');
+      setEmailPassword('');
+      setShowEmailPassword(false);
+    } catch (err: unknown) {
+      const status = (err as { response?: { status?: number } })?.response?.status;
+      if (status === 401) {
+        setEmailError(t('profile.passwordWrong'));
+      } else if (status === 409) {
+        setEmailError(t('profile.emailAlreadyInUse'));
+      } else if (status === 403) {
+        setEmailError(t('profile.emailChangeNotAvailable'));
+      } else {
+        setEmailError(t('profile.emailChangeError'));
+      }
+    } finally {
+      setEmailLoading(false);
     }
   };
 
@@ -223,9 +278,10 @@ const Profile = () => {
                         />
                         <input
                           type="text"
-                          value={user.username}
-                          disabled
-                          className="w-full bg-zinc-950 border border-zinc-800 rounded-lg py-2.5 pl-10 pr-4 text-zinc-500 cursor-not-allowed"
+                          value={username}
+                          onChange={(e) => setUsername(e.target.value)}
+                          disabled={profileLoading}
+                          className="w-full bg-zinc-950 border border-zinc-800 rounded-lg py-2.5 pl-10 pr-4 text-white focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-all disabled:opacity-50"
                         />
                       </div>
                     </div>
@@ -234,18 +290,46 @@ const Profile = () => {
                       <label className="text-sm font-medium text-zinc-300">
                         {t('profile.email')}
                       </label>
-                      <div className="relative">
-                        <Mail
-                          className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500"
-                          size={18}
-                        />
-                        <input
-                          type="email"
-                          value={user.email}
-                          disabled
-                          className="w-full bg-zinc-950 border border-zinc-800 rounded-lg py-2.5 pl-10 pr-4 text-zinc-500 cursor-not-allowed"
-                        />
+
+                      <div className="flex items-center gap-2">
+                        <div className="relative flex-1">
+                          <Mail
+                            className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500"
+                            size={18}
+                          />
+                          <input
+                            type="email"
+                            value={user.email}
+                            disabled
+                            className="w-full bg-zinc-950 border border-zinc-800 rounded-lg py-2.5 pl-10 pr-4 text-zinc-500 cursor-not-allowed"
+                          />
+                        </div>
+
+                        {user.canChangeEmail ? (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setEmailError('');
+                              setNewEmail('');
+                              setEmailPassword('');
+                              setIsEmailModalOpen(true);
+                            }}
+                            className="shrink-0 px-4 py-2.5 rounded-lg text-sm font-medium bg-zinc-800 hover:bg-zinc-700 text-white transition-colors"
+                          >
+                            {t('profile.changeEmail')}
+                          </button>
+                        ) : null}
                       </div>
+
+                      {user.pendingEmail ? (
+                        <p className="text-xs text-amber-400">
+                          {t('profile.pendingEmailNotice', { email: user.pendingEmail })}
+                        </p>
+                      ) : null}
+
+                      {user.canChangeEmail === false ? (
+                        <p className="text-xs text-zinc-500">{t('profile.emailChangeNotAvailable')}</p>
+                      ) : null}
                     </div>
                   </div>
 
@@ -495,6 +579,134 @@ const Profile = () => {
         onApply={applyAvatarSelection}
         t={t}
       />
+
+      <ChangeEmailModal
+        isOpen={isEmailModalOpen}
+        newEmail={newEmail}
+        password={emailPassword}
+        showPassword={showEmailPassword}
+        loading={emailLoading}
+        error={emailError}
+        onChangeEmail={setNewEmail}
+        onChangePassword={setEmailPassword}
+        onToggleShowPassword={() => setShowEmailPassword(!showEmailPassword)}
+        onClose={() => {
+          setIsEmailModalOpen(false);
+          setEmailError('');
+        }}
+        onSubmit={handleRequestEmailChange}
+        t={t}
+      />
+    </div>
+  );
+};
+
+interface ChangeEmailModalProps {
+  isOpen: boolean;
+  newEmail: string;
+  password: string;
+  showPassword: boolean;
+  loading: boolean;
+  error: string;
+  onChangeEmail: (value: string) => void;
+  onChangePassword: (value: string) => void;
+  onToggleShowPassword: () => void;
+  onClose: () => void;
+  onSubmit: (e: React.FormEvent) => void;
+  t: (key: string, params?: Record<string, string | number>) => string;
+}
+
+const ChangeEmailModal = ({
+  isOpen,
+  newEmail,
+  password,
+  showPassword,
+  loading,
+  error,
+  onChangeEmail,
+  onChangePassword,
+  onToggleShowPassword,
+  onClose,
+  onSubmit,
+  t,
+}: ChangeEmailModalProps) => {
+  if (!isOpen) return null;
+
+  return (
+    <div
+      className="fixed inset-0 z-[230] bg-black/70 backdrop-blur-sm sm:flex sm:items-center sm:justify-center sm:p-4"
+      onClick={onClose}
+    >
+      <div
+        className="w-full h-full sm:h-auto sm:max-w-lg bg-zinc-900 sm:rounded-2xl sm:border sm:border-zinc-800 sm:shadow-2xl overflow-hidden"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between px-4 py-4 border-b border-zinc-800 sm:px-6">
+          <h3 className="text-lg font-bold text-white">{t('profile.changeEmail')}</h3>
+          <button
+            type="button"
+            onClick={onClose}
+            className="text-zinc-400 hover:text-white transition-colors p-2 hover:bg-zinc-800 rounded-lg"
+            aria-label={t('common.cancel')}
+          >
+            <X size={20} />
+          </button>
+        </div>
+
+        <form onSubmit={onSubmit} className="p-4 sm:p-6 space-y-4" noValidate>
+          <div className="space-y-1">
+            <label className="text-sm font-medium text-zinc-400">{t('profile.newEmail')}</label>
+            <input
+              type="email"
+              value={newEmail}
+              onChange={(e) => onChangeEmail(e.target.value)}
+              disabled={loading}
+              className="w-full bg-zinc-950 border border-zinc-800 rounded-lg py-2.5 px-4 text-white focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-all disabled:opacity-50"
+            />
+          </div>
+
+          <div className="space-y-1">
+            <label className="text-sm font-medium text-zinc-400">{t('profile.currentPassword')}</label>
+            <div className="relative">
+              <input
+                type={showPassword ? 'text' : 'password'}
+                value={password}
+                onChange={(e) => onChangePassword(e.target.value)}
+                disabled={loading}
+                className="w-full bg-zinc-950 border border-zinc-800 rounded-lg py-2.5 px-4 pr-10 text-white focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-all disabled:opacity-50"
+              />
+              <button
+                type="button"
+                onClick={onToggleShowPassword}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300"
+              >
+                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
+            </div>
+          </div>
+
+          {error ? <p className="text-red-400 text-sm">{error}</p> : null}
+
+          <div className="flex gap-3 pt-2 justify-end">
+            <button
+              type="button"
+              onClick={onClose}
+              disabled={loading}
+              className="px-5 py-2 rounded-lg text-sm font-medium text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors disabled:opacity-50"
+            >
+              {t('common.cancel')}
+            </button>
+            <button
+              type="submit"
+              disabled={loading || !newEmail.trim()}
+              className="flex items-center gap-2 bg-orange-600 hover:bg-orange-500 disabled:opacity-60 disabled:cursor-not-allowed text-white px-5 py-2 rounded-lg text-sm font-medium transition-colors"
+            >
+              {loading ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
+              {t('profile.requestEmailChange')}
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 };

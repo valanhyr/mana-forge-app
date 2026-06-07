@@ -19,6 +19,7 @@ public class User {
     private String username;
     private String password;
     private String email;
+    private String pendingEmail;
     private String biography;
     private Boolean active;
     private Boolean validated;

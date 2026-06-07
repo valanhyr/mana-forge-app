@@ -204,7 +204,9 @@ class UserControllerTest {
 
     @Test
     void patchMe_canChangeUsername_andSessionKeepsWorking() throws Exception {
-        when(userRepository.findByUsername("newuser")).thenReturn(Optional.of(mockUser));
+        when(userRepository.findByUsername("newuser"))
+                .thenReturn(Optional.empty())
+                .thenReturn(Optional.of(mockUser));
 
         MvcResult loginResult = mockMvc.perform(post("/api/users/login")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -245,8 +247,8 @@ class UserControllerTest {
                                 List.of(new SimpleGrantedAuthority("ROLE_USER")))))
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"email\":\"new@example.com\"}"))
-                .andExpect(status().isBadRequest());
+                        .content("{\"newEmail\":\"new@example.com\"}"))
+                .andExpect(status().isForbidden());
     }
 
     @Test
@@ -267,7 +269,7 @@ class UserControllerTest {
                         .session(session)
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"email\":\"new@example.com\"}"))
+                        .content("{\"newEmail\":\"new@example.com\",\"currentPassword\":\"password123\"}"))
                 .andExpect(status().isOk());
 
         verify(userRepository).save(argThat(user ->

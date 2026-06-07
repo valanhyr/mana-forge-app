@@ -10,6 +10,8 @@ public class UserDto {
     private String name;
     private String username;
     private String email;
+    private String pendingEmail;
+    private Boolean canChangeEmail;
     private String biography;
     private String[] friends;
     private String avatar;

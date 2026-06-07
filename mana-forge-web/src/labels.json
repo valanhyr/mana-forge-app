@@ -72,7 +72,8 @@
         "title": "Revisa tu correo",
         "description": "Te hemos enviado un enlace de verificación a",
         "hint": "Haz clic en el enlace del email para activar tu cuenta.",
-        "backToLogin": "Volver al login"
+        "backToLogin": "Volver al login",
+        "invalidLink": "El enlace de verificación no es válido o ha expirado."
       },
       "verifiedSuccess": "¡Email verificado! Ya puedes iniciar sesión."
     },
@@ -141,6 +142,14 @@
       "subscribe": "Suscribirse al boletín",
       "username": "Nombre de Usuario",
       "email": "Correo Electrónico",
+      "changeEmail": "Cambiar",
+      "newEmail": "Nuevo correo",
+      "requestEmailChange": "Enviar enlace",
+      "pendingEmailNotice": "Tienes un cambio de correo pendiente: {email}. Revisa tu bandeja de entrada.",
+      "emailChangeNotAvailable": "No puedes cambiar el correo en cuentas de Google.",
+      "emailChangeRequested": "Te hemos enviado un enlace de verificación al nuevo correo.",
+      "emailAlreadyInUse": "Ese correo ya está en uso.",
+      "emailChangeError": "No se pudo solicitar el cambio de correo.",
       "biography": "Biografía",
       "avatar": "Avatar",
       "editAvatar": "Editar avatar",
@@ -564,7 +573,8 @@
         "title": "Check your email",
         "description": "We sent a verification link to",
         "hint": "Click the link in the email to activate your account.",
-        "backToLogin": "Back to login"
+        "backToLogin": "Back to login",
+        "invalidLink": "The verification link is invalid or has expired."
       },
       "verifiedSuccess": "Email verified! You can now log in."
     },
@@ -633,6 +643,14 @@
       "subscribe": "Subscribe to newsletter",
       "username": "Username",
       "email": "Email",
+      "changeEmail": "Change",
+      "newEmail": "New email",
+      "requestEmailChange": "Send link",
+      "pendingEmailNotice": "You have a pending email change: {email}. Check your inbox.",
+      "emailChangeNotAvailable": "You can't change email on Google accounts.",
+      "emailChangeRequested": "We sent a verification link to the new email.",
+      "emailAlreadyInUse": "That email is already in use.",
+      "emailChangeError": "Could not request the email change.",
       "biography": "Biography",
       "avatar": "Avatar",
       "editAvatar": "Edit avatar",
