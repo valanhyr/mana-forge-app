@@ -19,13 +19,13 @@ public class User {
     private String username;
     private String password;
     private String email;
-    private String biography;
-    private Boolean active;
+    private String biography = "";
+    private Boolean active = true;
     private Boolean validated;
-    private String[] friends;
+    private String[] friends = new String[0];
     private String avatar = DEFAULT_AVATAR;
     private String verificationToken;
-    private Boolean betaAccepted;
+    private Boolean betaAccepted = false;
 
     public User(
         String name,

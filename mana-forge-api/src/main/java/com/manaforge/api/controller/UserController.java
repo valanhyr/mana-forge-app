@@ -138,6 +138,21 @@ public class UserController extends BaseMongoController<User, String> {
 
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         user.setEmail(encryptedEmail);
+
+        // Normalize defaults so local signups create the same user shape as Google OAuth signups.
+        if (user.getFriends() == null) {
+            user.setFriends(new String[0]);
+        }
+        if (user.getBiography() == null) {
+            user.setBiography("");
+        }
+        if (user.getActive() == null) {
+            user.setActive(true);
+        }
+        if (user.getBetaAccepted() == null) {
+            user.setBetaAccepted(false);
+        }
+
         user.setValidated(false);
         user.setVerificationToken(UUID.randomUUID().toString());
         user.setAvatar(normalizeAvatar(user.getAvatar()));
