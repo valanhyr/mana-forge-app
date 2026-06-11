@@ -169,11 +169,13 @@ management:
         authorization: "Basic ${GRAFANA_OTLP_AUTH:}"
     metrics:
       export:
+        enabled: ${GRAFANA_OTEL_ENABLED:false}
         url: ${GRAFANA_OTLP_ENDPOINT:https://otlp-gateway-prod-eu-west-0.grafana.net/otlp}/v1/metrics
         headers:
           authorization: "Basic ${GRAFANA_OTLP_AUTH:}"
   logging:
     export:
+      enabled: ${GRAFANA_OTEL_ENABLED:false}
       otlp:
         endpoint: ${GRAFANA_OTLP_ENDPOINT:https://otlp-gateway-prod-eu-west-0.grafana.net/otlp}/v1/logs
         headers:
