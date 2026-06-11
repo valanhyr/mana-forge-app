@@ -72,7 +72,7 @@ services:
     container_name: mana-forge-engine-1
     environment:
       - GROQ_API_KEY=${GROQ_API_KEY}
-      - OTEL_SDK_DISABLED=true
+      - OTEL_SDK_DISABLED=${OTEL_SDK_DISABLED:-true}
       - OTEL_SERVICE_NAME=mana-forge-engine
       - OTEL_EXPORTER_OTLP_ENDPOINT=${GRAFANA_OTLP_ENDPOINT:-}
       - OTEL_EXPORTER_OTLP_HEADERS=Authorization=Basic ${GRAFANA_OTLP_AUTH:-}
