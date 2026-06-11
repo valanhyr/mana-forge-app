@@ -49,6 +49,9 @@ services:
       - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
       - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
       - EMAIL_ENCRYPTION_KEY=${EMAIL_ENCRYPTION_KEY}
+      - GRAFANA_OTEL_ENABLED=${GRAFANA_OTEL_ENABLED:-false}
+      - GRAFANA_OTLP_ENDPOINT=${GRAFANA_OTLP_ENDPOINT:-}
+      - GRAFANA_OTLP_AUTH=${GRAFANA_OTLP_AUTH:-}
     depends_on:
       engine:
         condition: service_started
@@ -69,6 +72,10 @@ services:
     container_name: mana-forge-engine-1
     environment:
       - GROQ_API_KEY=${GROQ_API_KEY}
+      - OTEL_SDK_DISABLED=true
+      - OTEL_SERVICE_NAME=mana-forge-engine
+      - OTEL_EXPORTER_OTLP_ENDPOINT=${GRAFANA_OTLP_ENDPOINT:-}
+      - OTEL_EXPORTER_OTLP_HEADERS=Authorization=Basic ${GRAFANA_OTLP_AUTH:-}
     restart: always
     networks:
       - mana-forge-network
