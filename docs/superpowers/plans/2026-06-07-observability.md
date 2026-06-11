@@ -420,10 +420,14 @@ git push
 
 Once you have the Grafana Cloud credentials:
 
-1. In `.env`:
+1. In `.env`, set ALL of the following:
    ```env
+   # Enable OTel for Spring Boot API
    GRAFANA_OTEL_ENABLED=true
-   GRAFANA_OTLP_AUTH=<base64(instanceId:apiToken)>
+   # Enable OTel for FastAPI engine (separate flag — Docker Compose can't invert booleans)
+   OTEL_SDK_DISABLED=false
+   # Grafana Cloud credentials
+   GRAFANA_OTLP_AUTH=<base64(instanceId:apiToken)>  # base64("instanceId:apiToken")
    VITE_FARO_URL=https://faro-collector-prod-eu-west-0.grafana.net/collect/<app-key>
    ```
 2. Rebuild and restart: `docker compose up -d --build`
