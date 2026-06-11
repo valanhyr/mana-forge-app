@@ -2,6 +2,7 @@
 import logging
 import os
 import uvicorn
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
@@ -39,9 +40,19 @@ def _setup_otel(fastapi_app: FastAPI) -> None:
     )
     trace.set_tracer_provider(provider)
     FastAPIInstrumentor.instrument_app(fastapi_app)
+    fastapi_app.state.otel_provider = provider
     logger.info("OpenTelemetry tracing initialized → %s", endpoint)
 
-app = FastAPI(title="Mana Forge Engine", version="1.0.0")
+
+@asynccontextmanager
+async def lifespan(fastapi_app: FastAPI):
+    yield
+    if hasattr(fastapi_app.state, "otel_provider"):
+        fastapi_app.state.otel_provider.shutdown()
+        logger.info("OpenTelemetry provider shut down")
+
+
+app = FastAPI(title="Mana Forge Engine", version="1.0.0", lifespan=lifespan)
 _setup_otel(app)
 
 _raw_origins = os.environ.get("CORS_ORIGINS", "http://localhost:5173,http://localhost:8080")
