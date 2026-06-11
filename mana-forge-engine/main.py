@@ -6,6 +6,11 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 from routers import sideboard, analysis, random_deck
+from opentelemetry import trace
+from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.trace.export import BatchSpanProcessor
+from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
+from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 
 load_dotenv()
 
@@ -15,7 +20,29 @@ logging.basicConfig(
 )
 logger = logging.getLogger("mana-forge-engine")
 
+def _setup_otel(fastapi_app: FastAPI) -> None:
+    """Initialize OTel tracing only when OTEL_SDK_DISABLED != 'true'."""
+    if os.environ.get("OTEL_SDK_DISABLED", "true").lower() == "true":
+        return
+    endpoint = os.environ.get("OTEL_EXPORTER_OTLP_ENDPOINT", "")
+    if not endpoint:
+        return
+    headers_raw = os.environ.get("OTEL_EXPORTER_OTLP_HEADERS", "")
+    headers = {}
+    for part in headers_raw.split(","):
+        if "=" in part:
+            k, v = part.split("=", 1)
+            headers[k.strip()] = v.strip()
+    provider = TracerProvider()
+    provider.add_span_processor(
+        BatchSpanProcessor(OTLPSpanExporter(endpoint=f"{endpoint}/v1/traces", headers=headers))
+    )
+    trace.set_tracer_provider(provider)
+    FastAPIInstrumentor.instrument_app(fastapi_app)
+    logger.info("OpenTelemetry tracing initialized → %s", endpoint)
+
 app = FastAPI(title="Mana Forge Engine", version="1.0.0")
+_setup_otel(app)
 
 _raw_origins = os.environ.get("CORS_ORIGINS", "http://localhost:5173,http://localhost:8080")
 _allowed_origins = [o.strip() for o in _raw_origins.split(",") if o.strip()]
