@@ -158,10 +158,30 @@ logging:
     com.couchbase: WARN
 
 management:
+  tracing:
+    enabled: ${GRAFANA_OTEL_ENABLED:false}
+    sampling:
+      probability: 1.0
+  otlp:
+    tracing:
+      endpoint: ${GRAFANA_OTLP_ENDPOINT:https://otlp-gateway-prod-eu-west-0.grafana.net/otlp}/v1/traces
+      headers:
+        authorization: "Basic ${GRAFANA_OTLP_AUTH:}"
+    metrics:
+      export:
+        url: ${GRAFANA_OTLP_ENDPOINT:https://otlp-gateway-prod-eu-west-0.grafana.net/otlp}/v1/metrics
+        headers:
+          authorization: "Basic ${GRAFANA_OTLP_AUTH:}"
+  logging:
+    export:
+      otlp:
+        endpoint: ${GRAFANA_OTLP_ENDPOINT:https://otlp-gateway-prod-eu-west-0.grafana.net/otlp}/v1/logs
+        headers:
+          authorization: "Basic ${GRAFANA_OTLP_AUTH:}"
   endpoints:
     web:
       exposure:
-        include: health
+        include: health, metrics
   endpoint:
     health:
       show-details: never
