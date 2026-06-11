@@ -6,11 +6,6 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 from routers import sideboard, analysis, random_deck
-from opentelemetry import trace
-from opentelemetry.sdk.trace import TracerProvider
-from opentelemetry.sdk.trace.export import BatchSpanProcessor
-from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
-from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 
 load_dotenv()
 
@@ -24,6 +19,11 @@ def _setup_otel(fastapi_app: FastAPI) -> None:
     """Initialize OTel tracing only when OTEL_SDK_DISABLED != 'true'."""
     if os.environ.get("OTEL_SDK_DISABLED", "true").lower() == "true":
         return
+    from opentelemetry import trace
+    from opentelemetry.sdk.trace import TracerProvider
+    from opentelemetry.sdk.trace.export import BatchSpanProcessor
+    from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
+    from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
     endpoint = os.environ.get("OTEL_EXPORTER_OTLP_ENDPOINT", "")
     if not endpoint:
         return
