@@ -98,6 +98,45 @@ SMTP_FROM=noreply@yourdomain.com
 
 ---
 
+## 📈 Observability
+
+Mana Forge ships observability behind feature flags so local development still works without Grafana credentials.
+
+### Backend and engine
+
+Set these variables in the root `.env` file:
+
+```env
+GRAFANA_OTEL_ENABLED=true
+OTEL_SDK_DISABLED=false
+GRAFANA_OTLP_ENDPOINT=https://otlp-gateway-prod-eu-west-0.grafana.net/otlp
+GRAFANA_OTLP_AUTH=<base64(instanceId:apiToken)>
+```
+
+### Frontend
+
+The React app reads Faro config at build time, so rebuild the web image after changing these:
+
+```env
+VITE_FARO_URL=https://faro-collector-prod-eu-west-0.grafana.net/collect/<app-key>
+VITE_FARO_APP_NAME=mana-forge-web
+```
+
+Then rebuild and restart:
+
+```bash
+docker compose build web api engine
+docker compose up -d
+```
+
+### Runtime checks
+
+- `http://localhost/healthz` → web container
+- `http://localhost:8080/actuator/health` → Spring Boot API
+- `http://localhost:8000/health` → FastAPI engine (inside Docker network unless port is published)
+
+---
+
 ## 🛠️ Local Development
 
 ### Frontend
