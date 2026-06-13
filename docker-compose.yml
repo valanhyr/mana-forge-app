@@ -6,14 +6,22 @@ services:
       context: ./mana-forge-web
       dockerfile: Dockerfile
       args:
-        # Usamos /api para que Nginx haga de puente y evitemos Mixed Content
         - VITE_API_URL=/api
+        - VITE_FARO_URL=${VITE_FARO_URL:-}
+        - VITE_FARO_APP_NAME=${VITE_FARO_APP_NAME:-mana-forge-web}
     container_name: mana-forge-web-1
     ports:
       - "80:80"
       - "443:443"
     depends_on:
-      - api
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost/healthz"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
     restart: always
     networks:
       - mana-forge-network
