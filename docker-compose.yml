@@ -62,9 +62,15 @@ services:
       - GRAFANA_OTLP_AUTH=${GRAFANA_OTLP_AUTH:-}
     depends_on:
       engine:
-        condition: service_started
+        condition: service_healthy
       redis:
         condition: service_started
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
     restart: always
     networks:
       - mana-forge-network
@@ -84,6 +90,12 @@ services:
       - OTEL_SERVICE_NAME=mana-forge-engine
       - OTEL_EXPORTER_OTLP_ENDPOINT=${GRAFANA_OTLP_ENDPOINT:-}
       - OTEL_EXPORTER_OTLP_HEADERS=Authorization=Basic ${GRAFANA_OTLP_AUTH:-}
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
     restart: always
     networks:
       - mana-forge-network
