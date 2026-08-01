@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Profile;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -22,6 +23,7 @@ import com.manaforge.api.service.OAuth2LoginSuccessHandler;
 
 @Configuration
 @EnableWebSecurity
+@Profile("!test") // Do not apply security configuration when the 'test' profile is active
 public class SecurityConfig {
 
     @Autowired
