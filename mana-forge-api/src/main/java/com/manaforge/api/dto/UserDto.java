@@ -14,4 +14,6 @@ public class UserDto {
     private String[] friends;
     private String avatar;
     private Boolean betaAccepted;
+    private String pendingEmail;
+    private boolean canChangeEmail;
 }

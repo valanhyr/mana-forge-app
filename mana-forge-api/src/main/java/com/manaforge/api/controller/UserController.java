@@ -85,6 +85,8 @@ public class UserController extends BaseMongoController<User, String> {
     }
 
     private UserDto toDto(User user) {
+        String decryptedPendingEmail = user.getPendingEmail() != null ? emailEncryptionService.decrypt(user.getPendingEmail()) : null;
+        boolean canChangeEmail = user.getPassword() != null && !user.getPassword().isEmpty();
         return UserDto.builder()
                 .userId(user.getId())
                 .name(user.getName())
@@ -94,6 +96,8 @@ public class UserController extends BaseMongoController<User, String> {
                 .friends(user.getFriends())
                 .avatar(user.getAvatar())
                 .betaAccepted(user.getBetaAccepted())
+                .pendingEmail(decryptedPendingEmail)
+                .canChangeEmail(canChangeEmail)
                 .build();
     }
 
@@ -170,6 +174,10 @@ public class UserController extends BaseMongoController<User, String> {
         log.info("User found: {}", userOpt.isPresent());
         if (userOpt.isPresent()) {
             var user = userOpt.get();
+            if (user.getPendingEmail() != null) {
+                user.setEmail(user.getPendingEmail());
+                user.setPendingEmail(null);
+            }
             user.setValidated(true);
             user.setVerificationToken(null);
             userRepository.save(user);
@@ -208,7 +216,10 @@ public class UserController extends BaseMongoController<User, String> {
     }
 
     @PatchMapping("/me")
-    public ResponseEntity<UserDto> updateMe(@RequestBody UpdateMeRequest req) {
+    public ResponseEntity<UserDto> updateMe(
+            @RequestBody UpdateMeRequest req,
+            HttpServletRequest request,
+            HttpServletResponse response) {
         User user = getAuthenticatedUser();
 
         if (req.getBiography() != null) {
@@ -219,6 +230,46 @@ public class UserController extends BaseMongoController<User, String> {
         }
         if (req.getBetaAccepted() != null) {
             user.setBetaAccepted(req.getBetaAccepted());
+        }
+
+        if (req.getUsername() != null) {
+            String newUsername = req.getUsername().trim();
+            if (newUsername.isEmpty()) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Username cannot be empty");
+            }
+            if (!newUsername.equals(user.getUsername())) {
+                var existingUser = userRepository.findByUsername(newUsername);
+                if (existingUser.isPresent() && !existingUser.get().getId().equals(user.getId())) {
+                    throw new ResponseStatusException(HttpStatus.CONFLICT, "El nombre de usuario ya está en uso");
+                }
+                user.setUsername(newUsername);
+                
+                // Update SecurityContext with new username
+                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                    newUsername, null, AuthorityUtils.createAuthorityList("ROLE_USER")
+                );
+                SecurityContext context = SecurityContextHolder.createEmptyContext();
+                context.setAuthentication(authentication);
+                SecurityContextHolder.setContext(context);
+                securityContextRepository.saveContext(context, request, response);
+            }
+        }
+
+        if (req.getEmail() != null) {
+            String newEmail = req.getEmail().trim();
+            String currentEmail = emailEncryptionService.decrypt(user.getEmail());
+            if (!newEmail.equals(currentEmail)) {
+                if (user.getPassword() == null || user.getPassword().isEmpty()) {
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email change not allowed for OAuth accounts");
+                }
+                String encryptedNewEmail = emailEncryptionService.encrypt(newEmail);
+                if (userRepository.findByEmail(encryptedNewEmail).isPresent()) {
+                    throw new ResponseStatusException(HttpStatus.CONFLICT, "El correo electrónico ya está registrado");
+                }
+                user.setPendingEmail(encryptedNewEmail);
+                user.setVerificationToken(UUID.randomUUID().toString());
+                emailService.sendEmailChangeVerificationEmail(user, newEmail);
+            }
         }
 
         userRepository.save(user);
@@ -280,6 +331,8 @@ public class UserController extends BaseMongoController<User, String> {
         private String biography;
         private String avatar;
         private Boolean betaAccepted;
+        private String username;
+        private String email;
 
         public String getBiography() { return biography; }
         public void setBiography(String biography) { this.biography = biography; }
@@ -287,6 +340,10 @@ public class UserController extends BaseMongoController<User, String> {
         public void setAvatar(String avatar) { this.avatar = avatar; }
         public Boolean getBetaAccepted() { return betaAccepted; }
         public void setBetaAccepted(Boolean betaAccepted) { this.betaAccepted = betaAccepted; }
+        public String getUsername() { return username; }
+        public void setUsername(String username) { this.username = username; }
+        public String getEmail() { return email; }
+        public void setEmail(String email) { this.email = email; }
     }
 
     public static class LoginRequest {

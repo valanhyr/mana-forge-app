@@ -23,7 +23,6 @@ import com.manaforge.api.service.OAuth2LoginSuccessHandler;
 
 @Configuration
 @EnableWebSecurity
-@Profile("!test") // Do not apply security configuration when the 'test' profile is active
 public class SecurityConfig {
 
     @Autowired

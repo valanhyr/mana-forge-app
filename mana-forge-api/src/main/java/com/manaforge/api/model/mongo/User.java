@@ -26,6 +26,7 @@ public class User {
     private String avatar = DEFAULT_AVATAR;
     private String verificationToken;
     private Boolean betaAccepted = false;
+    private String pendingEmail;
 
     public User(
         String name,
