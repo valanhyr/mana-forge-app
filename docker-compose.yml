@@ -9,9 +9,14 @@ services:
         # Usamos /api para que Nginx haga de puente y evitemos Mixed Content
         - VITE_API_URL=/api
     container_name: mana-forge-web-1
-    ports:
-      - "80:80"
-      - "443:443"
+    # Los puertos ya no se exponen al host, Traefik se encarga de ello.
+    # ports:
+    #   - "80:80"
+    #   - "443:443"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.${TRAEFIK_ROUTER_NAME}.rule=Host(`${FRONTEND_URL_HOST}`)"
+      - "traefik.http.services.${TRAEFIK_ROUTER_NAME}.loadbalancer.server.port=80"
     depends_on:
       - api
     restart: always
@@ -25,8 +30,13 @@ services:
       context: ./mana-forge-api
       dockerfile: Dockerfile
     container_name: mana-forge-api-1
-    ports:
-      - "8080:8080"
+    # El puerto 8080 no necesita ser público, el frontend lo llama internamente
+    # a través de la configuración de Nginx.
+    labels:
+      - "traefik.enable=true"
+      # Regla: si la URL es 'mana-forge.com/api' (o pre.mana-forge.com/api), dirige el tráfico aquí.
+      - "traefik.http.routers.${TRAEFIK_ROUTER_NAME}-api.rule=Host(`${FRONTEND_URL_HOST}`) && PathPrefix(`/api`)"
+      - "traefik.http.services.${TRAEFIK_ROUTER_NAME}-api.loadbalancer.server.port=8080"
     environment:
       # Comunicación interna: 'engine' es el nombre del servicio de abajo
       - SERVICES_PYTHON_ENGINE_URL=http://engine:8000
@@ -79,8 +89,6 @@ services:
     container_name: mana-forge-cache-1
     # Secure with password from .env
     command: ["redis-server", "--requirepass", "${REDIS_PASSWORD}"]
-    ports:
-      - "6379:6379"
     restart: always
     networks:
       - mana-forge-network
@@ -89,3 +97,7 @@ services:
 networks:
   mana-forge-network:
     driver: bridge
+  # Red externa para comunicarse con el reverse proxy
+  proxy-network:
+    external: true
+    name: traefik-reverse-proxy_proxy-network

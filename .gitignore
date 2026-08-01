@@ -14,7 +14,7 @@ __pycache__/
 mana-forge-web/coverage/
 
 # Git worktrees (local only)
-.worktrees/
+.worktrees/*
 
 # Superpowers visual companion artifacts (local only)
 .superpowers/
