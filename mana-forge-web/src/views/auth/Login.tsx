@@ -74,11 +74,12 @@ const AuthModal = ({ isOpen = true, onClose }: AuthModalProps) => {
         setRegistrationDone(true);
       }
     } catch (err: unknown) {
-      setError(
-        (err as Error).message === 'EMAIL_NOT_VERIFIED'
-          ? t('auth.error.emailNotVerified')
-          : (err as Error).message || (isLogin ? t('auth.error.credentials') : t('auth.error.notImplemented'))
-      );
+      const msg = (err as Error).message;
+      const userMessage = msg === 'EMAIL_NOT_VERIFIED'
+        ? t('auth.error.emailNotVerified')
+        : msg || (isLogin ? t('auth.error.credentials') : t('auth.error.notImplemented'));
+      setError(userMessage);
+      showToast(userMessage, 'error');
     } finally {
       setIsLoading(false);
     }

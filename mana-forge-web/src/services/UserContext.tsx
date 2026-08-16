@@ -79,9 +79,14 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       await AuthService.register(username, email, password);
       // No auto-login: user must verify email first
-    } catch (error) {
+    } catch (error: any) {
       console.error('Register error:', error);
-      throw error;
+      // Map service error codes to user-friendly messages via translation hook
+      const code = (error?.message || '').toString();
+      if (code === 'USERNAME_TAKEN') throw new Error(t('auth.errors.username_taken'));
+      if (code === 'EMAIL_TAKEN') throw new Error(t('auth.errors.email_taken'));
+      if (code === 'CONFLICT') throw new Error(t('auth.errors.conflict'));
+      throw new Error(error?.message || t('auth.errors.generic'));
     }
   };
 

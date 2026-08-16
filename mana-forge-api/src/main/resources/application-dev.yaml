@@ -28,6 +28,9 @@ spring:
 
 logging:
   level:
+    org.springframework.security: DEBUG
+
+  level:
     com.manaforge.api: DEBUG
     org.hibernate.SQL: DEBUG
     org.springframework.data.mongodb: DEBUG

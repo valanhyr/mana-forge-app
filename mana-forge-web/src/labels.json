@@ -68,6 +68,12 @@
         "emailInvalid": "Introduce un email válido",
         "emailNotVerified": "Debes verificar tu correo antes de entrar. Revisa tu bandeja de entrada."
       },
+      "errors": {
+        "username_taken": "El nombre de usuario ya está en uso",
+        "email_taken": "El correo electrónico ya está registrado",
+        "conflict": "Conflicto en el registro, inténtalo con otros datos",
+        "generic": "No se pudo registrar. Inténtalo de nuevo más tarde."
+      },
       "verifyEmail": {
         "title": "Revisa tu correo",
         "description": "Te hemos enviado un enlace de verificación a",
@@ -567,6 +573,12 @@
         "backToLogin": "Back to login"
       },
       "verifiedSuccess": "Email verified! You can now log in."
+    },
+    "errors": {
+      "username_taken": "Username is already in use",
+      "email_taken": "Email address is already registered",
+      "conflict": "Registration conflict, try different details",
+      "generic": "Could not register. Please try again later."
     },
     "beta": {
       "bannerText": "✨ Help us improve Mana Forge with your feedback",

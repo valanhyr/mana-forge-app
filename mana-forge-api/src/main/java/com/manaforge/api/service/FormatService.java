@@ -54,12 +54,8 @@ public class FormatService {
     }
 
     private FormatSummaryDto mapToSummary(StrapiFormatData data) {
-        String descriptionText = data.getSection().stream()
-                .filter(c -> "description".equals(c.getName()))
-                .findFirst()
-                .map(StrapiComponent::getDescription)
-                .orElse("");
-
+        // Description is available in the full detail mapping; don't compute it here to avoid unused-variable warnings.
+        // If needed in the summary view later, include it explicitly.
         return FormatSummaryDto.builder()
                 .mongoId(data.getMongoId())
                 .title(data.getTitle())

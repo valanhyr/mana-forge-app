@@ -36,13 +36,34 @@ export const AuthService = {
       headers: {
         'Content-Type': 'application/json',
       },
+      credentials: 'include',
       body: JSON.stringify({ username, email, password }),
     });
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      // Spring Boot devuelve el mensaje en 'message', fallback a 'error' o texto genérico
-      throw new Error(errorData.message || errorData.error || 'Error en el registro');
+      // Try to parse JSON, fallback to text so we catch plain messages
+      let errorData: any = {};
+      let bodyText = '';
+      try {
+        errorData = await response.json();
+      } catch (e) {
+        try { bodyText = await response.text(); } catch { bodyText = ''; }
+      }
+
+      // Prefer explicit fields, otherwise use raw body text
+      const rawMsg = (errorData?.message || errorData?.error || bodyText || '').toString();
+      const msg = rawMsg.toLowerCase();
+
+      // Helpful debug log for client-side troubleshooting
+      // eslint-disable-next-line no-console
+      console.debug('AuthService.register response', { status: response.status, errorData, bodyText, rawMsg });
+
+      if (response.status === 409) {
+        if (msg.includes('nombre de usuario') || msg.includes('username') || msg.includes('usuario ya')) throw new Error('USERNAME_TAKEN');
+        if (msg.includes('correo') || msg.includes('email') || msg.includes('ya est') || msg.includes('registrad')) throw new Error('EMAIL_TAKEN');
+        throw new Error('CONFLICT');
+      }
+      throw new Error(rawMsg || 'Error en el registro');
     }
 
     return response.json();

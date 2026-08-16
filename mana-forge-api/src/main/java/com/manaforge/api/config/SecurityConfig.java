@@ -28,6 +28,9 @@ public class SecurityConfig {
     @Autowired
     private OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
 
+    @Autowired
+    private SecurityAuthEntryPoint securityAuthEntryPoint;
+
     /** Production frontend URL (e.g. https://mana-forge.com). Injected from FRONTEND_URL env var. */
     @Value("${services.frontend.url}")
     private String frontendUrl;
@@ -43,10 +46,11 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/api/users", "/api/users/login", "/api/decks/analyze", "/api/decks/scores", "/api/decks/random", "/api/contact").permitAll()
                 .requestMatchers("/actuator/health").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/**", "/content-service/**").permitAll()
+                .requestMatchers("/error", "/error/**").permitAll()
                 .anyRequest().authenticated()
             )
             .exceptionHandling(e -> e
-                .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
+                .authenticationEntryPoint(securityAuthEntryPoint)
             )
             .oauth2Login(oauth -> oauth
                 .authorizationEndpoint(auth -> auth
