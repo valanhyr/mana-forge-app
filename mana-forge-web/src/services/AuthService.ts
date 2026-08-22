@@ -54,7 +54,13 @@ export const AuthService = {
         }
       }
       // Prefer explicit fields, otherwise use raw body text
-      const rawMsg = (errorData && typeof errorData === 'object' && 'message' in errorData ? (errorData as any).message : (errorData && typeof errorData === 'object' && 'error' in errorData ? (errorData as any).error : bodyText)).toString();
+      let rawMsg = '';
+      if (errorData && typeof errorData === 'object') {
+        const ed = errorData as Record<string, unknown>;
+        if (typeof ed.message === 'string') rawMsg = ed.message;
+        else if (typeof ed.error === 'string') rawMsg = ed.error;
+      }
+      if (!rawMsg) rawMsg = bodyText;
       const msg = rawMsg.toLowerCase();
 
       // Helpful debug log for client-side troubleshooting

@@ -82,7 +82,11 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } catch (error: unknown) {
       console.error('Register error:', error);
       // Map service error codes to user-friendly messages via translation hook
-      const code = (error as any)?.message?.toString() ?? '';
+      let code = '';
+      if (error && typeof error === 'object' && 'message' in error) {
+        const msg = (error as Record<string, unknown>)['message'];
+        if (typeof msg === 'string') code = msg;
+      }
       if (code === 'USERNAME_TAKEN') throw new Error(t('auth.errors.username_taken'));
       if (code === 'EMAIL_TAKEN') throw new Error(t('auth.errors.email_taken'));
       if (code === 'CONFLICT') throw new Error(t('auth.errors.conflict'));
