@@ -54,7 +54,7 @@ class AIService:
             self.client = AsyncGroq(api_key=api_key)
             # Model name configurable via environment; fallback to the historical default
             env_model = os.environ.get("GROQ_MODEL")
-            self.model = env_model if env_model else "groq/compound"
+            self.model = env_model if env_model else "groq/compound-mini"
             logger.info("Using Groq model: %s", self.model)
 
     def _ensure_client(self):
