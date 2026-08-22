@@ -52,7 +52,10 @@ class AIService:
             self.client = None
         else:
             self.client = AsyncGroq(api_key=api_key)
-        self.model = "llama-3.3-70b-versatile"
+            # Model name configurable via environment; fallback to the historical default
+            env_model = os.environ.get("GROQ_MODEL")
+            self.model = env_model if env_model else "groq/compound"
+            logger.info("Using Groq model: %s", self.model)
 
     def _ensure_client(self):
         if not self.client:
