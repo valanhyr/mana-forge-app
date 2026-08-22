@@ -12,6 +12,8 @@ import {
   ThumbsUp,
   Camera,
   Star,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 import { DeckService, type DailyDeck, type FeaturedDeck } from '../../services/DeckService';
 import { ScryfallService } from '../../services/ScryfallService';
@@ -52,6 +54,39 @@ const Dashboard = () => {
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
   const [hoveredStar, setHoveredStar] = useState<number>(0);
   const [ratingLoading, setRatingLoading] = useState(false);
+  const [carouselIndex, setCarouselIndex] = useState(0);
+  const [isCarouselHovered, setIsCarouselHovered] = useState(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 1024);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  useEffect(() => {
+    if (articles.length <= 3) return;
+    if (isCarouselHovered) return;
+
+    const interval = setInterval(() => {
+      setCarouselIndex((prevIndex) => {
+        const nextIndex = prevIndex + 1;
+        const maxIndex = isMobile ? articles.length - 1 : Math.max(0, articles.length - 3);
+        return nextIndex > maxIndex ? 0 : nextIndex;
+      });
+    }, 4000);
+
+    return () => clearInterval(interval);
+  }, [articles.length, isCarouselHovered, isMobile]);
+
+  useEffect(() => {
+    const maxIndex = isMobile ? articles.length - 1 : Math.max(0, articles.length - 3);
+    if (carouselIndex > maxIndex) {
+      setCarouselIndex(maxIndex);
+    }
+  }, [isMobile, articles.length, carouselIndex]);
 
   useEffect(() => {
     const fetchDailyDeck = async () => {
@@ -311,32 +346,121 @@ const Dashboard = () => {
       {/* --- Sección de Noticias --- */}
       <section>
         <h2 className="text-3xl font-bold text-white mb-6">{t('dashboard.newsTitle')}</h2>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {articles.map((item) => (
-            <Link
-              to={`/articles/${item.documentId}`}
-              key={`${item.documentId}`}
-              className="group relative block overflow-hidden rounded-2xl shadow-lg"
-            >
-              <div className="absolute inset-0 z-0">
-                <img
-                  src={`${item.imageUrl}`}
-                  alt={`${item.title}`}
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+        {articles.length > 3 ? (
+          <div
+            className="relative"
+            onMouseEnter={() => setIsCarouselHovered(true)}
+            onMouseLeave={() => setIsCarouselHovered(false)}
+          >
+            {/* Carousel track wrapper */}
+            <div className="overflow-hidden rounded-2xl w-full">
+              <div
+                className="flex transition-transform duration-500 ease-in-out"
+                style={{
+                  transform: `translateX(-${carouselIndex * (isMobile ? 100 : 100 / 3)}%)`,
+                }}
+              >
+                {articles.map((item) => (
+                  <div
+                    key={`${item.documentId}`}
+                    className={`shrink-0 ${isMobile ? 'w-full px-2' : 'w-1/3 px-4'}`}
+                  >
+                    <Link
+                      to={`/articles/${item.documentId}`}
+                      className="group relative block overflow-hidden rounded-2xl shadow-lg"
+                    >
+                      <div className="absolute inset-0 z-0">
+                        <img
+                          src={`${item.imageUrl}`}
+                          alt={`${item.title}`}
+                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent"></div>
+                      </div>
+                      <div className="relative z-10 flex flex-col justify-end h-64 p-6 text-white">
+                        <h3 className="text-xl font-bold line-clamp-1">{item.title}</h3>
+                        <p className="text-sm text-zinc-300 mt-1 line-clamp-2">{item.subtitle}</p>
+                        <div className="mt-4 inline-flex items-center gap-2 text-orange-500 font-semibold text-sm group-hover:underline">
+                          {t('common.readMore')}
+                          <ArrowRight size={16} />
+                        </div>
+                      </div>
+                    </Link>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Navigation buttons */}
+            {carouselIndex > 0 && (
+              <button
+                onClick={() => setCarouselIndex((prev) => Math.max(0, prev - 1))}
+                className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/85 text-white p-2 rounded-full z-20 transition-colors backdrop-blur-sm shadow-md cursor-pointer"
+                aria-label="Previous slide"
+              >
+                <ChevronLeft size={20} />
+              </button>
+            )}
+            {carouselIndex < (isMobile ? articles.length - 1 : articles.length - 3) && (
+              <button
+                onClick={() =>
+                  setCarouselIndex((prev) =>
+                    Math.min(isMobile ? articles.length - 1 : articles.length - 3, prev + 1)
+                  )
+                }
+                className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/85 text-white p-2 rounded-full z-20 transition-colors backdrop-blur-sm shadow-md cursor-pointer"
+                aria-label="Next slide"
+              >
+                <ChevronRight size={20} />
+              </button>
+            )}
+
+            {/* Navigation dots (bullets) */}
+            <div className="flex justify-center gap-2 mt-6">
+              {Array.from({
+                length: isMobile ? articles.length : Math.max(0, articles.length - 2),
+              }).map((_, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => setCarouselIndex(idx)}
+                  className={`w-3 h-3 rounded-full transition-all duration-300 cursor-pointer ${
+                    carouselIndex === idx
+                      ? 'bg-orange-500 scale-110 w-6'
+                      : 'bg-zinc-600 hover:bg-zinc-400'
+                  }`}
+                  aria-label={`Go to slide ${idx + 1}`}
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent"></div>
-              </div>
-              <div className="relative z-10 flex flex-col justify-end h-64 p-6 text-white">
-                <h3 className="text-xl font-bold">{item.title}</h3>
-                <p className="text-sm text-zinc-300 mt-1">{item.subtitle}</p>
-                <div className="mt-4 inline-flex items-center gap-2 text-orange-500 font-semibold text-sm group-hover:underline">
-                  {t('common.readMore')}
-                  <ArrowRight size={16} />
+              ))}
+            </div>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {articles.map((item) => (
+              <Link
+                to={`/articles/${item.documentId}`}
+                key={`${item.documentId}`}
+                className="group relative block overflow-hidden rounded-2xl shadow-lg"
+              >
+                <div className="absolute inset-0 z-0">
+                  <img
+                    src={`${item.imageUrl}`}
+                    alt={`${item.title}`}
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent"></div>
                 </div>
-              </div>
-            </Link>
-          ))}
-        </div>
+                <div className="relative z-10 flex flex-col justify-end h-64 p-6 text-white">
+                  <h3 className="text-xl font-bold line-clamp-1">{item.title}</h3>
+                  <p className="text-sm text-zinc-300 mt-1 line-clamp-2">{item.subtitle}</p>
+                  <div className="mt-4 inline-flex items-center gap-2 text-orange-500 font-semibold text-sm group-hover:underline">
+                    {t('common.readMore')}
+                    <ArrowRight size={16} />
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
       </section>
 
       {/* --- Sección Mazo del Día --- */}
