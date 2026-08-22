@@ -8,7 +8,7 @@ if (faroUrl) {
     url: faroUrl,
     app: {
       name: (import.meta.env.VITE_FARO_APP_NAME as string) || 'mana-forge-web',
-      version: '1.0.12',
+      version: '1.0.13',
       environment: import.meta.env.MODE,
     },
     instrumentations: [
