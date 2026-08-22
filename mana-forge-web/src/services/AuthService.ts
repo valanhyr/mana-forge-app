@@ -61,17 +61,16 @@ export const AuthService = {
         else if (typeof ed.error === 'string') rawMsg = ed.error;
       }
       if (!rawMsg) rawMsg = bodyText;
-      const msg = rawMsg.toLowerCase();
 
       // Helpful debug log for client-side troubleshooting
       // eslint-disable-next-line no-console
       console.debug('AuthService.register response', { status: response.status, errorData, bodyText, rawMsg });
 
       if (response.status === 409) {
-        if (msg.includes('nombre de usuario') || msg.includes('username') || msg.includes('usuario ya')) throw new Error('USERNAME_TAKEN');
-        if (msg.includes('correo') || msg.includes('email') || msg.includes('ya est') || msg.includes('registrad')) throw new Error('EMAIL_TAKEN');
-        throw new Error('CONFLICT');
+        // Throw the exact message returned by the backend (e.g., "El nombre de usuario ya existe")
+        throw new Error(rawMsg || 'Error en el registro');
       }
+      // Fallback for other error statuses
       throw new Error(rawMsg || 'Error en el registro');
     }
 
