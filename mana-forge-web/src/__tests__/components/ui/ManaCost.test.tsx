@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import ManaCost from '../../../components/ui/ManaCost';
 import { vi } from 'vitest';
+import { act } from 'react-dom/test-utils';
 
 // Mock del servicio para no hacer peticiones HTTP en tests de componente
 vi.mock('../../../services/ManaSymbolService', () => ({
@@ -22,7 +23,6 @@ describe('ManaCost', () => {
     expect(container.firstChild).toBeNull();
   });
 
-import { act } from 'react-dom/test-utils';
 
   it('tokeniza {W}{U}{B}{R}{G} en 5 tokens', async () => {
     await act(async () => {
