@@ -66,27 +66,30 @@ const Dashboard = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  // Determine whether to use the carousel: desktop when >2, mobile when >1
+  const useCarousel = isMobile ? articles.length > 1 : articles.length > 2;
+  const carouselMaxIndex = isMobile ? Math.max(0, articles.length - 1) : Math.max(0, articles.length - 3);
+  const carouselDotsCount = Math.max(0, carouselMaxIndex + 1);
+
   useEffect(() => {
-    if (articles.length <= 3) return;
+    if (!useCarousel) return;
     if (isCarouselHovered) return;
 
     const interval = setInterval(() => {
       setCarouselIndex((prevIndex) => {
         const nextIndex = prevIndex + 1;
-        const maxIndex = isMobile ? articles.length - 1 : Math.max(0, articles.length - 3);
-        return nextIndex > maxIndex ? 0 : nextIndex;
+        return nextIndex > carouselMaxIndex ? 0 : nextIndex;
       });
     }, 4000);
 
     return () => clearInterval(interval);
-  }, [articles.length, isCarouselHovered, isMobile]);
+  }, [articles.length, isCarouselHovered, isMobile, useCarousel, carouselMaxIndex]);
 
   useEffect(() => {
-    const maxIndex = isMobile ? articles.length - 1 : Math.max(0, articles.length - 3);
-    if (carouselIndex > maxIndex) {
-      setCarouselIndex(maxIndex);
+    if (carouselIndex > carouselMaxIndex) {
+      setCarouselIndex(carouselMaxIndex);
     }
-  }, [isMobile, articles.length, carouselIndex]);
+  }, [isMobile, articles.length, carouselIndex, carouselMaxIndex, useCarousel]);
 
   useEffect(() => {
     const fetchDailyDeck = async () => {
@@ -346,7 +349,7 @@ const Dashboard = () => {
       {/* --- Sección de Noticias --- */}
       <section>
         <h2 className="text-3xl font-bold text-white mb-6">{t('dashboard.newsTitle')}</h2>
-        {articles.length > 3 ? (
+        {useCarousel ? (
           <div
             className="relative"
             onMouseEnter={() => setIsCarouselHovered(true)}
@@ -401,13 +404,9 @@ const Dashboard = () => {
                 <ChevronLeft size={20} />
               </button>
             )}
-            {carouselIndex < (isMobile ? articles.length - 1 : articles.length - 3) && (
+            {carouselIndex < carouselMaxIndex && (
               <button
-                onClick={() =>
-                  setCarouselIndex((prev) =>
-                    Math.min(isMobile ? articles.length - 1 : articles.length - 3, prev + 1)
-                  )
-                }
+                onClick={() => setCarouselIndex((prev) => Math.min(carouselMaxIndex, prev + 1))}
                 className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/85 text-white p-2 rounded-full z-20 transition-colors backdrop-blur-sm shadow-md cursor-pointer"
                 aria-label="Next slide"
               >
@@ -416,22 +415,22 @@ const Dashboard = () => {
             )}
 
             {/* Navigation dots (bullets) */}
-            <div className="flex justify-center gap-2 mt-6">
-              {Array.from({
-                length: isMobile ? articles.length : Math.max(0, articles.length - 2),
-              }).map((_, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => setCarouselIndex(idx)}
-                  className={`w-3 h-3 rounded-full transition-all duration-300 cursor-pointer ${
-                    carouselIndex === idx
-                      ? 'bg-orange-500 scale-110 w-6'
-                      : 'bg-zinc-600 hover:bg-zinc-400'
-                  }`}
-                  aria-label={`Go to slide ${idx + 1}`}
-                />
-              ))}
-            </div>
+            {carouselDotsCount > 1 && (
+              <div className="flex justify-center gap-2 mt-6">
+                {Array.from({ length: carouselDotsCount }).map((_, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => setCarouselIndex(idx)}
+                    className={`w-3 h-3 rounded-full transition-all duration-300 cursor-pointer ${
+                      carouselIndex === idx
+                        ? 'bg-orange-500 scale-110 w-6'
+                        : 'bg-zinc-600 hover:bg-zinc-400'
+                    }`}
+                    aria-label={`Go to slide ${idx + 1}`}
+                  />
+                ))}
+              </div>
+            )}
           </div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
