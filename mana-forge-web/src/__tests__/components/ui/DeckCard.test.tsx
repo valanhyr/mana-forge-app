@@ -5,7 +5,8 @@ import DeckCard from '../../../components/ui/DeckCard';
 import type { DeckSearchResult } from '../../../services/DeckService';
 import { vi } from 'vitest';
 
-// Mock ManaCost para evitar peticiones HTTP en este test
+// Mock ManaCost component and service to avoid async updates in tests
+vi.mock('../../../components/ui/ManaCost', () => ({ default: () => null }));
 vi.mock('../../../services/ManaSymbolService', () => ({
   ManaSymbolService: { getAll: vi.fn().mockResolvedValue({}) },
 }));

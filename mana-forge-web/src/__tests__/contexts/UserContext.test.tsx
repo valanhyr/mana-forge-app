@@ -29,10 +29,16 @@ const UserDisplay = () => {
 };
 
 describe('UserContext', () => {
+  let consoleErrorSpy: any;
   beforeEach(() => {
+    // Suppress noisy console.error logs that are intentionally triggered in tests
+    consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     localStorage.clear();
     // Hacer que checkSession falle por defecto para evitar auto-login en tests
     server.use(http.get(`${BASE}/users/me`, () => new HttpResponse(null, { status: 401 })));
+  });
+  afterEach(() => {
+    consoleErrorSpy?.mockRestore?.();
   });
 
   it('isAuthenticated es false cuando no hay sesión', async () => {

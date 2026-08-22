@@ -22,22 +22,30 @@ describe('ManaCost', () => {
     expect(container.firstChild).toBeNull();
   });
 
+import { act } from 'react-dom/test-utils';
+
   it('tokeniza {W}{U}{B}{R}{G} en 5 tokens', async () => {
-    render(<ManaCost cost="{W}{U}{B}{R}{G}" />);
+    await act(async () => {
+      render(<ManaCost cost="{W}{U}{B}{R}{G}" />);
+    });
     // Esperamos a que los símbolos carguen
     const imgs = await screen.findAllByRole('img');
     expect(imgs).toHaveLength(5);
   });
 
   it('renderiza img cuando el símbolo existe en el mapa', async () => {
-    render(<ManaCost cost="{R}" />);
+    await act(async () => {
+      render(<ManaCost cost="{R}" />);
+    });
     const img = await screen.findByRole('img');
     expect(img).toHaveAttribute('alt', '{R}');
     expect(img).toHaveAttribute('src', expect.stringContaining('svg'));
   });
 
   it('renderiza span de fallback cuando el símbolo no está en el mapa', async () => {
-    render(<ManaCost cost="{X}" />);
+    await act(async () => {
+      render(<ManaCost cost="{X}" />);
+    });
     // {X} no está en el mapa mockeado
     const span = await screen.findByText('{X}');
     expect(span.tagName).toBe('SPAN');

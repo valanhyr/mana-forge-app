@@ -47,7 +47,7 @@ describe('observability bootstrap', () => {
       url: 'https://collector.example/collect/app',
       app: {
         name: 'mana-forge-web',
-        version: '1.0.12',
+    version: '1.0.13',
         environment: 'production',
       },
       instrumentations: [{ name: 'tracing' }],
