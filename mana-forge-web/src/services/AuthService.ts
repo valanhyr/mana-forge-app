@@ -42,16 +42,19 @@ export const AuthService = {
 
     if (!response.ok) {
       // Try to parse JSON, fallback to text so we catch plain messages
-      let errorData: any = {};
+      let errorData: unknown = {};
       let bodyText = '';
       try {
         errorData = await response.json();
-      } catch (e) {
-        try { bodyText = await response.text(); } catch { bodyText = ''; }
+      } catch {
+        try {
+          bodyText = await response.text();
+        } catch {
+          bodyText = '';
+        }
       }
-
       // Prefer explicit fields, otherwise use raw body text
-      const rawMsg = (errorData?.message || errorData?.error || bodyText || '').toString();
+      const rawMsg = (errorData && typeof errorData === 'object' && 'message' in errorData ? (errorData as any).message : (errorData && typeof errorData === 'object' && 'error' in errorData ? (errorData as any).error : bodyText)).toString();
       const msg = rawMsg.toLowerCase();
 
       // Helpful debug log for client-side troubleshooting

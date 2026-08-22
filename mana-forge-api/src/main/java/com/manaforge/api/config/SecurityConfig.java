@@ -28,7 +28,7 @@ public class SecurityConfig {
     @Autowired
     private OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
 
-    @Autowired
+    @Autowired(required = false)
     private SecurityAuthEntryPoint securityAuthEntryPoint;
 
     /** Production frontend URL (e.g. https://mana-forge.com). Injected from FRONTEND_URL env var. */
@@ -50,7 +50,7 @@ public class SecurityConfig {
                 .anyRequest().authenticated()
             )
             .exceptionHandling(e -> e
-                .authenticationEntryPoint(securityAuthEntryPoint)
+                            .authenticationEntryPoint(securityAuthEntryPoint != null ? securityAuthEntryPoint : new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
             )
             .oauth2Login(oauth -> oauth
                 .authorizationEndpoint(auth -> auth
