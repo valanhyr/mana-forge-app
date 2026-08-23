@@ -2,11 +2,22 @@ import os
 import json
 import random
 import logging
+import asyncio
 from typing import List, Optional
-from groq import AsyncGroq, RateLimitError
 from pydantic import ValidationError
 from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
 from schemas.deck_schemas import SideboardResponse, CardInput, DeckAnalysisResponse, RandomDeckResponse, DeckScoresOnlyResponse
+# Support for Groq (legacy) and Google Gemini (OpenAI-compatible)
+try:
+    from groq import AsyncGroq, RateLimitError
+except Exception:
+    AsyncGroq = None
+    RateLimitError = Exception
+# OpenAI-compatible client for Google Gemini / OpenRouter
+try:
+    from openai import OpenAI
+except Exception:
+    OpenAI = None
 from prompts.sideboard_prompts import get_sideboard_system_prompt, get_sideboard_user_prompt
 from prompts.analysis_prompts import get_analysis_system_prompt, get_analysis_user_prompt
 from prompts.random_deck_prompts import get_random_deck_system_prompt, get_random_deck_user_prompt
@@ -46,32 +57,64 @@ def _groq_retry(func):
 
 class AIService:
     def __init__(self):
-        api_key = os.environ.get("GROQ_API_KEY")
-        if not api_key:
-            logger.error("GROQ_API_KEY not found in environment variables")
-            self.client = None
-        else:
-            self.client = AsyncGroq(api_key=api_key)
-            # Model name configurable via environment; fallback to the historical default
+        # Prefer GOOGLE_API_KEY (Gemini via OpenAI-compatible client) if present
+        google_key = os.environ.get("GOOGLE_API_KEY")
+        groq_key = os.environ.get("GROQ_API_KEY")
+
+        if google_key and OpenAI is not None:
+            # initialize OpenAI-compatible client pointed to Google's OpenAI-compat endpoint
+            self.provider = "google"
+            self.client = OpenAI(api_key=google_key, base_url="https://generativelanguage.googleapis.com/v1beta/openai/")
+            env_model = os.environ.get("GOOGLE_MODEL")
+            self.model = env_model if env_model else "gemini-2.5-flash"
+            logger.info("Using Google Gemini model: %s", self.model)
+        elif groq_key and AsyncGroq is not None:
+            self.provider = "groq"
+            self.client = AsyncGroq(api_key=groq_key)
             env_model = os.environ.get("GROQ_MODEL")
             self.model = env_model if env_model else "groq/compound-mini"
             logger.info("Using Groq model: %s", self.model)
+        else:
+            logger.error("No supported AI provider API key found (GOOGLE_API_KEY or GROQ_API_KEY)")
+            self.client = None
+            self.provider = None
 
     def _ensure_client(self):
         if not self.client:
-            raise RuntimeError("Groq client is not initialized. Check GROQ_API_KEY.")
+            raise RuntimeError("AI client is not initialized. Check GOOGLE_API_KEY or GROQ_API_KEY.")
 
     @_groq_retry
     async def _call_groq(self, messages: list, temperature: float) -> str:
-        """Single async Groq call with timeout. Returns raw content string."""
-        chat_completion = await self.client.chat.completions.create(
-            messages=messages,
-            model=self.model,
-            temperature=temperature,
-            response_format={"type": "json_object"},
-            timeout=_GROQ_TIMEOUT,
-        )
-        return chat_completion.choices[0].message.content
+        """Single async call for configured provider. Returns raw content string."""
+        if self.provider == "groq":
+            # existing AsyncGroq path
+            chat_completion = await self.client.chat.completions.create(
+                messages=messages,
+                model=self.model,
+                temperature=temperature,
+                response_format={"type": "json_object"},
+                timeout=_GROQ_TIMEOUT,
+            )
+            return chat_completion.choices[0].message.content
+        elif self.provider == "google":
+            # OpenAI-compatible client is synchronous; run in thread
+            def sync_call():
+                return self.client.chat.completions.create(
+                    model=self.model,
+                    messages=messages,
+                    temperature=temperature,
+                    response_format={"type": "json_object"},
+                )
+
+            try:
+                chat_completion = await asyncio.to_thread(sync_call)
+                # client returns an object with choices[0].message.content per example
+                return chat_completion.choices[0].message.content
+            except Exception as e:
+                logger.error("Google Gemini call failed: %s", str(e))
+                raise
+        else:
+            raise RuntimeError("Unsupported AI provider configured")
 
     async def suggest_sideboard(self, main_deck: list[CardInput], format_name: str, locale: str) -> SideboardResponse:
         self._ensure_client()
