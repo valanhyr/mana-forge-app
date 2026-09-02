@@ -15,13 +15,7 @@ describe('services/api', () => {
     const { api } = await import('../../../services/api');
     localStorage.setItem('app_locale', 'en');
 
-    // Interceptamos la request antes de que salga
-    const spy = vi.spyOn(api, 'request').mockResolvedValueOnce({ data: {} } as any);
-
-    await api.get('/test').catch(() => {});
-    spy.mockRestore();
-
-    // Verificamos directamente que el interceptor modifica la config
+    // Verificamos directamente que el interceptor modifica la config sin hacer una request
     const config = { headers: {} as Record<string, string> };
     const interceptors = (api.interceptors.request as any).handlers;
     if (interceptors && interceptors.length > 0) {
