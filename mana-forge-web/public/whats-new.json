@@ -1,6 +1,35 @@
 {
   "releases": [
     {
+      "version": "1.0.5",
+      "features": {
+        "es": [
+          {
+            "icon": "⬆️",
+            "title": "Mejoras en importación de mazos",
+            "description": "Importación masiva optimizada para listas largas: ahora se consultan y persisten impresiones de Scryfall para evitar límites y mejorar velocidad."
+          },
+          {
+            "icon": "🖼️",
+            "title": "Seleccionar imagen por reimpresión",
+            "description": "En la Forja puedes elegir la imagen de una carta entre sus reimpresiones (modal con grid de imágenes y nombre de edición). La imagen seleccionada se aplica inmediatamente en el editor y se guarda al actualizar el mazo."
+          }
+        ],
+        "en": [
+          {
+            "icon": "⬆️",
+            "title": "Improved deck import",
+            "description": "Bulk imports for long lists are faster and more reliable: Scryfall prints are cached in the DB to avoid rate limits and speed up subsequent imports."
+          },
+          {
+            "icon": "🖼️",
+            "title": "Choose card image by reprint",
+            "description": "From the Forge editor you can pick a card image from its reprints (modal grid showing images and set names). The chosen image is applied in the editor and saved with the deck."
+          }
+        ]
+      }
+    },
+    {
       "version": "1.0.4",
       "features": {
         "es": [
