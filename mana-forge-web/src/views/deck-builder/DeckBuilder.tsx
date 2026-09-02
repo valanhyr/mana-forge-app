@@ -1861,17 +1861,27 @@ const DeckBuilder = () => {
             >
               <X size={24} />
             </button>
-            {previewImage ? (
-              <img
-                src={previewImage || undefined}
-                alt="Card preview"
-                className="w-full rounded-3xl shadow-2xl"
-              />
-            ) : (
-              <div className="w-full aspect-[2.5/3.5] rounded-3xl bg-zinc-900 flex items-center justify-center">
-                <Loader2 size={64} className="animate-spin text-orange-500" />
-              </div>
-            )}
+            <div className="relative w-full">
+              {previewImage ? (
+                <img
+                  src={previewImage || undefined}
+                  alt="Card preview"
+                  className="w-full rounded-3xl shadow-2xl"
+                />
+              ) : (
+                <div className="w-full aspect-[2.5/3.5] rounded-3xl bg-zinc-900 flex items-center justify-center">
+                  <Loader2 size={64} className="animate-spin text-orange-500" />
+                </div>
+              )}
+
+              {isFetchingPreview && (
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="bg-black/40 rounded-3xl w-full h-full flex items-center justify-center">
+                    <Loader2 size={48} className="animate-spin text-white" />
+                  </div>
+                </div>
+              )}
+            </div>
             {/* Add to Deck buttons (shown when previewing an AI suggestion) */}
             {previewCardName && (
               <div className="mt-3 grid grid-cols-3 gap-2">
