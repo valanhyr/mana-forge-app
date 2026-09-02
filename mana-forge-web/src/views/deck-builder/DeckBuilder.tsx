@@ -178,6 +178,7 @@ const DeckBuilder = () => {
   const [cachedImages, setCachedImages] = useState<Record<string, string>>({});
   const [isImagePickerOpen, setIsImagePickerOpen] = useState(false);
   const [imagePickerCard, setImagePickerCard] = useState<{ id: string; board: string } | null>(null);
+  const [isFetchingPreview, setIsFetchingPreview] = useState(false);
 
   // Carga de formatos reales desde el servicio (con caché)
   useEffect(() => {

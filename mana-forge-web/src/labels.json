@@ -201,6 +201,8 @@
       "publicDescription": "Visible para la comunidad.",
       "analyzing": "Analizando...",
       "analyzeAI": "Analizar IA",
+      "importing": "Importando...",
+      "loadingCards": "Cargando cartas...",
       "updateDeck": "Guardar y salir",
             "saveDeck": "Guardar y salir",
       "deckUpdated": "¡Mazo actualizado con éxito!",
