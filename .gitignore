@@ -19,3 +19,12 @@ mana-forge-web/coverage/
 # Superpowers visual companion artifacts (local only)
 .superpowers/
 
+# Local test artifacts
+/mana-forge-api/mvn-test-output*.txt
+/mana-forge-engine/.coverage
+/mana-forge-web/node_modules/
+*.log
+/mana-forge-engine/.venv/
+/.pytest_cache/
+/mana-forge-api/target/
+/mana-forge-web/dist/
