@@ -22,7 +22,8 @@ export const useTranslation = () => {
 
       if (params) {
         return Object.entries(params).reduce((acc, [k, v]) => {
-          return acc.replace(new RegExp(`{${k}}`, 'g'), String(v));
+          // Use split/join to avoid RegExp special char issues
+          return acc.split(`{${k}}`).join(String(v));
         }, value);
       }
 

@@ -42,6 +42,7 @@ interface DeckListProps {
   onUpdateQuantity?: (card: DeckCard, delta: number) => void;
   onRemove?: (card: DeckCard) => void;
   onMoveToBoard?: (card: DeckCard, board: 'main' | 'side' | 'commander' | 'maybe') => void;
+  onChooseImage?: (cardId: string, board: string) => void;
   maxSideboardSize?: number;
   minMainDeckSize?: number;
   isCommanderFormat?: boolean;
@@ -97,6 +98,7 @@ const DeckList: React.FC<DeckListProps> = ({
   onUpdateQuantity,
   onRemove,
   onMoveToBoard,
+  onChooseImage,
   maxSideboardSize,
   minMainDeckSize,
   isCommanderFormat = false,
@@ -523,16 +525,32 @@ const DeckList: React.FC<DeckListProps> = ({
               </>
             )}
             {onRemove && (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onRemove(activeCard);
-                  setActiveCard(null);
-                }}
-                className="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-red-500/10 hover:text-red-300 flex items-center gap-2 border-t border-zinc-800"
-              >
-                <Trash2 size={14} /> {t('common.delete')}
-              </button>
+              <>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onRemove(activeCard);
+                    setActiveCard(null);
+                  }}
+                  className="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-red-500/10 hover:text-red-300 flex items-center gap-2 border-t border-zinc-800"
+                >
+                  <Trash2 size={14} /> {t('common.delete')}
+                </button>
+
+                {/* Choose image action */}
+                {onChooseImage && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onChooseImage(activeCard.id, activeCard.board || 'main');
+                      setActiveCard(null);
+                    }}
+                    className="w-full text-left px-4 py-2 text-sm text-zinc-300 hover:bg-zinc-800 hover:text-orange-500 flex items-center gap-2"
+                  >
+                    <Camera size={14} /> {t('deckList.chooseImage')}
+                  </button>
+                )}
+              </>
             )}
           </div>
         )}

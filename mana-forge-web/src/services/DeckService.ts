@@ -70,8 +70,11 @@ interface DeckPayload {
   isPrivate: boolean;
   cards: {
     id: string; // scryfallId
+    oracleId?: string;
     quantity: number;
-    board: 'main' | 'side';
+    board: 'main' | 'side' | 'commander' | 'maybe';
+    chosenPrintId?: string;
+    chosenImageUrl?: string;
   }[];
   analysisScores?: Record<string, { value: number; key_cards: string[] }>;
 }

@@ -63,4 +63,11 @@ public class Card {
     private Map<String, String> relatedUris;
     private Map<String, String> purchaseUris;
     private Boolean gameChanger;
+
+    // Oracle ID (Scryfall canonical identifier shared across prints)
+    private String oracleId;
+
+    // If user selects a specific print/image in deck editor, store chosen print id and image URL
+    private String chosenPrintId;
+    private String chosenImageUrl;
 }

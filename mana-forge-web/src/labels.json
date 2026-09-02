@@ -1,5 +1,10 @@
 {
   "es": {
+    "deck": {
+      "editor": {
+        "chooseImage": "Elegir imagen"
+      }
+    },
     "nav": {
       "home": "Inicio",
       "formats": "Formatos",
@@ -34,7 +39,8 @@
       "clone": "Duplicar",
       "cloning": "Duplicando...",
       "confirmDelete": "¿Estás seguro de que quieres borrar este mazo?",
-      "gameChangerTooltip": "Carta considerada Game Changer"
+      "gameChangerTooltip": "Carta considerada Game Changer",
+      "accept": "Aceptar"
     },
     "articles": {
       "writtenBy": "Escrito por",
@@ -173,6 +179,12 @@
     },
     "deckBuilder": {
       "title": "Forja de Mazo",
+      "chooseImage": "Elegir imagen",
+      "noImages": "No hay imágenes disponibles",
+      "editor": {
+        "chooseImage": "Elegir imagen",
+        "noImages": "No hay imágenes disponibles"
+      },
       "deckNameLabel": "Nombre del Mazo",
       "deckNamePlaceholder": "Ej: Goblin Aggro",
       "deckNameRequired": "El nombre del mazo no puede estar vacío.",
@@ -189,11 +201,12 @@
       "publicDescription": "Visible para la comunidad.",
       "analyzing": "Analizando...",
       "analyzeAI": "Analizar IA",
-      "updateDeck": "Actualizar Mazo",
-      "saveDeck": "Guardar Mazo",
+      "updateDeck": "Guardar y salir",
+            "saveDeck": "Guardar y salir",
       "deckUpdated": "¡Mazo actualizado con éxito!",
       "deckSaved": "¡Mazo guardado con éxito!",
       "saveDeckError": "Error al guardar el mazo. Inténtalo de nuevo.",
+            "saveAndContinue": "Guardar y continuar" ,
       "manaCurve": "Curva de Maná",
       "avgCmc": "CMC Medio",
       "typeDistribution": "Tipos",
@@ -205,6 +218,8 @@
       "addCardsHint": "Escribe al menos 3 caracteres para ver sugerencias",
       "importDeckButton": "Importar lista de cartas",
       "importErrorTitle": "No se pudieron importar {count} cartas",
+      "importSuccess": "Importación completada: {count} cartas añadidas",
+      "importFailure": "No se pudieron importar estas cartas: {list}",
       "importModalTitle": "Importar Lista de Mazo",
       "importModalPlaceholder": "4 Lightning Bolt\n1 Sol Ring\n\nSideboard\n15 Relic of Progenitus",
       "importModalHint": "Pega tu lista aquí. Formato: 'Cantidad Nombre' por línea.",
@@ -238,7 +253,9 @@
       "validationIllegalCards": "Hay cartas no permitidas en el formato seleccionado.",
       "validationMaxCopies": "Alguna carta supera el límite de {max} copias.",
       "allFormats": "Todos los formatos",
-      "viewMyDecks": "Ver todos mis mazos"
+      "viewMyDecks": "Ver todos mis mazos",
+      "chooseImage": "Elegir imagen",
+      "noImages": "No hay imágenes disponibles"
     },
     "formatDetail": {
       "notFoundTitle": "Formato no encontrado",
@@ -297,7 +314,8 @@
       "makeCommander": "Hacer Comandante",
       "moveToMain": "Mover a Main",
       "moveToSideboard": "Mover a Sideboard",
-      "moveToMaybeboard": "Mover a Consideradas"
+      "moveToMaybeboard": "Mover a Consideradas",
+      "chooseImage": "Elegir imagen"
     },
     "footer": {
       "description": "La herramienta definitiva de construcción y análisis de mazos de Magic: The Gathering potenciada por IA. Forja tu estrategia ganadora.",
@@ -499,6 +517,11 @@
     }
   },
   "en": {
+    "deck": {
+      "editor": {
+        "chooseImage": "Choose image"
+      }
+    },
     "nav": {
       "home": "Home",
       "formats": "Formats",
@@ -532,7 +555,8 @@
       "copied": "Copied!",
       "clone": "Clone",
       "cloning": "Cloning...",
-      "confirmDelete": "Are you sure you want to delete this deck?"
+            "confirmDelete": "Are you sure you want to delete this deck?",
+            "accept": "Accept"
     },
     "articles": {
       "writtenBy": "Written by",
@@ -703,6 +727,8 @@
       "addCardsHint": "Type at least 3 characters to see suggestions",
       "importDeckButton": "Import card list",
       "importErrorTitle": "Could not import {count} cards",
+      "importSuccess": "Import completed: {count} cards added",
+      "importFailure": "Could not import these cards: {list}",
       "importModalTitle": "Import Deck List",
       "importModalPlaceholder": "4 Lightning Bolt\n1 Sol Ring\n\nSideboard\n15 Relic of Progenitus",
       "importModalHint": "Paste your list here. Format: 'Quantity Name' per line.",
@@ -736,8 +762,11 @@
       "validationIllegalCards": "Some cards are not legal in the selected format.",
       "validationMaxCopies": "A card exceeds the {max} copy limit.",
       "allFormats": "All Formats",
-      "viewMyDecks": "View all my decks"
-    },
+      "viewMyDecks": "View all my decks",
+      "chooseImage": "Choose image",
+            "noImages": "No images available",
+            "saveAndContinue": "Save and continue"
+          },
     "formatDetail": {
       "notFoundTitle": "Format not found",
       "notFoundDescription": "Sorry, we don't have information about the \"{formatName}\" format.",
@@ -795,7 +824,8 @@
       "makeCommander": "Make Commander",
       "moveToMain": "Move to Main",
       "moveToSideboard": "Move to Sideboard",
-      "moveToMaybeboard": "Move to Maybeboard"
+      "moveToMaybeboard": "Move to Maybeboard",
+      "chooseImage": "Choose image"
     },
     "footer": {
       "description": "The ultimate AI-powered Magic: The Gathering deck building and analysis tool. Forge your winning strategy.",

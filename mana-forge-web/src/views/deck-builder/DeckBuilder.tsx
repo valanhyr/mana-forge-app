@@ -27,6 +27,8 @@ import { FormatService } from '../../services/FormatService';
 import { CardService } from '../../services/CardService';
 import { DeckService } from '../../services/DeckService';
 import Modal from '../../components/ui/Modal';
+import ImagePickerModal from '../../components/ui/ImagePickerModal';
+import LoadingOverlay from '../../components/ui/LoadingOverlay';
 import TextAreaInput from '../../components/ui/TextAreaInput';
 import DeckProfileChart from '../../components/ui/DeckProfileChart';
 import { useUser } from '../../services/UserContext';
@@ -142,6 +144,7 @@ const DeckBuilder = () => {
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [importText, setImportText] = useState('');
   const [importErrors, setImportErrors] = useState<string[]>([]);
+  const [importResult, setImportResult] = useState<{ successCount: number; failures: string[] } | null>(null);
 
   const [analysisArchetypes, setAnalysisArchetypes] = useState<string[]>([]);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -153,6 +156,9 @@ const DeckBuilder = () => {
     string,
     { value: number; key_cards: string[] }
   > | null>(null);
+
+  // Import loading state (blocks UI while import runs)
+  const [isImporting, setIsImporting] = useState(false);
   const sentinelRef = useRef<HTMLDivElement>(null);
   const [isFloating, setIsFloating] = useState(true);
 
@@ -168,6 +174,8 @@ const DeckBuilder = () => {
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [previewCardName, setPreviewCardName] = useState<string | null>(null);
   const [cachedImages, setCachedImages] = useState<Record<string, string>>({});
+  const [isImagePickerOpen, setIsImagePickerOpen] = useState(false);
+  const [imagePickerCard, setImagePickerCard] = useState<{ id: string; board: string } | null>(null);
 
   // Carga de formatos reales desde el servicio (con caché)
   useEffect(() => {
@@ -220,8 +228,11 @@ const DeckBuilder = () => {
                 isValid: isValid,
                 board: entry.board || 'main', // Puede venir "commander" de la DB
                 isGameChanger: cardData.games_changer === true || cardData.game_changer === true,
-                image:
-                  cardData.image_uris?.normal || cardData.card_faces?.[0]?.image_uris?.normal || '',
+                image: (entry.chosenImageUrl as string) || cardData.image_uris?.normal || cardData.card_faces?.[0]?.image_uris?.normal || '',
+                // preserve chosen fields from deck entry
+                chosenPrintId: (entry.chosenPrintId as string) || undefined,
+                // keep oracleId if present
+                oracleId: (entry.oracleId as string) || undefined,
               } as DeckCardWithImage;
             } catch (err) {
               console.error(`Error cargando carta ${entry.scryfallId}:`, err);
@@ -414,57 +425,97 @@ const DeckBuilder = () => {
     setImportText('');
     setImportErrors([]);
 
-    for (const line of lines) {
-      const trimmedLine = line.trim();
-      // Detectar "Sideboard" o "Sideboard:" insensible a mayúsculas
-      if (trimmedLine.toLowerCase().replace(':', '') === 'sideboard') {
-        isSideboardSection = true;
-        continue;
-      }
-
-      const match = trimmedLine.match(/^(\d+)\s+(.+)$/);
-      let quantity = 1;
-      let cardName = trimmedLine;
-
-      if (match) {
-        quantity = parseInt(match[1], 10);
-        cardName = match[2].trim();
-      }
-
+      setIsImporting(true);
       try {
-        const cardData = await CardService.getCardByName(cardName);
+        // Use backend batch endpoint to resolve all names at once
+          const names = lines.map(l => l.trim()).filter(l => l !== '');
+          const batch = await CardService.batchSearch(names);
 
-        let isValid = true;
-        if (selectedFormat) {
-          const formatKey = selectedFormat.scryfallKey;
-          isValid =
-            cardData.legalities?.[formatKey] === 'legal' ||
-            cardData.legalities?.[formatKey] === 'restricted';
-        }
+          for (const line of lines) {
+              const trimmedLine = line.trim();
+              // Detectar "Sideboard" o "Sideboard:" insensible a mayúsculas
+              if (trimmedLine.toLowerCase().replace(':', '') === 'sideboard') {
+                isSideboardSection = true;
+                continue;
+              }
 
-        cardsToProcess.push({
-          id: cardData.id,
-          name: cardData.name,
-          quantity: quantity,
-          manaCost: cardData.mana_cost,
-          cmc: cardData.cmc,
-          type: cardData.type_line?.split('—')[0]?.trim() || 'Unknown',
-          price: parseFloat(cardData.prices?.eur || '0'),
-          inCollection: false,
-          isValid: isValid,
-          board: isSideboardSection ? 'side' : 'main',
-          isGameChanger: cardData.games_changer === true || cardData.game_changer === true,
-          image: cardData.image_uris?.normal || cardData.card_faces?.[0]?.image_uris?.normal || '',
-        });
-      } catch {
-        failedLines.push(line);
-      }
-    }
+              const match = trimmedLine.match(/^(\d+)\s+(.+)$/);
+              let quantity = 1;
+              let cardName = trimmedLine;
 
+              if (match) {
+                quantity = parseInt(match[1], 10);
+                cardName = match[2].trim();
+              }
+
+              try {
+                // Use batch result
+                const queryKey = cardName;
+                let result = batch[queryKey] || batch[`!"${cardName}"`] || batch[cardName.toLowerCase()] || null;
+
+                // If not found, attempt a fuzzy search through batch values (normalized)
+                if (!result) {
+                  const vals = Object.values(batch || {});
+                  const normalize = (s: string) => s.trim().toLowerCase().replace(/["']/g, '');
+                  const target = normalize(cardName);
+                  for (const v of vals) {
+                    if (!v) continue;
+                    const candidateName = (v.name || (v.card && v.card.name) || (Array.isArray(v.data) && v.data[0] && v.data[0].name) || v.line || '').toString();
+                    if (normalize(candidateName) === target) {
+                      result = v;
+                      break;
+                    }
+                    // also allow startsWith for cases with set codes or extra text
+                    if (normalize(candidateName).startsWith(target) || target.startsWith(normalize(candidateName))) {
+                      result = v;
+                      break;
+                    }
+                  }
+                }
+
+                // Support multiple backend shapes: { data: [...] }, { card: {...} }, or direct card object
+                let cardData: any = null;
+                if (result) {
+                  if (Array.isArray(result.data) && result.data.length > 0) cardData = result.data[0];
+                  else if (result.card) cardData = result.card;
+                  else if (result.id && result.name) cardData = result; // already a card object
+                }
+                if (!cardData) throw new Error('Not found');
+
+                let isValid = true;
+                if (selectedFormat) {
+                  const formatKey = selectedFormat.scryfallKey;
+                  isValid =
+                    cardData.legalities?.[formatKey] === 'legal' ||
+                    cardData.legalities?.[formatKey] === 'restricted';
+                }
+
+                cardsToProcess.push({
+                  id: cardData.id,
+                  name: cardData.name,
+                  quantity: quantity,
+                  manaCost: cardData.mana_cost,
+                  cmc: cardData.cmc,
+                  type: cardData.type_line?.split('—')[0]?.trim() || 'Unknown',
+                  price: parseFloat(cardData.prices?.eur || '0'),
+                  inCollection: false,
+                  isValid: isValid,
+                  board: isSideboardSection ? 'side' : 'main',
+                  isGameChanger: cardData.games_changer === true || cardData.game_changer === true,
+                  image: cardData.image_uris?.normal || cardData.card_faces?.[0]?.image_uris?.normal || '',
+                });
+              } catch {
+                failedLines.push(line);
+              }
+          }
     if (cardsToProcess.length > 0) {
       addCardsToDeck(cardsToProcess);
     }
     setImportErrors(failedLines);
+    setImportResult({ successCount: cardsToProcess.length, failures: failedLines });
+  } finally {
+      setIsImporting(false);
+    }
   };
 
   // Validación del mazo en tiempo real
@@ -602,7 +653,7 @@ const DeckBuilder = () => {
     return () => observer.disconnect();
   }, []);
 
-  const handleSaveDeck = async () => {
+  const handleSaveDeck = async (stayOpen = false) => {
     if (!user || !selectedFormat) return;
     if (!deckName.trim()) {
       setDeckNameTouched(true);
@@ -636,6 +687,17 @@ const DeckBuilder = () => {
         setDeckScores(scores);
       }
 
+      const cacheBust = (url?: string | null) => {
+        if (!url) return undefined;
+        try {
+          const u = new URL(url);
+          u.searchParams.set('v', String(Date.now()));
+          return u.toString();
+        } catch (e) {
+          // If it's not a full URL, append param safely
+          return url + (url.includes('?') ? '&' : '?') + 'v=' + Date.now();
+        }
+      };
       const payload = {
         name: deckName,
         formatId: selectedFormat.id,
@@ -643,9 +705,12 @@ const DeckBuilder = () => {
         isPrivate: isPrivate,
         cards: deckCards.map((card) => ({
           id: card.id,
+          oracleId: (card as any).oracleId || undefined,
           quantity: card.quantity,
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           board: (card.board || 'main') as any,
+          chosenPrintId: (card as any).chosenPrintId || undefined,
+          chosenImageUrl: cacheBust((card as any).chosenImageUrl || (card.image || undefined)),
         })),
         analysisScores: scores,
       };
@@ -657,7 +722,7 @@ const DeckBuilder = () => {
         await DeckService.saveDeck(payload);
         showToast(t('deckBuilder.deckSaved'), 'success');
       }
-      navigate('/my-decks');
+      if (!stayOpen) navigate('/my-decks');
     } catch (error) {
       console.error('Error al guardar el mazo:', error);
       showToast(t('deckBuilder.saveDeckError'), 'error');
@@ -701,6 +766,27 @@ const DeckBuilder = () => {
 
   // Filter cards for the main DeckList component (exclude maybeboard and sideboard)
   const mainDeckCards = deckCards.filter((c) => c.board !== 'maybe' && c.board !== 'side');
+
+  // Image picker handlers
+  const openImagePickerForCard = (cardId: string, board: string) => {
+    setImagePickerCard({ id: cardId, board });
+    setIsImagePickerOpen(true);
+  };
+
+  const handleImageSelect = (printId: string, imageUrl: string) => {
+    // Update deckCards state for the matching card (id + board)
+    setDeckCards((prev) =>
+      prev.map((c) => {
+        if (c.id === imagePickerCard?.id && c.board === imagePickerCard?.board) {
+          return { ...(c as DeckCardWithImage), image: imageUrl, chosenPrintId: printId, chosenImageUrl: imageUrl };
+        }
+        return c;
+      })
+    );
+    setIsImagePickerOpen(false);
+    setImagePickerCard(null);
+  };
+
   const maybeCards = deckCards.filter((c) => c.board === 'maybe');
   const sideCards = deckCards.filter((c) => c.board === 'side');
   const mainBarCount = deckCards
@@ -712,6 +798,7 @@ const DeckBuilder = () => {
   const totalDeckPrice = deckCards.reduce((sum, c) => sum + (c.price ?? 0) * c.quantity, 0);
 
   const mainTypeGroups = groupByType(mainDeckCards);
+
   const mainGroups: Record<string, DeckCardWithImage[]> =
     groupMode === 'type'
       ? Object.fromEntries(
@@ -795,6 +882,7 @@ const DeckBuilder = () => {
 
   return (
     <div className="max-w-6xl xl:max-w-7xl 2xl:max-w-screen-2xl mx-auto mt-8">
+      <LoadingOverlay open={isImporting} message={t('deckBuilder.importing') || 'Importando...'} />
       <SEO title={t('seo.deckBuilderTitle')} description={t('seo.deckBuilderDescription')} />
       <div className="flex items-center justify-between gap-3 mb-6">
         <div className="flex items-center gap-3">
@@ -909,22 +997,37 @@ const DeckBuilder = () => {
             {isAnalyzing ? t('deckBuilder.analyzing') : t('deckBuilder.analyzeAI')}
           </button>
 
-          <button
-            onClick={handleSaveDeck}
-            disabled={!isDeckValid || isSaving}
-            className={`flex items-center justify-center gap-2 px-6 py-4 rounded-xl font-bold transition-all w-full md:w-auto ${
-              isDeckValid && !isSaving
-                ? 'bg-green-600 hover:bg-green-500 text-white shadow-lg shadow-green-900/20 active:scale-95'
-                : 'bg-zinc-800 text-zinc-500 cursor-not-allowed'
-            }`}
-          >
-            {isSaving ? <Loader2 size={20} className="animate-spin" /> : <Save size={20} />}
-            {isSaving
-              ? t('common.saving')
-              : deckId
-                ? t('deckBuilder.updateDeck')
-                : t('deckBuilder.saveDeck')}
-          </button>
+          <div className="flex gap-3 w-full md:w-auto">
+            <button
+              onClick={() => handleSaveDeck(false)}
+              disabled={!isDeckValid || isSaving}
+              className={`flex items-center justify-center gap-2 px-6 py-4 rounded-xl font-bold transition-all w-full md:w-auto ${
+                isDeckValid && !isSaving
+                  ? 'bg-zinc-800 hover:bg-zinc-700 text-white border border-zinc-700'
+                  : 'bg-zinc-800 text-zinc-500 cursor-not-allowed'
+              }`}
+            >
+              {isSaving ? <Loader2 size={20} className="animate-spin" /> : <Save size={20} />}
+              {isSaving
+                ? t('common.saving')
+                : deckId
+                  ? t('deckBuilder.updateDeck')
+                  : t('deckBuilder.saveDeck')}
+            </button>
+
+            <button
+              onClick={() => handleSaveDeck(true)}
+              disabled={!isDeckValid || isSaving}
+              className={`flex items-center justify-center gap-2 px-4 py-4 rounded-xl font-bold transition-all w-full md:w-auto ${
+                isDeckValid && !isSaving
+                  ? 'bg-green-600 hover:bg-green-500 text-white shadow-lg shadow-green-900/20 active:scale-95'
+                  : 'bg-zinc-800 text-zinc-500 cursor-not-allowed'
+              }`}
+            >
+              {isSaving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
+              {isSaving ? t('common.saving') : t('deckBuilder.saveAndContinue')}
+            </button>
+          </div>
         </div>
         {!isDeckValid && deckValidationErrors.length > 0 && (
           <ul className="mt-2 flex flex-col items-end gap-1">
@@ -1008,6 +1111,61 @@ const DeckBuilder = () => {
                   </div>
                 </div>
               )}
+
+                {/* Resultado detallado de la importación */}
+                {importResult && (
+                  <Modal
+                    title={t('deckBuilder.importResultTitle')}
+                    isOpen={!!importResult}
+                    onClose={() => setImportResult(null)}
+                  >
+                    <div className="p-4">
+                      <p className="text-sm text-zinc-300 mb-2">
+                        {t('deckBuilder.importResultSummary', {
+                          success: importResult.successCount,
+                          failures: importResult.failures.length,
+                        })}
+                      </p>
+                      {importResult.failures.length > 0 && (
+                        <div className="mt-2">
+                          <h4 className="text-sm text-red-400 font-bold mb-1">{t('deckBuilder.importFailuresTitle')}</h4>
+                          <ul className="text-xs text-red-300 list-disc list-inside max-h-40 overflow-y-auto">
+                            {importResult.failures.map((f, i) => (
+                              <li key={i}>{f}</li>
+                            ))}
+                          </ul>
+                          <div className="mt-3 flex gap-2">
+                            <button
+                              onClick={() => {
+                                setImportResult(null);
+                                setIsImportModalOpen(true);
+                              }}
+                              className="px-3 py-2 bg-zinc-800 text-white rounded-lg border border-zinc-700"
+                            >
+                              {t('deckBuilder.retryImport')}
+                            </button>
+                            <button
+                              onClick={() => setImportResult(null)}
+                              className="px-3 py-2 bg-zinc-900 text-zinc-300 rounded-lg border border-zinc-700"
+                            >
+                              {t('common.close')}
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                      {importResult.failures.length === 0 && (
+                        <div className="mt-3 flex justify-end">
+                          <button
+                            onClick={() => setImportResult(null)}
+                            className="px-3 py-2 bg-green-600 text-white rounded-lg"
+                          >
+                            {t('common.ok')}
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </Modal>
+                )}
             </div>
 
             {/* Toolbar: Group, Sort, ViewMode, Prices */}
@@ -1104,12 +1262,14 @@ const DeckBuilder = () => {
                 }
                 isCommanderFormat={isCommanderFormat}
                 onCardPreview={handleCardPreview}
+                onChooseImage={(cardId, board) => openImagePickerForCard(cardId, board)}
                 hideToolbar={true}
                 externalSortMode={sortMode}
                 externalSortDir={sortDir}
                 externalGroupMode={groupMode}
                 externalShowPrices={showPrices}
               />
+
             ) : (
               <div className="space-y-12">
                 {/* Spoiler Mode: Main Deck */}
@@ -1390,6 +1550,20 @@ const DeckBuilder = () => {
               </div>
             )}
 
+            {/* Image picker modal (global) */}
+            {isImagePickerOpen && imagePickerCard && (
+              <ImagePickerModal
+                isOpen={isImagePickerOpen}
+                onClose={() => {
+                  setIsImagePickerOpen(false);
+                  setImagePickerCard(null);
+                }}
+                cardId={imagePickerCard.id}
+                oracleId={(imagePickerCard as any).oracleId}
+                onSelect={handleImageSelect}
+              />
+            )}
+
             {/* Maybeboard Section (Manual Render) */}
             <div className="mt-8 pt-6 border-t border-zinc-800">
               <h3 className="text-lg font-bold text-zinc-400 mb-4 flex items-center gap-2">
@@ -1514,18 +1688,23 @@ const DeckBuilder = () => {
               </div>
             )}
           </div>
-          <button
-            onClick={handleSaveDeck}
-            disabled={!isDeckValid || isSaving}
-            className={`flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all w-full sm:w-auto ${isDeckValid && !isSaving ? 'bg-green-600 hover:bg-green-500 text-white active:scale-95' : 'bg-zinc-800 text-zinc-500 cursor-not-allowed'}`}
-          >
-            {isSaving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
-            {isSaving
-              ? t('common.saving')
-              : deckId
-                ? t('deckBuilder.updateDeck')
-                : t('deckBuilder.saveDeck')}
-          </button>
+          <div className="flex gap-3 w-full sm:w-auto">
+            <button
+              onClick={() => handleSaveDeck(true)}
+              disabled={!isDeckValid || isSaving}
+              className={`flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all w-full sm:w-auto ${isDeckValid && !isSaving ? 'bg-green-600 hover:bg-green-500 text-white shadow-lg shadow-green-900/20 active:scale-95' : 'bg-zinc-800 text-zinc-500 cursor-not-allowed'}`}>
+              {isSaving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
+              {isSaving ? t('common.saving') : t('deckBuilder.saveAndContinue')}
+            </button>
+
+            <button
+              onClick={() => handleSaveDeck(false)}
+              disabled={!isDeckValid || isSaving}
+              className={`flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all w-full sm:w-auto ${isDeckValid && !isSaving ? 'bg-zinc-800 hover:bg-zinc-700 text-white border border-zinc-700' : 'bg-zinc-800 text-zinc-500 cursor-not-allowed'}`}>
+              {isSaving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
+              {isSaving ? t('common.saving') : (deckId ? t('deckBuilder.updateDeck') : t('deckBuilder.saveDeck'))}
+            </button>
+          </div>
         </div>
       </div>
 

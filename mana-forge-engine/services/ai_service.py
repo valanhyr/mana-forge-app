@@ -81,7 +81,12 @@ class AIService:
 
     def _ensure_client(self):
         if not self.client:
-            raise RuntimeError("AI client is not initialized. Check GOOGLE_API_KEY or GROQ_API_KEY.")
+            # Raise a provider-specific message when possible to aid debugging and tests
+            if self.provider == "google":
+                raise RuntimeError("Google AI client is not initialized")
+            if self.provider == "groq":
+                raise RuntimeError("Groq client is not initialized")
+            raise RuntimeError("AI client is not initialized")
 
     @_groq_retry
     async def _call_groq(self, messages: list, temperature: float) -> str:

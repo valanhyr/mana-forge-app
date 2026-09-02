@@ -14,6 +14,7 @@ import org.springframework.dao.DuplicateKeyException;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.data.domain.Example;
 import org.springframework.stereotype.Service;
+import org.springframework.cache.annotation.CacheEvict;
 
 import java.time.LocalDate;
 import java.util.*;
@@ -45,6 +46,7 @@ public class DeckServiceImpl implements DeckService {
     }
 
     @Override
+    @CacheEvict(value = {"deck-detail", "decks", "deck-list"}, key = "#result.id", condition = "#result != null")
     public Deck saveDeck(DeckRequestDTO dto, String userId) {
         Deck deck = new Deck();
         deck.setName(dto.getName());
@@ -55,8 +57,11 @@ public class DeckServiceImpl implements DeckService {
         List<Deck.DeckCardEntry> cardEntries = dto.getCards().stream().map(cardDto -> {
             Deck.DeckCardEntry entry = new Deck.DeckCardEntry();
             entry.setScryfallId(cardDto.getId());
+            entry.setOracleId(cardDto.getOracleId());
             entry.setQuantity(cardDto.getQuantity());
             entry.setBoard(cardDto.getBoard());
+            entry.setChosenPrintId(cardDto.getChosenPrintId());
+            entry.setChosenImageUrl(cardDto.getChosenImageUrl());
             return entry;
         }).collect(Collectors.toList());
 
@@ -67,6 +72,7 @@ public class DeckServiceImpl implements DeckService {
     }
 
     @Override
+    @CacheEvict(value = {"deck-detail", "decks", "deck-list"}, key = "#id")
     public Deck updateDeck(String id, DeckRequestDTO dto, String userId) {
         return deckRepository.findById(id)
                 .map(existingDeck -> {
@@ -81,8 +87,11 @@ public class DeckServiceImpl implements DeckService {
                     List<Deck.DeckCardEntry> cardEntries = dto.getCards().stream().map(cardDto -> {
                         Deck.DeckCardEntry entry = new Deck.DeckCardEntry();
                         entry.setScryfallId(cardDto.getId());
+                        entry.setOracleId(cardDto.getOracleId());
                         entry.setQuantity(cardDto.getQuantity());
                         entry.setBoard(cardDto.getBoard());
+                        entry.setChosenPrintId(cardDto.getChosenPrintId());
+                        entry.setChosenImageUrl(cardDto.getChosenImageUrl());
                         return entry;
                     }).collect(Collectors.toList());
 

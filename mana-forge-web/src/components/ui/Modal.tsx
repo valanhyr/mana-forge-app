@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { X } from 'lucide-react';
 
 interface ModalProps {
@@ -7,6 +8,7 @@ interface ModalProps {
   children: React.ReactNode;
   maxWidth?: string;
   fullScreenMobile?: boolean;
+  className?: string;
 }
 
 const Modal: React.FC<ModalProps> = ({
@@ -16,7 +18,19 @@ const Modal: React.FC<ModalProps> = ({
   children,
   maxWidth = 'max-w-lg',
   fullScreenMobile = false,
+  className = ''
 }) => {
+  useEffect(() => {
+    if (isOpen) {
+      const previous = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = previous || '';
+      };
+    }
+    return;
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   return (
@@ -28,7 +42,7 @@ const Modal: React.FC<ModalProps> = ({
         className={`bg-zinc-900 border border-zinc-800 shadow-2xl w-full overflow-hidden animate-in fade-in zoom-in-95 duration-200
           ${fullScreenMobile
             ? `rounded-none flex flex-col h-full sm:rounded-2xl sm:h-auto ${maxWidth}`
-            : `rounded-2xl ${maxWidth}`}`}
+            : `rounded-2xl ${maxWidth}`}` + ` ${className}`}
       >
         <div className="flex justify-between items-center p-4 border-b border-zinc-800 bg-zinc-900/50 shrink-0">
           <h3 className="text-lg font-bold text-white">{title}</h3>
@@ -39,7 +53,7 @@ const Modal: React.FC<ModalProps> = ({
             <X size={20} />
           </button>
         </div>
-        <div className={`p-6 ${fullScreenMobile ? 'flex-1 overflow-y-auto' : ''}`}>{children}</div>
+        <div className={`p-6 flex-1 overflow-y-auto max-h-[80vh]`}>{children}</div>
       </div>
     </div>
   );

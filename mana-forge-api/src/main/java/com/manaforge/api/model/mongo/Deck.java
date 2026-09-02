@@ -29,8 +29,11 @@ public class Deck {
     @Data
     public static class DeckCardEntry {
         private String scryfallId;
+        private String oracleId;
         private int quantity;
         private String board; // "main" or "side"
         private boolean isGameChanger;
+        private String chosenPrintId;
+        private String chosenImageUrl;
     }
 }

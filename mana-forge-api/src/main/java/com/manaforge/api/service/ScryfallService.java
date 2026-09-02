@@ -11,7 +11,13 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
 import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
 @Service
@@ -123,6 +129,65 @@ public class ScryfallService {
         }
     }
 
+    @Cacheable(value = "scryfall_prints")
+    public Map<String, Object> getPrintsByOracleId(String oracleId) {
+        try {
+            UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(SCRYFALL_API_URL)
+                    .queryParam("q", "oracle_id:" + oracleId)
+                    .queryParam("unique", "prints");
+
+            URI uri = builder.build().encode().toUri();
+
+            throttle();
+            return restTemplate.getForObject(uri, Map.class);
+        } catch (HttpClientErrorException.NotFound e) {
+            return Map.of("object", "list", "data", Collections.emptyList());
+        } catch (HttpClientErrorException.TooManyRequests e) {
+            return Map.of("object", "error", "code", "rate_limited", "details", "Scryfall rate limit reached.");
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Map.of("object", "list", "data", Collections.emptyList());
+        }
+    }
+
+    /**
+     * Batch search helper: accepts a list of query strings (e.g. names or q= expressions)
+     * Returns a map from the original query to the Scryfall response Map.
+     */
+    public Map<String, Map<String, Object>> batchSearch(List<String> queries) {
+        if (queries == null || queries.isEmpty()) return Collections.emptyMap();
+
+        // Use a virtual-thread executor when available to scale many concurrent tasks.
+        ExecutorService ex = Executors.newVirtualThreadPerTaskExecutor();
+        try {
+            List<CompletableFuture<Map<String, Object>>> futures = queries.stream()
+                    .map(q -> CompletableFuture.<Map<String,Object>>supplyAsync(() -> {
+                        try {
+                            return searchCards(Map.of("q", q));
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                            return Map.of("object", "error", "details", "internal_error");
+                        }
+                    }, ex))
+                    .collect(java.util.stream.Collectors.toList());
+
+            CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+
+            Map<String, Map<String, Object>> result = new LinkedHashMap<>();
+            for (int i = 0; i < queries.size(); i++) {
+                try {
+                    result.put(queries.get(i), futures.get(i).get());
+                } catch (Exception e) {
+                    result.put(queries.get(i), Map.of("object", "error", "details", "failed_to_get"));
+                }
+            }
+            return result;
+        } finally {
+            ex.shutdown();
+            try { ex.awaitTermination(1, TimeUnit.SECONDS); } catch (InterruptedException ignored) { Thread.currentThread().interrupt(); }
+        }
+    }
+
     @Cacheable(value = "scryfall_search")
     public Map<String, Object> getBannedCardsByFormat(String format) {
         return searchCards(Map.of("q", "banned:" + format));
@@ -141,6 +206,24 @@ public class ScryfallService {
             return restTemplate.getForObject(uri, Map.class);
         } catch (Exception e) {
             return Map.of("object", "catalog", "data", Collections.emptyList());
+        }
+    }
+
+    /**
+     * Use Scryfall /cards/collection to fetch many cards by identifiers in one request.
+     * Accepts identifiers like scryfall ids, multiverse ids, etc.
+     */
+    public Map<String, Object> collectionByIdentifiers(List<Map<String, String>> identifiers) {
+        try {
+            URI uri = UriComponentsBuilder.fromUriString("https://api.scryfall.com/cards/collection").build().encode().toUri();
+            Map<String, Object> body = Map.of("identifiers", identifiers);
+            throttle();
+            return restTemplate.postForObject(uri, body, Map.class);
+        } catch (HttpClientErrorException.TooManyRequests e) {
+            return Map.of("object", "error", "code", "rate_limited", "details", "Scryfall rate limit reached.");
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Map.of("object", "error", "details", "collection_failed");
         }
     }
 }

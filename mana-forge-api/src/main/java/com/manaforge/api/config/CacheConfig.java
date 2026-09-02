@@ -21,6 +21,7 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.SerializationException;
+import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 
 @Configuration
 @EnableCaching
@@ -45,26 +46,7 @@ public class CacheConfig {
             JsonTypeInfo.As.PROPERTY
         );
 
-        RedisSerializer<Object> serializer = new RedisSerializer<>() {
-            @Override
-            public byte[] serialize(Object value) throws SerializationException {
-                if (value == null) return new byte[0];
-                try {
-                    return mapper.writeValueAsBytes(value);
-                } catch (Exception e) {
-                    throw new SerializationException("Could not serialize object", e);
-                }
-            }
-            @Override
-            public Object deserialize(byte[] bytes) throws SerializationException {
-                if (bytes == null || bytes.length == 0) return null;
-                try {
-                    return mapper.readValue(bytes, Object.class);
-                } catch (Exception e) {
-                    throw new SerializationException("Could not deserialize bytes", e);
-                }
-            }
-        };
+        GenericJackson2JsonRedisSerializer serializer = new GenericJackson2JsonRedisSerializer(mapper);
 
         RedisCacheConfiguration defaultConfig = RedisCacheConfiguration.defaultCacheConfig()
                 .entryTtl(Duration.ofHours(1))
@@ -85,11 +67,16 @@ public class CacheConfig {
             "articles-latest", "article-detail"
         ), Duration.ofDays(30), serializer);
 
-        // Caché de Scryfall - 24 horas
+        // Caché de Scryfall - 24 horas (search/card/named/autocomplete)
         addCacheConfig(cacheConfigurations, List.of(
             "scryfall_search", "scryfall_card", "scryfall_symbology",
             "scryfall_named", "scryfall_autocomplete"
         ), Duration.ofHours(24), serializer);
+
+        // Caché para prints (imágenes por oracle_id) - 1 hora
+        addCacheConfig(cacheConfigurations, List.of(
+            "scryfall_prints"
+        ), Duration.ofHours(1), serializer);
 
         // Caché de Premodern - 24 horas
         addCacheConfig(cacheConfigurations, List.of("premodern_banned"), Duration.ofHours(24), serializer);

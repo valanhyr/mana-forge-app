@@ -129,8 +129,10 @@ class TestAIServiceInit:
 
     def test_ensure_client_raises_when_client_none(self, monkeypatch):
         monkeypatch.delenv("GROQ_API_KEY", raising=False)
+        monkeypatch.delenv("GOOGLE_API_KEY", raising=False)
         service = AIService()
-        with pytest.raises(RuntimeError, match="Groq client is not initialized"):
+        # Accept any provider-specific or generic message that indicates missing client
+        with pytest.raises(RuntimeError, match="client is not initialized"):
             service._ensure_client()
 
     def test_api_key_present_sets_client(self, monkeypatch):

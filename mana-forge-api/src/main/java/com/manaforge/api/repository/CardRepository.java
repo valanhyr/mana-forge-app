@@ -12,4 +12,5 @@ public interface CardRepository extends MongoRepository<Card, String> {
     List<Card> findByNameContainingIgnoreCase(String name);
     Optional<Card> findFirstByNameIgnoreCase(String name);
     Optional<Card> findByScryfallId(String scryfallId);
+    Optional<Card> findByOracleId(String oracleId);
 }

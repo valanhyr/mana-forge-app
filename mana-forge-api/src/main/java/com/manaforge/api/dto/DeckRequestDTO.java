@@ -16,7 +16,10 @@ public class DeckRequestDTO {
     @Data
     public static class CardEntry {
         private String id; // scryfallId from frontend
+        private String oracleId; // optional oracle id
         private int quantity;
         private String board;
+        private String chosenPrintId; // optional selected print
+        private String chosenImageUrl; // optional selected image url
     }
 }

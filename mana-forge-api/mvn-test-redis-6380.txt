@@ -1,0 +1,555 @@
+10:54:41.282 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.manaforge.api.controller.ArticleControllerTest]: ArticleControllerTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+10:54:42.040 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.manaforge.api.ManaForgeApiApplication for test class com.manaforge.api.controller.ArticleControllerTest
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v4.0.2)
+
+2026-09-02T10:54:43.779+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.a.controller.ArticleControllerTest   : Starting ArticleControllerTest using Java 25.0.1 with PID 11804 (started by valan in C:\Users\valan\source\mana-forge\mana-forge-api)
+2026-09-02T10:54:43.782+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.a.controller.ArticleControllerTest   : The following 1 profile is active: "test"
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+WARNING: A Java agent has been loaded dynamically (C:\Users\valan\.m2\repository\net\bytebuddy\byte-buddy-agent\1.17.8\byte-buddy-agent-1.17.8.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+2026-09-02T10:54:52.565+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.a.controller.ArticleControllerTest   : Started ArticleControllerTest in 10.255 seconds (process running for 15.005)
+2026-09-02T10:54:52.782+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Incoming request: GET /api/articles/latest Headers={Accept-Language: en-US, }
+2026-09-02T10:54:53.128+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Response for GET /api/articles/latest -> 200
+2026-09-02T10:54:53.208+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Incoming request: GET /api/articles/doc1 Headers={}
+2026-09-02T10:54:53.344+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Response for GET /api/articles/doc1 -> 200
+2026-09-02T10:54:53.475+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Incoming request: GET /api/articles/missing Headers={}
+2026-09-02T10:54:53.478+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Response for GET /api/articles/missing -> 404
+2026-09-02T10:54:53.509+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Incoming request: GET /api/articles/latest Headers={}
+2026-09-02T10:54:53.519+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Response for GET /api/articles/latest -> 200
+2026-09-02T10:54:53.560+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Incoming request: GET /api/articles/latest Headers={}
+2026-09-02T10:54:53.565+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Response for GET /api/articles/latest -> 200
+2026-09-02T10:54:53.591+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Incoming request: DELETE /api/articles/cache Headers={}
+2026-09-02T10:54:53.607+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Response for DELETE /api/articles/cache -> 401
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v4.0.2)
+
+2026-09-02T10:54:53.837+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.controller.CardControllerTest    : Starting CardControllerTest using Java 25.0.1 with PID 11804 (started by valan in C:\Users\valan\source\mana-forge\mana-forge-api)
+2026-09-02T10:54:53.838+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.controller.CardControllerTest    : The following 1 profile is active: "test"
+2026-09-02T10:54:54.938+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.controller.CardControllerTest    : Started CardControllerTest in 1.242 seconds (process running for 17.378)
+2026-09-02T10:54:54.956+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Incoming request: GET /api/cards/banned/premodern Headers={}
+2026-09-02T10:54:54.989+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Response for GET /api/cards/banned/premodern -> 200
+2026-09-02T10:54:55.012+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Incoming request: GET /api/cards/mongo-id-1 Headers={}
+2026-09-02T10:54:55.078+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Response for GET /api/cards/mongo-id-1 -> 200
+2026-09-02T10:54:55.104+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Incoming request: GET /api/cards/scryfall Headers={}
+2026-09-02T10:54:55.118+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Response for GET /api/cards/scryfall -> 200
+2026-09-02T10:54:55.146+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Incoming request: GET /api/cards/autocomplete Headers={}
+2026-09-02T10:54:55.155+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Response for GET /api/cards/autocomplete -> 200
+2026-09-02T10:54:55.199+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Incoming request: GET /api/cards/autocomplete Headers={}
+2026-09-02T10:54:55.209+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Response for GET /api/cards/autocomplete -> 200
+2026-09-02T10:54:55.248+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Incoming request: GET /api/cards/scryfall/abc123 Headers={}
+2026-09-02T10:54:55.253+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Response for GET /api/cards/scryfall/abc123 -> 200
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v4.0.2)
+
+2026-09-02T10:54:55.423+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.a.c.collection.FooterControllerTest  : Starting FooterControllerTest using Java 25.0.1 with PID 11804 (started by valan in C:\Users\valan\source\mana-forge\mana-forge-api)
+2026-09-02T10:54:55.424+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.a.c.collection.FooterControllerTest  : The following 1 profile is active: "test"
+2026-09-02T10:54:56.227+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.a.c.collection.FooterControllerTest  : Started FooterControllerTest in 0.876 seconds (process running for 18.666)
+2026-09-02T10:54:56.247+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Incoming request: GET /content-service/footer Headers={}
+2026-09-02T10:54:56.263+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Response for GET /content-service/footer -> 200
+2026-09-02T10:54:56.284+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Incoming request: GET /content-service/footer Headers={}
+2026-09-02T10:54:56.288+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Response for GET /content-service/footer -> 500
+2026-09-02T10:54:56.304+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Incoming request: GET /content-service/footer Headers={}
+2026-09-02T10:54:56.306+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Response for GET /content-service/footer -> 200
+2026-09-02T10:54:56.321+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Incoming request: GET /content-service/footer Headers={}
+2026-09-02T10:54:56.324+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Response for GET /content-service/footer -> 500
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v4.0.2)
+
+2026-09-02T10:54:56.421+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.a.c.c.FooterLegalControllerTest      : Starting FooterLegalControllerTest using Java 25.0.1 with PID 11804 (started by valan in C:\Users\valan\source\mana-forge\mana-forge-api)
+2026-09-02T10:54:56.421+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.a.c.c.FooterLegalControllerTest      : The following 1 profile is active: "test"
+2026-09-02T10:54:56.978+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.a.c.c.FooterLegalControllerTest      : Started FooterLegalControllerTest in 0.615 seconds (process running for 19.417)
+2026-09-02T10:54:56.990+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Incoming request: GET /content-service/footer-legal Headers={}
+2026-09-02T10:54:56.995+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Response for GET /content-service/footer-legal -> 500
+2026-09-02T10:54:57.012+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Incoming request: GET /content-service/footer-legal Headers={}
+2026-09-02T10:54:57.019+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Response for GET /content-service/footer-legal -> 200
+2026-09-02T10:54:57.035+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Incoming request: GET /content-service/footer-legal Headers={}
+2026-09-02T10:54:57.038+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Response for GET /content-service/footer-legal -> 500
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v4.0.2)
+
+2026-09-02T10:54:57.120+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.a.c.collection.HerosControllerTest   : Starting HerosControllerTest using Java 25.0.1 with PID 11804 (started by valan in C:\Users\valan\source\mana-forge\mana-forge-api)
+2026-09-02T10:54:57.120+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.a.c.collection.HerosControllerTest   : The following 1 profile is active: "test"
+2026-09-02T10:54:57.595+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.a.c.collection.HerosControllerTest   : Started HerosControllerTest in 0.525 seconds (process running for 20.035)
+2026-09-02T10:54:57.608+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Incoming request: GET /content-service/heros Headers={}
+2026-09-02T10:54:57.614+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Response for GET /content-service/heros -> 200
+2026-09-02T10:54:57.632+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Incoming request: GET /content-service/heros Headers={}
+2026-09-02T10:54:57.640+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Response for GET /content-service/heros -> 200
+2026-09-02T10:54:57.660+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Incoming request: GET /content-service/heros Headers={}
+2026-09-02T10:54:57.664+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Response for GET /content-service/heros -> 200
+2026-09-02T10:54:57.688+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Incoming request: GET /content-service/heros Headers={}
+2026-09-02T10:54:57.692+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Response for GET /content-service/heros -> 500
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v4.0.2)
+
+2026-09-02T10:54:57.793+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.a.c.c.LanguageControllerTest         : Starting LanguageControllerTest using Java 25.0.1 with PID 11804 (started by valan in C:\Users\valan\source\mana-forge\mana-forge-api)
+2026-09-02T10:54:57.793+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.a.c.c.LanguageControllerTest         : The following 1 profile is active: "test"
+2026-09-02T10:54:58.302+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.a.c.c.LanguageControllerTest         : Started LanguageControllerTest in 0.57 seconds (process running for 20.742)
+2026-09-02T10:54:58.314+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Incoming request: GET /content-service/languages Headers={}
+2026-09-02T10:54:58.319+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Response for GET /content-service/languages -> 500
+2026-09-02T10:54:58.340+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Incoming request: GET /content-service/languages Headers={}
+2026-09-02T10:54:58.349+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Response for GET /content-service/languages -> 200
+2026-09-02T10:54:58.374+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Incoming request: GET /content-service/languages Headers={}
+2026-09-02T10:54:58.378+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Response for GET /content-service/languages -> 500
+2026-09-02T10:54:58.400+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Incoming request: GET /content-service/languages Headers={}
+2026-09-02T10:54:58.415+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Response for GET /content-service/languages -> 200
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v4.0.2)
+
+2026-09-02T10:54:58.522+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.a.c.c.SectionControllerTest          : Starting SectionControllerTest using Java 25.0.1 with PID 11804 (started by valan in C:\Users\valan\source\mana-forge\mana-forge-api)
+2026-09-02T10:54:58.522+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.a.c.c.SectionControllerTest          : The following 1 profile is active: "test"
+2026-09-02T10:54:59.123+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.a.c.c.SectionControllerTest          : Started SectionControllerTest in 0.642 seconds (process running for 21.563)
+2026-09-02T10:54:59.141+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Incoming request: GET /content-service/sections Headers={}
+2026-09-02T10:54:59.151+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Response for GET /content-service/sections -> 200
+2026-09-02T10:54:59.169+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Incoming request: GET /content-service/sections Headers={}
+2026-09-02T10:54:59.173+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Response for GET /content-service/sections -> 500
+2026-09-02T10:54:59.187+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Incoming request: GET /content-service/sections Headers={}
+2026-09-02T10:54:59.195+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Response for GET /content-service/sections -> 200
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v4.0.2)
+
+2026-09-02T10:54:59.276+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.a.controller.ContactControllerTest   : Starting ContactControllerTest using Java 25.0.1 with PID 11804 (started by valan in C:\Users\valan\source\mana-forge\mana-forge-api)
+2026-09-02T10:54:59.276+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.a.controller.ContactControllerTest   : The following 1 profile is active: "test"
+2026-09-02T10:54:59.798+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.a.controller.ContactControllerTest   : Started ContactControllerTest in 0.574 seconds (process running for 22.238)
+2026-09-02T10:54:59.809+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Incoming request: POST /api/contact Headers={Content-Type: application/json, Content-Length: 2, }
+2026-09-02T10:55:00.052+02:00  WARN 11804 --- [mana-forge-api] [           main] .w.s.m.s.DefaultHandlerExceptionResolver : Resolved [org.springframework.web.bind.MethodArgumentNotValidException: Validation failed for argument [0] in public org.springframework.http.ResponseEntity<java.lang.Void> com.manaforge.api.controller.ContactController.submit(com.manaforge.api.dto.ContactRequest) with 4 errors: [Field error in object 'contactRequest' on field 'name': rejected value [null]; codes [NotBlank.contactRequest.name,NotBlank.name,NotBlank.java.lang.String,NotBlank]; arguments [org.springframework.context.support.DefaultMessageSourceResolvable: codes [contactRequest.name,name]; arguments []; default message [name]]; default message [Name is required]] [Field error in object 'contactRequest' on field 'subject': rejected value [null]; codes [NotBlank.contactRequest.subject,NotBlank.subject,NotBlank.java.lang.String,NotBlank]; arguments [org.springframework.context.support.DefaultMessageSourceResolvable: codes [contactRequest.subject,subject]; arguments []; default message [subject]]; default message [Subject is required]] [Field error in object 'contactRequest' on field 'message': rejected value [null]; codes [NotBlank.contactRequest.message,NotBlank.message,NotBlank.java.lang.String,NotBlank]; arguments [org.springframework.context.support.DefaultMessageSourceResolvable: codes [contactRequest.message,message]; arguments []; default message [message]]; default message [Message is required]] [Field error in object 'contactRequest' on field 'email': rejected value [null]; codes [NotBlank.contactRequest.email,NotBlank.email,NotBlank.java.lang.String,NotBlank]; arguments [org.springframework.context.support.DefaultMessageSourceResolvable: codes [contactRequest.email,email]; arguments []; default message [email]]; default message [Email is required]] ]
+2026-09-02T10:55:00.053+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Response for POST /api/contact -> 400
+2026-09-02T10:55:00.068+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Incoming request: POST /api/contact Headers={Content-Type: application/json, Content-Length: 96, }
+2026-09-02T10:55:00.073+02:00  WARN 11804 --- [mana-forge-api] [           main] .w.s.m.s.DefaultHandlerExceptionResolver : Resolved [org.springframework.web.bind.MethodArgumentNotValidException: Validation failed for argument [0] in public org.springframework.http.ResponseEntity<java.lang.Void> com.manaforge.api.controller.ContactController.submit(com.manaforge.api.dto.ContactRequest): [Field error in object 'contactRequest' on field 'email': rejected value [not-an-email]; codes [Email.contactRequest.email,Email.email,Email.java.lang.String,Email]; arguments [org.springframework.context.support.DefaultMessageSourceResolvable: codes [contactRequest.email,email]; arguments []; default message [email],[Ljakarta.validation.constraints.Pattern$Flag;@121bffc8,.*]; default message [Invalid email format]] ]
+2026-09-02T10:55:00.074+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Response for POST /api/contact -> 400
+2026-09-02T10:55:00.088+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Incoming request: POST /api/contact Headers={Content-Type: application/json, Content-Length: 129, }
+2026-09-02T10:55:00.109+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.controller.ContactController     : Contact form submission from Ada Lovelace <ada@example.com>  subject: general
+2026-09-02T10:55:00.112+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Response for POST /api/contact -> 200
+2026-09-02T10:55:00.127+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Incoming request: POST /api/contact Headers={Content-Type: application/json, Content-Length: 86, }
+2026-09-02T10:55:00.129+02:00  WARN 11804 --- [mana-forge-api] [           main] .w.s.m.s.DefaultHandlerExceptionResolver : Resolved [org.springframework.web.bind.MethodArgumentNotValidException: Validation failed for argument [0] in public org.springframework.http.ResponseEntity<java.lang.Void> com.manaforge.api.controller.ContactController.submit(com.manaforge.api.dto.ContactRequest): [Field error in object 'contactRequest' on field 'name': rejected value [null]; codes [NotBlank.contactRequest.name,NotBlank.name,NotBlank.java.lang.String,NotBlank]; arguments [org.springframework.context.support.DefaultMessageSourceResolvable: codes [contactRequest.name,name]; arguments []; default message [name]]; default message [Name is required]] ]
+2026-09-02T10:55:00.130+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Response for POST /api/contact -> 400
+2026-09-02T10:55:00.143+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Incoming request: POST /api/contact Headers={Content-Type: application/json, Content-Length: 129, }
+2026-09-02T10:55:00.144+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.controller.ContactController     : Contact form submission from Ada Lovelace <ada@example.com>  subject: general
+2026-09-02T10:55:00.146+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Response for POST /api/contact -> 200
+2026-09-02T10:55:00.158+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Incoming request: POST /api/contact Headers={Content-Type: application/json, Content-Length: 79, }
+2026-09-02T10:55:00.161+02:00  WARN 11804 --- [mana-forge-api] [           main] .w.s.m.s.DefaultHandlerExceptionResolver : Resolved [org.springframework.web.bind.MethodArgumentNotValidException: Validation failed for argument [0] in public org.springframework.http.ResponseEntity<java.lang.Void> com.manaforge.api.controller.ContactController.submit(com.manaforge.api.dto.ContactRequest): [Field error in object 'contactRequest' on field 'message': rejected value [Short]; codes [Size.contactRequest.message,Size.message,Size.java.lang.String,Size]; arguments [org.springframework.context.support.DefaultMessageSourceResolvable: codes [contactRequest.message,message]; arguments []; default message [message],2000,10]; default message [Message must be between 10 and 2000 characters]] ]
+2026-09-02T10:55:00.162+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Response for POST /api/contact -> 400
+2026-09-02T10:55:00.177+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Incoming request: POST /api/contact Headers={Content-Type: application/json, Content-Length: 129, }
+2026-09-02T10:55:00.179+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.controller.ContactController     : Contact form submission from Ada Lovelace <ada@example.com>  subject: general
+2026-09-02T10:55:00.180+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Response for POST /api/contact -> 200
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v4.0.2)
+
+2026-09-02T10:55:00.251+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.a.controller.ContentControllerTest   : Starting ContentControllerTest using Java 25.0.1 with PID 11804 (started by valan in C:\Users\valan\source\mana-forge\mana-forge-api)
+2026-09-02T10:55:00.252+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.a.controller.ContentControllerTest   : The following 1 profile is active: "test"
+2026-09-02T10:55:00.705+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.a.controller.ContentControllerTest   : Started ContentControllerTest in 0.497 seconds (process running for 23.145)
+2026-09-02T10:55:00.715+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Incoming request: GET /api/v1/content/sections Headers={}
+2026-09-02T10:55:00.724+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Response for GET /api/v1/content/sections -> 200
+2026-09-02T10:55:00.736+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Incoming request: GET /api/v1/content/footer/es Headers={}
+2026-09-02T10:55:00.740+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Response for GET /api/v1/content/footer/es -> 200
+2026-09-02T10:55:00.754+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Incoming request: DELETE /api/v1/content/cache Headers={}
+2026-09-02T10:55:00.755+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Response for DELETE /api/v1/content/cache -> 401
+2026-09-02T10:55:00.768+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Incoming request: GET /api/v1/content/heros Headers={}
+2026-09-02T10:55:00.772+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Response for GET /api/v1/content/heros -> 200
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v4.0.2)
+
+2026-09-02T10:55:00.837+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.controller.DeckControllerTest    : Starting DeckControllerTest using Java 25.0.1 with PID 11804 (started by valan in C:\Users\valan\source\mana-forge\mana-forge-api)
+2026-09-02T10:55:00.837+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.controller.DeckControllerTest    : The following 1 profile is active: "test"
+2026-09-02T10:55:01.434+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.controller.DeckControllerTest    : Started DeckControllerTest in 0.636 seconds (process running for 23.873)
+2026-09-02T10:55:01.464+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Incoming request: DELETE /api/decks/deck1 Headers={}
+2026-09-02T10:55:01.469+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Response for DELETE /api/decks/deck1 -> 200
+2026-09-02T10:55:01.484+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Incoming request: POST /api/decks Headers={Content-Type: application/json, Content-Length: 60, }
+2026-09-02T10:55:01.505+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Response for POST /api/decks -> 200
+2026-09-02T10:55:01.515+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Incoming request: POST /api/decks/deck1/like Headers={}
+2026-09-02T10:55:01.517+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Response for POST /api/decks/deck1/like -> 401
+2026-09-02T10:55:01.530+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Incoming request: PUT /api/decks/deck1 Headers={Content-Type: application/json, Content-Length: 60, }
+2026-09-02T10:55:01.533+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Response for PUT /api/decks/deck1 -> 404
+2026-09-02T10:55:01.548+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Incoming request: DELETE /api/decks/deck1 Headers={}
+2026-09-02T10:55:01.550+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Response for DELETE /api/decks/deck1 -> 403
+2026-09-02T10:55:01.563+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Incoming request: PUT /api/decks/deck1 Headers={Content-Type: application/json, Content-Length: 60, }
+2026-09-02T10:55:01.567+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Response for PUT /api/decks/deck1 -> 200
+2026-09-02T10:55:01.577+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Incoming request: DELETE /api/decks/deck1 Headers={}
+2026-09-02T10:55:01.578+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Response for DELETE /api/decks/deck1 -> 401
+2026-09-02T10:55:01.589+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Incoming request: GET /api/decks/deck1/view Headers={}
+2026-09-02T10:55:01.599+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Response for GET /api/decks/deck1/view -> 200
+2026-09-02T10:55:01.610+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Incoming request: GET /api/decks/deck1 Headers={}
+2026-09-02T10:55:01.612+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Response for GET /api/decks/deck1 -> 200
+2026-09-02T10:55:01.626+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Incoming request: POST /api/decks/deck1/like Headers={}
+2026-09-02T10:55:01.630+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Response for POST /api/decks/deck1/like -> 200
+2026-09-02T10:55:01.647+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Incoming request: PUT /api/decks/deck1 Headers={Content-Type: application/json, Content-Length: 60, }
+2026-09-02T10:55:01.651+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Response for PUT /api/decks/deck1 -> 403
+2026-09-02T10:55:01.663+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Incoming request: POST /api/decks/analyze Headers={Content-Type: application/json, Content-Length: 15, }
+2026-09-02T10:55:01.667+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Response for POST /api/decks/analyze -> 200
+2026-09-02T10:55:01.678+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Incoming request: GET /api/decks/missing Headers={}
+2026-09-02T10:55:01.681+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Response for GET /api/decks/missing -> 404
+2026-09-02T10:55:01.692+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Incoming request: GET /api/decks/search Headers={}
+2026-09-02T10:55:01.697+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Response for GET /api/decks/search -> 200
+2026-09-02T10:55:01.713+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Incoming request: POST /api/decks Headers={Content-Type: application/json, Content-Length: 60, }
+2026-09-02T10:55:01.714+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Response for POST /api/decks -> 401
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v4.0.2)
+
+2026-09-02T10:55:01.780+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.a.controller.FeedbackControllerTest  : Starting FeedbackControllerTest using Java 25.0.1 with PID 11804 (started by valan in C:\Users\valan\source\mana-forge\mana-forge-api)
+2026-09-02T10:55:01.780+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.a.controller.FeedbackControllerTest  : The following 1 profile is active: "test"
+2026-09-02T10:55:02.308+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.a.controller.FeedbackControllerTest  : Started FeedbackControllerTest in 0.569 seconds (process running for 24.747)
+2026-09-02T10:55:02.318+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Incoming request: POST /api/feedback Headers={Content-Type: application/json, Content-Length: 77, }
+2026-09-02T10:55:02.329+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.controller.FeedbackController    : Feedback received � category: BUG anonymous: true
+2026-09-02T10:55:02.331+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Response for POST /api/feedback -> 200
+2026-09-02T10:55:02.342+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Incoming request: POST /api/feedback Headers={Content-Type: application/json, Content-Length: 77, }
+2026-09-02T10:55:02.344+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.controller.FeedbackController    : Feedback received � category: BUG anonymous: true
+2026-09-02T10:55:02.345+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Response for POST /api/feedback -> 200
+2026-09-02T10:55:02.357+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Incoming request: POST /api/feedback Headers={Content-Type: application/json, User-Agent: TestBrowser/2.0, Content-Length: 77, }
+2026-09-02T10:55:02.359+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.controller.FeedbackController    : Feedback received � category: BUG anonymous: true
+2026-09-02T10:55:02.359+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Response for POST /api/feedback -> 200
+2026-09-02T10:55:02.474+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Incoming request: POST /api/feedback Headers={Content-Type: application/json, Content-Length: 77, }
+2026-09-02T10:55:02.475+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Response for POST /api/feedback -> 401
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v4.0.2)
+
+2026-09-02T10:55:02.540+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.controller.FormatControllerTest  : Starting FormatControllerTest using Java 25.0.1 with PID 11804 (started by valan in C:\Users\valan\source\mana-forge\mana-forge-api)
+2026-09-02T10:55:02.541+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.controller.FormatControllerTest  : The following 1 profile is active: "test"
+2026-09-02T10:55:03.065+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.controller.FormatControllerTest  : Started FormatControllerTest in 0.56 seconds (process running for 25.504)
+2026-09-02T10:55:03.074+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Incoming request: GET /api/formats/missing Headers={}
+2026-09-02T10:55:03.079+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Response for GET /api/formats/missing -> 404
+2026-09-02T10:55:03.090+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Incoming request: GET /api/formats/fmt1 Headers={}
+2026-09-02T10:55:03.094+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Response for GET /api/formats/fmt1 -> 200
+2026-09-02T10:55:03.109+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Incoming request: DELETE /api/formats/cache Headers={}
+2026-09-02T10:55:03.110+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Response for DELETE /api/formats/cache -> 401
+2026-09-02T10:55:03.124+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Incoming request: GET /api/formats Headers={}
+2026-09-02T10:55:03.129+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Response for GET /api/formats -> 200
+2026-09-02T10:55:03.145+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Incoming request: GET /api/formats/active Headers={}
+2026-09-02T10:55:03.156+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Response for GET /api/formats/active -> 200
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v4.0.2)
+
+2026-09-02T10:55:03.227+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.a.c.PremodernControllerTest          : Starting PremodernControllerTest using Java 25.0.1 with PID 11804 (started by valan in C:\Users\valan\source\mana-forge\mana-forge-api)
+2026-09-02T10:55:03.227+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.a.c.PremodernControllerTest          : The following 1 profile is active: "test"
+2026-09-02T10:55:03.756+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.a.c.PremodernControllerTest          : Started PremodernControllerTest in 0.569 seconds (process running for 26.196)
+2026-09-02T10:55:03.781+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Incoming request: GET /api/premodern/banned-cards Headers={}
+2026-09-02T10:55:03.786+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Response for GET /api/premodern/banned-cards -> 200
+2026-09-02T10:55:03.807+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Incoming request: GET /api/premodern/banned-cards Headers={}
+2026-09-02T10:55:03.815+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Response for GET /api/premodern/banned-cards -> 200
+2026-09-02T10:55:03.834+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Incoming request: GET /api/premodern/banned-cards Headers={}
+2026-09-02T10:55:03.837+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Response for GET /api/premodern/banned-cards -> 200
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v4.0.2)
+
+2026-09-02T10:55:03.908+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.controller.UserControllerTest    : Starting UserControllerTest using Java 25.0.1 with PID 11804 (started by valan in C:\Users\valan\source\mana-forge\mana-forge-api)
+2026-09-02T10:55:03.909+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.controller.UserControllerTest    : The following 1 profile is active: "test"
+2026-09-02T10:55:04.398+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.controller.UserControllerTest    : Started UserControllerTest in 0.527 seconds (process running for 26.837)
+2026-09-02T10:55:04.524+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Incoming request: POST /api/users/login Headers={Content-Type: application/json, Content-Length: 48, }
+2026-09-02T10:55:04.657+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Response for POST /api/users/login -> 200
+2026-09-02T10:55:04.759+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Incoming request: GET /api/users/username/unknown Headers={}
+2026-09-02T10:55:04.763+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Response for GET /api/users/username/unknown -> 404
+2026-09-02T10:55:04.856+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Incoming request: POST /api/users Headers={Content-Type: application/json, Content-Length: 87, }
+2026-09-02T10:55:04.957+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Response for POST /api/users -> 200
+2026-09-02T10:55:05.054+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Incoming request: POST /api/users/login Headers={Content-Type: application/json, Content-Length: 50, }
+2026-09-02T10:55:05.145+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Response for POST /api/users/login -> 401
+2026-09-02T10:55:05.249+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Incoming request: GET /api/users/verify Headers={}
+2026-09-02T10:55:05.250+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.controller.UserController        : Verifying token: bad-token
+2026-09-02T10:55:05.250+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.controller.UserController        : User found: false
+2026-09-02T10:55:05.250+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Response for GET /api/users/verify -> 404
+2026-09-02T10:55:05.337+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Incoming request: PATCH /api/users/me/password Headers={Content-Type: application/json, Content-Length: 63, }
+2026-09-02T10:55:05.437+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Response for PATCH /api/users/me/password -> 401
+2026-09-02T10:55:05.548+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Incoming request: POST /api/users/login Headers={Content-Type: application/json, Content-Length: 48, }
+2026-09-02T10:55:05.656+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Response for POST /api/users/login -> 200
+2026-09-02T10:55:05.663+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Incoming request: PATCH /api/users/me Headers={Content-Type: application/json, Content-Length: 27, }
+2026-09-02T10:55:05.670+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Response for PATCH /api/users/me -> 200
+2026-09-02T10:55:05.792+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Incoming request: GET /api/users/verify Headers={}
+2026-09-02T10:55:05.793+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.controller.UserController        : Verifying token: valid-token
+2026-09-02T10:55:05.793+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.controller.UserController        : User found: true
+2026-09-02T10:55:05.795+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Response for GET /api/users/verify -> 200
+2026-09-02T10:55:05.945+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Incoming request: POST /api/users Headers={Content-Type: application/json, Content-Length: 87, }
+2026-09-02T10:55:06.063+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Response for POST /api/users -> 200
+2026-09-02T10:55:06.189+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Incoming request: PATCH /api/users/me Headers={Content-Type: application/json, Content-Length: 24, }
+2026-09-02T10:55:06.191+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Response for PATCH /api/users/me -> 400
+2026-09-02T10:55:06.291+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Incoming request: POST /api/users/login Headers={Content-Type: application/json, Content-Length: 48, }
+2026-09-02T10:55:06.378+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Response for POST /api/users/login -> 200
+2026-09-02T10:55:06.544+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Incoming request: PATCH /api/users/me Headers={Content-Type: application/json, Content-Length: 27, }
+2026-09-02T10:55:06.547+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Response for PATCH /api/users/me -> 400
+2026-09-02T10:55:06.654+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Incoming request: GET /api/users/me Headers={}
+2026-09-02T10:55:06.657+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Response for GET /api/users/me -> 200
+2026-09-02T10:55:06.756+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Incoming request: POST /api/users/login Headers={Content-Type: application/json, Content-Length: 48, }
+2026-09-02T10:55:06.847+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Response for POST /api/users/login -> 403
+2026-09-02T10:55:06.944+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Incoming request: GET /api/users/username/testuser Headers={}
+2026-09-02T10:55:06.947+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Response for GET /api/users/username/testuser -> 200
+2026-09-02T10:55:07.050+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Incoming request: POST /api/users Headers={Content-Type: application/json, Content-Length: 86, }
+2026-09-02T10:55:07.053+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Response for POST /api/users -> 409
+2026-09-02T10:55:07.157+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Incoming request: GET /api/users/me Headers={}
+2026-09-02T10:55:07.160+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Response for GET /api/users/me -> 401
+2026-09-02T10:55:07.271+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Incoming request: POST /api/users Headers={Content-Type: application/json, Content-Length: 88, }
+2026-09-02T10:55:07.274+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Response for POST /api/users -> 409
+2026-09-02T10:55:07.380+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Incoming request: POST /api/users/login Headers={Content-Type: application/json, Content-Length: 48, }
+2026-09-02T10:55:07.473+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Response for POST /api/users/login -> 200
+2026-09-02T10:55:07.474+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Incoming request: PATCH /api/users/me Headers={Content-Type: application/json, Content-Length: 22, }
+2026-09-02T10:55:07.477+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Response for PATCH /api/users/me -> 200
+2026-09-02T10:55:07.477+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Incoming request: GET /api/users/me Headers={}
+2026-09-02T10:55:07.479+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.config.RequestLoggingFilter      : Response for GET /api/users/me -> 200
+[ERROR] Tests run: 1, Failures: 0, Errors: 1, Skipped: 0, Time elapsed: 0.003 s <<< FAILURE! -- in com.manaforge.api.integration.DeckFlowIntegrationTest
+[ERROR] com.manaforge.api.integration.DeckFlowIntegrationTest -- Time elapsed: 0.003 s <<< ERROR!
+java.lang.TypeNotPresentException: Type com.manaforge.api.test.RedisTestContainerConfig not present
+	at jdk.proxy2/jdk.proxy2.$Proxy24.value(Unknown Source)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:214)
+	at java.base/java.util.AbstractList$RandomAccessSpliterator.forEachRemaining(AbstractList.java:722)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:570)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:560)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:153)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:176)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:265)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:632)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1604)
+Caused by: java.lang.ClassNotFoundException: com.manaforge.api.test.RedisTestContainerConfig
+	at java.base/jdk.internal.loader.BuiltinClassLoader.loadClass(BuiltinClassLoader.java:580)
+	at java.base/java.lang.ClassLoader.loadClass(ClassLoader.java:490)
+	at java.base/java.lang.Class.forName0(Native Method)
+	at java.base/java.lang.Class.forName(Class.java:547)
+	at java.base/java.lang.Class.createAnnotationData(Class.java:3671)
+	at java.base/java.lang.Class.annotationData(Class.java:3660)
+	at java.base/java.lang.Class.getDeclaredAnnotations(Class.java:3627)
+	... 1 more
+
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v4.0.2)
+
+2026-09-02T10:55:07.568+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.repository.DeckRepositoryTest    : Starting DeckRepositoryTest using Java 25.0.1 with PID 11804 (started by valan in C:\Users\valan\source\mana-forge\mana-forge-api)
+2026-09-02T10:55:07.568+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.repository.DeckRepositoryTest    : The following 1 profile is active: "test"
+2026-09-02T10:55:08.022+02:00  WARN 11804 --- [mana-forge-api] [           main] trationDelegate$BeanPostProcessorChecker : Bean 'de.flapdoodle.embed.mongo.spring.autoconfigure.EmbeddedMongoAutoConfiguration' of type [de.flapdoodle.embed.mongo.spring.autoconfigure.EmbeddedMongoAutoConfiguration] is not eligible for getting processed by all BeanPostProcessors (for example: not eligible for auto-proxying). The currently created BeanPostProcessor [fixTransactionAndAuth] is declared through a non-static factory method on that class; consider declaring it as static instead.
+2026-09-02T10:55:08.042+02:00  WARN 11804 --- [mana-forge-api] [           main] trationDelegate$BeanPostProcessorChecker : Bean 'de.flapdoodle.mongodb.embedded-de.flapdoodle.embed.mongo.spring.autoconfigure.EmbeddedMongoProperties' of type [de.flapdoodle.embed.mongo.spring.autoconfigure.EmbeddedMongoProperties] is not eligible for getting processed by all BeanPostProcessors (for example: not eligible for auto-proxying). Is this bean getting eagerly injected/applied to a currently created BeanPostProcessor [fixTransactionAndAuth]? Check the corresponding BeanPostProcessor declaration and its dependencies/advisors. If this bean does not have to be post-processed, declare it with ROLE_INFRASTRUCTURE.
+2026-09-02T10:55:08.054+02:00  WARN 11804 --- [mana-forge-api] [           main] trationDelegate$BeanPostProcessorChecker : Bean 'net' of type [de.flapdoodle.embed.mongo.config.ImmutableNet] is not eligible for getting processed by all BeanPostProcessors (for example: not eligible for auto-proxying). Is this bean getting eagerly injected/applied to a currently created BeanPostProcessor [fixTransactionAndAuth]? Check the corresponding BeanPostProcessor declaration and its dependencies/advisors. If this bean does not have to be post-processed, declare it with ROLE_INFRASTRUCTURE.
+2026-09-02T10:55:08.056+02:00  WARN 11804 --- [mana-forge-api] [           main] trationDelegate$BeanPostProcessorChecker : Bean 'spring.mongodb-org.springframework.boot.mongodb.autoconfigure.MongoProperties' of type [org.springframework.boot.mongodb.autoconfigure.MongoProperties] is not eligible for getting processed by all BeanPostProcessors (for example: not eligible for auto-proxying). Is this bean getting eagerly injected/applied to a currently created BeanPostProcessor [fixTransactionAndAuth]? Check the corresponding BeanPostProcessor declaration and its dependencies/advisors. If this bean does not have to be post-processed, declare it with ROLE_INFRASTRUCTURE.
+2026-09-02T10:55:11.499+02:00  INFO 11804 --- [mana-forge-api] [           main] c.m.api.repository.DeckRepositoryTest    : Started DeckRepositoryTest in 3.963 seconds (process running for 33.938)
+2026-09-02T10:55:13.718+02:00  INFO 11804 --- [mana-forge-api] [           main] com.manaforge.api.service.AiService      : Calling AI Engine (Analyze): http://localhost:62209/v1/ai/analyze-deck
+2026-09-02T10:55:13.792+02:00 ERROR 11804 --- [mana-forge-api] [           main] com.manaforge.api.service.AiService      : Error analyzing deck with AI: I/O error on POST request for "http://localhost:62209/v1/ai/analyze-deck": Connection refused: connect
+2026-09-02T10:55:13.886+02:00  INFO 11804 --- [mana-forge-api] [           main] com.manaforge.api.service.AiService      : Calling AI Engine (Analyze): http://localhost:62211/v1/ai/analyze-deck
+2026-09-02T10:55:14.326+02:00 ERROR 11804 --- [mana-forge-api] [           main] com.manaforge.api.service.AiService      : Error analyzing deck with AI: 500 Server Error on POST request for "http://localhost:62211/v1/ai/analyze-deck": "Internal Server Error"
+2026-09-02T10:55:14.350+02:00  INFO 11804 --- [mana-forge-api] [           main] com.manaforge.api.service.AiService      : Calling AI Engine (Random): http://localhost:62213/v1/ai/generate-random-deck [Thread: main]
+2026-09-02T10:55:14.367+02:00  WARN 11804 --- [mana-forge-api] [           main] com.manaforge.api.service.AiService      : AI Engine returned invalid response for random deck: {error=Model unavailable}
+2026-09-02T10:55:14.386+02:00  INFO 11804 --- [mana-forge-api] [           main] com.manaforge.api.service.AiService      : Calling AI Engine (Analyze): http://localhost:62215/v1/ai/analyze-deck
+2026-09-02T10:55:14.417+02:00  INFO 11804 --- [mana-forge-api] [           main] com.manaforge.api.service.AiService      : Calling AI Engine (Random): http://localhost:62217/v1/ai/generate-random-deck [Thread: main]
+2026-09-02T10:55:14.429+02:00  INFO 11804 --- [mana-forge-api] [           main] com.manaforge.api.service.AiService      : AI Engine returned a valid deck response.
+2026-09-02T10:55:14.495+02:00 ERROR 11804 --- [mana-forge-api] [           main] c.manaforge.api.service.ArticleService   : Error fetching articles: Strapi down
+2026-09-02T10:55:14.498+02:00 ERROR 11804 --- [mana-forge-api] [           main] c.manaforge.api.service.ArticleService   : Error fetching article by documentId doc1: error
+2026-09-02T10:55:15.216+02:00  INFO 11804 --- [mana-forge-api] [           main] com.manaforge.api.service.EmailService   : Welcome email sent to valan@test.com
+2026-09-02T10:55:15.237+02:00  INFO 11804 --- [mana-forge-api] [           main] com.manaforge.api.service.EmailService   : Verification email sent to valan@test.com
+2026-09-02T10:55:15.254+02:00  INFO 11804 --- [mana-forge-api] [           main] com.manaforge.api.service.EmailService   : Verification email sent to valan@test.com
+2026-09-02T10:55:15.271+02:00  INFO 11804 --- [mana-forge-api] [           main] com.manaforge.api.service.EmailService   : Verification email sent to valan@test.com
+2026-09-02T10:55:15.304+02:00 ERROR 11804 --- [mana-forge-api] [           main] com.manaforge.api.service.EmailService   : Failed to send welcome email to valan@test.com: SMTP error
+2026-09-02T10:55:15.316+02:00 ERROR 11804 --- [mana-forge-api] [           main] com.manaforge.api.service.EmailService   : Failed to send verification email to valan@test.com: SMTP error
+2026-09-02T10:55:15.333+02:00  INFO 11804 --- [mana-forge-api] [           main] com.manaforge.api.service.EmailService   : Welcome email sent to valan@test.com
+2026-09-02T10:55:15.339+02:00 ERROR 11804 --- [mana-forge-api] [           main] c.manaforge.api.service.FormatService    : Error fetching formats from Strapi: Strapi down
+2026-09-02T10:55:15.344+02:00  INFO 11804 --- [mana-forge-api] [           main] c.manaforge.api.service.FormatService    : Found 2 formats from Strapi
+java.lang.RuntimeException: Network error
+	at org.springframework.web.client.RestTemplate.exchange(RestTemplate.java:587)
+	at com.manaforge.api.service.PremodernService.getBannedCards(PremodernService.java:45)
+	at com.manaforge.api.service.PremodernServiceTest.getBannedCards_returnsEmptyOnException(PremodernServiceTest.java:120)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:104)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:565)
+	at org.junit.platform.commons.util.ReflectionUtils.invokeMethod(ReflectionUtils.java:701)
+	at org.junit.platform.commons.support.ReflectionSupport.invokeMethod(ReflectionSupport.java:502)
+	at org.junit.jupiter.engine.support.MethodReflectionUtils.invoke(MethodReflectionUtils.java:45)
+	at org.junit.jupiter.engine.execution.MethodInvocation.proceed(MethodInvocation.java:61)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$ValidatingInvocation.proceed(InvocationInterceptorChain.java:124)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.intercept(TimeoutExtension.java:163)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestableMethod(TimeoutExtension.java:148)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestMethod(TimeoutExtension.java:86)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker$ReflectiveInterceptorCall.lambda$ofVoidMethod$0(InterceptingExecutableInvoker.java:123)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.lambda$invoke$0(InterceptingExecutableInvoker.java:105)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$InterceptedInvocation.proceed(InvocationInterceptorChain.java:99)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.proceed(InvocationInterceptorChain.java:66)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.chainAndInvoke(InvocationInterceptorChain.java:47)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.invoke(InvocationInterceptorChain.java:39)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invoke(InterceptingExecutableInvoker.java:104)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invoke(InterceptingExecutableInvoker.java:98)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invokeVoid(InterceptingExecutableInvoker.java:71)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.lambda$invokeTestMethod$0(TestMethodTestDescriptor.java:219)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:74)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.invokeTestMethod(TestMethodTestDescriptor.java:215)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:157)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:70)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$2(NodeTestTask.java:176)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:74)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$1(NodeTestTask.java:166)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:138)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$0(NodeTestTask.java:164)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:74)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:163)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:116)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1604)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:42)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$2(NodeTestTask.java:180)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:74)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$1(NodeTestTask.java:166)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:138)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$0(NodeTestTask.java:164)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:74)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:163)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:116)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1604)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:42)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$2(NodeTestTask.java:180)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:74)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$1(NodeTestTask.java:166)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:138)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$0(NodeTestTask.java:164)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:74)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:163)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:116)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.submit(SameThreadHierarchicalTestExecutorService.java:36)
+	at org.junit.platform.engine.support.hierarchical.HierarchicalTestExecutor.execute(HierarchicalTestExecutor.java:52)
+	at org.junit.platform.engine.support.hierarchical.HierarchicalTestEngine.execute(HierarchicalTestEngine.java:58)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.executeEngine(EngineExecutionOrchestrator.java:246)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.failOrExecuteEngine(EngineExecutionOrchestrator.java:218)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:179)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:108)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.lambda$execute$0(EngineExecutionOrchestrator.java:66)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.withInterceptedStreams(EngineExecutionOrchestrator.java:157)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:65)
+	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:125)
+	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:114)
+	at org.junit.platform.launcher.core.DelegatingLauncher.execute(DelegatingLauncher.java:58)
+	at org.junit.platform.launcher.core.InterceptingLauncher.lambda$execute$2(InterceptingLauncher.java:57)
+	at org.junit.platform.launcher.core.ClasspathAlignmentCheckingLauncherInterceptor.intercept(ClasspathAlignmentCheckingLauncherInterceptor.java:25)
+	at org.junit.platform.launcher.core.InterceptingLauncher.execute(InterceptingLauncher.java:56)
+	at org.junit.platform.launcher.core.DelegatingLauncher.execute(DelegatingLauncher.java:58)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:104)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:565)
+	at org.apache.maven.surefire.api.util.ReflectionUtils.invokeMethodWithArray(ReflectionUtils.java:125)
+	at org.apache.maven.surefire.junitplatform.LauncherAdapter.executeWithCancellationToken(LauncherAdapter.java:68)
+	at org.apache.maven.surefire.junitplatform.LauncherAdapter.execute(LauncherAdapter.java:54)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.execute(JUnitPlatformProvider.java:203)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.invokeAllTests(JUnitPlatformProvider.java:168)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.invoke(JUnitPlatformProvider.java:136)
+	at org.apache.maven.surefire.booter.ForkedBooter.runSuitesInProcess(ForkedBooter.java:385)
+	at org.apache.maven.surefire.booter.ForkedBooter.execute(ForkedBooter.java:162)
+	at org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507)
+	at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495)
+   -> ? Calling Strapi API: http://localhost:62219/api/articles?locale=es&populate=*&sort[0]=createdAt:desc&pagination[limit]=5
+   -> ?? No data found for: articles
+   -> ? Calling Strapi API: http://localhost:62221/api/formats?filters[mongo_id][$eq]=premodern&populate[section][populate]=rules&locale=es
+   -> ? Calling Strapi API: http://localhost:62223/api/articles/doc-abc?populate=*&locale=en
+   -> ? Calling Strapi API: http://localhost:62225/api/articles/no-such-doc?populate=*&locale=es
+   -> ?? No data found for: articles/no-such-doc
+   -> ? Calling Strapi API: http://localhost:62227/api/formats?populate=*&locale=es
+   -> ? Calling Strapi API: http://localhost:62229/api/formats?filters[mongo_id][$eq]=unknown-id&populate[section][populate]=rules&locale=es
+   -> ? Calling Strapi API: http://localhost:62231/api/articles?locale=es&populate=*&sort[0]=createdAt:desc&pagination[limit]=5
+   -> ? Error calling Strapi: 500 Server Error: [no body]
+   -> ? Calling Strapi API: http://localhost:62233/api/formats?populate=*&locale=es
+   -> ? Calling Strapi API: http://localhost:62235/api/articles?locale=es&populate=*&sort[0]=createdAt:desc&pagination[limit]=5
+[ERROR] Errors: 
+[ERROR]   DeckFlowIntegrationTest � TypeNotPresent Type com.manaforge.api.test.RedisTestContainerConfig not present
+[ERROR] Tests run: 189, Failures: 0, Errors: 1, Skipped: 0
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:3.5.4:test (default-test) on project demo: 
+[ERROR] 
+[ERROR] See C:\Users\valan\source\mana-forge\mana-forge-api\target\surefire-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

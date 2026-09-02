@@ -1,4 +1,4 @@
-import { API_URL } from './api';
+import { API_URL, api } from './api';
 
 export const CardService = {
   autocomplete: async (query: string): Promise<string[]> => {
@@ -77,4 +77,51 @@ export const CardService = {
       throw error;
     }
   },
+
+  // Fetch available prints/images by oracleId via backend
+  getPrintsByOracleId: async (cardId: string, oracleId?: string): Promise<any> => {
+    try {
+      // If oracleId not provided, fetch card to obtain it
+      let oid = oracleId;
+      if (!oid) {
+        const card = await CardService.getCardById(cardId);
+        oid = card.oracle_id;
+      }
+      const response = await fetch(`${API_URL}/cards/${cardId}/images`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ oracleId: oid }),
+      });
+      if (!response.ok) throw new Error('Failed to fetch prints');
+      return await response.json();
+    } catch (error) {
+      console.error('getPrintsByOracleId error:', error);
+      throw error;
+    }
+  },
+
+  // Batch search via backend endpoint
+  batchSearch: async (queries: string[]): Promise<Record<string, any>> => {
+    try {
+      const resp = await api.post('/cards/scryfall/batch', queries);
+      const results = resp.data?.results || [];
+      // Normalize into a lookup map by several possible keys the frontend may use
+      const map: Record<string, any> = {};
+      for (const item of results) {
+        const line = item.line;
+        const name = item.name;
+        if (line) map[line] = item;
+        if (name) map[name] = item;
+        // also support quoted exact query variant used in code: !"Name"
+        if (name) map[`!\"${name}\"`] = item;
+        // normalized lower-case name
+        if (name) map[name.toLowerCase()] = item;
+      }
+      return map;
+    } catch (error) {
+      console.error('batchSearch error:', error);
+      throw error;
+    }
+  },
+
 };
