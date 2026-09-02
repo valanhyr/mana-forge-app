@@ -161,6 +161,8 @@ const DeckBuilder = () => {
   const [isImporting, setIsImporting] = useState(false);
   const sentinelRef = useRef<HTMLDivElement>(null);
   const [isFloating, setIsFloating] = useState(true);
+  // Loading state for deck hydration (fetching cards when editing)
+  const [isLoadingDeck, setIsLoadingDeck] = useState(false);
 
   // Layout states (matching DeckViewer features roughly)
   const [viewMode, setViewMode] = useState<ViewMode>('list');
@@ -190,6 +192,7 @@ const DeckBuilder = () => {
   useEffect(() => {
     if (deckId && formats.length > 0) {
       const loadDeck = async () => {
+        setIsLoadingDeck(true);
         try {
           const deck = await DeckService.getDeckById(deckId);
           setDeckName(deck.name);
@@ -246,6 +249,8 @@ const DeckBuilder = () => {
           if (deck.analysisScores) setDeckScores(deck.analysisScores);
         } catch (error) {
           console.error('Error loading deck:', error);
+        } finally {
+          setIsLoadingDeck(false);
         }
       };
       loadDeck();
@@ -883,6 +888,8 @@ const DeckBuilder = () => {
   return (
     <div className="max-w-6xl xl:max-w-7xl 2xl:max-w-screen-2xl mx-auto mt-8">
       <LoadingOverlay open={isImporting} message={t('deckBuilder.importing') || 'Importando...'} />
+      <LoadingOverlay open={isLoadingDeck} message={t('deckBuilder.loadingCards') || 'Cargando cartas...'} />
+      <LoadingOverlay open={isAnalyzing} message={t('deckBuilder.analyzing') || 'Analizando...'} />
       <SEO title={t('seo.deckBuilderTitle')} description={t('seo.deckBuilderDescription')} />
       <div className="flex items-center justify-between gap-3 mb-6">
         <div className="flex items-center gap-3">
