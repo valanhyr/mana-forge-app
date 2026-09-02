@@ -827,6 +827,7 @@ const DeckBuilder = () => {
     }
 
     try {
+      setIsFetchingPreview(true);
       const cardDetails = await CardService.getCardByName(cardName);
       const imageUrl =
         cardDetails.image_uris?.normal || cardDetails.card_faces?.[0]?.image_uris?.normal;
@@ -836,6 +837,8 @@ const DeckBuilder = () => {
       }
     } catch (error) {
       console.error('Error fetching card image for preview:', error);
+    } finally {
+      setIsFetchingPreview(false);
     }
   };
 
