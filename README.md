@@ -155,6 +155,32 @@ cd mana-forge-api
 # Swagger UI: http://localhost:8080/swagger-ui.html
 ```
 
+## CI / Jenkins (release & deploy)
+
+Required job environment variables and credentials:
+
+- TAG_RELEASE (true|false) — run tagging stage
+- REGISTRY — Docker registry host (e.g., registry.example.com)
+- REGISTRY_CREDENTIALS_ID — Jenkins credential ID for Docker push (username/password or token)
+- DEPLOY (true|false) — enable deploy stage
+- DEPLOY_HOST — user@host or host alias for SSH deploy
+- SSH_CREDENTIALS_ID — Jenkins SSH key credential ID
+- DEPLOY_COMPOSE_PATH — remote docker-compose file path (default: /home/deploy/docker-compose.yml)
+- FORCE_TAG (true|false) — overwrite existing git tags
+
+Quick run steps:
+
+1. Ensure Jenkins agent has Docker or use a Docker-capable build node.
+2. Add credentials in Jenkins (REGISTRY_CREDENTIALS_ID, SSH_CREDENTIALS_ID).
+3. Trigger job with TAG_RELEASE=true and REGISTRY set; optionally set DEPLOY=true to also deploy.
+4. Pipeline will build images, push them, create service tags from mana-forge-web/public/inventory.json, then SSH to DEPLOY_HOST and run docker compose pull/up.
+
+Notes:
+- The pipeline tags the current commit; ensure the job runs on the commit to release.
+- Use the scripts/tag-from-inventory.ps1 helper locally to create service tags before triggering the job if needed.
+- For CI without Docker on agent, use a dedicated build node or a builder image.
+
+
 ### AI Engine
 
 ```bash
