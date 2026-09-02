@@ -40,7 +40,8 @@
       "cloning": "Duplicando...",
       "confirmDelete": "¿Estás seguro de que quieres borrar este mazo?",
       "gameChangerTooltip": "Carta considerada Game Changer",
-      "accept": "Aceptar"
+      "accept": "Aceptar",
+      "ok": "OK"
     },
     "articles": {
       "writtenBy": "Escrito por",
@@ -226,6 +227,8 @@
       "importModalPlaceholder": "4 Lightning Bolt\n1 Sol Ring\n\nSideboard\n15 Relic of Progenitus",
       "importModalHint": "Pega tu lista aquí. Formato: 'Cantidad Nombre' por línea.",
       "importButton": "Importar Cartas",
+      "importResultTitle": "Resultados de la importación",
+      "importResultSummary": "{success} cartas añadidas. {failures} fallidas.",
       "analysisModalTitle": "Análisis Estratégico de IA",
       "generalSummary": "Resumen General",
       "strengths": "Fortalezas",
@@ -558,7 +561,8 @@
       "clone": "Clone",
       "cloning": "Cloning...",
             "confirmDelete": "Are you sure you want to delete this deck?",
-            "accept": "Accept"
+            "accept": "Accept",
+            "ok": "OK"
     },
     "articles": {
       "writtenBy": "Written by",
@@ -735,6 +739,8 @@
       "importModalPlaceholder": "4 Lightning Bolt\n1 Sol Ring\n\nSideboard\n15 Relic of Progenitus",
       "importModalHint": "Paste your list here. Format: 'Quantity Name' per line.",
       "importButton": "Import Cards",
+      "importResultTitle": "Import Results",
+      "importResultSummary": "{success} cards added. {failures} failed.",
       "analysisModalTitle": "AI Strategic Analysis",
       "generalSummary": "General Summary",
       "strengths": "Strengths",
