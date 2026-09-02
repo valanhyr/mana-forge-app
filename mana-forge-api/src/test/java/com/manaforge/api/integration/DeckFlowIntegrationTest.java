@@ -37,6 +37,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
+@org.springframework.test.context.TestPropertySource(properties = {"spring.redis.host=localhost","spring.redis.port=6380"})
 class DeckFlowIntegrationTest {
 
     @Autowired
@@ -70,8 +71,8 @@ class DeckFlowIntegrationTest {
     private CardBulkLoadService cardBulkLoadService;
 
     // Satisfies CacheConfig.cacheManager(RedisConnectionFactory) without connecting to Redis.
-    @MockitoBean
-    private RedisConnectionFactory redisConnectionFactory;
+        // Use Testcontainers-managed Redis instead of a Mockito mock
+        // RedisTestContainerConfig extension will set spring.redis.host/port
 
     @BeforeEach
     @SuppressWarnings("unchecked")

@@ -234,6 +234,24 @@ This project is proprietary. All rights reserved.
 
 ---
 
+## 🧪 Running tests locally
+
+For reliable local test runs the backend tests require a Redis instance. Two options:
+
+- Quick (current): start a Redis container mapped to host port 6380 and run mvn test. Example:
+
+```powershell
+# start redis on port 6380
+docker run -d --rm -p 6380:6379 --name mana-forge-redis redis:7-alpine
+# run tests
+cd mana-forge-api
+.\mvnw test
+```
+
+- Robust (future): use Testcontainers so tests start Redis automatically. This requires Docker available in CI/dev machines. There's a TODO to add a JUnit 5 Testcontainers extension (RedisTestContainerConfig) and enable it across integration tests.
+
+(STATUS: quick option implemented & documented; Testcontainers integration planned.)
+
 <p align="center">
   Built with ☕ Java, 🐍 Python and ⚛️ React &nbsp;•&nbsp; Powered by <a href="https://groq.com">Groq</a> &nbsp;•&nbsp; Cards from <a href="https://scryfall.com">Scryfall</a>
 </p>
