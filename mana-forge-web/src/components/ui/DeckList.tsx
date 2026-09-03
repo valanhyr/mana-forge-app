@@ -550,19 +550,6 @@ const DeckList: React.FC<DeckListProps> = ({
                   <Trash2 size={14} /> {t('common.delete')}
                 </button>
 
-                {/* Choose image action */}
-                {onChooseImage && (
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onChooseImage(activeCard.id, activeCard.board || 'main');
-                      setActiveCard(null);
-                    }}
-                    className="w-full text-left px-4 py-2 text-sm text-zinc-300 hover:bg-zinc-800 hover:text-orange-500 flex items-center gap-2"
-                  >
-                    <Camera size={14} /> {t('deckList.chooseImage')}
-                  </button>
-                )}
               </>
             )}
           </div>
