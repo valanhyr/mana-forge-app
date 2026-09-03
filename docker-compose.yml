@@ -33,7 +33,7 @@ services:
       context: ./mana-forge-api
       dockerfile: Dockerfile
     container_name: mana-forge-api-1
-    env_file: .env
+    env_file: ${ENV_FILE:-.env}
     dns:
       - 8.8.8.8
     ports:
