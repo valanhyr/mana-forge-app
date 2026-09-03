@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import DropdownInput from '../../components/ui/DropdownInput';
@@ -200,18 +199,17 @@ const DeckBuilder = () => {
           setDeckName(deck.name);
           setSelectedFormatId(deck.formatId);
           // Jackson serializa 'isPrivate' como 'private' por defecto
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          setIsPrivate(((deck as unknown) as Record<string, any>).private ?? (deck as any).isPrivate ?? false);
+          setIsPrivate(((deck as unknown) as Record<string, unknown>).private as boolean ?? (deck as unknown as Record<string, unknown>).isPrivate as boolean ?? false);
 
           const format = formats.find((f) => f.id === deck.formatId) || null;
           setSelectedFormat(format);
 
           // Hidratar cartas
           const cardsList = deck.cards || []; // Protección si cards es null
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const cardsPromises = cardsList.map(async (entry: Record<string, any>) => {
+          const cardsPromises = cardsList.map(async (entry: Record<string, unknown>) => {
             try {
-              const cardData = await CardService.getCardById(entry.scryfallId);
+              const sId = (entry as Record<string, unknown>).scryfallId as string | undefined;
+              const cardData = sId ? await CardService.getCardById(sId) : null;
 
               let isValid = true;
               if (format) {
@@ -240,7 +238,7 @@ const DeckBuilder = () => {
                 oracleId: (entry.oracleId as string) || undefined,
               } as DeckCardWithImage;
             } catch (err) {
-              console.error(`Error cargando carta ${entry.scryfallId}:`, err);
+            console.error(`Error cargando carta ${((entry as Record<string, unknown>).scryfallId as string) || 'unknown'}:`, err);
               return null; // Retornamos null para filtrar después
             }
           });
@@ -481,7 +479,7 @@ const DeckBuilder = () => {
                 }
 
                 // Support multiple backend shapes: { data: [...] }, { card: {...} }, or direct card object
-                let cardData: Record<string, any> | null = null;
+                let cardData: Record<string, unknown> | null = null;
                 if (result) {
                   if (Array.isArray(result.data) && result.data.length > 0) cardData = result.data[0];
                   else if (result.card) cardData = result.card;
@@ -711,13 +709,12 @@ const DeckBuilder = () => {
         userId: user.userId,
         isPrivate: isPrivate,
         cards: deckCards.map((card) => ({
-          id: card.id,
-          oracleId: ((card as unknown) as Record<string, any>).oracleId || undefined,
-          quantity: card.quantity,
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          board: (card.board || 'main') as 'main' | 'side' | 'maybe',
-          chosenPrintId: ((card as unknown) as Record<string, any>).chosenPrintId || undefined,
-          chosenImageUrl: cacheBust(((card as unknown) as Record<string, any>).chosenImageUrl || (card.image || undefined)),
+        id: card.id,
+        oracleId: ((card as unknown) as Record<string, unknown>).oracleId as string | undefined,
+        quantity: card.quantity,
+        board: (card.board || 'main') as 'main' | 'side' | 'maybe',
+        chosenPrintId: ((card as unknown) as Record<string, unknown>).chosenPrintId as string | undefined,
+        chosenImageUrl: cacheBust(((card as unknown) as Record<string, unknown>).chosenImageUrl as string | undefined || (card.image || undefined)),
         })),
         analysisScores: scores,
       };
@@ -1300,7 +1297,6 @@ const DeckBuilder = () => {
                           <h3 className="text-sm font-bold text-zinc-300 uppercase tracking-widest mb-4 pb-1 border-b border-zinc-800 flex justify-between">
                             <span>
                               <span className="text-orange-500">
-                                {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                                 {t(`deckViewer.cardTypes.${typeName}`) || typeName}
                               </span>
                               <span className="text-zinc-600 font-normal ml-2 text-xs">
@@ -1571,7 +1567,7 @@ const DeckBuilder = () => {
                   setImagePickerCard(null);
                 }}
                 cardId={imagePickerCard.id}
-                oracleId={((imagePickerCard as unknown) as Record<string, any>)?.oracleId}
+              oracleId={((imagePickerCard as unknown) as Record<string, unknown>)?.oracleId as string | undefined}
                 onSelect={handleImageSelect}
               />
             )}
