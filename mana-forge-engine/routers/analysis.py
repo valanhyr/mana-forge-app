@@ -41,4 +41,3 @@ async def deck_scores(
     except Exception as e:
         logger.error("Deck scores unexpected error: %s", e)
         raise HTTPException(status_code=500, detail="Internal server error")
-

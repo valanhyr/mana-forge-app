@@ -151,11 +151,31 @@ class AIService:
         self._ensure_client()
         locale = sanitize_locale(locale)
         format_name = sanitize_format_name(format_name) or format_name
-        meta_archetypes = sanitize_archetypes(meta_archetypes) if meta_archetypes else None
-        main_str = "\n".join([f"{c.quantity} {sanitize_card_name(c.name)}" for c in main_deck if sanitize_card_name(c.name)])
-        side_str = "\n".join([f"{c.quantity} {sanitize_card_name(c.name)}" for c in sideboard if sanitize_card_name(c.name)]) if sideboard else "No Sideboard provided."
+        meta_archetypes = (
+            sanitize_archetypes(meta_archetypes) if meta_archetypes else None
+        )
+        main_str = "\n".join(
+            [
+                f"{c.quantity} {sanitize_card_name(c.name)}"
+                for c in main_deck
+                if sanitize_card_name(c.name)
+            ]
+        )
+        side_str = (
+            "\n".join(
+                [
+                    f"{c.quantity} {sanitize_card_name(c.name)}"
+                    for c in sideboard
+                    if sanitize_card_name(c.name)
+                ]
+            )
+            if sideboard
+            else "No Sideboard provided."
+        )
 
-        target_archetypes = meta_archetypes or get_tier1_archetypes(format_name) or None
+        target_archetypes = meta_archetypes or get_tier1_archetypes(
+            format_name
+        ) or None
 
         messages = [
             {"role": "system", "content": get_analysis_system_prompt()},

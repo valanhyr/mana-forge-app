@@ -62,8 +62,6 @@ export const AuthService = {
       }
       if (!rawMsg) rawMsg = bodyText;
 
-      // Helpful debug log for client-side troubleshooting
-      // eslint-disable-next-line no-console
       console.debug('AuthService.register response', { status: response.status, errorData, bodyText, rawMsg });
 
       if (response.status === 409) {

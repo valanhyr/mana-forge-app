@@ -16,6 +16,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger("mana-forge-engine")
 
+
 def _setup_otel(fastapi_app: FastAPI) -> None:
     """Initialize OTel tracing only when OTEL_SDK_DISABLED != 'true'."""
     if os.environ.get("OTEL_SDK_DISABLED", "true").lower() == "true":

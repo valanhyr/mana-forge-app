@@ -1,12 +1,14 @@
 from pydantic import BaseModel, Field, ConfigDict, field_validator
-from typing import List, Optional, Literal
+from typing import List, Optional
 
 SUPPORTED_LOCALES = {"es", "en", "fr", "de", "it", "pt"}
+
 
 class CardInput(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
     name: str = Field(alias="card_name")
     quantity: int
+
 
 # --- Schemas for Sideboard Suggestion ---
 class SideboardSuggestion(BaseModel):
@@ -14,9 +16,11 @@ class SideboardSuggestion(BaseModel):
     quantity: int
     reason: str
 
+
 class SideboardResponse(BaseModel):
     suggestions: List[SideboardSuggestion]
     analysis: str
+
 
 class SideboardRequest(BaseModel):
     main_deck: List[CardInput]
@@ -29,6 +33,7 @@ class SideboardRequest(BaseModel):
         normalized = v.split("-")[0].lower()
         return normalized if normalized in SUPPORTED_LOCALES else "en"
 
+
 # --- Schemas for Deck Analysis ---
 class MatchupAnalysis(BaseModel):
     archetype: str
@@ -39,15 +44,18 @@ class MatchupAnalysis(BaseModel):
     sideboard_in: List[CardInput]
     sideboard_out: List[CardInput]
 
+
 class SuggestedChange(BaseModel):
     card_out: str
     card_in: str
     quantity: int
     reason: str
 
+
 class DimensionScore(BaseModel):
     value: int = Field(ge=1, le=10)
     key_cards: List[str] = Field(default_factory=list)
+
 
 class DeckScores(BaseModel):
     speed: DimensionScore
@@ -56,6 +64,7 @@ class DeckScores(BaseModel):
     resilience: DimensionScore
     interaction: DimensionScore
     combo_potential: DimensionScore
+
 
 class DeckAnalysisResponse(BaseModel):
     mana_curve_analysis: str
@@ -66,6 +75,7 @@ class DeckAnalysisResponse(BaseModel):
     general_summary: str
     scores: Optional[DeckScores] = None
     projected_scores: Optional[DeckScores] = None
+
 
 class DeckAnalysisRequest(BaseModel):
     main_deck: List[CardInput]
@@ -80,6 +90,7 @@ class DeckAnalysisRequest(BaseModel):
         normalized = v.split("-")[0].lower()
         return normalized if normalized in SUPPORTED_LOCALES else "en"
 
+
 # --- Schemas for Deck Scores (lightweight, no matchups/suggestions) ---
 class DeckScoresRequest(BaseModel):
     main_deck: List[CardInput]
@@ -91,6 +102,7 @@ class DeckScoresRequest(BaseModel):
     def validate_locale_scores(cls, v: str) -> str:
         normalized = v.split("-")[0].lower()
         return normalized if normalized in SUPPORTED_LOCALES else "en"
+
 
 class DeckScoresOnlyResponse(BaseModel):
     scores: DeckScores
@@ -106,9 +118,11 @@ class RandomDeckRequest(BaseModel):
         normalized = v.split("-")[0].lower()
         return normalized if normalized in SUPPORTED_LOCALES else "en"
 
+
 class CardOutput(BaseModel):
     name: str
     quantity: int
+
 
 class RandomDeckResponse(BaseModel):
     deck_name: str

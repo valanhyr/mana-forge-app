@@ -338,4 +338,3 @@ def get_format_notes(format_name: Optional[str]) -> str:
 def requires_sideboard(format_name: Optional[str]) -> bool:
     ctx = get_format_context(format_name)
     return ctx["requires_sideboard"] if ctx else True
-

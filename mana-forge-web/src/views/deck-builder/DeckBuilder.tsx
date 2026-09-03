@@ -100,12 +100,12 @@ const safeNumber = (obj: Record<string, unknown> | null | undefined, key: string
   const v = obj[key];
   return typeof v === 'number' ? v : fallback;
 };
-const safeNested = (obj: Record<string, unknown> | null | undefined, path: string[], fallback: any = undefined) => {
+const safeNested = (obj: Record<string, unknown> | null | undefined, path: string[], fallback: unknown = undefined): unknown => {
   if (!obj) return fallback;
-  let cur: any = obj;
+  let cur: unknown = obj;
   for (const p of path) {
     if (!cur || typeof cur !== 'object') return fallback;
-    cur = cur[p];
+    cur = (cur as Record<string, unknown>)[p];
   }
   return cur === undefined ? fallback : cur;
 };
@@ -242,12 +242,13 @@ const DeckBuilder = () => {
             }
 
             const boardVal = (entry.board as string) || 'main';
-            const boardTyped = (['main', 'side', 'commander', 'maybe'] as const).includes(boardVal as any)
-              ? (boardVal as 'main' | 'side' | 'commander' | 'maybe')
+            type BoardType = 'main' | 'side' | 'commander' | 'maybe';
+            const boardTyped = (['main', 'side', 'commander', 'maybe'] as const).includes(boardVal as BoardType)
+              ? (boardVal as BoardType)
               : 'main';
 
-            const imageUrl = (entry as Record<string, unknown>).chosenImageUrl as string | undefined
-              || safeNested(cardData, ['image_uris', 'normal'])
+            const imageUrl = ((entry as Record<string, unknown>).chosenImageUrl as string | undefined)
+              || (safeNested(cardData, ['image_uris', 'normal']) as string | undefined)
               || (safeNested(cardData, ['card_faces', '0', 'image_uris', 'normal']) as string | undefined)
               || '';
 
@@ -513,9 +514,14 @@ const DeckBuilder = () => {
                 // Support multiple backend shapes: { data: [...] }, { card: {...} }, or direct card object
                 let cardData: Record<string, unknown> | null = null;
                 if (result) {
-                  if (Array.isArray((result as any).data) && (result as any).data.length > 0) cardData = (result as any).data[0];
-                  else if ((result as any).card) cardData = (result as any).card;
-                  else if ((result as any).id && (result as any).name) cardData = result as Record<string, unknown>; // already a card object
+                  const resultRecord = result as Record<string, unknown>;
+                  if (Array.isArray(resultRecord.data) && (resultRecord.data as unknown[]).length > 0) {
+                    cardData = ((resultRecord.data as unknown[])[0]) as Record<string, unknown>;
+                  } else if (resultRecord.card) {
+                    cardData = resultRecord.card as Record<string, unknown>;
+                  } else if (resultRecord.id && resultRecord.name) {
+                    cardData = resultRecord; // already a card object
+                  }
                 }
                 if (!cardData) throw new Error('Not found');
 
@@ -1671,7 +1677,7 @@ const DeckBuilder = () => {
                     </div>
                   ))}
                 </div>
-              )}
+              ))}
             </div>
 
             {/* Footer con Estadísticas */}

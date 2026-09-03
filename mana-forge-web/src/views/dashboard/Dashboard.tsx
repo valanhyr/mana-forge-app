@@ -113,7 +113,8 @@ const Dashboard = () => {
           if (featureCard) {
           // 3. Obtener la imagen de la carta desde nuestro proxy de Scryfall
         const cardDetails = await ScryfallService.getCardByName(featureCard.name) as Record<string, unknown> | null;
-        const artCrop = cardDetails ? (cardDetails['image_uris'] && (cardDetails['image_uris'] as any).art_crop) : undefined;
+        const imageUris = cardDetails?.['image_uris'] as Record<string, string> | undefined;
+        const artCrop = imageUris?.art_crop;
         if (artCrop && typeof artCrop === 'string') {
           cardArtUrl = artCrop;
         }
@@ -135,7 +136,8 @@ const Dashboard = () => {
       const deck = await DeckService.getFeaturedDeck();
       if (deck && deck.featuredScryfallId) {
       const cardDetails = (await ScryfallService.getCardById(deck.featuredScryfallId)) as Record<string, unknown> | null;
-      const art = cardDetails ? (cardDetails['image_uris'] && (cardDetails['image_uris'] as any).art_crop) : undefined;
+      const imageUris = cardDetails?.['image_uris'] as Record<string, string> | undefined;
+      const art = imageUris?.art_crop;
       const cardArtUrl = typeof art === 'string' ? art : undefined;
       setFeaturedDeck({ ...deck, cardArtUrl });
       } else {
@@ -177,8 +179,9 @@ const Dashboard = () => {
     }
 
     try {
-      const cardDetails = await ScryfallService.getCardByName(cardName) as Record<string, unknown> | null;
-      const imageUrl = cardDetails ? (cardDetails['image_uris'] && (cardDetails['image_uris'] as any).normal) : undefined;
+        const cardDetails = await ScryfallService.getCardByName(cardName) as Record<string, unknown> | null;
+        const imageUris = cardDetails?.['image_uris'] as Record<string, string> | undefined;
+        const imageUrl = imageUris?.normal;
       if (imageUrl && typeof imageUrl === 'string') {
         setCachedImages((prev) => ({ ...prev, [cardName]: imageUrl }));
         setPreviewImage(imageUrl);

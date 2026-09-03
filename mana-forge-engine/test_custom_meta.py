@@ -49,10 +49,10 @@ print("Enviando petición de análisis con meta personalizado...")
 try:
     response = requests.post(url, json=payload)
     response.raise_for_status()
-    
+
     print("\n--- Respuesta de la IA ---")
     print(json.dumps(response.json(), indent=2, ensure_ascii=False))
-    
+
 except Exception as e:
     print(f"Error: {e}")
     if hasattr(e, 'response') and e.response:
