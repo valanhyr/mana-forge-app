@@ -121,7 +121,8 @@ pipeline {
                                 PREV=$(docker inspect mana-forge-api-1 --format='{{.Config.Image}}' 2>/dev/null || echo '')
                                 echo "$PREV" > /tmp/previous_api_image
                                 docker pull "$IMAGE_FULL"
-                                cd "$WORKSPACE" && API_IMAGE="$IMAGE_FULL" docker compose -p mana-forge --env-file "$ENV_FILE" up -d --no-build --no-deps --force-recreate api
+                                REPO_ROOT=$(cd "$WORKSPACE" && git rev-parse --show-toplevel)
+                                cd "$REPO_ROOT" && API_IMAGE="$IMAGE_FULL" docker compose -p mana-forge --env-file "$ENV_FILE" up -d --no-build --no-deps --force-recreate api
                             '''
                         }
                     } else {
@@ -180,7 +181,8 @@ pipeline {
                             PREV=$(cat /tmp/previous_api_image 2>/dev/null || echo '')
                             if [ -n "$PREV" ]; then
                                 echo "🔄 Rolling back to $PREV"
-                                cd "$WORKSPACE" && API_IMAGE="$PREV" docker compose -p mana-forge --env-file "$ENV_FILE" up -d --no-build --no-deps --force-recreate api
+                                REPO_ROOT=$(cd "$WORKSPACE" && git rev-parse --show-toplevel)
+                                cd "$REPO_ROOT" && API_IMAGE="$PREV" docker compose -p mana-forge --env-file "$ENV_FILE" up -d --no-build --no-deps --force-recreate api
                             else
                                 echo "⚠️  No previous image found"
                             fi

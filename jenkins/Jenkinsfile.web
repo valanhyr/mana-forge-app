@@ -131,7 +131,8 @@ pipeline {
                                 PREV=$(docker inspect mana-forge-web-1 --format='{{.Config.Image}}' 2>/dev/null || echo '')
                                 echo "$PREV" > /tmp/previous_web_image
                                 docker pull "$IMAGE_FULL"
-                                cd "$WORKSPACE" && WEB_IMAGE="$IMAGE_FULL" docker compose -p mana-forge --env-file "$ENV_FILE" up -d --no-build --no-deps --force-recreate web
+                                REPO_ROOT=$(cd "$WORKSPACE" && git rev-parse --show-toplevel)
+                                cd "$REPO_ROOT" && WEB_IMAGE="$IMAGE_FULL" docker compose -p mana-forge --env-file "$ENV_FILE" up -d --no-build --no-deps --force-recreate web
                             '''
                         }
                     } else {
@@ -190,7 +191,8 @@ pipeline {
                             PREV=$(cat /tmp/previous_web_image 2>/dev/null || echo '')
                             if [ -n "$PREV" ]; then
                                 echo "🔄 Rolling back to $PREV"
-                                cd "$WORKSPACE" && WEB_IMAGE="$PREV" docker compose -p mana-forge --env-file "$ENV_FILE" up -d --no-build --no-deps --force-recreate web
+                                REPO_ROOT=$(cd "$WORKSPACE" && git rev-parse --show-toplevel)
+                                cd "$REPO_ROOT" && WEB_IMAGE="$PREV" docker compose -p mana-forge --env-file "$ENV_FILE" up -d --no-build --no-deps --force-recreate web
                             else
                                 echo "⚠️  No previous image found"
                             fi
