@@ -761,6 +761,8 @@
       "scoreCurrent": "Current deck",
       "validationNeedName": "The deck needs a name.",
       "validationNeedFormat": "Select a format.",
+      "importing": "Importing...",
+      "loadingCards": "Loading cards...",
       "validationCommander100": "Commander deck must have exactly 100 cards (Main + Commander).",
       "validationCommanderNeeded": "Designate at least one card as Commander (click card → Make Commander).",
       "validationNoSideboardCommander": "Commander format does not allow a sideboard.",
