@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 
 // Limpiar módulos para reobtener la instancia de api limpia
 describe('services/api', () => {

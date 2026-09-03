@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import DropdownInput from '../../components/ui/DropdownInput';
@@ -200,7 +201,7 @@ const DeckBuilder = () => {
           setSelectedFormatId(deck.formatId);
           // Jackson serializa 'isPrivate' como 'private' por defecto
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          setIsPrivate((deck as any).private ?? deck.isPrivate ?? false);
+          setIsPrivate(((deck as unknown) as Record<string, any>).private ?? (deck as any).isPrivate ?? false);
 
           const format = formats.find((f) => f.id === deck.formatId) || null;
           setSelectedFormat(format);
@@ -208,7 +209,7 @@ const DeckBuilder = () => {
           // Hidratar cartas
           const cardsList = deck.cards || []; // Protección si cards es null
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const cardsPromises = cardsList.map(async (entry: any) => {
+          const cardsPromises = cardsList.map(async (entry: Record<string, any>) => {
             try {
               const cardData = await CardService.getCardById(entry.scryfallId);
 
@@ -480,7 +481,7 @@ const DeckBuilder = () => {
                 }
 
                 // Support multiple backend shapes: { data: [...] }, { card: {...} }, or direct card object
-                let cardData: any = null;
+                let cardData: Record<string, any> | null = null;
                 if (result) {
                   if (Array.isArray(result.data) && result.data.length > 0) cardData = result.data[0];
                   else if (result.card) cardData = result.card;
@@ -699,7 +700,7 @@ const DeckBuilder = () => {
           const u = new URL(url);
           u.searchParams.set('v', String(Date.now()));
           return u.toString();
-        } catch (e) {
+        } catch {
           // If it's not a full URL, append param safely
           return url + (url.includes('?') ? '&' : '?') + 'v=' + Date.now();
         }
@@ -711,12 +712,12 @@ const DeckBuilder = () => {
         isPrivate: isPrivate,
         cards: deckCards.map((card) => ({
           id: card.id,
-          oracleId: (card as any).oracleId || undefined,
+          oracleId: ((card as unknown) as Record<string, any>).oracleId || undefined,
           quantity: card.quantity,
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          board: (card.board || 'main') as any,
-          chosenPrintId: (card as any).chosenPrintId || undefined,
-          chosenImageUrl: cacheBust((card as any).chosenImageUrl || (card.image || undefined)),
+          board: (card.board || 'main') as 'main' | 'side' | 'maybe',
+          chosenPrintId: ((card as unknown) as Record<string, any>).chosenPrintId || undefined,
+          chosenImageUrl: cacheBust(((card as unknown) as Record<string, any>).chosenImageUrl || (card.image || undefined)),
         })),
         analysisScores: scores,
       };
@@ -960,7 +961,7 @@ const DeckBuilder = () => {
                   <span className="text-zinc-300">{selectedFormat.config.maxCopies}</span>
                 </span>
                 {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-                {(selectedFormat.config as any).maxSideboard > 0 && (
+                {((selectedFormat.config as unknown) as Record<string, any>).maxSideboard > 0 && (
                   <span>
                     {t('deckBuilder.sideboardLabel')}{' '}
                     <span className="text-zinc-300">
@@ -1300,7 +1301,7 @@ const DeckBuilder = () => {
                             <span>
                               <span className="text-orange-500">
                                 {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-                                {t(`deckViewer.cardTypes.${typeName}` as any) || typeName}
+                                {t(`deckViewer.cardTypes.${typeName}`) || typeName}
                               </span>
                               <span className="text-zinc-600 font-normal ml-2 text-xs">
                                 ({mainGroups[typeName].reduce((s, c) => s + c.quantity, 0)})
@@ -1570,7 +1571,7 @@ const DeckBuilder = () => {
                   setImagePickerCard(null);
                 }}
                 cardId={imagePickerCard.id}
-                oracleId={(imagePickerCard as any).oracleId}
+                oracleId={((imagePickerCard as unknown) as Record<string, any>)?.oracleId}
                 onSelect={handleImageSelect}
               />
             )}
@@ -1787,7 +1788,7 @@ const DeckBuilder = () => {
               <h4 className="text-white font-bold mb-3">{t('deckBuilder.matchups')}</h4>
               <div className="space-y-3">
                 {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-                {analysisResult.matchups.map((match: any, idx: number) => (
+                {analysisResult.matchups.map((match: Record<string, any>, idx: number) => (
                   <div key={idx} className="bg-zinc-950 p-4 rounded-lg border border-zinc-800">
                     <div className="flex justify-between items-center mb-2">
                       <span className="font-bold text-indigo-400">{match.archetype}</span>
@@ -1815,7 +1816,7 @@ const DeckBuilder = () => {
                 </h4>
                 <div className="space-y-2">
                   {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-                  {analysisResult.suggested_changes.map((change: any, idx: number) => (
+                  {analysisResult.suggested_changes.map((change: Record<string, any>, idx: number) => (
                     <div
                       key={idx}
                       className="bg-zinc-950 p-3 rounded-lg border border-zinc-800 flex flex-col sm:flex-row sm:items-center gap-3"

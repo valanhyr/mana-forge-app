@@ -120,12 +120,13 @@ export const AuthService = {
   },
 
   // Simulación de fetch de mazos (conectaremos con el backend real luego)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  getUserDecks: async (userId: string): Promise<any[]> => {
+  
+  getUserDecks: async (userId: string): Promise<Record<string, unknown>[]> => {
     const response = await fetch(`${API_URL}/decks/user/${userId}`);
     if (!response.ok) {
       throw new Error('Error fetching user decks');
     }
-    return response.json();
+    const json = (await response.json()) as Record<string, unknown>[];
+    return json;
   },
 };

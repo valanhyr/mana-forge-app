@@ -25,9 +25,13 @@ const ImagePickerModal: React.FC<Props> = ({ isOpen, onClose, cardId, oracleId, 
 
   useEffect(() => {
     if (!isOpen) return;
-    setLoading(true);
-    setPrints([]);
-    setSelected(null);
+    // avoid calling setState synchronously inside effect to prevent cascading renders
+    setTimeout(() => {
+      setLoading(true);
+      setPrints([]);
+      setSelected(null);
+    }, 0);
+
     CardService.getPrintsByOracleId(cardId, oracleId)
       .then((data) => {
         setPrints(data.prints || []);

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { API_URL, api } from './api';
 
 export const CardService = {
@@ -7,7 +8,7 @@ export const CardService = {
     try {
       const response = await fetch(`${API_URL}/cards/autocomplete?q=${encodeURIComponent(query)}`);
       if (!response.ok) return [];
-      const json = await response.json();
+      const json: Record<string, any> = await response.json();
       return json.data || [];
     } catch (error) {
       console.error('Autocomplete error:', error);
@@ -15,8 +16,7 @@ export const CardService = {
     }
   },
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  getCardByName: async (name: string): Promise<any> => {
+  getCardByName: async (name: string): Promise<Record<string, any>> => {
     try {
       const exactQuery = `!"${name}"`;
       const exactResponse = await fetch(
@@ -24,7 +24,7 @@ export const CardService = {
       );
 
       if (exactResponse.ok) {
-        const exactResult = await exactResponse.json();
+        const exactResult: Record<string, any> = await exactResponse.json();
         if (exactResult.data && exactResult.data.length > 0) {
           return exactResult.data[0];
         }
@@ -34,7 +34,7 @@ export const CardService = {
       const response = await fetch(`${API_URL}/cards/scryfall?q=${encodeURIComponent(name)}`);
       if (!response.ok) throw new Error('Card not found');
 
-      const result = await response.json();
+      const result: Record<string, any> = await response.json();
 
       // El endpoint de búsqueda devuelve una lista, tomamos el primer resultado.
       if (result.data && result.data.length > 0) {
@@ -48,8 +48,7 @@ export const CardService = {
     }
   },
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  getCardById: async (id: string): Promise<any> => {
+  getCardById: async (id: string): Promise<Record<string, any>> => {
     try {
       const response = await fetch(`${API_URL}/cards/scryfall/${id}`);
       if (!response.ok) throw new Error('Card not found');
@@ -66,8 +65,7 @@ export const CardService = {
    * @returns {Promise<Card[]>} Una promesa que resuelve a un array de objetos tipo Card.
    * @throws {Error} Si la respuesta de la red no es exitosa o la carta no existe.
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  getBannedcards: async (format: string): Promise<any> => {
+  getBannedcards: async (format: string): Promise<Record<string, any>> => {
     try {
       const response = await fetch(`${API_URL}/cards/banned/${format}`);
       if (!response.ok) throw new Error('Card not found');
@@ -79,7 +77,7 @@ export const CardService = {
   },
 
   // Fetch available prints/images by oracleId via backend
-  getPrintsByOracleId: async (cardId: string, oracleId?: string): Promise<any> => {
+  getPrintsByOracleId: async (cardId: string, oracleId?: string): Promise<Record<string, any>> => {
     try {
       // If oracleId not provided, fetch card to obtain it
       let oid = oracleId;
@@ -101,19 +99,19 @@ export const CardService = {
   },
 
   // Batch search via backend endpoint
-  batchSearch: async (queries: string[]): Promise<Record<string, any>> => {
+  batchSearch: async (queries: string[]): Promise<Record<string, Record<string, any>>> => {
     try {
       const resp = await api.post('/cards/scryfall/batch', queries);
-      const results = resp.data?.results || [];
+      const results: any[] = resp.data?.results || [];
       // Normalize into a lookup map by several possible keys the frontend may use
-      const map: Record<string, any> = {};
+      const map: Record<string, Record<string, any>> = {};
       for (const item of results) {
         const line = item.line;
         const name = item.name;
         if (line) map[line] = item;
         if (name) map[name] = item;
         // also support quoted exact query variant used in code: !"Name"
-        if (name) map[`!\"${name}\"`] = item;
+        if (name) map[`!"${name}"`] = item;
         // normalized lower-case name
         if (name) map[name.toLowerCase()] = item;
       }
