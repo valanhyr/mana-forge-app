@@ -194,7 +194,7 @@ describe('UserContext', () => {
             onClick={() =>
               register('newuser', 'new@example.com', 'pass')
                 .then(() => setStatus('success'))
-                .catch(e => setStatus('error'))
+                .catch(() => setStatus('error'))
             }
           >
             Register

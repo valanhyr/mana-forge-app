@@ -1,9 +1,8 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, waitFor } from '@testing-library/react';
 import { http, HttpResponse } from 'msw';
 import { server } from './mocks/server';
 import App from '../App';
-import { mockUser } from './mocks/handlers';
 
 const BASE = 'http://localhost:8080';
 
