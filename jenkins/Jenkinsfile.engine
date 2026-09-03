@@ -122,7 +122,7 @@ pipeline {
                                 PREV=$(docker inspect mana-forge-engine-1 --format='{{.Config.Image}}' 2>/dev/null || echo '')
                                 echo "$PREV" > /tmp/previous_engine_image
                                 docker pull "$IMAGE_FULL"
-                                ENGINE_IMAGE="$IMAGE_FULL" docker-compose -p mana-forge --env-file "$ENV_FILE" -f "$WORKSPACE/docker-compose.yml" up -d --no-build --no-deps --force-recreate engine
+                                cd "$WORKSPACE" && ENGINE_IMAGE="$IMAGE_FULL" docker compose -p mana-forge --env-file "$ENV_FILE" up -d --no-build --no-deps --force-recreate engine
                             '''
                         }
                     } else {
@@ -188,7 +188,7 @@ pipeline {
                             PREV=$(cat /tmp/previous_engine_image 2>/dev/null || echo '')
                             if [ -n "$PREV" ]; then
                                 echo "🔄 Rolling back to $PREV"
-                                ENGINE_IMAGE="$PREV" docker-compose -p mana-forge --env-file "$ENV_FILE" -f "$WORKSPACE/docker-compose.yml" up -d --no-build --no-deps --force-recreate engine
+                                cd "$WORKSPACE" && ENGINE_IMAGE="$PREV" docker compose -p mana-forge --env-file "$ENV_FILE" up -d --no-build --no-deps --force-recreate engine
                             else
                                 echo "⚠️  No previous image found"
                             fi
