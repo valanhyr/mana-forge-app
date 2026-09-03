@@ -119,11 +119,12 @@ pipeline {
                         withCredentials([file(credentialsId: 'mana-forge-api', variable: 'ENV_FILE')]) {
                             sh '''
                                 PREV=$(docker inspect mana-forge-api-1 --format='{{.Config.Image}}' 2>/dev/null || echo '')
-                                echo "$PREV" > /tmp/previous_api_image
+                                echo "$PREV" > "$WORKSPACE/previous_api_image"
                                 docker pull "$IMAGE_FULL"
+                                cp "$ENV_FILE" "$WORKSPACE/.env.deploy"
                                 cd "$WORKSPACE"
                                 export API_IMAGE="$IMAGE_FULL"
-                                docker-compose -p mana-forge --env-file "$ENV_FILE" up -d --no-build --no-deps --force-recreate api
+                                docker-compose -p mana-forge --env-file "$WORKSPACE/.env.deploy" up -d --no-build --no-deps --force-recreate api
                             '''
                         }
                     } else {
@@ -179,12 +180,12 @@ pipeline {
                 if (params.ENVIRONMENT == 'local') {
                     withCredentials([file(credentialsId: 'mana-forge-api', variable: 'ENV_FILE')]) {
                         sh '''
-                            PREV=$(cat /tmp/previous_api_image 2>/dev/null || echo '')
+                            PREV=$(cat "$WORKSPACE/previous_api_image" 2>/dev/null || echo '')
                             if [ -n "$PREV" ]; then
                                 echo "🔄 Rolling back to $PREV"
                                 cd "$WORKSPACE"
                                 export API_IMAGE="$PREV"
-                                docker-compose -p mana-forge --env-file "$ENV_FILE" up -d --no-build --no-deps --force-recreate api
+                                docker-compose -p mana-forge --env-file "$WORKSPACE/.env.deploy" up -d --no-build --no-deps --force-recreate api
                             else
                                 echo "⚠️  No previous image found"
                             fi
