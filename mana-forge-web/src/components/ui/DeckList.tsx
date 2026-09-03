@@ -450,29 +450,42 @@ const DeckList: React.FC<DeckListProps> = ({
             className="fixed w-48 bg-zinc-900 border border-zinc-800 rounded-xl shadow-xl z-50 overflow-hidden"
             style={{ top: menuPos.top, left: menuPos.left }}
           >
-            {onUpdateQuantity && (
-              <>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onUpdateQuantity(activeCard, 1);
-                  }}
-                  className="w-full text-left px-4 py-2 text-sm text-zinc-300 hover:bg-zinc-800 hover:text-orange-500 flex items-center gap-2"
-                >
-                  <Plus size={14} /> {t('deckList.addOne')}
-                </button>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onUpdateQuantity(activeCard, -1);
-                  }}
-                  className="w-full text-left px-4 py-2 text-sm text-zinc-300 hover:bg-zinc-800 hover:text-orange-500 flex items-center gap-2"
-                >
-                  <Minus size={14} /> {t('deckList.removeOne')}
-                </button>
-              </>
-            )}
-            {onMoveToBoard && (
+                {/* Choose image action - should be first */}
+                {onChooseImage && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onChooseImage(activeCard.id, activeCard.board || 'main');
+                      setActiveCard(null);
+                    }}
+                    className="w-full text-left px-4 py-2 text-sm text-zinc-300 hover:bg-zinc-800 hover:text-orange-500 flex items-center gap-2"
+                  >
+                    <Camera size={14} /> {t('deckList.chooseImage')}
+                  </button>
+                )}
+                {onUpdateQuantity && (
+                  <>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onUpdateQuantity(activeCard, 1);
+                      }}
+                      className="w-full text-left px-4 py-2 text-sm text-zinc-300 hover:bg-zinc-800 hover:text-orange-500 flex items-center gap-2"
+                    >
+                      <Plus size={14} /> {t('deckList.addOne')}
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onUpdateQuantity(activeCard, -1);
+                      }}
+                      className="w-full text-left px-4 py-2 text-sm text-zinc-300 hover:bg-zinc-800 hover:text-orange-500 flex items-center gap-2"
+                    >
+                      <Minus size={14} /> {t('deckList.removeOne')}
+                    </button>
+                  </>
+                )}
+                {onMoveToBoard && (
               <>
                 {isCommanderFormat && activeCard.board !== 'commander' && (
                   <button
