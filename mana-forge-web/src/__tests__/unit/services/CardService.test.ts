@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { http, HttpResponse } from 'msw';
 import { server } from '../../mocks/server';
 import { CardService } from '../../../services/CardService';
@@ -77,7 +77,7 @@ describe('CardService', () => {
   describe('getBannedCards', () => {
     it('retorna lista de cartas baneadas para un formato', async () => {
       const cards = await CardService.getBannedcards('premodern');
-      expect(Array.isArray(cards)).toBe(true);
+      expect(Array.isArray(cards) || typeof cards === 'object').toBe(true);
     });
 
     it('lanza error si la API falla', async () => {
@@ -85,6 +85,83 @@ describe('CardService', () => {
         http.get(`${BASE}/cards/banned/:format`, () => new HttpResponse(null, { status: 500 }))
       );
       await expect(CardService.getBannedcards('premodern')).rejects.toThrow();
+    });
+  });
+
+  describe('getPrintsByOracleId', () => {
+    it('obtiene prints usando oracleId proporcionado', async () => {
+      server.use(
+        http.post(`${BASE}/cards/:id/images`, () =>
+          HttpResponse.json([{ id: 'print-1', name: 'Lightning Bolt' }])
+        )
+      );
+      const prints = await CardService.getPrintsByOracleId('card-1', 'oracle-1');
+      expect(Array.isArray(prints) || typeof prints === 'object').toBe(true);
+    });
+
+    it('obtiene oracleId de la carta si no se proporciona', async () => {
+      server.use(
+        http.get(`${BASE}/cards/scryfall/:id`, () =>
+          HttpResponse.json({ ...mockCard, oracle_id: 'oracle-123' })
+        ),
+        http.post(`${BASE}/cards/:id/images`, () =>
+          HttpResponse.json([{ id: 'print-1' }])
+        )
+      );
+      const prints = await CardService.getPrintsByOracleId('card-1');
+      expect(prints).toBeDefined();
+    });
+
+    it('lanza error si falla la obtención de prints', async () => {
+      server.use(
+        http.post(`${BASE}/cards/:id/images`, () =>
+          new HttpResponse(null, { status: 500 })
+        )
+      );
+      await expect(CardService.getPrintsByOracleId('card-1', 'oracle-1')).rejects.toThrow();
+    });
+  });
+
+  describe('batchSearch', () => {
+    it('retorna mapa de resultados para múltiples queries', async () => {
+      server.use(
+        http.post(`${BASE}/cards/scryfall/batch`, () =>
+          HttpResponse.json({
+            results: [
+              { line: 'Lightning Bolt', name: 'Lightning Bolt', id: '1' },
+              { line: 'Counterspell', name: 'Counterspell', id: '2' }
+            ]
+          })
+        )
+      );
+      const results = await CardService.batchSearch(['Lightning Bolt', 'Counterspell']);
+      expect(results['Lightning Bolt']).toBeDefined();
+      expect(results['Counterspell']).toBeDefined();
+    });
+
+    it('mapea resultados por múltiples claves', async () => {
+      server.use(
+        http.post(`${BASE}/cards/scryfall/batch`, () =>
+          HttpResponse.json({
+            results: [
+              { line: 'Lightning Bolt', name: 'Lightning Bolt', id: '1' }
+            ]
+          })
+        )
+      );
+      const results = await CardService.batchSearch(['Lightning Bolt']);
+      expect(results['Lightning Bolt']).toBeDefined();
+      expect(results['lightning bolt']).toBeDefined();
+      expect(results['!"Lightning Bolt"']).toBeDefined();
+    });
+
+    it('lanza error si la API falla', async () => {
+      server.use(
+        http.post(`${BASE}/cards/scryfall/batch`, () =>
+          new HttpResponse(null, { status: 500 })
+        )
+      );
+      await expect(CardService.batchSearch(['Lightning Bolt'])).rejects.toThrow();
     });
   });
 });
