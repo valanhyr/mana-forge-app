@@ -120,12 +120,10 @@ pipeline {
                         withCredentials([file(credentialsId: 'mana-forge-api', variable: 'ENV_FILE')]) {
                             sh '''
                                 PREV=$(docker inspect mana-forge-engine-1 --format='{{.Config.Image}}' 2>/dev/null || echo '')
-                                echo "$PREV" > "$WORKSPACE/previous_engine_image"
+                                echo "$PREV" > /tmp/previous_engine_image
                                 docker pull "$IMAGE_FULL"
-                                cp "$ENV_FILE" "$WORKSPACE/.env.deploy"
-                                export ENGINE_IMAGE="$IMAGE_FULL"
-                                export ENV_FILE="$WORKSPACE/.env.deploy"
-                                docker-compose -f "$WORKSPACE/docker-compose.yml" -p mana-forge --env-file "$WORKSPACE/.env.deploy" up -d --no-build --no-deps --force-recreate engine
+                                cd $WORKSPACE
+                                ENGINE_IMAGE="$IMAGE_FULL" docker-compose -p mana-forge --env-file "$ENV_FILE" up -d --no-build --no-deps --force-recreate engine
                             '''
                         }
                     } else {

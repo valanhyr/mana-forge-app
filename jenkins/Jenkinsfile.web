@@ -129,12 +129,10 @@ pipeline {
                         withCredentials([file(credentialsId: 'mana-forge-api', variable: 'ENV_FILE')]) {
                             sh '''
                                 PREV=$(docker inspect mana-forge-web-1 --format='{{.Config.Image}}' 2>/dev/null || echo '')
-                                echo "$PREV" > "$WORKSPACE/previous_web_image"
+                                echo "$PREV" > /tmp/previous_web_image
                                 docker pull "$IMAGE_FULL"
-                                cp "$ENV_FILE" "$WORKSPACE/.env.deploy"
-                                export WEB_IMAGE="$IMAGE_FULL"
-                                export ENV_FILE="$WORKSPACE/.env.deploy"
-                                docker-compose -f "$WORKSPACE/docker-compose.yml" -p mana-forge --env-file "$WORKSPACE/.env.deploy" up -d --no-build --no-deps --force-recreate web
+                                cd $WORKSPACE
+                                WEB_IMAGE="$IMAGE_FULL" docker-compose -p mana-forge --env-file "$ENV_FILE" up -d --no-build --no-deps --force-recreate web
                             '''
                         }
                     } else {
@@ -190,12 +188,10 @@ pipeline {
                 if (params.ENVIRONMENT == 'local') {
                     withCredentials([file(credentialsId: 'mana-forge-api', variable: 'ENV_FILE')]) {
                         sh '''
-                            PREV=$(cat "$WORKSPACE/previous_web_image" 2>/dev/null || echo '')
+                            PREV=$(cat /tmp/previous_web_image 2>/dev/null || echo '')
                             if [ -n "$PREV" ]; then
                                 echo "🔄 Rolling back to $PREV"
-                                export WEB_IMAGE="$PREV"
-                                export ENV_FILE="$WORKSPACE/.env.deploy"
-                                docker-compose -f "$WORKSPACE/docker-compose.yml" -p mana-forge --env-file "$WORKSPACE/.env.deploy" up -d --no-build --no-deps --force-recreate web
+                                WEB_IMAGE="$PREV" docker-compose -p mana-forge --env-file "$ENV_FILE" -f $WORKSPACE/docker-compose.yml up -d --no-build --no-deps --force-recreate web
                             else
                                 echo "⚠️  No previous image found"
                             fi
