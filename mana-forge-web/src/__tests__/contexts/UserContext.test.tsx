@@ -17,13 +17,16 @@ const AllProviders = ({ children }: { children: React.ReactNode }) => (
 );
 
 const UserDisplay = () => {
-  const { user, isAuthenticated, login, logout } = useUser();
+  const { user, isAuthenticated, login, logout, register } = useUser();
+  const [regError, setRegError] = React.useState('');
   return (
     <div>
       <span data-testid="username">{user?.username ?? 'none'}</span>
       <span data-testid="auth">{String(isAuthenticated)}</span>
+      <span data-testid="reg-error">{regError}</span>
       <button onClick={() => login('testuser', 'pass123').catch(() => {})}>Login</button>
       <button onClick={() => logout()}>Logout</button>
+      <button onClick={() => register('newuser', 'new@test.com', 'pass').catch(e => setRegError(e.message))}>Register</button>
     </div>
   );
 };
@@ -174,5 +177,74 @@ describe('UserContext', () => {
     // Give async effects time to settle before checking callCount
     await waitFor(() => expect(screen.getByText('test')).toBeInTheDocument());
     expect(callCount).toBe(0);
+  });
+
+  it('register retorna exitosamente', async () => {
+    server.use(
+      http.post(`${BASE}/users`, () => HttpResponse.json(mockUser)),
+      http.get(`${BASE}/users/me`, () => new HttpResponse(null, { status: 401 }))
+    );
+    const TestComponent = () => {
+      const { register } = useUser();
+      const [status, setStatus] = React.useState('');
+      return (
+        <div>
+          <span data-testid="status">{status}</span>
+          <button
+            onClick={() =>
+              register('newuser', 'new@example.com', 'pass')
+                .then(() => setStatus('success'))
+                .catch(e => setStatus('error'))
+            }
+          >
+            Register
+          </button>
+        </div>
+      );
+    };
+    const user = userEvent.setup();
+    render(
+      <AllProviders>
+        <TestComponent />
+      </AllProviders>
+    );
+    await user.click(screen.getByRole('button', { name: 'Register' }));
+    await waitFor(() => {
+      expect(screen.getByTestId('status')).toHaveTextContent('success');
+    });
+  });
+
+  it('register mapea USERNAME_TAKEN error', async () => {
+    server.use(
+      http.post(`${BASE}/users`, () =>
+        HttpResponse.json({ message: 'USERNAME_TAKEN' }, { status: 409 })
+      )
+    );
+    const TestComponent = () => {
+      const { register } = useUser();
+      const [error, setError] = React.useState('');
+      return (
+        <div>
+          <span data-testid="error">{error}</span>
+          <button
+            onClick={() =>
+              register('taken', 'email@test.com', 'pass').catch(e => setError(e.message))
+            }
+          >
+            Register
+          </button>
+        </div>
+      );
+    };
+    const user = userEvent.setup();
+    render(
+      <AllProviders>
+        <TestComponent />
+      </AllProviders>
+    );
+    await user.click(screen.getByRole('button', { name: 'Register' }));
+    await waitFor(() => {
+      expect(screen.getByTestId('error').textContent).not.toBe('');
+    });
   });
 });
