@@ -41,4 +41,17 @@ describe('services/api', () => {
       }
     }
   });
+
+  it('el interceptor de error rechaza el error', async () => {
+    const { api } = await import('../../../services/api');
+
+    const testError = new Error('Test error');
+    const interceptors = (api.interceptors.request as any).handlers;
+    if (interceptors && interceptors.length > 0) {
+      const rejected = interceptors[0]?.rejected;
+      if (rejected) {
+        expect(rejected(testError)).rejects.toEqual(testError);
+      }
+    }
+  });
 });

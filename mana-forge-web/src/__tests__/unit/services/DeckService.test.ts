@@ -132,4 +132,37 @@ describe('DeckService', () => {
       expect(capturedUrl).toContain('formatId=fmt-1');
     });
   });
+
+  describe('getDeckById', () => {
+    it('llama GET /decks/:id y retorna el deck', async () => {
+      const result = await DeckService.getDeckById('deck-1');
+      expect(result).toHaveProperty('id');
+    });
+  });
+
+  describe('getDeckScores', () => {
+    it('llama POST /decks/scores con payload de main deck', async () => {
+      const payload = {
+        main_deck: [
+          { name: 'Lightning Bolt', quantity: 4 },
+          { name: 'Shock', quantity: 3 },
+        ],
+        format_name: 'Premodern',
+        locale: 'es',
+      };
+      const result = await DeckService.getDeckScores(payload);
+      expect(result).toHaveProperty('scores');
+    });
+  });
+
+  describe('analyzeDeck', () => {
+    it('llama POST /decks/analyze con payload', async () => {
+      const payload = {
+        main_deck: [{ name: 'Lightning Bolt', quantity: 4 }],
+        format_name: 'Premodern',
+      };
+      const result = await DeckService.analyzeDeck(payload);
+      expect(result).toBeTruthy();
+    });
+  });
 });

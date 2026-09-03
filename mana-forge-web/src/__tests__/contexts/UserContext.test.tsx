@@ -247,4 +247,72 @@ describe('UserContext', () => {
       expect(screen.getByTestId('error').textContent).not.toBe('');
     });
   });
+
+  it('register mapea EMAIL_TAKEN error', async () => {
+    server.use(
+      http.post(`${BASE}/users`, () =>
+        HttpResponse.json({ message: 'EMAIL_TAKEN' }, { status: 409 })
+      )
+    );
+    const TestComponent = () => {
+      const { register } = useUser();
+      const [error, setError] = React.useState('');
+      return (
+        <div>
+          <span data-testid="error">{error}</span>
+          <button
+            onClick={() =>
+              register('newuser', 'taken@test.com', 'pass').catch(e => setError(e.message))
+            }
+          >
+            Register
+          </button>
+        </div>
+      );
+    };
+    const user = userEvent.setup();
+    render(
+      <AllProviders>
+        <TestComponent />
+      </AllProviders>
+    );
+    await user.click(screen.getByRole('button', { name: 'Register' }));
+    await waitFor(() => {
+      expect(screen.getByTestId('error').textContent).not.toBe('');
+    });
+  });
+
+  it('register mapea CONFLICT error', async () => {
+    server.use(
+      http.post(`${BASE}/users`, () =>
+        HttpResponse.json({ message: 'CONFLICT' }, { status: 409 })
+      )
+    );
+    const TestComponent = () => {
+      const { register } = useUser();
+      const [error, setError] = React.useState('');
+      return (
+        <div>
+          <span data-testid="error">{error}</span>
+          <button
+            onClick={() =>
+              register('user', 'email@test.com', 'pass').catch(e => setError(e.message))
+            }
+          >
+            Register
+          </button>
+        </div>
+      );
+    };
+    const user = userEvent.setup();
+    render(
+      <AllProviders>
+        <TestComponent />
+      </AllProviders>
+    );
+    await user.click(screen.getByRole('button', { name: 'Register' }));
+    await waitFor(() => {
+      expect(screen.getByTestId('error').textContent).not.toBe('');
+    });
+  });
 });

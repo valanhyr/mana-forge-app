@@ -123,6 +123,7 @@ pipeline {
                                 docker pull "$IMAGE_FULL"
                                 cp "$ENV_FILE" "$WORKSPACE/.env.deploy"
                                 export API_IMAGE="$IMAGE_FULL"
+                                export ENV_FILE="$WORKSPACE/.env.deploy"
                                 docker-compose -f "$WORKSPACE/docker-compose.yml" -p mana-forge --env-file "$WORKSPACE/.env.deploy" up -d --no-build --no-deps --force-recreate api
                             '''
                         }
@@ -183,6 +184,7 @@ pipeline {
                             if [ -n "$PREV" ]; then
                                 echo "🔄 Rolling back to $PREV"
                                 export API_IMAGE="$PREV"
+                                export ENV_FILE="$WORKSPACE/.env.deploy"
                                 docker-compose -f "$WORKSPACE/docker-compose.yml" -p mana-forge --env-file "$WORKSPACE/.env.deploy" up -d --no-build --no-deps --force-recreate api
                             else
                                 echo "⚠️  No previous image found"

@@ -123,4 +123,53 @@ describe('Login (AuthModal)', () => {
       }
     }
   });
+
+  it('muestra el error de email no verificado cuando el backend lo devuelve', async () => {
+    server.use(
+      http.post(
+        `${BASE}/users/login`,
+        () => HttpResponse.json({ error: 'EMAIL_NOT_VERIFIED' }, { status: 403 })
+      )
+    );
+    const user = userEvent.setup();
+    renderLogin();
+
+    await user.type(screen.getAllByRole('textbox')[0], 'testuser');
+    const passwordInput = document.querySelector('input[type="password"]');
+    if (passwordInput) {
+      await user.type(passwordInput as HTMLElement, 'pass123');
+      await user.click(screen.getByRole('button', { name: /log in/i }));
+    }
+
+    await waitFor(() => {
+      expect(screen.getAllByText(/please verify your email before logging in/i)).toHaveLength(2);
+      expect(screen.getByRole('alert')).toBeInTheDocument();
+    });
+  });
+
+  it('muestra la pantalla de verificación tras un registro exitoso', async () => {
+    server.use(
+      http.post(`${BASE}/users`, () => HttpResponse.json({ id: 'new-user' }, { status: 201 }))
+    );
+    const user = userEvent.setup();
+    renderLogin();
+
+    await user.click(screen.getByRole('button', { name: /sign up/i }));
+    const textboxes = screen.getAllByRole('textbox');
+    await user.type(textboxes[0], 'newuser');
+    await user.type(textboxes[1], 'newuser@example.com');
+    const passwordInput = document.querySelector('input[type="password"]');
+    expect(passwordInput).toBeTruthy();
+    await user.type(passwordInput as HTMLElement, 'secret1');
+    await user.click(screen.getByRole('checkbox'));
+    await user.click(
+      screen.getAllByRole('button', { name: /sign up/i }).find((button) => button.getAttribute('type') === 'submit')!
+    );
+
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: /check your email/i })).toBeInTheDocument();
+      expect(screen.getByText(/newuser@example.com/i)).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /back to login/i })).toBeInTheDocument();
+    });
+  });
 });

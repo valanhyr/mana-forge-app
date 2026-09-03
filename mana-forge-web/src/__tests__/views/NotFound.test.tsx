@@ -1,5 +1,6 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import NotFound from '../../views/errors/NotFound';
 import { LanguageProvider } from '../../services/LanguageContext';
@@ -14,6 +15,10 @@ const renderNotFound = () =>
   );
 
 describe('NotFound', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   it('renderiza el número decorativo 404', () => {
     renderNotFound();
     expect(screen.getByText('404')).toBeInTheDocument();
@@ -32,5 +37,15 @@ describe('NotFound', () => {
     renderNotFound();
     const homeLink = screen.getByRole('link');
     expect(homeLink).toHaveAttribute('href', '/');
+  });
+
+  it('ejecuta history.back al pulsar el botón de volver', async () => {
+    const backSpy = vi.spyOn(window.history, 'back').mockImplementation(() => undefined);
+    const user = userEvent.setup();
+
+    renderNotFound();
+    await user.click(screen.getByRole('button', { name: /go back/i }));
+
+    expect(backSpy).toHaveBeenCalledOnce();
   });
 });

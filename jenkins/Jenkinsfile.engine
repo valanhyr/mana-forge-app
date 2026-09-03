@@ -124,6 +124,7 @@ pipeline {
                                 docker pull "$IMAGE_FULL"
                                 cp "$ENV_FILE" "$WORKSPACE/.env.deploy"
                                 export ENGINE_IMAGE="$IMAGE_FULL"
+                                export ENV_FILE="$WORKSPACE/.env.deploy"
                                 docker-compose -f "$WORKSPACE/docker-compose.yml" -p mana-forge --env-file "$WORKSPACE/.env.deploy" up -d --no-build --no-deps --force-recreate engine
                             '''
                         }
@@ -191,6 +192,7 @@ pipeline {
                             if [ -n "$PREV" ]; then
                                 echo "🔄 Rolling back to $PREV"
                                 export ENGINE_IMAGE="$PREV"
+                                export ENV_FILE="$WORKSPACE/.env.deploy"
                                 docker-compose -f "$WORKSPACE/docker-compose.yml" -p mana-forge --env-file "$WORKSPACE/.env.deploy" up -d --no-build --no-deps --force-recreate engine
                             else
                                 echo "⚠️  No previous image found"
