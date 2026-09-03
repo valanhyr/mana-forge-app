@@ -1615,13 +1615,14 @@ const DeckBuilder = () => {
                 </span>
               </h3>
 
-              {maybeCards.length === 0 ? (
-                <div className="text-zinc-600 text-sm italic p-4 border border-dashed border-zinc-800 rounded-xl text-center">
-                  Arrastra cartas aquí o usa el menú para añadir cartas consideradas.
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 gap-2">
-                  {maybeCards.map((card) => (
+              {maybeCards.length === 0 ? null : (
+                maybeCards.length === 0 ? (
+                  <div className="text-zinc-600 text-sm italic p-4 border border-dashed border-zinc-800 rounded-xl text-center">
+                    {t('deckBuilder.maybeboardEmpty')}
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 gap-2">
+                    {maybeCards.map((card) => (
                     <div
                       key={card.id}
                       className="flex items-center justify-between bg-zinc-950/50 p-2 rounded-lg border border-zinc-800/50 group hover:border-zinc-700 transition-colors"
