@@ -89,6 +89,27 @@ const TYPE_ORDER = [
   'Other',
 ];
 
+// Small helpers to safely extract fields from unknown-shaped Scryfall responses
+const safeString = (obj: Record<string, unknown> | null | undefined, key: string, fallback = ''): string => {
+  if (!obj) return fallback;
+  const v = obj[key];
+  return typeof v === 'string' ? v : fallback;
+};
+const safeNumber = (obj: Record<string, unknown> | null | undefined, key: string, fallback = 0): number => {
+  if (!obj) return fallback;
+  const v = obj[key];
+  return typeof v === 'number' ? v : fallback;
+};
+const safeNested = (obj: Record<string, unknown> | null | undefined, path: string[], fallback: any = undefined) => {
+  if (!obj) return fallback;
+  let cur: any = obj;
+  for (const p of path) {
+    if (!cur || typeof cur !== 'object') return fallback;
+    cur = cur[p];
+  }
+  return cur === undefined ? fallback : cur;
+};
+
 // Mock de base de datos de arquetipos (esto debería venir de tu API/DB en el futuro)
 const ARCHETYPES_DB: Record<string, string[]> = {
   premodern: [
@@ -209,37 +230,48 @@ const DeckBuilder = () => {
           const cardsPromises = cardsList.map(async (entry: Record<string, unknown>) => {
             try {
               const sId = (entry as Record<string, unknown>).scryfallId as string | undefined;
-              const cardData = sId ? await CardService.getCardById(sId) : null;
+            const cardData = sId ? (await CardService.getCardById(sId)) as Record<string, unknown> | null : null;
 
-              let isValid = true;
-              if (format) {
-                const formatKey = format.scryfallKey;
-                isValid =
-                  cardData.legalities?.[formatKey] === 'legal' ||
-                  cardData.legalities?.[formatKey] === 'restricted';
-              }
+            if (!cardData) throw new Error('Card data not found');
 
-              return {
-                id: cardData.id,
-                name: cardData.name,
-                quantity: entry.quantity,
-                manaCost: cardData.mana_cost,
-                cmc: cardData.cmc,
-                type: cardData.type_line?.split('—')[0]?.trim() || 'Unknown',
-                price: parseFloat(cardData.prices?.eur || '0'),
-                inCollection: false,
-                isValid: isValid,
-                board: entry.board || 'main', // Puede venir "commander" de la DB
-                isGameChanger: cardData.games_changer === true || cardData.game_changer === true,
-                image: (entry.chosenImageUrl as string) || cardData.image_uris?.normal || cardData.card_faces?.[0]?.image_uris?.normal || '',
-                // preserve chosen fields from deck entry
-                chosenPrintId: (entry.chosenPrintId as string) || undefined,
-                // keep oracleId if present
-                oracleId: (entry.oracleId as string) || undefined,
-              } as DeckCardWithImage;
+            let isValid = true;
+            if (format) {
+              const formatKey = format.scryfallKey;
+              const legal = safeNested(cardData, ['legalities', formatKey]);
+              isValid = legal === 'legal' || legal === 'restricted';
+            }
+
+            const boardVal = (entry.board as string) || 'main';
+            const boardTyped = (['main', 'side', 'commander', 'maybe'] as const).includes(boardVal as any)
+              ? (boardVal as 'main' | 'side' | 'commander' | 'maybe')
+              : 'main';
+
+            const imageUrl = (entry as Record<string, unknown>).chosenImageUrl as string | undefined
+              || safeNested(cardData, ['image_uris', 'normal'])
+              || (safeNested(cardData, ['card_faces', '0', 'image_uris', 'normal']) as string | undefined)
+              || '';
+
+            return {
+              id: safeString(cardData, 'id'),
+              name: safeString(cardData, 'name'),
+              quantity: (entry.quantity as number) || 1,
+              manaCost: safeString(cardData, 'mana_cost'),
+              cmc: safeNumber(cardData, 'cmc'),
+              type: (safeString(cardData, 'type_line')?.split('—')[0]?.trim()) || 'Unknown',
+              price: parseFloat((safeNested(cardData, ['prices', 'eur']) as string) || '0'),
+              inCollection: false,
+              isValid: isValid,
+              board: boardTyped,
+              isGameChanger: (safeNested(cardData, ['games_changer']) === true) || (safeNested(cardData, ['game_changer']) === true),
+              image: imageUrl,
+              // preserve chosen fields from deck entry
+              chosenPrintId: ((entry as Record<string, unknown>).chosenPrintId as string) || undefined,
+              // keep oracleId if present
+              oracleId: ((entry as Record<string, unknown>).oracleId as string) || undefined,
+            } as DeckCardWithImage;
             } catch (err) {
             console.error(`Error cargando carta ${((entry as Record<string, unknown>).scryfallId as string) || 'unknown'}:`, err);
-              return null; // Retornamos null para filtrar después
+            return null; // Retornamos null para filtrar después
             }
           });
 
@@ -481,33 +513,34 @@ const DeckBuilder = () => {
                 // Support multiple backend shapes: { data: [...] }, { card: {...} }, or direct card object
                 let cardData: Record<string, unknown> | null = null;
                 if (result) {
-                  if (Array.isArray(result.data) && result.data.length > 0) cardData = result.data[0];
-                  else if (result.card) cardData = result.card;
-                  else if (result.id && result.name) cardData = result; // already a card object
+                  if (Array.isArray((result as any).data) && (result as any).data.length > 0) cardData = (result as any).data[0];
+                  else if ((result as any).card) cardData = (result as any).card;
+                  else if ((result as any).id && (result as any).name) cardData = result as Record<string, unknown>; // already a card object
                 }
                 if (!cardData) throw new Error('Not found');
 
                 let isValid = true;
                 if (selectedFormat) {
                   const formatKey = selectedFormat.scryfallKey;
-                  isValid =
-                    cardData.legalities?.[formatKey] === 'legal' ||
-                    cardData.legalities?.[formatKey] === 'restricted';
+                  const legal = safeNested(cardData, ['legalities', formatKey]);
+                  isValid = legal === 'legal' || legal === 'restricted';
                 }
 
+                const cardImage = safeNested(cardData, ['image_uris', 'normal']) || safeNested(cardData, ['card_faces', '0', 'image_uris', 'normal']) || '';
+
                 cardsToProcess.push({
-                  id: cardData.id,
-                  name: cardData.name,
+                  id: safeString(cardData, 'id'),
+                  name: safeString(cardData, 'name'),
                   quantity: quantity,
-                  manaCost: cardData.mana_cost,
-                  cmc: cardData.cmc,
-                  type: cardData.type_line?.split('—')[0]?.trim() || 'Unknown',
-                  price: parseFloat(cardData.prices?.eur || '0'),
+                  manaCost: safeString(cardData, 'mana_cost'),
+                  cmc: safeNumber(cardData, 'cmc'),
+                  type: (safeString(cardData, 'type_line')?.split('—')[0]?.trim()) || 'Unknown',
+                  price: parseFloat((safeNested(cardData, ['prices', 'eur']) as string) || '0'),
                   inCollection: false,
                   isValid: isValid,
                   board: isSideboardSection ? 'side' : 'main',
-                  isGameChanger: cardData.games_changer === true || cardData.game_changer === true,
-                  image: cardData.image_uris?.normal || cardData.card_faces?.[0]?.image_uris?.normal || '',
+                  isGameChanger: (safeNested(cardData, ['games_changer']) === true) || (safeNested(cardData, ['game_changer']) === true),
+                  image: cardImage as string,
                 });
               } catch {
                 failedLines.push(line);

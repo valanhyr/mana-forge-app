@@ -110,12 +110,13 @@ const Dashboard = () => {
         let cardArtUrl =
           'https://cards.scryfall.io/art_crop/front/a/9/a9446d18-904f-4d4c-a1b6-5d7c2a3a55a8.jpg?1562925291';
 
-        if (featureCard) {
+          if (featureCard) {
           // 3. Obtener la imagen de la carta desde nuestro proxy de Scryfall
-          const cardDetails = await ScryfallService.getCardByName(featureCard.name);
-          if (cardDetails && cardDetails.image_uris) {
-            cardArtUrl = cardDetails.image_uris.art_crop;
-          }
+        const cardDetails = await ScryfallService.getCardByName(featureCard.name) as Record<string, unknown> | null;
+        const artCrop = cardDetails ? (cardDetails['image_uris'] && (cardDetails['image_uris'] as any).art_crop) : undefined;
+        if (artCrop && typeof artCrop === 'string') {
+          cardArtUrl = artCrop;
+        }
         }
 
         // 4. Guardar el mazo y la URL de la imagen en el estado
@@ -133,11 +134,12 @@ const Dashboard = () => {
     const fetchFeaturedDeck = async () => {
       const deck = await DeckService.getFeaturedDeck();
       if (deck && deck.featuredScryfallId) {
-        const cardDetails = await ScryfallService.getCardById(deck.featuredScryfallId);
-        const cardArtUrl = cardDetails?.image_uris?.art_crop ?? null;
-        setFeaturedDeck({ ...deck, cardArtUrl });
+      const cardDetails = (await ScryfallService.getCardById(deck.featuredScryfallId)) as Record<string, unknown> | null;
+      const art = cardDetails ? (cardDetails['image_uris'] && (cardDetails['image_uris'] as any).art_crop) : undefined;
+      const cardArtUrl = typeof art === 'string' ? art : undefined;
+      setFeaturedDeck({ ...deck, cardArtUrl });
       } else {
-        setFeaturedDeck(deck);
+      setFeaturedDeck(deck);
       }
     };
     fetchFeaturedDeck();
@@ -175,9 +177,9 @@ const Dashboard = () => {
     }
 
     try {
-      const cardDetails = await ScryfallService.getCardByName(cardName);
-      if (cardDetails && cardDetails.image_uris) {
-        const imageUrl = cardDetails.image_uris.normal;
+      const cardDetails = await ScryfallService.getCardByName(cardName) as Record<string, unknown> | null;
+      const imageUrl = cardDetails ? (cardDetails['image_uris'] && (cardDetails['image_uris'] as any).normal) : undefined;
+      if (imageUrl && typeof imageUrl === 'string') {
         setCachedImages((prev) => ({ ...prev, [cardName]: imageUrl }));
         setPreviewImage(imageUrl);
       }

@@ -36,8 +36,9 @@ const DeckExplorer = () => {
         results.map(async (deck) => {
           if (deck.featuredScryfallId) {
             try {
-              const card = await ScryfallService.getCardById(deck.featuredScryfallId);
-              return { ...deck, cardArtUrl: card?.image_uris?.art_crop };
+              const card = (await ScryfallService.getCardById(deck.featuredScryfallId)) as Record<string, unknown> | null;
+              const art = card ? (card['image_uris'] && (card['image_uris'] as any).art_crop) : undefined;
+              return { ...deck, cardArtUrl: typeof art === 'string' ? art : undefined };
             } catch {
               return deck;
             }
