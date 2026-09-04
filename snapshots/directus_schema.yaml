@@ -1,0 +1,1129 @@
+version: 1
+direction: system
+
+collections:
+  # ============================================
+  # 1. FOOTER COLLECTION
+  # ============================================
+  - collection: footer
+    meta:
+      collection: footer
+      icon: exit_to_app
+      note: null
+      display_template: '{{ title }}'
+      hidden: false
+      singleton: true
+      translations:
+        - language: en-US
+          translation: Footer
+        - language: es
+          translation: Pie de página
+    schema:
+      name: footer
+      comment: null
+    fields:
+      - field: id
+        type: integer
+        schema:
+          name: id
+          table: footer
+          data_type: integer
+          numeric_precision: 32
+          numeric_scale: 0
+          is_primary_key: true
+          has_auto_increment: true
+          foreign_key_table: null
+          foreign_key_column: null
+        meta:
+          id: id
+          field: id
+          type: integer
+          interface: numeric
+          options: null
+          display: null
+          display_options: null
+          readonly: true
+          hidden: true
+          sort: 1
+          width: full
+          group: null
+          note: null
+          conditions: []
+          required: false
+          collection: footer
+          validation: null
+          validation_message: null
+
+      - field: title
+        type: string
+        schema:
+          name: title
+          table: footer
+          data_type: varchar
+          max_length: 500
+          is_primary_key: false
+          has_auto_increment: false
+          foreign_key_table: null
+          foreign_key_column: null
+        meta:
+          id: title
+          field: title
+          type: string
+          interface: input
+          options: null
+          display: null
+          display_options: null
+          readonly: false
+          hidden: false
+          sort: 2
+          width: full
+          group: null
+          note: null
+          conditions: []
+          required: false
+          collection: footer
+          validation: null
+          validation_message: null
+
+      - field: subtitle
+        type: string
+        schema:
+          name: subtitle
+          table: footer
+          data_type: varchar
+          max_length: 1000
+          is_primary_key: false
+          has_auto_increment: false
+          foreign_key_table: null
+          foreign_key_column: null
+        meta:
+          id: subtitle
+          field: subtitle
+          type: string
+          interface: input
+          options: null
+          display: null
+          display_options: null
+          readonly: false
+          hidden: false
+          sort: 3
+          width: full
+          group: null
+          note: null
+          conditions: []
+          required: false
+          collection: footer
+          validation: null
+          validation_message: null
+
+      - field: footer_sections
+        type: json
+        schema:
+          name: footer_sections
+          table: footer
+          data_type: json
+          is_primary_key: false
+          has_auto_increment: false
+        meta:
+          id: footer_sections
+          field: footer_sections
+          type: json
+          interface: input
+          options: null
+          display: null
+          display_options: null
+          readonly: false
+          hidden: false
+          sort: 4
+          width: full
+          group: null
+          note: "Array of {title: string, footer_links: Array<{title, link, target}>}"
+          conditions: []
+          required: false
+          collection: footer
+          validation: null
+          validation_message: null
+
+      - field: locale
+        type: string
+        schema:
+          name: locale
+          table: footer
+          data_type: varchar
+          max_length: 10
+          is_primary_key: false
+          has_auto_increment: false
+        meta:
+          id: locale
+          field: locale
+          type: string
+          interface: select_dropdown
+          options:
+            choices:
+              - text: English
+                value: en
+              - text: Español
+                value: es
+              - text: Português
+                value: pt
+              - text: Français
+                value: fr
+          display: null
+          display_options: null
+          readonly: false
+          hidden: false
+          sort: 5
+          width: full
+          group: null
+          note: null
+          conditions: []
+          required: false
+          collection: footer
+          validation: null
+          validation_message: null
+
+  # ============================================
+  # 2. FOOTER_LEGAL COLLECTION
+  # ============================================
+  - collection: footer_legal
+    meta:
+      collection: footer_legal
+      icon: gavel
+      note: null
+      display_template: '{{ copyright }}'
+      hidden: false
+      singleton: true
+      translations:
+        - language: en-US
+          translation: Footer Legal
+        - language: es
+          translation: Pie Legal
+    schema:
+      name: footer_legal
+      comment: null
+    fields:
+      - field: id
+        type: integer
+        schema:
+          name: id
+          table: footer_legal
+          data_type: integer
+          is_primary_key: true
+          has_auto_increment: true
+        meta:
+          id: id
+          field: id
+          type: integer
+          interface: numeric
+          readonly: true
+          hidden: true
+          sort: 1
+          width: full
+          collection: footer_legal
+
+      - field: copyright
+        type: string
+        schema:
+          name: copyright
+          table: footer_legal
+          data_type: varchar
+          max_length: 500
+        meta:
+          id: copyright
+          field: copyright
+          type: string
+          interface: input
+          readonly: false
+          hidden: false
+          sort: 2
+          width: full
+          collection: footer_legal
+          required: false
+
+      - field: legal_links
+        type: json
+        schema:
+          name: legal_links
+          table: footer_legal
+          data_type: json
+        meta:
+          id: legal_links
+          field: legal_links
+          type: json
+          interface: input
+          readonly: false
+          hidden: false
+          sort: 3
+          width: full
+          note: "Array of {id: number, title: string, link: string}"
+          collection: footer_legal
+          required: false
+
+      - field: locale
+        type: string
+        schema:
+          name: locale
+          table: footer_legal
+          data_type: varchar
+          max_length: 10
+        meta:
+          id: locale
+          field: locale
+          type: string
+          interface: select_dropdown
+          options:
+            choices:
+              - text: English
+                value: en
+              - text: Español
+                value: es
+              - text: Português
+                value: pt
+              - text: Français
+                value: fr
+          readonly: false
+          hidden: false
+          sort: 4
+          width: full
+          collection: footer_legal
+          required: false
+
+  # ============================================
+  # 3. HEROS COLLECTION
+  # ============================================
+  - collection: heros
+    meta:
+      collection: heros
+      icon: image
+      note: null
+      display_template: '{{ title }} ({{ locale }})'
+      hidden: false
+      singleton: false
+      translations:
+        - language: en-US
+          translation: Heroes
+        - language: es
+          translation: Héroes
+    schema:
+      name: heros
+      comment: null
+    fields:
+      - field: id
+        type: integer
+        schema:
+          name: id
+          table: heros
+          data_type: integer
+          is_primary_key: true
+          has_auto_increment: true
+        meta:
+          id: id
+          field: id
+          type: integer
+          interface: numeric
+          readonly: true
+          hidden: true
+          sort: 1
+          collection: heros
+
+      - field: title
+        type: string
+        schema:
+          name: title
+          table: heros
+          data_type: varchar
+          max_length: 500
+        meta:
+          id: title
+          field: title
+          type: string
+          interface: input
+          readonly: false
+          hidden: false
+          sort: 2
+          width: full
+          collection: heros
+          required: true
+
+      - field: subtitle
+        type: string
+        schema:
+          name: subtitle
+          table: heros
+          data_type: text
+        meta:
+          id: subtitle
+          field: subtitle
+          type: text
+          interface: input
+          readonly: false
+          hidden: false
+          sort: 3
+          width: full
+          collection: heros
+          required: false
+
+      - field: hero_id
+        type: string
+        schema:
+          name: hero_id
+          table: heros
+          data_type: varchar
+          max_length: 100
+        meta:
+          id: hero_id
+          field: hero_id
+          type: string
+          interface: input
+          readonly: false
+          hidden: false
+          sort: 4
+          width: full
+          note: "Unique identifier for this hero (e.g., 'hero-1', 'hero-landing')"
+          collection: heros
+          required: true
+
+      - field: locale
+        type: string
+        schema:
+          name: locale
+          table: heros
+          data_type: varchar
+          max_length: 10
+        meta:
+          id: locale
+          field: locale
+          type: string
+          interface: select_dropdown
+          options:
+            choices:
+              - text: English
+                value: en
+              - text: Español
+                value: es
+              - text: Português
+                value: pt
+              - text: Français
+                value: fr
+          readonly: false
+          hidden: false
+          sort: 5
+          width: full
+          collection: heros
+          required: true
+
+      - field: image
+        type: json
+        schema:
+          name: image
+          table: heros
+          data_type: json
+        meta:
+          id: image
+          field: image
+          type: json
+          interface: input
+          readonly: false
+          hidden: false
+          sort: 6
+          width: full
+          note: "Object with {name, alternativeText, caption, mime, url, formats: {thumbnail: {name, mime, url}}}"
+          collection: heros
+          required: false
+
+  # ============================================
+  # 4. SECTIONS COLLECTION
+  # ============================================
+  - collection: sections
+    meta:
+      collection: sections
+      icon: category
+      note: null
+      display_template: '{{ title }} ({{ locale }})'
+      hidden: false
+      singleton: false
+      translations:
+        - language: en-US
+          translation: Sections
+        - language: es
+          translation: Secciones
+    schema:
+      name: sections
+      comment: null
+    fields:
+      - field: id
+        type: integer
+        schema:
+          name: id
+          table: sections
+          data_type: integer
+          is_primary_key: true
+          has_auto_increment: true
+        meta:
+          id: id
+          field: id
+          type: integer
+          interface: numeric
+          readonly: true
+          hidden: true
+          sort: 1
+          collection: sections
+
+      - field: section_id
+        type: string
+        schema:
+          name: section_id
+          table: sections
+          data_type: varchar
+          max_length: 100
+        meta:
+          id: section_id
+          field: section_id
+          type: string
+          interface: input
+          readonly: false
+          hidden: false
+          sort: 2
+          width: full
+          note: "Unique identifier for this section"
+          collection: sections
+          required: true
+
+      - field: title
+        type: string
+        schema:
+          name: title
+          table: sections
+          data_type: varchar
+          max_length: 500
+        meta:
+          id: title
+          field: title
+          type: string
+          interface: input
+          readonly: false
+          hidden: false
+          sort: 3
+          width: full
+          collection: sections
+          required: true
+
+      - field: subtitle
+        type: string
+        schema:
+          name: subtitle
+          table: sections
+          data_type: text
+        meta:
+          id: subtitle
+          field: subtitle
+          type: text
+          interface: input
+          readonly: false
+          hidden: false
+          sort: 4
+          width: full
+          collection: sections
+          required: false
+
+      - field: description
+        type: text
+        schema:
+          name: description
+          table: sections
+          data_type: text
+        meta:
+          id: description
+          field: description
+          type: text
+          interface: input
+          readonly: false
+          hidden: false
+          sort: 5
+          width: full
+          collection: sections
+          required: false
+
+      - field: locale
+        type: string
+        schema:
+          name: locale
+          table: sections
+          data_type: varchar
+          max_length: 10
+        meta:
+          id: locale
+          field: locale
+          type: string
+          interface: select_dropdown
+          options:
+            choices:
+              - text: English
+                value: en
+              - text: Español
+                value: es
+              - text: Português
+                value: pt
+              - text: Français
+                value: fr
+          readonly: false
+          hidden: false
+          sort: 6
+          width: full
+          collection: sections
+          required: true
+
+      - field: image
+        type: json
+        schema:
+          name: image
+          table: sections
+          data_type: json
+        meta:
+          id: image
+          field: image
+          type: json
+          interface: input
+          readonly: false
+          hidden: false
+          sort: 7
+          width: full
+          note: "Object with {name, alternativeText, caption, mime, url, formats: {thumbnail: {name, mime, url}}}"
+          collection: sections
+          required: false
+
+  # ============================================
+  # 5. LANGUAGES COLLECTION
+  # ============================================
+  - collection: languages
+    meta:
+      collection: languages
+      icon: language
+      note: null
+      display_template: '{{ name }} ({{ key }})'
+      hidden: false
+      singleton: false
+      translations:
+        - language: en-US
+          translation: Languages
+        - language: es
+          translation: Idiomas
+    schema:
+      name: languages
+      comment: null
+    fields:
+      - field: id
+        type: integer
+        schema:
+          name: id
+          table: languages
+          data_type: integer
+          is_primary_key: true
+          has_auto_increment: true
+        meta:
+          id: id
+          field: id
+          type: integer
+          interface: numeric
+          readonly: true
+          hidden: true
+          sort: 1
+          collection: languages
+
+      - field: key
+        type: string
+        schema:
+          name: key
+          table: languages
+          data_type: varchar
+          max_length: 10
+        meta:
+          id: key
+          field: key
+          type: string
+          interface: input
+          readonly: false
+          hidden: false
+          sort: 2
+          width: full
+          note: "Language code (e.g., 'en', 'es')"
+          collection: languages
+          required: true
+
+      - field: name
+        type: string
+        schema:
+          name: name
+          table: languages
+          data_type: varchar
+          max_length: 100
+        meta:
+          id: name
+          field: name
+          type: string
+          interface: input
+          readonly: false
+          hidden: false
+          sort: 3
+          width: full
+          collection: languages
+          required: true
+
+      - field: locale
+        type: string
+        schema:
+          name: locale
+          table: languages
+          data_type: varchar
+          max_length: 10
+        meta:
+          id: locale
+          field: locale
+          type: string
+          interface: input
+          readonly: false
+          hidden: false
+          sort: 4
+          width: full
+          note: "Full locale code (e.g., 'en-US', 'es-ES')"
+          collection: languages
+          required: true
+
+      - field: order
+        type: integer
+        schema:
+          name: order
+          table: languages
+          data_type: integer
+        meta:
+          id: order
+          field: order
+          type: integer
+          interface: numeric
+          readonly: false
+          hidden: false
+          sort: 5
+          width: full
+          note: "Display order in UI"
+          collection: languages
+          required: false
+
+  # ============================================
+  # 6. FORMATS COLLECTION
+  # ============================================
+  - collection: formats
+    meta:
+      collection: formats
+      icon: view_list
+      note: null
+      display_template: '{{ title }} ({{ locale }})'
+      hidden: false
+      singleton: false
+      translations:
+        - language: en-US
+          translation: Formats
+        - language: es
+          translation: Formatos
+    schema:
+      name: formats
+      comment: null
+    fields:
+      - field: id
+        type: integer
+        schema:
+          name: id
+          table: formats
+          data_type: integer
+          is_primary_key: true
+          has_auto_increment: true
+        meta:
+          id: id
+          field: id
+          type: integer
+          interface: numeric
+          readonly: true
+          hidden: true
+          sort: 1
+          collection: formats
+
+      - field: mongo_id
+        type: string
+        schema:
+          name: mongo_id
+          table: formats
+          data_type: varchar
+          max_length: 100
+        meta:
+          id: mongo_id
+          field: mongo_id
+          type: string
+          interface: input
+          readonly: false
+          hidden: false
+          sort: 2
+          width: full
+          note: "MongoDB ID from mana-forge-api"
+          collection: formats
+          required: true
+
+      - field: title
+        type: string
+        schema:
+          name: title
+          table: formats
+          data_type: varchar
+          max_length: 500
+        meta:
+          id: title
+          field: title
+          type: string
+          interface: input
+          readonly: false
+          hidden: false
+          sort: 3
+          width: full
+          collection: formats
+          required: true
+
+      - field: subtitle
+        type: string
+        schema:
+          name: subtitle
+          table: formats
+          data_type: text
+        meta:
+          id: subtitle
+          field: subtitle
+          type: text
+          interface: input
+          readonly: false
+          hidden: false
+          sort: 4
+          width: full
+          collection: formats
+          required: false
+
+      - field: slug
+        type: string
+        schema:
+          name: slug
+          table: formats
+          data_type: varchar
+          max_length: 200
+        meta:
+          id: slug
+          field: slug
+          type: string
+          interface: input
+          readonly: false
+          hidden: false
+          sort: 5
+          width: full
+          collection: formats
+          required: false
+
+      - field: locale
+        type: string
+        schema:
+          name: locale
+          table: formats
+          data_type: varchar
+          max_length: 10
+        meta:
+          id: locale
+          field: locale
+          type: string
+          interface: select_dropdown
+          options:
+            choices:
+              - text: English
+                value: en
+              - text: Español
+                value: es
+              - text: Português
+                value: pt
+              - text: Français
+                value: fr
+          readonly: false
+          hidden: false
+          sort: 6
+          width: full
+          collection: formats
+          required: true
+
+      - field: imageUrl
+        type: string
+        schema:
+          name: imageUrl
+          table: formats
+          data_type: varchar
+          max_length: 500
+        meta:
+          id: imageUrl
+          field: imageUrl
+          type: string
+          interface: input
+          readonly: false
+          hidden: false
+          sort: 7
+          width: full
+          note: "URL to format image"
+          collection: formats
+          required: false
+
+      - field: section
+        type: json
+        schema:
+          name: section
+          table: formats
+          data_type: json
+        meta:
+          id: section
+          field: section
+          type: json
+          interface: input
+          readonly: false
+          hidden: false
+          sort: 8
+          width: full
+          note: "Array of section components with rules"
+          collection: formats
+          required: false
+
+      - field: seo
+        type: json
+        schema:
+          name: seo
+          table: formats
+          data_type: json
+        meta:
+          id: seo
+          field: seo
+          type: json
+          interface: input
+          readonly: false
+          hidden: false
+          sort: 9
+          width: full
+          note: "Object with {title, description, keywords, canonical}"
+          collection: formats
+          required: false
+
+  # ============================================
+  # 7. ARTICLES COLLECTION
+  # ============================================
+  - collection: articles
+    meta:
+      collection: articles
+      icon: article
+      note: null
+      display_template: '{{ title }} ({{ locale }})'
+      hidden: false
+      singleton: false
+      translations:
+        - language: en-US
+          translation: Articles
+        - language: es
+          translation: Artículos
+    schema:
+      name: articles
+      comment: null
+    fields:
+      - field: id
+        type: integer
+        schema:
+          name: id
+          table: articles
+          data_type: integer
+          is_primary_key: true
+          has_auto_increment: true
+        meta:
+          id: id
+          field: id
+          type: integer
+          interface: numeric
+          readonly: true
+          hidden: true
+          sort: 1
+          collection: articles
+
+      - field: documentId
+        type: string
+        schema:
+          name: documentId
+          table: articles
+          data_type: varchar
+          max_length: 100
+        meta:
+          id: documentId
+          field: documentId
+          type: string
+          interface: input
+          readonly: false
+          hidden: false
+          sort: 2
+          width: full
+          note: "Unique document identifier"
+          collection: articles
+          required: true
+
+      - field: title
+        type: string
+        schema:
+          name: title
+          table: articles
+          data_type: varchar
+          max_length: 500
+        meta:
+          id: title
+          field: title
+          type: string
+          interface: input
+          readonly: false
+          hidden: false
+          sort: 3
+          width: full
+          collection: articles
+          required: true
+
+      - field: subtitle
+        type: string
+        schema:
+          name: subtitle
+          table: articles
+          data_type: text
+        meta:
+          id: subtitle
+          field: subtitle
+          type: text
+          interface: input
+          readonly: false
+          hidden: false
+          sort: 4
+          width: full
+          collection: articles
+          required: false
+
+      - field: imageUrl
+        type: string
+        schema:
+          name: imageUrl
+          table: articles
+          data_type: varchar
+          max_length: 500
+        meta:
+          id: imageUrl
+          field: imageUrl
+          type: string
+          interface: input
+          readonly: false
+          hidden: false
+          sort: 5
+          width: full
+          note: "Cover image URL"
+          collection: articles
+          required: false
+
+      - field: article
+        type: text
+        schema:
+          name: article
+          table: articles
+          data_type: text
+        meta:
+          id: article
+          field: article
+          type: text
+          interface: input
+          readonly: false
+          hidden: false
+          sort: 6
+          width: full
+          note: "Article content (HTML or Markdown)"
+          collection: articles
+          required: false
+
+      - field: locale
+        type: string
+        schema:
+          name: locale
+          table: articles
+          data_type: varchar
+          max_length: 10
+        meta:
+          id: locale
+          field: locale
+          type: string
+          interface: select_dropdown
+          options:
+            choices:
+              - text: English
+                value: en
+              - text: Español
+                value: es
+              - text: Português
+                value: pt
+              - text: Français
+                value: fr
+          readonly: false
+          hidden: false
+          sort: 7
+          width: full
+          collection: articles
+          required: true
+
+      - field: publishedAt
+        type: timestamp
+        schema:
+          name: publishedAt
+          table: articles
+          data_type: timestamp
+        meta:
+          id: publishedAt
+          field: publishedAt
+          type: timestamp
+          interface: datetime
+          readonly: false
+          hidden: false
+          sort: 8
+          width: full
+          collection: articles
+          required: false
+
+      - field: author
+        type: json
+        schema:
+          name: author
+          table: articles
+          data_type: json
+        meta:
+          id: author
+          field: author
+          type: json
+          interface: input
+          readonly: false
+          hidden: false
+          sort: 9
+          width: full
+          note: "Object with {username: string}"
+          collection: articles
+          required: false
+
+      - field: seo
+        type: json
+        schema:
+          name: seo
+          table: articles
+          data_type: json
+        meta:
+          id: seo
+          field: seo
+          type: json
+          interface: input
+          readonly: false
+          hidden: false
+          sort: 10
+          width: full
+          note: "Object with {title, description, keywords, canonical}"
+          collection: articles
+          required: false
