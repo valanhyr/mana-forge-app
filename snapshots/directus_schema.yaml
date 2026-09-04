@@ -871,22 +871,41 @@ collections:
           collection: formats
           required: false
 
-      - field: section
+      - field: description
         type: json
         schema:
-          name: section
+          name: description
           table: formats
           data_type: json
         meta:
-          id: section
-          field: section
+          id: description
+          field: description
           type: json
           interface: input
           readonly: false
           hidden: false
           sort: 8
           width: full
-          note: "Array of section components with rules"
+          note: "Object with {name, title, description, rules: Array<{id, text}>}"
+          collection: formats
+          required: false
+
+      - field: rules
+        type: json
+        schema:
+          name: rules
+          table: formats
+          data_type: json
+        meta:
+          id: rules
+          field: rules
+          type: json
+          interface: input
+          readonly: false
+          hidden: false
+          sort: 9
+          width: full
+          note: "Object with {name, title, description, rules: Array<{id, text}>}"
           collection: formats
           required: false
 
@@ -1039,7 +1058,26 @@ collections:
           hidden: false
           sort: 6
           width: full
-          note: "Article content (HTML or Markdown)"
+          note: "Article content (HTML with rich formatting)"
+          collection: articles
+          required: false
+
+      - field: content
+        type: text
+        schema:
+          name: content
+          table: articles
+          data_type: text
+        meta:
+          id: content
+          field: content
+          type: text
+          interface: input
+          readonly: false
+          hidden: false
+          sort: 6
+          width: full
+          note: "Full article content (HTML with rich formatting)"
           collection: articles
           required: false
 
@@ -1091,21 +1129,22 @@ collections:
           required: false
 
       - field: author
-        type: json
+        type: string
         schema:
           name: author
           table: articles
-          data_type: json
+          data_type: varchar
+          max_length: 255
         meta:
           id: author
           field: author
-          type: json
+          type: string
           interface: input
           readonly: false
           hidden: false
           sort: 9
           width: full
-          note: "Object with {username: string}"
+          note: "Author username (e.g., 'Valanhyr')"
           collection: articles
           required: false
 

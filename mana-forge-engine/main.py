@@ -26,15 +26,24 @@ def _setup_otel(fastapi_app: FastAPI) -> None:
     from opentelemetry.sdk.trace.export import BatchSpanProcessor
     from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
     from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
-    endpoint = os.environ.get("OTEL_EXPORTER_OTLP_ENDPOINT", "")
+    
+    # Support both standard OTEL_* and Grafana-specific vars
+    endpoint = os.environ.get("OTEL_EXPORTER_OTLP_ENDPOINT") or os.environ.get("GRAFANA_OTLP_ENDPOINT")
     if not endpoint:
         return
-    headers_raw = os.environ.get("OTEL_EXPORTER_OTLP_HEADERS", "")
+    
     headers = {}
+    headers_raw = os.environ.get("OTEL_EXPORTER_OTLP_HEADERS", "")
     for part in headers_raw.split(","):
         if "=" in part:
             k, v = part.split("=", 1)
             headers[k.strip()] = v.strip()
+    
+    # If Grafana auth is provided, add Authorization header
+    grafana_auth = os.environ.get("GRAFANA_OTLP_AUTH", "")
+    if grafana_auth:
+        headers["Authorization"] = f"Basic {grafana_auth}"
+    
     provider = TracerProvider()
     provider.add_span_processor(
         BatchSpanProcessor(OTLPSpanExporter(endpoint=f"{endpoint}/v1/traces", headers=headers))

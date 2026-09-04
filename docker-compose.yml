@@ -90,8 +90,8 @@ services:
       - GROQ_MODEL=${GROQ_MODEL:-groq/compound-mini}
       - OTEL_SDK_DISABLED=${OTEL_SDK_DISABLED:-true}
       - OTEL_SERVICE_NAME=mana-forge-engine
-      - OTEL_EXPORTER_OTLP_ENDPOINT=${GRAFANA_OTLP_ENDPOINT:-}
-      - OTEL_EXPORTER_OTLP_HEADERS=Authorization=Basic ${GRAFANA_OTLP_AUTH:-}
+      - GRAFANA_OTLP_ENDPOINT=${GRAFANA_OTLP_ENDPOINT:-}
+      - GRAFANA_OTLP_AUTH=${GRAFANA_OTLP_AUTH:-}
     healthcheck:
       test: ["CMD", "curl", "-fsS", "http://localhost:8000/health"]
       interval: 30s
