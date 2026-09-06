@@ -141,11 +141,16 @@ email:
 # PRODUCTION
 strapi:
   api:
-    url: ${STRAPI_API_URL}
-    token: ${STRAPI_API_TOKEN}
+    #url: ${STRAPI_API_URL}
+    token: ${STRAPI_API_TOKEN:}
 # DEVELOPMENT
-#    url: ${STRAPI_API_URL:http://localhost:1337/api}
-#    token: ${STRAPI_API_TOKEN}
+    url: ${STRAPI_API_URL:http://localhost:1337/api}
+
+# Directus Configuration
+# PRODUCTION
+directus:
+  url: ${DIRECTUS_URL:http://localhost:9055}
+  token: ${DIRECTUS_API_TOKEN:}
 
 # LOGGING: Nivel de detalle
 logging:

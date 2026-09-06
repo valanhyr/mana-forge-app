@@ -12,12 +12,15 @@ public class StrapiArticleData implements Serializable {
     private static final long serialVersionUID = 1L;
 
     private String documentId;
+    private Integer id;
     private String title;
     private String subtitle;
     private String imageUrl;
-    private String article;
+    private String content; // article body HTML
+    private String article; // legacy field name
     private String publishedAt;
-    private Author author;
+    private String locale;
+    private String author;
     private StrapiSeo seo;
 
     @Data

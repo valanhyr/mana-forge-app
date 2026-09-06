@@ -26,7 +26,7 @@ services:
         condition: service_healthy
     environment:
       DB_CLIENT: pg
-      DB_HOST: postgres
+      DB_HOST: directus_db
       DB_PORT: 5432
       DB_DATABASE: directus
       DB_USER: directus

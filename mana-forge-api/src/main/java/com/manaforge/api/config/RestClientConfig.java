@@ -11,10 +11,10 @@ import org.springframework.web.client.RestClient;
 @Configuration
 public class RestClientConfig  {
 
-    @Value("${strapi.api.token}")
+    @Value("${strapi.api.token:}")
     private String strapiApiToken;
 
-    @Value("${strapi.api.url}")
+    @Value("${strapi.api.url:http://localhost:1337/api}")
     private String strapiApiUrl;
 
     @Bean
@@ -22,10 +22,13 @@ public class RestClientConfig  {
         SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
         factory.setConnectTimeout(5000);
         factory.setReadTimeout(5000);
-        return RestClient.builder()
+        RestClient.Builder builder = RestClient.builder()
                 .baseUrl(strapiApiUrl)
-                .requestFactory(factory)
-                .defaultHeader(HttpHeaders.AUTHORIZATION, "Bearer " + strapiApiToken);
+                .requestFactory(factory);
+        if (strapiApiToken != null && !strapiApiToken.isEmpty()) {
+            builder = builder.defaultHeader(HttpHeaders.AUTHORIZATION, "Bearer " + strapiApiToken);
+        }
+        return builder;
     }
 
     @Bean

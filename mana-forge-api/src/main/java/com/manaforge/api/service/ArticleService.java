@@ -53,7 +53,7 @@ public class ArticleService {
                 .imageUrl(data.getCoverUrl() != null ? data.getCoverUrl() : data.getImageUrl())
                 .content(data.getArticle())
                 .publishedAt(data.getPublishedAt())
-                .author(data.getAuthor() != null ? data.getAuthor().getUsername() : null)
+                .author(data.getAuthor())
                 .seo(mapSeo(data.getSeo()))
                 .build();
     }
