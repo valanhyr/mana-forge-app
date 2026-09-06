@@ -16,15 +16,15 @@ import java.util.stream.Collectors;
 public class ArticleService {
 
     private static final Logger logger = LoggerFactory.getLogger(ArticleService.class);
-    private final StrapiService strapiService;
+    private final DirectusService directusService;
 
-    public ArticleService(StrapiService strapiService) {
-        this.strapiService = strapiService;
+    public ArticleService(DirectusService directusService) {
+        this.directusService = directusService;
     }
 
     public List<ArticleDto> getLast5Articles(String locale) {
         try {
-            List<StrapiArticleData> articles = strapiService.getLatestArticles(locale, 5);
+            List<StrapiArticleData> articles = directusService.getLatestArticles(locale, 5);
             return articles.stream()
                     .map(this::mapToDto)
                     .collect(Collectors.toList());
@@ -36,7 +36,7 @@ public class ArticleService {
 
     public ArticleDto getArticleByDocumentId(String documentId, String locale) {
         try {
-            StrapiArticleData article = strapiService.getArticleByDocumentId(documentId, locale);
+            StrapiArticleData article = directusService.getArticleByDocumentId(documentId, locale);
             if (article == null) return null;
             return mapToDto(article);
         } catch (Exception e) {

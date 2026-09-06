@@ -19,36 +19,35 @@ public class FormatService {
 
     private static final Logger logger = LoggerFactory.getLogger(FormatService.class);
 
-    private final StrapiService strapiService;
+    private final DirectusService directusService;
 
-    public FormatService(StrapiService strapiService) {
-        this.strapiService = strapiService;
+    public FormatService(DirectusService directusService) {
+        this.directusService = directusService;
     }
 
     public List<FormatSummaryDto> getAllFormats() {
         try {
-            // Delegamos en StrapiService (que ya maneja caché y RestClient)
-            List<StrapiFormatData> formats = strapiService.getFormats("es");
-            logger.info("Found {} formats from Strapi", formats.size());
+            List<StrapiFormatData> formats = directusService.getFormats("es");
+            logger.info("Found {} formats from Directus", formats.size());
             
             return formats.stream()
                     .map(this::mapToSummary)
                     .collect(Collectors.toList());
         } catch (Exception e) {
-            logger.error("Error fetching formats from Strapi: {}", e.getMessage());
+            logger.error("Error fetching formats from Directus: {}", e.getMessage());
             return Collections.emptyList();
         }
     }
 
     public FormatDetailDto getFormatByMongoId(String mongoId) {
         try {
-            StrapiFormatData data = strapiService.getFormatByMongoId(mongoId, "es");
+            StrapiFormatData data = directusService.getFormatByMongoId(mongoId, "es");
             
             if (data == null) return null;
             
             return mapToDetail(data);
         } catch (Exception e) {
-            logger.error("Error fetching format detail from Strapi: {}", e.getMessage());
+            logger.error("Error fetching format detail from Directus: {}", e.getMessage());
             return null;
         }
     }
