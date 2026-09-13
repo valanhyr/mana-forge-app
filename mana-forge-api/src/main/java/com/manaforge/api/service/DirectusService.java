@@ -16,67 +16,91 @@ import java.util.List;
 
 /**
  * DirectusService - Replaces StrapiService for CMS content management
- * 
- * Key differences from Strapi:
- * 1. No "attributes" nesting - data is flat
- * 2. Simpler query parameters (filter[field][_eq]=value)
- * 3. Single endpoint per collection (/api/items/collection)
- * 4. Collections are flat - no populate depth needed
- * 
- * Usage: Same interface as StrapiService but connects to Directus backend
+ *
+ * Uses static token provided via property directus.token. Removed automatic login/rotation.
  */
 @Service
 public class DirectusService {
 
-    private final RestClient restClient;
+    private final org.springframework.web.client.RestTemplate restTemplate = new org.springframework.web.client.RestTemplate();
     private final ObjectMapper objectMapper;
     private final String baseUrl;
+
+    // static token from env/property
+    private volatile String accessToken;
 
     public DirectusService(RestClient.Builder builder,
                            ObjectMapper objectMapper,
                            @Value("${directus.url:http://directus:8080}") String directusUrl,
-                           @Value("${directus.admin-token:}") String adminToken) {
+                           @Value("${directus.token:}") String directusToken) {
         this.objectMapper = objectMapper.copy()
                 .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
         // Ensure URL doesn't end with / to avoid double slashes
-        String cleanBaseUrl = directusUrl.endsWith("/") 
-            ? directusUrl.substring(0, directusUrl.length() - 1) 
+        String cleanBaseUrl = directusUrl.endsWith("/")
+            ? directusUrl.substring(0, directusUrl.length() - 1)
             : directusUrl;
         this.baseUrl = cleanBaseUrl;
+
+        // Prefer static token from directus.token property
+        if (directusToken != null && !directusToken.isBlank()) {
+            this.accessToken = directusToken.trim();
+            System.out.println("DirectusService using static token from directus.token");
+        } else {
+            System.err.println("DirectusService no static token provided (directus.token). Requests will be unauthenticated unless token set at runtime.");
+        }
 
         SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
         requestFactory.setConnectTimeout(10000);
         requestFactory.setReadTimeout(60000);
 
-        // Initialize RestClient with Authorization header
-        this.restClient = builder
-                .requestFactory(requestFactory)
-                .baseUrl(cleanBaseUrl)
-                .defaultHeader("Authorization", "Bearer " + adminToken)
-                .defaultHeader("Content-Type", "application/json")
-                .build();
+        // RestTemplate used for simplicity
+        System.out.println("   -> DirectusService initialized with URL: " + this.baseUrl);
+    }
 
-        System.out.println("   -> 🔗 DirectusService initialized with URL: " + this.baseUrl);
+    @jakarta.annotation.PostConstruct
+    public void init() {
+        // No scheduled refresh or login. Static token only.
+    }
+
+    
+    @jakarta.annotation.PreDestroy
+    public void shutdown() {
+        // nothing to shutdown
     }
 
     /**
      * Helper method to make API calls to Directus
      */
     private JsonNode fetchFromDirectus(String endpoint, String query) throws JsonProcessingException {
+        return fetchFromDirectus(endpoint, query, null);
+    }
+
+    private JsonNode fetchFromDirectus(String endpoint, String query, String acceptLanguage) throws JsonProcessingException {
         String path = endpoint.startsWith("/") ? endpoint : "/" + endpoint;
+        // Accept both /api/items/... and /items/...; normalize to /items/...
+        if (path.startsWith("/api/")) {
+            path = path.substring(4); // remove leading /api
+        }
         String fullPath = path + (query != null && !query.isEmpty() ? "?" + query : "");
 
-        System.out.println("   -> 🚀 Calling Directus API: " + this.baseUrl + fullPath);
+        System.out.println("   -> Calling Directus API: " + this.baseUrl + fullPath);
 
         try {
-            String response = restClient.get()
-                    .uri(fullPath)
-                    .retrieve()
-                    .body(String.class);
+            String response;
+            org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
+            headers.setAccept(java.util.List.of(org.springframework.http.MediaType.APPLICATION_JSON));
+            if (acceptLanguage != null && !acceptLanguage.isBlank()) {
+                headers.set("Accept-Language", acceptLanguage);
+            }
+            if (accessToken != null && !accessToken.isBlank()) headers.setBearerAuth(accessToken);
+            org.springframework.http.HttpEntity<Void> req = new org.springframework.http.HttpEntity<>(headers);
+
+            org.springframework.http.ResponseEntity<String> resp = restTemplate.exchange(baseUrl + fullPath, org.springframework.http.HttpMethod.GET, req, String.class);
+            response = resp.getBody();
 
             if (response != null && response.trim().startsWith("<")) {
-                System.err.println("   -> ❌ Error: Received HTML instead of JSON from Directus");
+                System.err.println("   -> Error: Received HTML instead of JSON from Directus");
                 throw new RuntimeException("Invalid response from Directus (HTML received)");
             }
 
@@ -84,20 +108,21 @@ public class DirectusService {
             JsonNode dataNode = rootNode.path("data");
 
             if (dataNode.isMissingNode() || dataNode.isNull()) {
-                System.err.println("   -> ⚠️ No data found for: " + endpoint);
+                System.err.println("   -> No data found for: " + endpoint);
                 return null;
             }
             return dataNode;
+        } catch (org.springframework.web.client.HttpClientErrorException.Unauthorized ue) {
+            System.err.println("   -> Unauthorized from Directus. Token may be invalid.");
+            throw ue;
         } catch (Exception e) {
-            System.err.println("   -> ❌ Error calling Directus: " + e.getMessage());
+            System.err.println("   -> Error calling Directus: " + e.getMessage());
             throw new RuntimeException("Error fetching " + endpoint + " from Directus", e);
         }
     }
 
-    /**
-     * Get footer by locale
-     * Directus returns flat array, so we get first item
-     */
+    // Following methods unchanged, use fetchFromDirectus
+
     @Cacheable(value = "footer", key = "#locale")
     public Footer getFooter(String locale) throws JsonProcessingException {
         String query = "filter[locale][_eq]=" + locale;
@@ -201,16 +226,91 @@ public class DirectusService {
      */
     @Cacheable(value = "formats", key = "#locale")
     public List<StrapiFormatData> getFormats(String locale) throws JsonProcessingException {
-        String query = locale != null ? "filter[locale][_eq]=" + locale : "";
-        JsonNode dataNode = fetchFromDirectus("api/items/formats", query);
+        return getFormats(locale, null);
+    }
+
+    public List<StrapiFormatData> getFormats(String locale, String acceptLanguage) throws JsonProcessingException {
+        String languageCode = normalizeLanguageCode(locale);
+        String query = "fields=id,slug,mongo_id,imageUrl,translations.languages_code,translations.title,"
+                + "translations.subtitle,translations.description,translations.rules";
+        if (languageCode != null) {
+            query += "&deep[translations][_filter][languages_code][_eq]=" + languageCode;
+        }
+        JsonNode dataNode = fetchFromDirectus("api/items/formats", query, acceptLanguage);
 
         List<StrapiFormatData> formats = new ArrayList<>();
         if (dataNode != null && dataNode.isArray()) {
             for (JsonNode node : dataNode) {
-                formats.add(objectMapper.treeToValue(node, StrapiFormatData.class));
+                StrapiFormatData fmt = objectMapper.treeToValue(node, StrapiFormatData.class);
+
+                JsonNode translation = pickTranslation(node.path("translations"), languageCode);
+                if (translation != null) {
+                    fmt.setTitle(translation.path("title").asText(null));
+                    fmt.setSubtitle(translation.path("subtitle").asText(null));
+                    String lang = translation.path("languages_code").asText(null);
+                    fmt.setLocale(lang != null ? lang : languageCode);
+                    fmt.setSection(buildSections(translation));
+                }
+
+                // Skip placeholder/draft rows without slug
+                if (fmt.getSlug() == null || fmt.getSlug().isBlank()) {
+                    continue;
+                }
+
+                formats.add(fmt);
             }
         }
         return formats;
+    }
+
+    /**
+     * Directus stores language codes as plain ISO codes ("en", "es"), while callers may send
+     * full locales such as "en_US" or "en-US".
+     */
+    private String normalizeLanguageCode(String locale) {
+        if (locale == null || locale.isBlank()) {
+            return null;
+        }
+        String normalized = locale.trim().replace('-', '_');
+        int separator = normalized.indexOf('_');
+        return (separator > 0 ? normalized.substring(0, separator) : normalized).toLowerCase();
+    }
+
+    /**
+     * Selects the translation matching the requested locale, falling back to the first available one.
+     */
+    private JsonNode pickTranslation(JsonNode translations, String locale) {
+        if (translations == null || !translations.isArray() || translations.isEmpty()) {
+            return null;
+        }
+        if (locale != null && !locale.isBlank()) {
+            for (JsonNode tr : translations) {
+                if (locale.equals(tr.path("languages_code").asText(null))) {
+                    return tr;
+                }
+            }
+        }
+        return translations.get(0);
+    }
+
+    /**
+     * Converts the Directus translation blocks (description, rules) into the Strapi component shape
+     * expected by the frontend.
+     */
+    private List<StrapiComponent> buildSections(JsonNode translation) {
+        List<StrapiComponent> sections = new ArrayList<>();
+        for (String blockName : List.of("description", "rules")) {
+            JsonNode block = translation.path(blockName);
+            if (block.isMissingNode() || block.isNull()) {
+                continue;
+            }
+            try {
+                sections.add(objectMapper.treeToValue(block, StrapiComponent.class));
+            } catch (JsonProcessingException ignored) {
+                // skip malformed block
+            }
+        }
+        return sections;
     }
 
     /**
@@ -237,16 +337,28 @@ public class DirectusService {
      */
     @Cacheable(value = "articles-latest", key = "#locale + '-' + #limit")
     public List<StrapiArticleData> getLatestArticles(String locale, int limit) throws JsonProcessingException {
-        String query = "filter[locale][_eq]=" + locale 
-                     + "&sort=-publishedAt"
-                     + "&limit=" + limit;
-        
+        String languageCode = normalizeLanguageCode(locale);
+        String query = "fields=id,publishedAt,author,imageUrl,translations.languages_code,translations.title,translations.content";
+        query += "&sort=-publishedAt&limit=" + limit;
+        if (languageCode != null) {
+            query += "&deep[translations][_filter][languages_code][_eq]=" + languageCode;
+        }
+
         JsonNode dataNode = fetchFromDirectus("api/items/articles", query);
 
         List<StrapiArticleData> articles = new ArrayList<>();
         if (dataNode != null && dataNode.isArray()) {
             for (JsonNode node : dataNode) {
-                articles.add(objectMapper.treeToValue(node, StrapiArticleData.class));
+                StrapiArticleData art = objectMapper.treeToValue(node, StrapiArticleData.class);
+
+                JsonNode tr = pickTranslation(node.path("translations"), languageCode);
+                if (tr != null) {
+                    art.setTitle(tr.path("title").asText(null));
+                    art.setContent(tr.path("content").asText(null));
+                    art.setLocale(tr.path("languages_code").asText(languageCode));
+                }
+
+                articles.add(art);
             }
         }
         return articles;
@@ -257,11 +369,23 @@ public class DirectusService {
      */
     @Cacheable(value = "article-detail", key = "#documentId + '-' + #locale")
     public StrapiArticleData getArticleByDocumentId(String documentId, String locale) throws JsonProcessingException {
-        String query = "filter[locale][_eq]=" + locale;
+        String languageCode = normalizeLanguageCode(locale);
+        String query = "fields=id,publishedAt,author,imageUrl,translations.languages_code,translations.title,translations.content";
+        if (languageCode != null) {
+            query += "&deep[translations][_filter][languages_code][_eq]=" + languageCode;
+        }
+
         JsonNode dataNode = fetchFromDirectus("api/items/articles/" + documentId, query);
 
         if (dataNode != null && !dataNode.isArray()) {
-            return objectMapper.treeToValue(dataNode, StrapiArticleData.class);
+            StrapiArticleData art = objectMapper.treeToValue(dataNode, StrapiArticleData.class);
+            JsonNode tr = pickTranslation(dataNode.path("translations"), languageCode);
+            if (tr != null) {
+                art.setTitle(tr.path("title").asText(null));
+                art.setContent(tr.path("content").asText(null));
+                art.setLocale(tr.path("languages_code").asText(languageCode));
+            }
+            return art;
         }
         return null;
     }
