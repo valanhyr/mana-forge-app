@@ -10,18 +10,16 @@ services:
         - VITE_FARO_URL=${VITE_FARO_URL:-}
         - VITE_FARO_APP_NAME=${VITE_FARO_APP_NAME:-mana-forge-web}
     container_name: mana-forge-web-1
-    ports:
-      - "80:80"
-      - "443:443"
     depends_on:
       api:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost/healthz"]
+      test: ["CMD", "curl", "-fsS", "http://localhost/"]
       interval: 30s
       timeout: 5s
       retries: 5
       start_period: 20s
+    # web served by host nginx in production; no host ports published here
     restart: always
     networks:
       - mana-forge-network
