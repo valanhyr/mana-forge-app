@@ -80,10 +80,6 @@ FRONTEND_URL=http://localhost
 # MongoDB Atlas
 MONGODB_URI=mongodb+srv://<user>:<password>@cluster0.xxxx.mongodb.net/production
 
-# Strapi CMS
-STRAPI_API_URL=https://your-strapi-instance.strapiapp.com/api
-STRAPI_API_TOKEN=your_strapi_token
-
 # Groq AI
 GROQ_API_KEY=gsk_your_groq_key
 

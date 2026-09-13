@@ -137,15 +137,6 @@ email:
   encryption:
     key: ${EMAIL_ENCRYPTION_KEY}
 
-# Strapi Configuration (CMS)
-# PRODUCTION
-strapi:
-  api:
-    #url: ${STRAPI_API_URL}
-    token: ${STRAPI_API_TOKEN:}
-# DEVELOPMENT
-    url: ${STRAPI_API_URL:http://localhost:1337/api}
-
 # Directus Configuration
 # PRODUCTION
 directus:
