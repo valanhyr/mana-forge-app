@@ -36,7 +36,6 @@ services:
     ports:
       - "8080:8080"
     environment:
-      # Comunicación interna: 'engine' es el nombre del servicio de abajo
       - SERVICES_PYTHON_ENGINE_URL=http://engine:8000
       - FRONTEND_URL=${FRONTEND_URL}
       - STRAPI_API_URL=${STRAPI_API_URL}
@@ -47,10 +46,8 @@ services:
       - SPRING_DATA_REDIS_PORT=6379
       - REDIS_PASSWORD=${REDIS_PASSWORD}
       - SESSION_STORE_TYPE=redis
-      # Directus connectivity: when Directus runs on host, use host.docker.internal so container can reach it
       - directus.url=${DIRECTUS_URL:-http://directus_app:8080}
       - directus.token=${DIRECTUS_API_TOKEN:-}
-      # SMTP: Resend
       - SMTP_HOST=${SMTP_HOST:-smtp.resend.com}
       - SMTP_PORT=${SMTP_PORT:-587}
       - SMTP_USERNAME=${SMTP_USERNAME:-resend}
@@ -70,18 +67,19 @@ services:
       redis:
         condition: service_started
     healthcheck:
-      test: ["CMD", "curl", "-fsS", "http://localhost:8080/actuator/health"]
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8080/actuator/health"]
       interval: 30s
       timeout: 5s
       retries: 5
       start_period: 40s
     restart: always
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
     networks:
       - mana-forge-network
 
   # ENGINE: Python FastAPI (Puerto 8000)
-  # Port 8000 is NOT published to the host — reachable only inside mana-forge-network.
-  # The Spring API calls it as http://engine:8000 via the internal network.
   engine:
     image: ${ENGINE_IMAGE:-ghcr.io/valanhyr/mana-forge-engine:latest}
     build:
@@ -96,7 +94,7 @@ services:
       - GRAFANA_OTLP_ENDPOINT=${GRAFANA_OTLP_ENDPOINT:-}
       - GRAFANA_OTLP_AUTH=${GRAFANA_OTLP_AUTH:-}
     healthcheck:
-      test: ["CMD", "curl", "-fsS", "http://localhost:8000/health"]
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
       interval: 30s
       timeout: 5s
       retries: 5
@@ -105,11 +103,10 @@ services:
     networks:
       - mana-forge-network
 
-  # CACHE: Redis para cachear respuestas de Strapi/Scryfall/DB
+  # CACHE: Redis
   redis:
     image: redis:7-alpine
     container_name: mana-forge-cache-1
-    # Secure with password from .env
     command: ["redis-server", "--requirepass", "${REDIS_PASSWORD}"]
     ports:
       - "6379:6379"
@@ -117,7 +114,98 @@ services:
     networks:
       - mana-forge-network
 
-# Red interna para que los contenedores se vean por nombre (api, engine)
+  # DIRECTUS DATABASE: PostgreSQL 15
+  postgres:
+    image: postgres:15-alpine
+    container_name: directus_db
+    environment:
+      POSTGRES_DB: directus
+      POSTGRES_USER: directus
+      POSTGRES_PASSWORD: directus_secure_password_change_me
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U directus"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - mana-forge-network
+    restart: always
+
+  # DIRECTUS CMS
+  directus:
+    image: directus/directus:latest
+    container_name: directus_app
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DB_CLIENT: pg
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_DATABASE: directus
+      DB_USER: directus
+      DB_PASSWORD: directus_secure_password_change_me
+      ADMIN_EMAIL: admin@example.com
+      ADMIN_PASSWORD: admin_password_change_me
+      REFRESH_TOKEN_TTL: 7d
+      REFRESH_TOKEN_COOKIE_SECURE: "false"
+      REFRESH_TOKEN_COOKIE_SAME_SITE: "lax"
+      CORS_ENABLED: "true"
+      CORS_ORIGIN: "http://localhost:5173,http://localhost:3000,http://localhost:9055"
+      LOG_LEVEL: info
+      PORT: "8080"
+    volumes:
+      - directus_uploads:/directus/uploads
+      - ./snapshots:/directus/snapshots
+      - ./extensions:/directus/extensions
+    ports:
+      - "9055:8080"
+    networks:
+      - mana-forge-network
+    restart: unless-stopped
+
+  # DIRECTUS BACKUP
+  backup:
+    image: postgres:15-alpine
+    container_name: directus_backup
+    depends_on:
+      - postgres
+    environment:
+      PGPASSWORD: directus_secure_password_change_me
+    volumes:
+      - ./backups:/backups
+    command: >
+      sh -c "
+      while true; do
+        echo '[Backup] Iniciando backup a las '$(date +%Y-%m-%d\ %H:%M:%S);
+        pg_dump -h postgres -U directus -d directus > /backups/directus_$(date +\%Y\%m\%d_\%H\%M\%S).sql;
+        echo '[Backup] Completado a las '$(date +%Y-%m-%d\ %H:%M:%S);
+        find /backups -name 'directus_*.sql' -mtime +7 -delete;
+        sleep 86400;
+      done
+      "
+    networks:
+      - mana-forge-network
+    restart: unless-stopped
+
+  # DATABASE MANAGEMENT: Adminer
+  adminer:
+    image: adminer
+    container_name: local_adminer
+    restart: unless-stopped
+    ports:
+      - "8088:8080"
+    networks:
+      - mana-forge-network
+
 networks:
   mana-forge-network:
     driver: bridge
+
+volumes:
+  postgres_data:
+  directus_uploads:

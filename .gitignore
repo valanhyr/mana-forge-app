@@ -28,3 +28,4 @@ mana-forge-web/coverage/
 /.pytest_cache/
 /mana-forge-api/target/
 /mana-forge-web/dist/
+directus.con
