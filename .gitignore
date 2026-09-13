@@ -29,3 +29,4 @@ mana-forge-web/coverage/
 /mana-forge-api/target/
 /mana-forge-web/dist/
 directus.con
+.env.development
