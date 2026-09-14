@@ -156,6 +156,10 @@ services:
       CORS_ORIGIN: "http://localhost:5173,http://localhost:3000,http://localhost:9055"
       LOG_LEVEL: info
       PORT: "8080"
+      # Directus public URL and persistent secret
+      PUBLIC_URL: ${DIRECTUS_PUBLIC_URL}
+      SECRET: ${DIRECTUS_SECRET:-changeme_generate_strong_secret}
+
     volumes:
       - directus_uploads:/directus/uploads
       - ./snapshots:/directus/snapshots
