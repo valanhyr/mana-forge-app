@@ -351,6 +351,11 @@ public class DirectusService {
             for (JsonNode node : dataNode) {
                 StrapiArticleData art = objectMapper.treeToValue(node, StrapiArticleData.class);
 
+                // Ensure documentId is populated from Directus 'id' when missing
+                if ((art.getDocumentId() == null || art.getDocumentId().isBlank()) && art.getId() != null) {
+                    art.setDocumentId(String.valueOf(art.getId()));
+                }
+
                 JsonNode tr = pickTranslation(node.path("translations"), languageCode);
                 if (tr != null) {
                     art.setTitle(tr.path("title").asText(null));
@@ -379,14 +384,22 @@ public class DirectusService {
 
         if (dataNode != null && !dataNode.isArray()) {
             StrapiArticleData art = objectMapper.treeToValue(dataNode, StrapiArticleData.class);
+
+            // Ensure documentId is populated from Directus 'id' when missing
+            if ((art.getDocumentId() == null || art.getDocumentId().isBlank()) && art.getId() != null) {
+                art.setDocumentId(String.valueOf(art.getId()));
+            }
+
             JsonNode tr = pickTranslation(dataNode.path("translations"), languageCode);
             if (tr != null) {
                 art.setTitle(tr.path("title").asText(null));
+                art.setSubtitle(tr.path("subtitle").asText(null));
                 art.setContent(tr.path("content").asText(null));
                 art.setLocale(tr.path("languages_code").asText(languageCode));
             }
             return art;
         }
+
         return null;
     }
 }
