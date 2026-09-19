@@ -348,7 +348,14 @@ public class DirectusService {
 
         List<StrapiArticleData> articles = new ArrayList<>();
         if (dataNode != null && dataNode.isArray()) {
+            int idx = 0;
             for (JsonNode node : dataNode) {
+                // Temporary debug: log the raw node for the first item to inspect mapping issues
+                if (idx == 0) {
+                    System.out.println("Directus raw article node: " + node.toString());
+                }
+                idx++;
+
                 StrapiArticleData art = objectMapper.treeToValue(node, StrapiArticleData.class);
 
                 // Ensure documentId is populated from Directus 'id' when missing
