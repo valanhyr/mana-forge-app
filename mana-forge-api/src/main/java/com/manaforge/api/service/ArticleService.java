@@ -22,6 +22,15 @@ public class ArticleService {
         this.directusService = directusService;
     }
 
+    // Backwards-compatible overloads (preserve old API for callers/tests)
+    public List<ArticleDto> getLast5Articles(String locale) {
+        return getLast5Articles(locale, null);
+    }
+
+    public ArticleDto getArticleByDocumentId(String documentId, String locale) {
+        return getArticleByDocumentId(documentId, locale, null);
+    }
+
     public List<ArticleDto> getLast5Articles(String locale, String acceptLanguage) {
         try {
             List<StrapiArticleData> articles = directusService.getLatestArticles(locale, 5, acceptLanguage);

@@ -39,7 +39,7 @@ class ArticleControllerTest {
     @Test
     void getLatestArticles_returns200WithArticleList() throws Exception {
         ArticleDto article = ArticleDto.builder().documentId("doc1").title("Test Article").build();
-        when(articleService.getLast5Articles("es")).thenReturn(List.of(article));
+        when(articleService.getLast5Articles("es", "es")).thenReturn(List.of(article));
 
         mockMvc.perform(get("/api/articles/latest"))
                 .andExpect(status().isOk())
@@ -49,7 +49,7 @@ class ArticleControllerTest {
 
     @Test
     void getLatestArticles_normalizesEnUStoEn() throws Exception {
-        when(articleService.getLast5Articles("en")).thenReturn(List.of());
+        when(articleService.getLast5Articles("en", "en")).thenReturn(List.of());
 
         mockMvc.perform(get("/api/articles/latest")
                 .header("Accept-Language", "en-US"))
@@ -60,7 +60,7 @@ class ArticleControllerTest {
 
     @Test
     void getLatestArticles_returnsEmptyListWhenServiceReturnsNone() throws Exception {
-        when(articleService.getLast5Articles("es")).thenReturn(List.of());
+        when(articleService.getLast5Articles("es", "es")).thenReturn(List.of());
 
         mockMvc.perform(get("/api/articles/latest"))
                 .andExpect(status().isOk())

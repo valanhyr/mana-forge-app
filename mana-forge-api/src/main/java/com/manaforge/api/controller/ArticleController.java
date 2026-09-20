@@ -2,6 +2,7 @@ package com.manaforge.api.controller;
 
 import com.manaforge.api.dto.ArticleDto;
 import com.manaforge.api.service.ArticleService;
+import com.manaforge.api.service.ContentService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.cache.annotation.CacheEvict;
@@ -16,9 +17,11 @@ import java.util.List;
 public class ArticleController {
 
     private final ArticleService articleService;
+    private final ContentService contentService;
 
-    public ArticleController(ArticleService articleService) {
+    public ArticleController(ArticleService articleService, ContentService contentService) {
         this.articleService = articleService;
+        this.contentService = contentService;
     }
 
     @GetMapping("/latest")
@@ -27,6 +30,7 @@ public class ArticleController {
             @RequestHeader(value = "Accept-Language", defaultValue = "es") String locale) {
         // Normalize locale (e.g. "en-US" → "en")
         String normalizedLocale = locale.split("[,;-]")[0].trim();
+        // keep controller using ArticleService for DTO mapping but ensure the contentService is available if needed
         return ResponseEntity.ok(articleService.getLast5Articles(normalizedLocale, locale));
     }
 
