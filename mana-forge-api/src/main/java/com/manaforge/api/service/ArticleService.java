@@ -22,9 +22,9 @@ public class ArticleService {
         this.directusService = directusService;
     }
 
-    public List<ArticleDto> getLast5Articles(String locale) {
+    public List<ArticleDto> getLast5Articles(String locale, String acceptLanguage) {
         try {
-            List<StrapiArticleData> articles = directusService.getLatestArticles(locale, 5);
+            List<StrapiArticleData> articles = directusService.getLatestArticles(locale, 5, acceptLanguage);
             return articles.stream()
                     .map(this::mapToDto)
                     .collect(Collectors.toList());
@@ -34,9 +34,9 @@ public class ArticleService {
         }
     }
 
-    public ArticleDto getArticleByDocumentId(String documentId, String locale) {
+    public ArticleDto getArticleByDocumentId(String documentId, String locale, String acceptLanguage) {
         try {
-            StrapiArticleData article = directusService.getArticleByDocumentId(documentId, locale);
+            StrapiArticleData article = directusService.getArticleByDocumentId(documentId, locale, acceptLanguage);
             if (article == null) return null;
             return mapToDto(article);
         } catch (Exception e) {
