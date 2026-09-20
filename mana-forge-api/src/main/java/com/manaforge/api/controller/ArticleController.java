@@ -27,7 +27,7 @@ public class ArticleController {
             @RequestHeader(value = "Accept-Language", defaultValue = "es") String locale) {
         // Normalize locale (e.g. "en-US" → "en")
         String normalizedLocale = locale.split("[,;-]")[0].trim();
-        return ResponseEntity.ok(articleService.getLast5Articles(normalizedLocale));
+        return ResponseEntity.ok(articleService.getLast5Articles(normalizedLocale, locale));
     }
 
     @DeleteMapping("/cache")
@@ -43,7 +43,7 @@ public class ArticleController {
             @PathVariable String documentId,
             @RequestHeader(value = "Accept-Language", defaultValue = "es") String locale) {
         String normalizedLocale = locale.split("[,;-]")[0].trim();
-        ArticleDto article = articleService.getArticleByDocumentId(documentId, normalizedLocale);
+        ArticleDto article = articleService.getArticleByDocumentId(documentId, normalizedLocale, locale);
         if (article == null) {
             return ResponseEntity.notFound().build();
         }
