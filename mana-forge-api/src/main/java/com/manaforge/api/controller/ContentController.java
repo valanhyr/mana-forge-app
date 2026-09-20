@@ -67,15 +67,17 @@ public class ContentController {
     @GetMapping("/articles/latest")
     public List<com.manaforge.api.model.strapi.StrapiArticleData> getLatestArticles(
             @RequestParam(required = false) String locale,
-            @RequestParam(defaultValue = "10") int limit) throws Exception {
-        return directusService.getLatestArticles(locale, limit);
+            @RequestParam(defaultValue = "10") int limit,
+            @RequestHeader(value = "Accept-Language", required = false) String acceptLanguage) throws Exception {
+        return directusService.getLatestArticles(locale, limit, acceptLanguage);
     }
 
     // New endpoint: article detail
     @GetMapping("/articles/{documentId}")
     public com.manaforge.api.model.strapi.StrapiArticleData getArticleByDocumentId(@PathVariable String documentId,
-                                                                                  @RequestParam(required = false) String locale) throws Exception {
-        return directusService.getArticleByDocumentId(documentId, locale);
+                                                                                  @RequestParam(required = false) String locale,
+                                                                                  @RequestHeader(value = "Accept-Language", required = false) String acceptLanguage) throws Exception {
+        return directusService.getArticleByDocumentId(documentId, locale, acceptLanguage);
     }
 
     @DeleteMapping("/cache")

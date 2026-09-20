@@ -336,15 +336,16 @@ public class DirectusService {
      * Get latest articles for a locale
      */
     @Cacheable(value = "articles-latest", key = "#locale + '-' + #limit")
-    public List<StrapiArticleData> getLatestArticles(String locale, int limit) throws JsonProcessingException {
-        String languageCode = normalizeLanguageCode(locale);
-        String query = "fields=id,publishedAt,author,imageUrl,translations.languages_code,translations.title,translations.content";
+    public List<StrapiArticleData> getLatestArticles(String locale, int limit, String acceptLanguage) throws JsonProcessingException {
+        // prefer explicit Accept-Language when provided by caller; fallback to locale param
+        String languageCode = normalizeLanguageCode(acceptLanguage != null && !acceptLanguage.isBlank() ? acceptLanguage : locale);
+        String query = "fields=id,publishedAt,author,imageUrl,translations.languages_code,translations.title,translations.subtitle,translations.seo,translations.content";
         query += "&sort=-publishedAt&limit=" + limit;
         if (languageCode != null) {
             query += "&deep[translations][_filter][languages_code][_eq]=" + languageCode;
         }
 
-        JsonNode dataNode = fetchFromDirectus("api/items/articles", query);
+        JsonNode dataNode = fetchFromDirectus("api/items/articles", query, acceptLanguage);
 
         List<StrapiArticleData> articles = new ArrayList<>();
         if (dataNode != null && dataNode.isArray()) {
@@ -365,9 +366,26 @@ public class DirectusService {
 
                 JsonNode tr = pickTranslation(node.path("translations"), languageCode);
                 if (tr != null) {
-                    art.setTitle(tr.path("title").asText(null));
-                    art.setContent(tr.path("content").asText(null));
+                    // If translation has its own id/documentId fields, prefer them; otherwise reuse top-level
+                    if (!tr.path("documentId").isMissingNode() && !tr.path("documentId").isNull()) {
+                        art.setDocumentId(tr.path("documentId").asText(null));
+                    }
+                    if (!tr.path("id").isMissingNode() && !tr.path("id").isNull()) {
+                        try {
+                            art.setId(Integer.valueOf(tr.path("id").asText()));
+                        } catch (NumberFormatException ignored) {}
+                    }
+                    art.setTitle(tr.path("title").asText(art.getTitle()));
+                    art.setSubtitle(tr.path("subtitle").asText(art.getSubtitle()));
+                    art.setContent(tr.path("content").asText(art.getContent()));
                     art.setLocale(tr.path("languages_code").asText(languageCode));
+                    // seo may be an object; assign if present
+                    JsonNode seoNode = tr.path("seo");
+                    if (!seoNode.isMissingNode() && !seoNode.isNull()) {
+                        try {
+                            art.setSeo(objectMapper.treeToValue(seoNode, com.manaforge.api.model.strapi.StrapiSeo.class));
+                        } catch (JsonProcessingException ignored) {}
+                    }
                 }
 
                 articles.add(art);
@@ -380,14 +398,14 @@ public class DirectusService {
      * Get article by documentId and locale
      */
     @Cacheable(value = "article-detail", key = "#documentId + '-' + #locale")
-    public StrapiArticleData getArticleByDocumentId(String documentId, String locale) throws JsonProcessingException {
-        String languageCode = normalizeLanguageCode(locale);
+    public StrapiArticleData getArticleByDocumentId(String documentId, String locale, String acceptLanguage) throws JsonProcessingException {
+        String languageCode = normalizeLanguageCode(acceptLanguage != null && !acceptLanguage.isBlank() ? acceptLanguage : locale);
         String query = "fields=id,publishedAt,author,imageUrl,translations.languages_code,translations.title,translations.content";
         if (languageCode != null) {
             query += "&deep[translations][_filter][languages_code][_eq]=" + languageCode;
         }
 
-        JsonNode dataNode = fetchFromDirectus("api/items/articles/" + documentId, query);
+        JsonNode dataNode = fetchFromDirectus("api/items/articles/" + documentId, query, acceptLanguage);
 
         if (dataNode != null && !dataNode.isArray()) {
             StrapiArticleData art = objectMapper.treeToValue(dataNode, StrapiArticleData.class);
@@ -399,10 +417,17 @@ public class DirectusService {
 
             JsonNode tr = pickTranslation(dataNode.path("translations"), languageCode);
             if (tr != null) {
-                art.setTitle(tr.path("title").asText(null));
-                art.setSubtitle(tr.path("subtitle").asText(null));
-                art.setContent(tr.path("content").asText(null));
+                art.setTitle(tr.path("title").asText(art.getTitle()));
+                art.setSubtitle(tr.path("subtitle").asText(art.getSubtitle()));
+                art.setContent(tr.path("content").asText(art.getContent()));
                 art.setLocale(tr.path("languages_code").asText(languageCode));
+
+                JsonNode seoNode = tr.path("seo");
+                if (!seoNode.isMissingNode() && !seoNode.isNull()) {
+                    try {
+                        art.setSeo(objectMapper.treeToValue(seoNode, com.manaforge.api.model.strapi.StrapiSeo.class));
+                    } catch (JsonProcessingException ignored) {}
+                }
             }
             return art;
         }
