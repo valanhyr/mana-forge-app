@@ -365,6 +365,7 @@ public class DirectusService {
                 }
 
                 JsonNode tr = pickTranslation(node.path("translations"), languageCode);
+                System.out.println("Directus raw article node: " + tr.toString());
                 if (tr != null) {
                     // If translation has its own id/documentId fields, prefer them; otherwise reuse top-level
                     if (!tr.path("documentId").isMissingNode() && !tr.path("documentId").isNull()) {
@@ -416,6 +417,7 @@ public class DirectusService {
             }
 
             JsonNode tr = pickTranslation(dataNode.path("translations"), languageCode);
+            System.out.println("Directus raw article node: " + tr.toString());
             if (tr != null) {
                 art.setTitle(tr.path("title").asText(art.getTitle()));
                 art.setSubtitle(tr.path("subtitle").asText(art.getSubtitle()));
