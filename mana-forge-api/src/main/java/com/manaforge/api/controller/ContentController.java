@@ -1,7 +1,6 @@
 package com.manaforge.api.controller;
 
 import com.manaforge.api.service.DirectusService;
-import com.manaforge.api.service.ContentService;
 import com.manaforge.api.model.directus.*;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +16,6 @@ import java.util.List;
 public class ContentController {
 
     private final DirectusService directusService;
-    private final ContentService contentService;
 
     // Endpoint para el Footer
     @GetMapping("/footer/{locale}")

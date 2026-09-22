@@ -1,8 +1,6 @@
 package com.manaforge.api.controller;
-
 import com.manaforge.api.dto.ArticleDto;
 import com.manaforge.api.service.ArticleService;
-import com.manaforge.api.service.ContentService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.cache.annotation.CacheEvict;
@@ -17,11 +15,9 @@ import java.util.List;
 public class ArticleController {
 
     private final ArticleService articleService;
-    private final ContentService contentService;
 
-    public ArticleController(ArticleService articleService, ContentService contentService) {
+    public ArticleController(ArticleService articleService) {
         this.articleService = articleService;
-        this.contentService = contentService;
     }
 
     @GetMapping("/latest")

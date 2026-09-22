@@ -426,7 +426,7 @@ public class DirectusService {
                 JsonNode seoNode = tr.path("seo");
                 if (!seoNode.isMissingNode() && !seoNode.isNull()) {
                     try {
-                        art.setSeo(objectMapper.treeToValue(seoNode, com.manaforge.api.model.directus.StrapiSeo.class));
+                        art.setSeo(objectMapper.treeToValue(seoNode, StrapiSeo.class));
                     } catch (JsonProcessingException ignored) {}
                 }
             }
