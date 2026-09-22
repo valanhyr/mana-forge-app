@@ -39,7 +39,7 @@ class LanguageControllerTest {
 
     @Test
     void getLanguages_returns200() throws Exception {
-        when(contentService.getLanguages("es")).thenReturn(List.of(new Language()));
+        when(contentService.getLanguages(anyString())).thenReturn(List.of(new Language()));
 
         mockMvc.perform(get("/content-service/languages"))
                 .andExpect(status().isOk());
@@ -47,7 +47,7 @@ class LanguageControllerTest {
 
     @Test
     void getLanguages_usesDefaultLocaleEs() throws Exception {
-        when(contentService.getLanguages("es")).thenReturn(List.of());
+        when(contentService.getLanguages(anyString())).thenReturn(List.of());
 
         // No locale param — defaults to "es"
         mockMvc.perform(get("/content-service/languages"))
@@ -56,7 +56,7 @@ class LanguageControllerTest {
 
     @Test
     void getLanguages_returns500OnJsonProcessingException() throws Exception {
-        when(contentService.getLanguages("es")).thenThrow(new JsonProcessingException("parse error") {});
+        when(contentService.getLanguages(anyString())).thenThrow(new JsonProcessingException("parse error") {});
 
         mockMvc.perform(get("/content-service/languages"))
                 .andExpect(status().isInternalServerError());
@@ -64,7 +64,7 @@ class LanguageControllerTest {
 
     @Test
     void getLanguages_returns500OnRuntimeException() throws Exception {
-        when(contentService.getLanguages("es")).thenThrow(new RuntimeException("CMS down"));
+        when(contentService.getLanguages(anyString())).thenThrow(new RuntimeException("CMS down"));
 
         mockMvc.perform(get("/content-service/languages"))
                 .andExpect(status().isInternalServerError());

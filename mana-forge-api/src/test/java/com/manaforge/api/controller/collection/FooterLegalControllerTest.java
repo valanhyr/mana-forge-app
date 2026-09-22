@@ -37,7 +37,7 @@ class FooterLegalControllerTest {
 
     @Test
     void getFooterLegal_returns200() throws Exception {
-        when(contentService.getFooterLegal("es")).thenReturn(new FooterLegal());
+        when(contentService.getFooterLegal(anyString())).thenReturn(new FooterLegal());
 
         mockMvc.perform(get("/content-service/footer-legal").param("locale", "es"))
                 .andExpect(status().isOk());
@@ -45,7 +45,7 @@ class FooterLegalControllerTest {
 
     @Test
     void getFooterLegal_returns500OnJsonProcessingException() throws Exception {
-        when(contentService.getFooterLegal("es")).thenThrow(new JsonProcessingException("parse error") {});
+        when(contentService.getFooterLegal(anyString())).thenThrow(new JsonProcessingException("parse error") {});
 
         mockMvc.perform(get("/content-service/footer-legal").param("locale", "es"))
                 .andExpect(status().isInternalServerError());
@@ -53,7 +53,7 @@ class FooterLegalControllerTest {
 
     @Test
     void getFooterLegal_returns500OnRuntimeException() throws Exception {
-        when(contentService.getFooterLegal("es")).thenThrow(new RuntimeException("CMS down"));
+        when(contentService.getFooterLegal(anyString())).thenThrow(new RuntimeException("CMS down"));
 
         mockMvc.perform(get("/content-service/footer-legal").param("locale", "es"))
                 .andExpect(status().isInternalServerError());

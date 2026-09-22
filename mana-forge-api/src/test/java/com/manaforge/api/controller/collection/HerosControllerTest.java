@@ -39,7 +39,7 @@ class HerosControllerTest {
 
     @Test
     void getHeros_returns200WithList() throws Exception {
-        when(contentService.getHeros("es", null)).thenReturn(List.of(new Hero(), new Hero()));
+        when(contentService.getHeros(anyString(), any())).thenReturn(List.of(new Hero(), new Hero()));
 
         mockMvc.perform(get("/content-service/heros").param("locale", "es"))
                 .andExpect(status().isOk());
@@ -48,7 +48,7 @@ class HerosControllerTest {
     @Test
     void getHeros_withHeroId_returnsSingleHero() throws Exception {
         Hero hero = new Hero();
-        when(contentService.getHeros("es", "home-hero")).thenReturn(List.of(hero));
+        when(contentService.getHeros(anyString(), eq("home-hero"))).thenReturn(List.of(hero));
 
         mockMvc.perform(get("/content-service/heros")
                 .param("locale", "es")
@@ -58,7 +58,7 @@ class HerosControllerTest {
 
     @Test
     void getHeros_withHeroId_returnsEmptyListWhenNoMatch() throws Exception {
-        when(contentService.getHeros("es", "unknown")).thenReturn(List.of());
+        when(contentService.getHeros(anyString(), eq("unknown"))).thenReturn(List.of());
 
         mockMvc.perform(get("/content-service/heros")
                 .param("locale", "es")
@@ -68,7 +68,7 @@ class HerosControllerTest {
 
     @Test
     void getHeros_returns500OnJsonProcessingException() throws Exception {
-        when(contentService.getHeros("es", null)).thenThrow(new JsonProcessingException("parse error") {});
+        when(contentService.getHeros(anyString(), any())).thenThrow(new JsonProcessingException("parse error") {});
 
         mockMvc.perform(get("/content-service/heros").param("locale", "es"))
                 .andExpect(status().isInternalServerError());

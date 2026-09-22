@@ -37,7 +37,7 @@ class FooterControllerTest {
 
     @Test
     void getFooter_returns200() throws Exception {
-        when(contentService.getFooter("es")).thenReturn(new Footer());
+        when(contentService.getFooter(anyString())).thenReturn(new Footer());
 
         mockMvc.perform(get("/content-service/footer").param("locale", "es"))
                 .andExpect(status().isOk());
@@ -45,7 +45,7 @@ class FooterControllerTest {
 
     @Test
     void getFooter_returns500OnJsonProcessingException() throws Exception {
-        when(contentService.getFooter("es")).thenThrow(new JsonProcessingException("parse error") {});
+        when(contentService.getFooter(anyString())).thenThrow(new JsonProcessingException("parse error") {});
 
         mockMvc.perform(get("/content-service/footer").param("locale", "es"))
                 .andExpect(status().isInternalServerError());
@@ -53,7 +53,7 @@ class FooterControllerTest {
 
     @Test
     void getFooter_returns500OnRuntimeException() throws Exception {
-        when(contentService.getFooter("es")).thenThrow(new RuntimeException("CMS unavailable"));
+        when(contentService.getFooter(anyString())).thenThrow(new RuntimeException("CMS unavailable"));
 
         mockMvc.perform(get("/content-service/footer").param("locale", "es"))
                 .andExpect(status().isInternalServerError());
