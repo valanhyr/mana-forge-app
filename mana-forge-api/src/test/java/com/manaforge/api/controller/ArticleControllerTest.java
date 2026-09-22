@@ -55,7 +55,7 @@ class ArticleControllerTest {
                 .header("Accept-Language", "en-US"))
                 .andExpect(status().isOk());
 
-        verify(articleService).getLast5Articles("en");
+        verify(articleService).getLast5Articles("en", "en-US");
     }
 
     @Test
