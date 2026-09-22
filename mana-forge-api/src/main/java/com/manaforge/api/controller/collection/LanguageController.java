@@ -1,8 +1,8 @@
 package com.manaforge.api.controller.collection;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.manaforge.api.model.strapi.Language;
-import com.manaforge.api.service.StrapiService;
+import com.manaforge.api.model.directus.Language;
+import com.manaforge.api.service.ContentService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,20 +16,22 @@ import java.util.List;
 @RequestMapping("/content-service/languages")
 public class LanguageController {
 
-    private final StrapiService strapiService;
+    private final ContentService contentService;
 
-    public LanguageController(StrapiService strapiService) {
-        this.strapiService = strapiService;
+    public LanguageController(ContentService contentService) {
+        this.contentService = contentService;
     }
 
     @GetMapping
     public ResponseEntity<?> getLanguages(@RequestParam(defaultValue = "es") String locale) {
         try {
-            List<Language> languages = strapiService.getLanguages(locale);
+            List<Language> languages = contentService.getLanguages(locale);
             return ResponseEntity.ok(languages);
         } catch (JsonProcessingException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"error\":\"Failed to process languages data: " + e.getMessage() + "\"}");
         } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"error\":\"" + e.getMessage() + "\"}");
+        } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"error\":\"" + e.getMessage() + "\"}");
         }
     }

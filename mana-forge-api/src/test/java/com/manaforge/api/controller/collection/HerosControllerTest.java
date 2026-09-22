@@ -2,10 +2,10 @@ package com.manaforge.api.controller.collection;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.manaforge.api.config.SecurityConfig;
-import com.manaforge.api.model.strapi.Hero;
+import com.manaforge.api.model.directus.Hero;
 import com.manaforge.api.repository.UserRepository;
 import com.manaforge.api.service.OAuth2LoginSuccessHandler;
-import com.manaforge.api.service.StrapiService;
+import com.manaforge.api.service.ContentService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
@@ -29,7 +29,7 @@ class HerosControllerTest {
     private MockMvc mockMvc;
 
     @MockitoBean
-    private StrapiService strapiService;
+    private ContentService contentService;
 
     @MockitoBean
     private OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
@@ -39,7 +39,7 @@ class HerosControllerTest {
 
     @Test
     void getHeros_returns200WithList() throws Exception {
-        when(strapiService.getHeros("es", null)).thenReturn(List.of(new Hero(), new Hero()));
+        when(contentService.getHeros("es", null)).thenReturn(List.of(new Hero(), new Hero()));
 
         mockMvc.perform(get("/content-service/heros").param("locale", "es"))
                 .andExpect(status().isOk());
@@ -48,7 +48,7 @@ class HerosControllerTest {
     @Test
     void getHeros_withHeroId_returnsSingleHero() throws Exception {
         Hero hero = new Hero();
-        when(strapiService.getHeros("es", "home-hero")).thenReturn(List.of(hero));
+        when(contentService.getHeros("es", "home-hero")).thenReturn(List.of(hero));
 
         mockMvc.perform(get("/content-service/heros")
                 .param("locale", "es")
@@ -58,7 +58,7 @@ class HerosControllerTest {
 
     @Test
     void getHeros_withHeroId_returnsEmptyListWhenNoMatch() throws Exception {
-        when(strapiService.getHeros("es", "unknown")).thenReturn(List.of());
+        when(contentService.getHeros("es", "unknown")).thenReturn(List.of());
 
         mockMvc.perform(get("/content-service/heros")
                 .param("locale", "es")
@@ -68,7 +68,7 @@ class HerosControllerTest {
 
     @Test
     void getHeros_returns500OnJsonProcessingException() throws Exception {
-        when(strapiService.getHeros("es", null)).thenThrow(new JsonProcessingException("parse error") {});
+        when(contentService.getHeros("es", null)).thenThrow(new JsonProcessingException("parse error") {});
 
         mockMvc.perform(get("/content-service/heros").param("locale", "es"))
                 .andExpect(status().isInternalServerError());

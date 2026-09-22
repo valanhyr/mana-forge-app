@@ -11,11 +11,11 @@ import org.springframework.web.client.RestClient;
 @Configuration
 public class RestClientConfig  {
 
-    @Value("${strapi.api.token:}")
-    private String strapiApiToken;
+    @Value("${directus.token:}")
+    private String directusToken;
 
-    @Value("${strapi.api.url:http://localhost:1337/api}")
-    private String strapiApiUrl;
+    @Value("${directus.url:http://localhost:9055}")
+    private String directusUrl;
 
     @Bean
     public RestClient.Builder restClientBuilder() {
@@ -23,10 +23,10 @@ public class RestClientConfig  {
         factory.setConnectTimeout(5000);
         factory.setReadTimeout(5000);
         RestClient.Builder builder = RestClient.builder()
-                .baseUrl(strapiApiUrl)
+                .baseUrl(directusUrl)
                 .requestFactory(factory);
-        if (strapiApiToken != null && !strapiApiToken.isEmpty()) {
-            builder = builder.defaultHeader(HttpHeaders.AUTHORIZATION, "Bearer " + strapiApiToken);
+        if (directusToken != null && !directusToken.isEmpty()) {
+            builder = builder.defaultHeader(HttpHeaders.AUTHORIZATION, "Bearer " + directusToken);
         }
         return builder;
     }

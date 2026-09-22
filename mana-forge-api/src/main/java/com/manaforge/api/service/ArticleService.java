@@ -2,8 +2,8 @@ package com.manaforge.api.service;
 
 import com.manaforge.api.dto.ArticleDto;
 import com.manaforge.api.dto.SeoDto;
-import com.manaforge.api.model.strapi.StrapiArticleData;
-import com.manaforge.api.model.strapi.StrapiSeo;
+import com.manaforge.api.model.directus.StrapiArticleData;
+import com.manaforge.api.model.directus.StrapiSeo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;

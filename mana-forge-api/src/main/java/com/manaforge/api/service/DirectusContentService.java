@@ -1,6 +1,6 @@
 package com.manaforge.api.service;
 
-import com.manaforge.api.model.strapi.*;
+import com.manaforge.api.model.directus.*;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

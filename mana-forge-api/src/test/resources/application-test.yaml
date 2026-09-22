@@ -45,10 +45,9 @@ SMTP_FROM: test@localhost
 GOOGLE_CLIENT_ID: test-client-id
 GOOGLE_CLIENT_SECRET: test-client-secret
 
-strapi:
-  api:
-    url: http://localhost:9999/api
-    token: test-token
+directus:
+  url: http://localhost:9999
+  token: test-token
 
 services:
   python-engine:

@@ -1,8 +1,8 @@
 package com.manaforge.api.service;
 
 import com.manaforge.api.dto.ArticleDto;
-import com.manaforge.api.model.strapi.StrapiArticleData;
-import com.manaforge.api.model.strapi.StrapiSeo;
+import com.manaforge.api.model.directus.StrapiArticleData;
+import com.manaforge.api.model.directus.StrapiSeo;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -18,7 +18,7 @@ import static org.mockito.Mockito.*;
 class ArticleServiceTest {
 
     @Mock
-    private StrapiService strapiService;
+    private DirectusService directusService;
 
     @InjectMocks
     private ArticleService articleService;
@@ -38,7 +38,7 @@ class ArticleServiceTest {
     void getLast5Articles_mapsToDtoList() throws Exception {
         StrapiArticleData a1 = buildArticle("doc1", "Article One");
         StrapiArticleData a2 = buildArticle("doc2", "Article Two");
-        when(strapiService.getLatestArticles("es", 5)).thenReturn(List.of(a1, a2));
+        when(directusService.getLatestArticles("es", 5, null)).thenReturn(List.of(a1, a2));
 
         List<ArticleDto> result = articleService.getLast5Articles("es");
 
@@ -50,7 +50,7 @@ class ArticleServiceTest {
 
     @Test
     void getLast5Articles_returnsEmptyOnException() throws Exception {
-        when(strapiService.getLatestArticles("es", 5)).thenThrow(new RuntimeException("Strapi down"));
+        when(directusService.getLatestArticles("es", 5, null)).thenThrow(new RuntimeException("CMS down"));
 
         List<ArticleDto> result = articleService.getLast5Articles("es");
 
@@ -60,7 +60,7 @@ class ArticleServiceTest {
     @Test
     void getArticleByDocumentId_mapsToDto() throws Exception {
         StrapiArticleData article = buildArticle("doc1", "My Article");
-        when(strapiService.getArticleByDocumentId("doc1", "en")).thenReturn(article);
+        when(directusService.getArticleByDocumentId("doc1", "en", null)).thenReturn(article);
 
         ArticleDto result = articleService.getArticleByDocumentId("doc1", "en");
 
@@ -71,7 +71,7 @@ class ArticleServiceTest {
 
     @Test
     void getArticleByDocumentId_returnsNullWhenServiceReturnsNull() throws Exception {
-        when(strapiService.getArticleByDocumentId("missing", "es")).thenReturn(null);
+        when(directusService.getArticleByDocumentId("missing", "es", null)).thenReturn(null);
 
         ArticleDto result = articleService.getArticleByDocumentId("missing", "es");
 
@@ -80,7 +80,7 @@ class ArticleServiceTest {
 
     @Test
     void getArticleByDocumentId_returnsNullOnException() throws Exception {
-        when(strapiService.getArticleByDocumentId("doc1", "es")).thenThrow(new RuntimeException("error"));
+        when(directusService.getArticleByDocumentId("doc1", "es", null)).thenThrow(new RuntimeException("error"));
 
         ArticleDto result = articleService.getArticleByDocumentId("doc1", "es");
 
@@ -91,7 +91,7 @@ class ArticleServiceTest {
     void mapToDto_usesCoverUrlWhenSet() throws Exception {
         StrapiArticleData article = buildArticle("doc1", "Cover Test");
         article.setCoverUrl("http://example.com/cover.png");
-        when(strapiService.getArticleByDocumentId("doc1", "es")).thenReturn(article);
+        when(directusService.getArticleByDocumentId("doc1", "es", null)).thenReturn(article);
 
         ArticleDto result = articleService.getArticleByDocumentId("doc1", "es");
 
@@ -102,7 +102,7 @@ class ArticleServiceTest {
     void mapToDto_fallsBackToImageUrlWhenCoverIsNull() throws Exception {
         StrapiArticleData article = buildArticle("doc1", "Image Test");
         article.setCoverUrl(null);
-        when(strapiService.getArticleByDocumentId("doc1", "es")).thenReturn(article);
+        when(directusService.getArticleByDocumentId("doc1", "es", null)).thenReturn(article);
 
         ArticleDto result = articleService.getArticleByDocumentId("doc1", "es");
 
@@ -118,7 +118,7 @@ class ArticleServiceTest {
         seo.setKeywords("kw1,kw2");
         seo.setCanonical("https://example.com/article");
         article.setSeo(seo);
-        when(strapiService.getArticleByDocumentId("doc1", "es")).thenReturn(article);
+        when(directusService.getArticleByDocumentId("doc1", "es", null)).thenReturn(article);
 
         ArticleDto result = articleService.getArticleByDocumentId("doc1", "es");
 
@@ -131,7 +131,7 @@ class ArticleServiceTest {
     void mapToDto_handlesNullSeo() throws Exception {
         StrapiArticleData article = buildArticle("doc1", "No SEO");
         article.setSeo(null);
-        when(strapiService.getArticleByDocumentId("doc1", "es")).thenReturn(article);
+        when(directusService.getArticleByDocumentId("doc1", "es", null)).thenReturn(article);
 
         ArticleDto result = articleService.getArticleByDocumentId("doc1", "es");
 
@@ -142,7 +142,7 @@ class ArticleServiceTest {
     void mapToDto_handlesNullAuthor() throws Exception {
         StrapiArticleData article = buildArticle("doc1", "No Author");
         article.setAuthor(null);
-        when(strapiService.getArticleByDocumentId("doc1", "es")).thenReturn(article);
+        when(directusService.getArticleByDocumentId("doc1", "es", null)).thenReturn(article);
 
         ArticleDto result = articleService.getArticleByDocumentId("doc1", "es");
 

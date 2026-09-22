@@ -2,10 +2,10 @@ package com.manaforge.api.controller.collection;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.manaforge.api.config.SecurityConfig;
-import com.manaforge.api.model.strapi.Language;
+import com.manaforge.api.model.directus.Language;
 import com.manaforge.api.repository.UserRepository;
 import com.manaforge.api.service.OAuth2LoginSuccessHandler;
-import com.manaforge.api.service.StrapiService;
+import com.manaforge.api.service.ContentService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
@@ -29,7 +29,7 @@ class LanguageControllerTest {
     private MockMvc mockMvc;
 
     @MockitoBean
-    private StrapiService strapiService;
+    private ContentService contentService;
 
     @MockitoBean
     private OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
@@ -39,7 +39,7 @@ class LanguageControllerTest {
 
     @Test
     void getLanguages_returns200() throws Exception {
-        when(strapiService.getLanguages("es")).thenReturn(List.of(new Language()));
+        when(contentService.getLanguages("es")).thenReturn(List.of(new Language()));
 
         mockMvc.perform(get("/content-service/languages"))
                 .andExpect(status().isOk());
@@ -47,7 +47,7 @@ class LanguageControllerTest {
 
     @Test
     void getLanguages_usesDefaultLocaleEs() throws Exception {
-        when(strapiService.getLanguages("es")).thenReturn(List.of());
+        when(contentService.getLanguages("es")).thenReturn(List.of());
 
         // No locale param — defaults to "es"
         mockMvc.perform(get("/content-service/languages"))
@@ -56,7 +56,7 @@ class LanguageControllerTest {
 
     @Test
     void getLanguages_returns500OnJsonProcessingException() throws Exception {
-        when(strapiService.getLanguages("es")).thenThrow(new JsonProcessingException("parse error") {});
+        when(contentService.getLanguages("es")).thenThrow(new JsonProcessingException("parse error") {});
 
         mockMvc.perform(get("/content-service/languages"))
                 .andExpect(status().isInternalServerError());
@@ -64,7 +64,7 @@ class LanguageControllerTest {
 
     @Test
     void getLanguages_returns500OnRuntimeException() throws Exception {
-        when(strapiService.getLanguages("es")).thenThrow(new RuntimeException("Strapi down"));
+        when(contentService.getLanguages("es")).thenThrow(new RuntimeException("CMS down"));
 
         mockMvc.perform(get("/content-service/languages"))
                 .andExpect(status().isInternalServerError());

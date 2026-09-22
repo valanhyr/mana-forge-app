@@ -1,6 +1,6 @@
 package com.manaforge.api.service;
 
-import com.manaforge.api.model.strapi.*;
+import com.manaforge.api.model.directus.*;
 
 import java.util.List;
 

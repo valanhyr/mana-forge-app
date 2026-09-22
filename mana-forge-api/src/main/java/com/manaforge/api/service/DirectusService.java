@@ -4,7 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.manaforge.api.model.strapi.*;
+import com.manaforge.api.model.directus.*;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
@@ -15,7 +15,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * DirectusService - Replaces StrapiService for CMS content management
  *
  * Uses static token provided via property directus.token. Removed automatic login/rotation.
  */
@@ -384,7 +383,7 @@ public class DirectusService {
                     JsonNode seoNode = tr.path("seo");
                     if (!seoNode.isMissingNode() && !seoNode.isNull()) {
                         try {
-                            art.setSeo(objectMapper.treeToValue(seoNode, com.manaforge.api.model.strapi.StrapiSeo.class));
+                            art.setSeo(objectMapper.treeToValue(seoNode, com.manaforge.api.model.directus.StrapiSeo.class));
                         } catch (JsonProcessingException ignored) {}
                     }
                 }
@@ -427,7 +426,7 @@ public class DirectusService {
                 JsonNode seoNode = tr.path("seo");
                 if (!seoNode.isMissingNode() && !seoNode.isNull()) {
                     try {
-                        art.setSeo(objectMapper.treeToValue(seoNode, com.manaforge.api.model.strapi.StrapiSeo.class));
+                        art.setSeo(objectMapper.treeToValue(seoNode, com.manaforge.api.model.directus.StrapiSeo.class));
                     } catch (JsonProcessingException ignored) {}
                 }
             }

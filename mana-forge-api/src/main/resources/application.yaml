@@ -66,8 +66,8 @@ spring:
   cache:
     type: simple  # Spring usará CacheManager configurado manualmente
     cache-names:
-      - strapiFormats
-      - strapiArticles
+      - directusFormats
+            - directusArticles
       - scryfallCards
 
   # Herramienta visual H2 en: http://localhost:8080/h2-console

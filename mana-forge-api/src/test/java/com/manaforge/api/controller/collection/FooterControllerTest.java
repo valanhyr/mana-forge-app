@@ -1,10 +1,10 @@
 package com.manaforge.api.controller.collection;
 
 import com.manaforge.api.config.SecurityConfig;
-import com.manaforge.api.model.strapi.Footer;
+import com.manaforge.api.model.directus.Footer;
 import com.manaforge.api.repository.UserRepository;
 import com.manaforge.api.service.OAuth2LoginSuccessHandler;
-import com.manaforge.api.service.StrapiService;
+import com.manaforge.api.service.ContentService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,7 +27,7 @@ class FooterControllerTest {
     private MockMvc mockMvc;
 
     @MockitoBean
-    private StrapiService strapiService;
+    private ContentService contentService;
 
     @MockitoBean
     private OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
@@ -37,7 +37,7 @@ class FooterControllerTest {
 
     @Test
     void getFooter_returns200() throws Exception {
-        when(strapiService.getFooter("es")).thenReturn(new Footer());
+        when(contentService.getFooter("es")).thenReturn(new Footer());
 
         mockMvc.perform(get("/content-service/footer").param("locale", "es"))
                 .andExpect(status().isOk());
@@ -45,7 +45,7 @@ class FooterControllerTest {
 
     @Test
     void getFooter_returns500OnJsonProcessingException() throws Exception {
-        when(strapiService.getFooter("es")).thenThrow(new JsonProcessingException("parse error") {});
+        when(contentService.getFooter("es")).thenThrow(new JsonProcessingException("parse error") {});
 
         mockMvc.perform(get("/content-service/footer").param("locale", "es"))
                 .andExpect(status().isInternalServerError());
@@ -53,7 +53,7 @@ class FooterControllerTest {
 
     @Test
     void getFooter_returns500OnRuntimeException() throws Exception {
-        when(strapiService.getFooter("es")).thenThrow(new RuntimeException("Strapi unavailable"));
+        when(contentService.getFooter("es")).thenThrow(new RuntimeException("CMS unavailable"));
 
         mockMvc.perform(get("/content-service/footer").param("locale", "es"))
                 .andExpect(status().isInternalServerError());
@@ -61,7 +61,7 @@ class FooterControllerTest {
 
     @Test
     void getFooter_isPublicEndpoint() throws Exception {
-        when(strapiService.getFooter("en")).thenReturn(new Footer());
+        when(contentService.getFooter("en")).thenReturn(new Footer());
 
         // No authentication — GET /content-service/** is public
         mockMvc.perform(get("/content-service/footer").param("locale", "en"))

@@ -2,7 +2,7 @@ package com.manaforge.api.controller;
 
 import com.manaforge.api.service.DirectusService;
 import com.manaforge.api.service.ContentService;
-import com.manaforge.api.model.strapi.*;
+import com.manaforge.api.model.directus.*;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
@@ -47,7 +47,7 @@ public class ContentController {
             @RequestParam(required = false) String locale,
             @RequestHeader(value = "Accept-Language", required = false) String acceptLanguage) {
         try {
-            List<com.manaforge.api.model.strapi.StrapiFormatData> formats = directusService.getFormats(locale, acceptLanguage);
+            List<com.manaforge.api.model.directus.StrapiFormatData> formats = directusService.getFormats(locale, acceptLanguage);
             return ResponseEntity.ok(formats);
         } catch (Exception e) {
             // Log full stacktrace to console for debugging
@@ -67,7 +67,7 @@ public class ContentController {
 
     // New endpoint: latest articles
     @GetMapping("/articles/latest")
-    public List<com.manaforge.api.model.strapi.StrapiArticleData> getLatestArticles(
+    public List<com.manaforge.api.model.directus.StrapiArticleData> getLatestArticles(
             @RequestParam(required = false) String locale,
             @RequestParam(defaultValue = "10") int limit,
             @RequestHeader(value = "Accept-Language", required = false) String acceptLanguage) throws Exception {
@@ -76,7 +76,7 @@ public class ContentController {
 
     // New endpoint: article detail
     @GetMapping("/articles/{documentId}")
-    public com.manaforge.api.model.strapi.StrapiArticleData getArticleByDocumentId(@PathVariable String documentId,
+    public com.manaforge.api.model.directus.StrapiArticleData getArticleByDocumentId(@PathVariable String documentId,
                                                                                   @RequestParam(required = false) String locale,
                                                                                   @RequestHeader(value = "Accept-Language", required = false) String acceptLanguage) throws Exception {
         return directusService.getArticleByDocumentId(documentId, locale, acceptLanguage);

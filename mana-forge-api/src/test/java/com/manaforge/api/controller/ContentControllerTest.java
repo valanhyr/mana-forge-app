@@ -1,12 +1,12 @@
 package com.manaforge.api.controller;
 
 import com.manaforge.api.config.SecurityConfig;
-import com.manaforge.api.model.strapi.Footer;
-import com.manaforge.api.model.strapi.Hero;
-import com.manaforge.api.model.strapi.Section;
+import com.manaforge.api.model.directus.Footer;
+import com.manaforge.api.model.directus.Hero;
+import com.manaforge.api.model.directus.Section;
 import com.manaforge.api.repository.UserRepository;
 import com.manaforge.api.service.OAuth2LoginSuccessHandler;
-import com.manaforge.api.service.StrapiService;
+import com.manaforge.api.service.ContentService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
@@ -31,7 +31,7 @@ class ContentControllerTest {
     private MockMvc mockMvc;
 
     @MockitoBean
-    private StrapiService strapiService;
+    private ContentService contentService;
 
     @MockitoBean
     private OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
@@ -41,7 +41,7 @@ class ContentControllerTest {
 
     @Test
     void getFooter_returns200() throws Exception {
-        when(strapiService.getFooter("es")).thenReturn(new Footer());
+        when(contentService.getFooter("es")).thenReturn(new Footer());
 
         mockMvc.perform(get("/api/v1/content/footer/es"))
                 .andExpect(status().isOk());
@@ -50,7 +50,7 @@ class ContentControllerTest {
     @Test
     void getHeros_returns200WithList() throws Exception {
         Hero hero = new Hero();
-        when(strapiService.getHeros("es", null)).thenReturn(List.of(hero));
+        when(contentService.getHeros("es", null)).thenReturn(List.of(hero));
 
         mockMvc.perform(get("/api/v1/content/heros").param("locale", "es"))
                 .andExpect(status().isOk());
@@ -58,7 +58,7 @@ class ContentControllerTest {
 
     @Test
     void getSections_returns200WithList() throws Exception {
-        when(strapiService.getSections(eq("es"), any())).thenReturn(List.of(new Section()));
+        when(contentService.getSections(eq("es"), any())).thenReturn(List.of(new Section()));
 
         mockMvc.perform(get("/api/v1/content/sections")
                 .param("locale", "es")

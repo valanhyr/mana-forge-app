@@ -59,7 +59,7 @@ class DeckFlowIntegrationTest {
     private AiService aiService;
 
     @MockitoBean
-    private StrapiService strapiService;
+    private ContentService contentService;
 
     @MockitoBean
     private FormatService formatService;

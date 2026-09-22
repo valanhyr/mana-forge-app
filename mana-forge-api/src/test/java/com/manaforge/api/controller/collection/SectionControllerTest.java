@@ -2,10 +2,10 @@ package com.manaforge.api.controller.collection;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.manaforge.api.config.SecurityConfig;
-import com.manaforge.api.model.strapi.Section;
+import com.manaforge.api.model.directus.Section;
 import com.manaforge.api.repository.UserRepository;
 import com.manaforge.api.service.OAuth2LoginSuccessHandler;
-import com.manaforge.api.service.StrapiService;
+import com.manaforge.api.service.ContentService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
@@ -30,7 +30,7 @@ class SectionControllerTest {
     private MockMvc mockMvc;
 
     @MockitoBean
-    private StrapiService strapiService;
+    private ContentService contentService;
 
     @MockitoBean
     private OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
@@ -40,7 +40,7 @@ class SectionControllerTest {
 
     @Test
     void getSections_returns200() throws Exception {
-        when(strapiService.getSections(eq("es"), anyList())).thenReturn(List.of(new Section()));
+        when(contentService.getSections(eq("es"), anyList())).thenReturn(List.of(new Section()));
 
         mockMvc.perform(get("/content-service/sections")
                 .param("locale", "es")
@@ -50,7 +50,7 @@ class SectionControllerTest {
 
     @Test
     void getSections_returns200WithEmptyList() throws Exception {
-        when(strapiService.getSections(any(), anyList())).thenReturn(List.of());
+        when(contentService.getSections(any(), anyList())).thenReturn(List.of());
 
         mockMvc.perform(get("/content-service/sections")
                 .param("section_id", "unknown"))
@@ -59,7 +59,7 @@ class SectionControllerTest {
 
     @Test
     void getSections_returns500OnJsonProcessingException() throws Exception {
-        when(strapiService.getSections(any(), anyList())).thenThrow(new JsonProcessingException("parse error") {});
+        when(contentService.getSections(any(), anyList())).thenThrow(new JsonProcessingException("parse error") {});
 
         mockMvc.perform(get("/content-service/sections")
                 .param("locale", "es")

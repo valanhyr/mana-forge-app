@@ -1,4 +1,4 @@
-package com.manaforge.api.model.strapi;
+package com.manaforge.api.model.directus;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;

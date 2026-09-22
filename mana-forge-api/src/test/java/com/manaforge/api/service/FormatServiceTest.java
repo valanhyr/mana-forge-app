@@ -2,7 +2,7 @@ package com.manaforge.api.service;
 
 import com.manaforge.api.dto.FormatDetailDto;
 import com.manaforge.api.dto.FormatSummaryDto;
-import com.manaforge.api.model.strapi.StrapiFormatData;
+import com.manaforge.api.model.directus.StrapiFormatData;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -19,7 +19,7 @@ import static org.mockito.Mockito.*;
 class FormatServiceTest {
 
     @Mock
-    private StrapiService strapiService;
+    private ContentService contentService;
 
     @InjectMocks
     private FormatService formatService;
@@ -39,7 +39,7 @@ class FormatServiceTest {
     void getAllFormats_mapsTwoFormatsToSummaryDtos() throws Exception {
         StrapiFormatData f1 = buildFormatData("fmt1", "Premodern");
         StrapiFormatData f2 = buildFormatData("fmt2", "Classic");
-        when(strapiService.getFormats("es")).thenReturn(List.of(f1, f2));
+        when(contentService.getFormats("es", null)).thenReturn(List.of(f1, f2));
 
         List<FormatSummaryDto> result = formatService.getAllFormats();
 
@@ -50,8 +50,8 @@ class FormatServiceTest {
     }
 
     @Test
-    void getAllFormats_returnsEmptyListWhenStrapiServiceThrows() throws Exception {
-        when(strapiService.getFormats("es")).thenThrow(new RuntimeException("Strapi down"));
+    void getAllFormats_returnsEmptyListWhenDirectusServiceThrows() throws Exception {
+        when(contentService.getFormats("es", null)).thenThrow(new RuntimeException("CMS down"));
 
         List<FormatSummaryDto> result = formatService.getAllFormats();
 
@@ -62,7 +62,7 @@ class FormatServiceTest {
     void getFormatByMongoId_returnsFormatDetailDtoWhenFound() throws Exception {
         StrapiFormatData data = buildFormatData("fmt1", "Premodern");
         data.setSection(Collections.emptyList());
-        when(strapiService.getFormatByMongoId("fmt1", "es")).thenReturn(data);
+        when(contentService.getFormatByMongoId("fmt1", "es")).thenReturn(data);
 
         FormatDetailDto result = formatService.getFormatByMongoId("fmt1");
 
@@ -73,7 +73,7 @@ class FormatServiceTest {
 
     @Test
     void getFormatByMongoId_returnsNullWhenStrapiReturnsNull() throws Exception {
-        when(strapiService.getFormatByMongoId("missing", "es")).thenReturn(null);
+        when(contentService.getFormatByMongoId("missing", "es")).thenReturn(null);
 
         FormatDetailDto result = formatService.getFormatByMongoId("missing");
 

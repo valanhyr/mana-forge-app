@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.manaforge.api.model.strapi.*;
+import com.manaforge.api.model.directus.*;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
@@ -24,18 +24,18 @@ public class StrapiService {
 
     public StrapiService(RestClient.Builder builder,
                          ObjectMapper objectMapper,
-                         @Value("${strapi.api.url}") String strapiApiUrl,
-                         @Value("${strapi.api.token}") String strapiApiToken) {
+                         @Value("${directus.url:http://localhost:9055}") String directusUrl,
+                                                                           @Value("${directus.token:}") String directusToken) {
         this.objectMapper = objectMapper.copy()
                 .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
         // Aseguramos que la URL no termine en / para evitar dobles barras (//) al concatenar rutas
-        String cleanBaseUrl = strapiApiUrl.endsWith("/") ? strapiApiUrl.substring(0, strapiApiUrl.length() - 1) : strapiApiUrl;
+        String cleanBaseUrl = directusUrl.endsWith("/") ? directusUrl.substring(0, directusUrl.length() - 1) : directusUrl;
         this.baseUrl = cleanBaseUrl;
 
-        if (!cleanBaseUrl.endsWith("/api")) {
-            System.err.println("   -> ⚠️ WARNING: 'strapi.api.url' does not end with '/api'. Current value: " + cleanBaseUrl);
-            System.err.println("   -> 💡 Hint: Strapi v4 endpoints usually start with /api (e.g. https://tu-app.strapiapp.com/api)");
+                if (!cleanBaseUrl.contains("directus") && !cleanBaseUrl.endsWith("/items")) {
+            System.err.println("   -> ⚠️ WARNING: 'directus.url' may not end with expected path. Current value: " + cleanBaseUrl);
+                        System.err.println("   -> 💡 Hint: Directus endpoints usually expose items at /items (e.g. https://tu-app.directus.io)");
         }
 
         SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
@@ -46,7 +46,7 @@ public class StrapiService {
         this.restClient = builder
                 .requestFactory(requestFactory)
                 .baseUrl(cleanBaseUrl)
-                .defaultHeader("Authorization", "Bearer " + strapiApiToken)
+                .defaultHeader("Authorization", "Bearer " + directusToken)
                 .defaultHeader("Content-Type", "application/json")
                 .build();
     }
@@ -67,7 +67,7 @@ public class StrapiService {
 
             if (response != null && response.trim().startsWith("<")) {
                 System.err.println("   -> ❌ Error: Received HTML instead of JSON from Strapi. Likely 404 or 500 error page.");
-                System.err.println("   -> 💡 Hint: Check if 'strapi.api.url' in application.properties includes '/api' (e.g. http://localhost:1337/api)");
+                System.err.println("   -> 💡 Hint: Check Directus URL and token configuration in application properties (e.g. directus.url)");
                 throw new RuntimeException("Invalid response from Strapi (HTML received). Check URL configuration.");
             }
 

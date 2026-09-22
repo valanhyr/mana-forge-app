@@ -1,4 +1,4 @@
-package com.manaforge.api.model.strapi;
+package com.manaforge.api.model.directus;
 
 import lombok.Data;
 import java.util.List;
