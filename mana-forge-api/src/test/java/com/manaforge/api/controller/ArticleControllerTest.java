@@ -76,7 +76,7 @@ class ArticleControllerTest {
     @Test
     void getArticleByDocumentId_returns200WhenFound() throws Exception {
         ArticleDto article = ArticleDto.builder().documentId("doc1").title("Found Article").build();
-        when(articleService.getArticleByDocumentId("doc1", "es")).thenReturn(article);
+        when(articleService.getArticleByDocumentId("doc1", "es", "es")).thenReturn(article);
 
         mockMvc.perform(get("/api/articles/doc1"))
                 .andExpect(status().isOk())
@@ -86,7 +86,7 @@ class ArticleControllerTest {
 
     @Test
     void getArticleByDocumentId_returns404WhenNotFound() throws Exception {
-        when(articleService.getArticleByDocumentId("missing", "es")).thenReturn(null);
+        when(articleService.getArticleByDocumentId("missing", "es", "es")).thenReturn(null);
 
         mockMvc.perform(get("/api/articles/missing"))
                 .andExpect(status().isNotFound());
