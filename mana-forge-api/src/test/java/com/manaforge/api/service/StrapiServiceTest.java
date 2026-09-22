@@ -41,7 +41,7 @@ class DirectusServiceTest {
 
     @Test
     void getLatestArticles_parsesDataArrayCorrectly() throws Exception {
-        wireMock.stubFor(get(urlPathEqualTo("/items/articles"))
+        wireMock.stubFor(get(urlPathEqualTo("/api/items/articles"))
                 .willReturn(aResponse()
                         .withStatus(200)
                         .withHeader("Content-Type", "application/json")
@@ -66,7 +66,7 @@ class DirectusServiceTest {
 
     @Test
     void getLatestArticles_returnsEmptyListWhenStrapiErrors() throws Exception {
-        wireMock.stubFor(get(urlPathEqualTo("/items/articles"))
+        wireMock.stubFor(get(urlPathEqualTo("/api/items/articles"))
                 .willReturn(aResponse().withStatus(500)));
 
         assertThatThrownBy(() -> directusService.getLatestArticles("es", 5, null))
@@ -75,7 +75,7 @@ class DirectusServiceTest {
 
     @Test
     void getLatestArticles_returnsEmptyListWhenDataIsNull() throws Exception {
-        wireMock.stubFor(get(urlPathEqualTo("/items/articles"))
+        wireMock.stubFor(get(urlPathEqualTo("/api/items/articles"))
                 .willReturn(aResponse()
                         .withStatus(200)
                         .withHeader("Content-Type", "application/json")
@@ -90,7 +90,7 @@ class DirectusServiceTest {
 
     @Test
     void getArticleByDocumentId_returnsArticleOnSuccess() throws Exception {
-        wireMock.stubFor(get(urlPathEqualTo("/items/articles/doc-abc"))
+        wireMock.stubFor(get(urlPathEqualTo("/api/items/articles/doc-abc"))
                 .willReturn(aResponse()
                         .withStatus(200)
                         .withHeader("Content-Type", "application/json")
@@ -112,7 +112,7 @@ class DirectusServiceTest {
 
     @Test
     void getArticleByDocumentId_returnsNullWhenDataMissing() throws Exception {
-        wireMock.stubFor(get(urlPathEqualTo("/items/articles/no-such-doc"))
+        wireMock.stubFor(get(urlPathEqualTo("/api/items/articles/no-such-doc"))
                 .willReturn(aResponse()
                         .withStatus(200)
                         .withHeader("Content-Type", "application/json")
@@ -127,7 +127,7 @@ class DirectusServiceTest {
 
     @Test
     void getFormats_mapsFormatListCorrectly() throws Exception {
-        wireMock.stubFor(get(urlPathEqualTo("/items/formats"))
+        wireMock.stubFor(get(urlPathEqualTo("/api/items/formats"))
                 .willReturn(aResponse()
                         .withStatus(200)
                         .withHeader("Content-Type", "application/json")
@@ -154,7 +154,7 @@ class DirectusServiceTest {
 
     @Test
     void getFormats_returnsEmptyListWhenDataArrayIsEmpty() throws Exception {
-        wireMock.stubFor(get(urlPathEqualTo("/items/formats"))
+            wireMock.stubFor(get(urlPathEqualTo("/api/items/formats"))
                 .willReturn(aResponse()
                         .withStatus(200)
                         .withHeader("Content-Type", "application/json")
@@ -169,7 +169,7 @@ class DirectusServiceTest {
 
     @Test
     void getFormatByMongoId_returnsFormatWhenFound() throws Exception {
-        wireMock.stubFor(get(urlPathEqualTo("/items/formats"))
+        wireMock.stubFor(get(urlPathEqualTo("/api/items/formats"))
                 .willReturn(aResponse()
                         .withStatus(200)
                         .withHeader("Content-Type", "application/json")
