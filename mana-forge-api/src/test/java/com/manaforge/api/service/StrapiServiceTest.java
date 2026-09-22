@@ -194,7 +194,7 @@ class DirectusServiceTest {
 
     @Test
     void getFormatByMongoId_returnsNullWhenNotFound() throws Exception {
-        wireMock.stubFor(get(urlPathEqualTo("/items/formats"))
+        wireMock.stubFor(get(urlPathEqualTo("/api/items/formats"))
                 .willReturn(aResponse()
                         .withStatus(200)
                         .withHeader("Content-Type", "application/json")
