@@ -398,14 +398,27 @@ public class DirectusService {
                     }
                     art.setTitle(tr.path("title").asText(art.getTitle()));
                     art.setSubtitle(tr.path("subtitle").asText(art.getSubtitle()));
-                    art.setContent(tr.path("content").asText(art.getContent()));
+                    // content may be textual or an object; preserve as string
+                    JsonNode contentNode = tr.path("content");
+                    if (!contentNode.isMissingNode() && !contentNode.isNull()) {
+                        if (contentNode.isTextual()) {
+                            art.setContent(contentNode.asText());
+                        } else {
+                            art.setContent(contentNode.toString());
+                        }
+                    }
                     art.setLocale(tr.path("languages_code").asText(languageCode));
-                    // seo may be an object; assign if present
+                    // seo may be an object or string; try to map safely
                     JsonNode seoNode = tr.path("seo");
                     if (!seoNode.isMissingNode() && !seoNode.isNull()) {
                         try {
-                            art.setSeo(objectMapper.treeToValue(seoNode, com.manaforge.api.model.directus.DirectusSeo.class));
-                        } catch (JsonProcessingException ignored) {}
+                            if (seoNode.isObject()) {
+                                art.setSeo(objectMapper.treeToValue(seoNode, com.manaforge.api.model.directus.DirectusSeo.class));
+                            } else if (seoNode.isTextual() && !seoNode.asText().isBlank()) {
+                                // attempt to parse textual JSON
+                                art.setSeo(objectMapper.readValue(seoNode.asText(), com.manaforge.api.model.directus.DirectusSeo.class));
+                            }
+                        } catch (Exception ignored) {}
                     }
                 }
 
@@ -441,14 +454,26 @@ public class DirectusService {
                             System.out.println("Directus raw article node: " + tr.toString());
                 art.setTitle(tr.path("title").asText(art.getTitle()));
                 art.setSubtitle(tr.path("subtitle").asText(art.getSubtitle()));
-                art.setContent(tr.path("content").asText(art.getContent()));
+                // content may be textual or an object; preserve as string
+                JsonNode contentNode = tr.path("content");
+                if (!contentNode.isMissingNode() && !contentNode.isNull()) {
+                    if (contentNode.isTextual()) {
+                        art.setContent(contentNode.asText());
+                    } else {
+                        art.setContent(contentNode.toString());
+                    }
+                }
                 art.setLocale(tr.path("languages_code").asText(languageCode));
 
                 JsonNode seoNode = tr.path("seo");
                 if (!seoNode.isMissingNode() && !seoNode.isNull()) {
                     try {
-                        art.setSeo(objectMapper.treeToValue(seoNode, DirectusSeo.class));
-                    } catch (JsonProcessingException ignored) {}
+                        if (seoNode.isObject()) {
+                            art.setSeo(objectMapper.treeToValue(seoNode, DirectusSeo.class));
+                        } else if (seoNode.isTextual() && !seoNode.asText().isBlank()) {
+                            art.setSeo(objectMapper.readValue(seoNode.asText(), DirectusSeo.class));
+                        }
+                    } catch (Exception ignored) {}
                 }
             }
             return art;
