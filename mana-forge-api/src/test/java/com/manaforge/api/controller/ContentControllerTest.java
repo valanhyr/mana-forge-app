@@ -7,6 +7,7 @@ import com.manaforge.api.model.directus.Section;
 import com.manaforge.api.repository.UserRepository;
 import com.manaforge.api.service.OAuth2LoginSuccessHandler;
 import com.manaforge.api.service.ContentService;
+import com.manaforge.api.service.DirectusService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
@@ -32,6 +33,9 @@ class ContentControllerTest {
 
     @MockitoBean
     private ContentService contentService;
+
+    @MockitoBean
+    private DirectusService directusService;
 
     @MockitoBean
     private OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;

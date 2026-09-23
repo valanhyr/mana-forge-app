@@ -11,7 +11,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/articles")
-@Tag(name = "Articles", description = "Endpoints for retrieving articles from Strapi")
+@Tag(name = "Articles", description = "Endpoints for retrieving articles from Directus")
 public class ArticleController {
 
     private final ArticleService articleService;

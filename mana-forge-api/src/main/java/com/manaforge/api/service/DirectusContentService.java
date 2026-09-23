@@ -13,22 +13,22 @@ public class DirectusContentService implements ContentService {
     private final DirectusService directusService;
 
     @Override
-    public List<StrapiArticleData> getLatestArticles(String locale, int limit, String acceptLanguage) throws JsonProcessingException {
+    public List<DirectusArticleData> getLatestArticles(String locale, int limit, String acceptLanguage) throws JsonProcessingException {
         return directusService.getLatestArticles(locale, limit, acceptLanguage);
     }
 
     @Override
-    public StrapiArticleData getArticleByDocumentId(String documentId, String locale, String acceptLanguage) throws JsonProcessingException {
+    public DirectusArticleData getArticleByDocumentId(String documentId, String locale, String acceptLanguage) throws JsonProcessingException {
         return directusService.getArticleByDocumentId(documentId, locale, acceptLanguage);
     }
 
     @Override
-    public List<StrapiFormatData> getFormats(String locale, String acceptLanguage) throws JsonProcessingException {
+    public List<DirectusFormatData> getFormats(String locale, String acceptLanguage) throws JsonProcessingException {
         return directusService.getFormats(locale, acceptLanguage);
     }
 
     @Override
-    public StrapiFormatData getFormatByMongoId(String mongoId, String locale) throws JsonProcessingException {
+    public DirectusFormatData getFormatByMongoId(String mongoId, String locale) throws JsonProcessingException {
         return directusService.getFormatByMongoId(mongoId, locale);
     }
 

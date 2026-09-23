@@ -1,8 +1,8 @@
 package com.manaforge.api.service;
 
 import com.manaforge.api.dto.ArticleDto;
-import com.manaforge.api.model.directus.StrapiArticleData;
-import com.manaforge.api.model.directus.StrapiSeo;
+import com.manaforge.api.model.directus.DirectusArticleData;
+import com.manaforge.api.model.directus.DirectusSeo;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -23,8 +23,8 @@ class ArticleServiceTest {
     @InjectMocks
     private ArticleService articleService;
 
-    private StrapiArticleData buildArticle(String id, String title) {
-        StrapiArticleData data = new StrapiArticleData();
+    private DirectusArticleData buildArticle(String id, String title) {
+        DirectusArticleData data = new DirectusArticleData();
         data.setDocumentId(id);
         data.setTitle(title);
         data.setSubtitle("Subtitle");
@@ -36,8 +36,8 @@ class ArticleServiceTest {
 
     @Test
     void getLast5Articles_mapsToDtoList() throws Exception {
-        StrapiArticleData a1 = buildArticle("doc1", "Article One");
-        StrapiArticleData a2 = buildArticle("doc2", "Article Two");
+        DirectusArticleData a1 = buildArticle("doc1", "Article One");
+        DirectusArticleData a2 = buildArticle("doc2", "Article Two");
         when(directusService.getLatestArticles("es", 5, null)).thenReturn(List.of(a1, a2));
 
         List<ArticleDto> result = articleService.getLast5Articles("es");
@@ -59,7 +59,7 @@ class ArticleServiceTest {
 
     @Test
     void getArticleByDocumentId_mapsToDto() throws Exception {
-        StrapiArticleData article = buildArticle("doc1", "My Article");
+        DirectusArticleData article = buildArticle("doc1", "My Article");
         when(directusService.getArticleByDocumentId("doc1", "en", null)).thenReturn(article);
 
         ArticleDto result = articleService.getArticleByDocumentId("doc1", "en");
@@ -89,7 +89,7 @@ class ArticleServiceTest {
 
     @Test
     void mapToDto_usesCoverUrlWhenSet() throws Exception {
-        StrapiArticleData article = buildArticle("doc1", "Cover Test");
+        DirectusArticleData article = buildArticle("doc1", "Cover Test");
         article.setCoverUrl("http://example.com/cover.png");
         when(directusService.getArticleByDocumentId("doc1", "es", null)).thenReturn(article);
 
@@ -100,7 +100,7 @@ class ArticleServiceTest {
 
     @Test
     void mapToDto_fallsBackToImageUrlWhenCoverIsNull() throws Exception {
-        StrapiArticleData article = buildArticle("doc1", "Image Test");
+        DirectusArticleData article = buildArticle("doc1", "Image Test");
         article.setCoverUrl(null);
         when(directusService.getArticleByDocumentId("doc1", "es", null)).thenReturn(article);
 
@@ -111,8 +111,8 @@ class ArticleServiceTest {
 
     @Test
     void mapToDto_mapsSeoFields() throws Exception {
-        StrapiArticleData article = buildArticle("doc1", "SEO Test");
-        StrapiSeo seo = new StrapiSeo();
+        DirectusArticleData article = buildArticle("doc1", "SEO Test");
+        DirectusSeo seo = new DirectusSeo();
         seo.setTitle("SEO Title");
         seo.setDescription("SEO Desc");
         seo.setKeywords("kw1,kw2");
@@ -129,7 +129,7 @@ class ArticleServiceTest {
 
     @Test
     void mapToDto_handlesNullSeo() throws Exception {
-        StrapiArticleData article = buildArticle("doc1", "No SEO");
+        DirectusArticleData article = buildArticle("doc1", "No SEO");
         article.setSeo(null);
         when(directusService.getArticleByDocumentId("doc1", "es", null)).thenReturn(article);
 
@@ -140,7 +140,7 @@ class ArticleServiceTest {
 
     @Test
     void mapToDto_handlesNullAuthor() throws Exception {
-        StrapiArticleData article = buildArticle("doc1", "No Author");
+        DirectusArticleData article = buildArticle("doc1", "No Author");
         article.setAuthor(null);
         when(directusService.getArticleByDocumentId("doc1", "es", null)).thenReturn(article);
 

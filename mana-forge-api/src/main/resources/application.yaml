@@ -140,7 +140,7 @@ email:
 # Directus Configuration
 # PRODUCTION
 directus:
-  url: ${DIRECTUS_URL:http://localhost:9055}
+  url: ${DIRECTUS_URL:http://directus_app:8080}
   token: ${DIRECTUS_API_TOKEN:}
 
 # LOGGING: Nivel de detalle

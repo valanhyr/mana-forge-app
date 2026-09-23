@@ -56,7 +56,7 @@ public class CacheConfig {
 
         Map<String, RedisCacheConfiguration> cacheConfigurations = new HashMap<>();
 
-        // Caché de Strapi - 30 días
+        // Caché de CMS (Directus) - 30 días
         addCacheConfig(cacheConfigurations, List.of(
             "footer", "footer-legal", "heros", "sections", "languages",
             "formats", "format-detail"
