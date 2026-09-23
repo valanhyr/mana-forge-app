@@ -18,6 +18,29 @@ public class DirectusArticleData implements Serializable {
     private String imageUrl;
     private String content; // article body HTML
     private String article; // legacy field name
+
+    @com.fasterxml.jackson.annotation.JsonProperty("translations")
+    public void setTranslations(com.fasterxml.jackson.databind.JsonNode translations) {
+        try {
+            if (translations != null && translations.isArray() && translations.size() > 0) {
+                com.fasterxml.jackson.databind.JsonNode tr = translations.get(0);
+                if (tr.hasNonNull("title")) this.title = tr.path("title").asText(null);
+                if (tr.hasNonNull("subtitle")) this.subtitle = tr.path("subtitle").asText(null);
+                if (tr.hasNonNull("content")) {
+                    com.fasterxml.jackson.databind.JsonNode contentNode = tr.path("content");
+                    this.content = contentNode.isTextual() ? contentNode.asText() : contentNode.toString();
+                }
+                if (tr.hasNonNull("languages_code")) this.locale = tr.path("languages_code").asText(null);
+                if (tr.hasNonNull("seo")) {
+                    try {
+                        this.seo = new com.fasterxml.jackson.databind.ObjectMapper()
+                                .readerFor(com.manaforge.api.model.directus.DirectusSeo.class)
+                                .readValue(tr.path("seo"));
+                    } catch (Exception ignored) {}
+                }
+            }
+        } catch (Exception ignored) {}
+    }
     private String publishedAt;
     private String locale;
     private String author;
