@@ -14,7 +14,7 @@ services:
       - DIRECTUS_URL=${DIRECTUS_URL:-http://directus_app:8080}
       - DIRECTUS_TOKEN=${DIRECTUS_TOKEN}
     env_file:
-      - .env.production
+      - .env
     logging:
       driver: json-file
       options:
