@@ -131,6 +131,10 @@ public class DirectusService {
                 System.err.println("   -> No data found for: " + endpoint);
                 return null;
             }
+            // Debug: print fetched data for inspection
+            try {
+                System.out.println("Directus fetched data for endpoint " + endpoint + ": " + dataNode.toString());
+            } catch (Exception ignored) {}
             return dataNode;
         } catch (org.springframework.web.client.HttpClientErrorException.Unauthorized ue) {
             System.err.println("   -> Unauthorized from Directus. Token may be invalid.");
