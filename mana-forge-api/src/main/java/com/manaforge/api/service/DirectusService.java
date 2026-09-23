@@ -406,6 +406,17 @@ public class DirectusService {
                         } else {
                             art.setContent(contentNode.toString());
                         }
+                    } else {
+                        // Fallbacks: try top-level content or legacy 'article' field
+                        JsonNode topContent = node.path("content");
+                        if (!topContent.isMissingNode() && !topContent.isNull()) {
+                            art.setContent(topContent.isTextual() ? topContent.asText() : topContent.toString());
+                        } else {
+                            JsonNode legacy = node.path("article");
+                            if (!legacy.isMissingNode() && !legacy.isNull()) {
+                                art.setContent(legacy.isTextual() ? legacy.asText() : legacy.toString());
+                            }
+                        }
                     }
                     art.setLocale(tr.path("languages_code").asText(languageCode));
                     // seo may be an object or string; try to map safely
@@ -461,6 +472,17 @@ public class DirectusService {
                         art.setContent(contentNode.asText());
                     } else {
                         art.setContent(contentNode.toString());
+                    }
+                } else {
+                    // Fallbacks: try top-level content or legacy 'article' field
+                    JsonNode topContent = dataNode.isArray() && dataNode.size() > 0 ? dataNode.get(0).path("content") : node.path("content");
+                    if (!topContent.isMissingNode() && !topContent.isNull()) {
+                        art.setContent(topContent.isTextual() ? topContent.asText() : topContent.toString());
+                    } else {
+                        JsonNode legacy = node.path("article");
+                        if (!legacy.isMissingNode() && !legacy.isNull()) {
+                            art.setContent(legacy.isTextual() ? legacy.asText() : legacy.toString());
+                        }
                     }
                 }
                 art.setLocale(tr.path("languages_code").asText(languageCode));
