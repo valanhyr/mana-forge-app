@@ -1,0 +1,36 @@
+version: '3.8'
+
+# Production compose overrides. Use together with docker-compose.yml:
+# docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+
+# This file intentionally minimal: it injects production env, restart policies,
+# and avoids mounting dev-only volumes.
+
+services:
+  api:
+    restart: unless-stopped
+    environment:
+      # Use an env file on the host (never commit secrets to git)
+      - SPRING_PROFILES_ACTIVE=prod
+      - DIRECTUS_URL=${DIRECTUS_URL:-http://directus_app:8080}
+      - DIRECTUS_TOKEN=${DIRECTUS_TOKEN}
+    env_file:
+      - .env.production
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  engine:
+    restart: unless-stopped
+
+  directus_app:
+    restart: unless-stopped
+
+  cache:
+    restart: unless-stopped
+
+networks:
+  default:
+    name: mana-forge-net
