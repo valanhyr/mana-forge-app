@@ -55,9 +55,8 @@ services:
       - SPRING_DATA_REDIS_PORT=6379
       - REDIS_PASSWORD=${REDIS_PASSWORD}
       - SESSION_STORE_TYPE=redis
-      - directus.url=${DIRECTUS_URL:-http://directus_app:8080}
-      - directus.token=${DIRECTUS_API_TOKEN:-}
-      - DIRECTUS_TOKEN=${DIRECTUS_API_TOKEN:-}
+      - directus.url=${DIRECTUS_URL:-http://directus:8080}
+      - DIRECTUS_TOKEN=${DIRECTUS_TOKEN:-${DIRECTUS_API_TOKEN}}
       - SMTP_HOST=${SMTP_HOST:-smtp.resend.com}
       - SMTP_PORT=${SMTP_PORT:-587}
       - SMTP_USERNAME=${SMTP_USERNAME:-resend}
