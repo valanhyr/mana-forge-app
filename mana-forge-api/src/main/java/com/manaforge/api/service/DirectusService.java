@@ -475,7 +475,7 @@ public class DirectusService {
                     }
                 } else {
                     // Fallbacks: try top-level content or legacy 'article' field
-                    JsonNode topContent = dataNode.isArray() && dataNode.size() > 0 ? dataNode.get(0).path("content") : node.path("content");
+                    JsonNode topContent = dataNode.isArray() && dataNode.size() > 0 ? dataNode.get(0).path("content") : dataNode.path("content");
                     if (!topContent.isMissingNode() && !topContent.isNull()) {
                         art.setContent(topContent.isTextual() ? topContent.asText() : topContent.toString());
                     } else {
