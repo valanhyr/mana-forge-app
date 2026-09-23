@@ -437,7 +437,30 @@ public class DirectusService {
                     }
                 }
 
-                // Debug: show final mapped article
+                // If DTO missing content (some Directus responses omit translations), try top-level fallbacks
+                if ((art.getContent() == null || art.getContent().isBlank())) {
+                    JsonNode topContent = node.path("content");
+                    if (!topContent.isMissingNode() && !topContent.isNull()) {
+                        art.setContent(topContent.isTextual() ? topContent.asText() : topContent.toString());
+                    } else {
+                        JsonNode legacy = node.path("article");
+                        if (!legacy.isMissingNode() && !legacy.isNull()) {
+                            art.setContent(legacy.isTextual() ? legacy.asText() : legacy.toString());
+                        }
+                    }
+                }
+                // Populate missing title/subtitle/seo from top-level if needed
+                if ((art.getTitle() == null || art.getTitle().isBlank()) && node.hasNonNull("title")) {
+                    art.setTitle(node.path("title").asText(null));
+                }
+                if ((art.getSubtitle() == null || art.getSubtitle().isBlank()) && node.hasNonNull("subtitle")) {
+                    art.setSubtitle(node.path("subtitle").asText(null));
+                }
+                if (art.getSeo() == null && node.hasNonNull("seo")) {
+                    try {
+                        art.setSeo(objectMapper.treeToValue(node.path("seo"), com.manaforge.api.model.directus.DirectusSeo.class));
+                    } catch (JsonProcessingException ignored) {}
+                }
                 try { System.out.println("Mapped DirectusArticleData: " + art.toString()); } catch (Exception ignored) {}
                 articles.add(art);
             }
