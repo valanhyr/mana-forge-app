@@ -1,3 +1,14 @@
+# Production-ready docker-compose.yml
+# Usage (production):
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+# - Keep secrets out of the repo; use .env.production or Docker secrets for DIRECTUS_TOKEN, DB passwords, etc.
+# - For quick local dev override use docker-compose.override.yml (checked in) or edit env files.
+# - To apply only env/token changes without rebuilding all services:
+#     docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --no-deps --force-recreate --build api
+# Notes:
+# - The api service reads DIRECTUS_TOKEN; ensure DIRECTUS_TOKEN is set in the env file for production.
+# - Do not expose Directus admin ports to the public network in production unless required.
+
 services:
   # FRONTEND: Servido por Nginx (Puerto 80 y 443 para Cloudflare Full SSL)
   web:
@@ -46,6 +57,7 @@ services:
       - SESSION_STORE_TYPE=redis
       - directus.url=${DIRECTUS_URL:-http://directus_app:8080}
       - directus.token=${DIRECTUS_API_TOKEN:-}
+      - DIRECTUS_TOKEN=${DIRECTUS_API_TOKEN:-}
       - SMTP_HOST=${SMTP_HOST:-smtp.resend.com}
       - SMTP_PORT=${SMTP_PORT:-587}
       - SMTP_USERNAME=${SMTP_USERNAME:-resend}
