@@ -45,7 +45,7 @@ public class ContentController {
             @RequestParam(required = false) String locale,
             @RequestHeader(value = "Accept-Language", required = false) String acceptLanguage) {
         try {
-            List<com.manaforge.api.model.directus.StrapiFormatData> formats = directusService.getFormats(locale, acceptLanguage);
+            List<com.manaforge.api.model.directus.DirectusFormatData> formats = directusService.getFormats(locale, acceptLanguage);
             return ResponseEntity.ok(formats);
         } catch (Exception e) {
             // Log full stacktrace to console for debugging
@@ -65,7 +65,7 @@ public class ContentController {
 
     // New endpoint: latest articles
     @GetMapping("/articles/latest")
-    public List<com.manaforge.api.model.directus.StrapiArticleData> getLatestArticles(
+    public List<com.manaforge.api.model.directus.DirectusArticleData> getLatestArticles(
             @RequestParam(required = false) String locale,
             @RequestParam(defaultValue = "10") int limit,
             @RequestHeader(value = "Accept-Language", required = false) String acceptLanguage) throws Exception {
@@ -74,7 +74,7 @@ public class ContentController {
 
     // New endpoint: article detail
     @GetMapping("/articles/{documentId}")
-    public com.manaforge.api.model.directus.StrapiArticleData getArticleByDocumentId(@PathVariable String documentId,
+    public com.manaforge.api.model.directus.DirectusArticleData getArticleByDocumentId(@PathVariable String documentId,
                                                                                   @RequestParam(required = false) String locale,
                                                                                   @RequestHeader(value = "Accept-Language", required = false) String acceptLanguage) throws Exception {
         return directusService.getArticleByDocumentId(documentId, locale, acceptLanguage);

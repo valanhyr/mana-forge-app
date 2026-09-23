@@ -2,8 +2,8 @@ package com.manaforge.api.service;
 
 import com.manaforge.api.dto.ArticleDto;
 import com.manaforge.api.dto.SeoDto;
-import com.manaforge.api.model.directus.StrapiArticleData;
-import com.manaforge.api.model.directus.StrapiSeo;
+import com.manaforge.api.model.directus.DirectusArticleData;
+import com.manaforge.api.model.directus.DirectusSeo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -33,7 +33,7 @@ public class ArticleService {
 
     public List<ArticleDto> getLast5Articles(String locale, String acceptLanguage) {
         try {
-            List<StrapiArticleData> articles = directusService.getLatestArticles(locale, 5, acceptLanguage);
+            List<DirectusArticleData> articles = directusService.getLatestArticles(locale, 5, acceptLanguage);
             return articles.stream()
                     .map(this::mapToDto)
                     .collect(Collectors.toList());
@@ -45,7 +45,7 @@ public class ArticleService {
 
     public ArticleDto getArticleByDocumentId(String documentId, String locale, String acceptLanguage) {
         try {
-            StrapiArticleData article = directusService.getArticleByDocumentId(documentId, locale, acceptLanguage);
+            DirectusArticleData article = directusService.getArticleByDocumentId(documentId, locale, acceptLanguage);
             if (article == null) return null;
             return mapToDto(article);
         } catch (Exception e) {
@@ -54,20 +54,20 @@ public class ArticleService {
         }
     }
 
-    private ArticleDto mapToDto(StrapiArticleData data) {
+    private ArticleDto mapToDto(DirectusArticleData data) {
         return ArticleDto.builder()
                 .documentId(data.getDocumentId())
                 .title(data.getTitle())
                 .subtitle(data.getSubtitle())
                 .imageUrl(data.getCoverUrl() != null ? data.getCoverUrl() : data.getImageUrl())
-                .content(data.getArticle())
+                .content(data.getContent())
                 .publishedAt(data.getPublishedAt())
                 .author(data.getAuthor())
                 .seo(mapSeo(data.getSeo()))
                 .build();
     }
 
-    private SeoDto mapSeo(StrapiSeo seo) {
+    private SeoDto mapSeo(DirectusSeo seo) {
         if (seo == null) return null;
         return SeoDto.builder()
                 .title(seo.getTitle())

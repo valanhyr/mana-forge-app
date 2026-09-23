@@ -1,9 +1,9 @@
 package com.manaforge.api.model.directus;
 
-import lombok.Data;
-import java.util.List;
-
-@Data
+/**
+ * DEPRECATED placeholder: canonical class is DirectusFormatResponse
+ */
+@SuppressWarnings("unused")
 public class StrapiFormatResponse {
-    private List<StrapiFormatData> data;
+    // placeholder
 }

@@ -3,8 +3,8 @@ package com.manaforge.api.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
-import com.manaforge.api.model.directus.StrapiArticleData;
-import com.manaforge.api.model.directus.StrapiFormatData;
+import com.manaforge.api.model.directus.DirectusArticleData;
+import com.manaforge.api.model.directus.DirectusFormatData;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -41,7 +41,7 @@ class DirectusServiceTest {
 
     @Test
     void getLatestArticles_parsesDataArrayCorrectly() throws Exception {
-        wireMock.stubFor(get(urlPathEqualTo("/api/items/articles"))
+        wireMock.stubFor(get(urlPathEqualTo("/items/articles"))
                 .willReturn(aResponse()
                         .withStatus(200)
                         .withHeader("Content-Type", "application/json")
@@ -57,7 +57,7 @@ class DirectusServiceTest {
                                 }
                                 """)));
 
-        List<StrapiArticleData> result = directusService.getLatestArticles("es", 5, null);
+        List<DirectusArticleData> result = directusService.getLatestArticles("es", 5, null);
 
         assertThat(result).hasSize(1);
         assertThat(result.get(0).getTitle()).isEqualTo("First Article");
@@ -66,7 +66,7 @@ class DirectusServiceTest {
 
     @Test
     void getLatestArticles_returnsEmptyListWhenStrapiErrors() throws Exception {
-        wireMock.stubFor(get(urlPathEqualTo("/api/items/articles"))
+        wireMock.stubFor(get(urlPathEqualTo("/items/articles"))
                 .willReturn(aResponse().withStatus(500)));
 
         assertThatThrownBy(() -> directusService.getLatestArticles("es", 5, null))
@@ -75,13 +75,13 @@ class DirectusServiceTest {
 
     @Test
     void getLatestArticles_returnsEmptyListWhenDataIsNull() throws Exception {
-        wireMock.stubFor(get(urlPathEqualTo("/api/items/articles"))
+        wireMock.stubFor(get(urlPathEqualTo("/items/articles"))
                 .willReturn(aResponse()
                         .withStatus(200)
                         .withHeader("Content-Type", "application/json")
                         .withBody("{\"data\": null, \"meta\": {}}")));
 
-        List<StrapiArticleData> result = directusService.getLatestArticles("es", 5, null);
+        List<DirectusArticleData> result = directusService.getLatestArticles("es", 5, null);
 
         assertThat(result).isEmpty();
     }
@@ -90,7 +90,7 @@ class DirectusServiceTest {
 
     @Test
     void getArticleByDocumentId_returnsArticleOnSuccess() throws Exception {
-        wireMock.stubFor(get(urlPathEqualTo("/api/items/articles/doc-abc"))
+        wireMock.stubFor(get(urlPathEqualTo("/items/articles/doc-abc"))
                 .willReturn(aResponse()
                         .withStatus(200)
                         .withHeader("Content-Type", "application/json")
@@ -104,7 +104,7 @@ class DirectusServiceTest {
                                 }
                                 """)));
 
-        StrapiArticleData result = directusService.getArticleByDocumentId("doc-abc", "en", null);
+        DirectusArticleData result = directusService.getArticleByDocumentId("doc-abc", "en", null);
 
         assertThat(result).isNotNull();
         assertThat(result.getTitle()).isEqualTo("Detail Article");
@@ -112,13 +112,13 @@ class DirectusServiceTest {
 
     @Test
     void getArticleByDocumentId_returnsNullWhenDataMissing() throws Exception {
-        wireMock.stubFor(get(urlPathEqualTo("/api/items/articles/no-such-doc"))
+        wireMock.stubFor(get(urlPathEqualTo("/items/articles/no-such-doc"))
                 .willReturn(aResponse()
                         .withStatus(200)
                         .withHeader("Content-Type", "application/json")
                         .withBody("{\"data\": null}")));
 
-        StrapiArticleData result = directusService.getArticleByDocumentId("no-such-doc", "es", null);
+        DirectusArticleData result = directusService.getArticleByDocumentId("no-such-doc", "es", null);
 
         assertThat(result).isNull();
     }
@@ -127,7 +127,7 @@ class DirectusServiceTest {
 
     @Test
     void getFormats_mapsFormatListCorrectly() throws Exception {
-        wireMock.stubFor(get(urlPathEqualTo("/api/items/formats"))
+        wireMock.stubFor(get(urlPathEqualTo("/items/formats"))
                 .willReturn(aResponse()
                         .withStatus(200)
                         .withHeader("Content-Type", "application/json")
@@ -145,7 +145,7 @@ class DirectusServiceTest {
                                 }
                                 """)));
 
-        List<StrapiFormatData> result = directusService.getFormats("es", null);
+        List<DirectusFormatData> result = directusService.getFormats("es", null);
 
         assertThat(result).hasSize(1);
         assertThat(result.get(0).getMongoId()).isEqualTo("premodern");
@@ -154,13 +154,13 @@ class DirectusServiceTest {
 
     @Test
     void getFormats_returnsEmptyListWhenDataArrayIsEmpty() throws Exception {
-            wireMock.stubFor(get(urlPathEqualTo("/api/items/formats"))
+            wireMock.stubFor(get(urlPathEqualTo("/items/formats"))
                 .willReturn(aResponse()
                         .withStatus(200)
                         .withHeader("Content-Type", "application/json")
                         .withBody("{\"data\": []}")));
 
-        List<StrapiFormatData> result = directusService.getFormats("es", null);
+        List<DirectusFormatData> result = directusService.getFormats("es", null);
 
         assertThat(result).isEmpty();
     }
@@ -169,7 +169,7 @@ class DirectusServiceTest {
 
     @Test
     void getFormatByMongoId_returnsFormatWhenFound() throws Exception {
-        wireMock.stubFor(get(urlPathEqualTo("/api/items/formats"))
+        wireMock.stubFor(get(urlPathEqualTo("/items/formats"))
                 .willReturn(aResponse()
                         .withStatus(200)
                         .withHeader("Content-Type", "application/json")
@@ -186,7 +186,7 @@ class DirectusServiceTest {
                                 }
                                 """)));
 
-        StrapiFormatData result = directusService.getFormatByMongoId("premodern", "es");
+        DirectusFormatData result = directusService.getFormatByMongoId("premodern", "es");
 
         assertThat(result).isNotNull();
         assertThat(result.getTitle()).isEqualTo("Premodern");
@@ -194,13 +194,13 @@ class DirectusServiceTest {
 
     @Test
     void getFormatByMongoId_returnsNullWhenNotFound() throws Exception {
-        wireMock.stubFor(get(urlPathEqualTo("/api/items/formats"))
+    wireMock.stubFor(get(urlPathEqualTo("/items/formats"))
                 .willReturn(aResponse()
                         .withStatus(200)
                         .withHeader("Content-Type", "application/json")
                         .withBody("{\"data\": []}")));
 
-        StrapiFormatData result = directusService.getFormatByMongoId("unknown-id", "es");
+        DirectusFormatData result = directusService.getFormatByMongoId("unknown-id", "es");
 
         assertThat(result).isNull();
     }

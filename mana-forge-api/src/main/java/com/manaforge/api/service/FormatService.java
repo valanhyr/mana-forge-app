@@ -3,9 +3,9 @@ package com.manaforge.api.service;
 import com.manaforge.api.dto.FormatDetailDto;
 import com.manaforge.api.dto.FormatSummaryDto;
 import com.manaforge.api.dto.SeoDto;
-import com.manaforge.api.model.directus.StrapiComponent;
-import com.manaforge.api.model.directus.StrapiFormatData;
-import com.manaforge.api.model.directus.StrapiSeo;
+import com.manaforge.api.model.directus.DirectusComponent;
+import com.manaforge.api.model.directus.DirectusFormatData;
+import com.manaforge.api.model.directus.DirectusSeo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -27,7 +27,7 @@ public class FormatService {
 
     public List<FormatSummaryDto> getAllFormats() {
         try {
-            List<StrapiFormatData> formats = directusService.getFormats("es");
+            List<DirectusFormatData> formats = directusService.getFormats("es");
             logger.info("Found {} formats from Directus", formats.size());
             
             return formats.stream()
@@ -41,7 +41,7 @@ public class FormatService {
 
     public FormatDetailDto getFormatByMongoId(String mongoId) {
         try {
-            StrapiFormatData data = directusService.getFormatByMongoId(mongoId, "es");
+            DirectusFormatData data = directusService.getFormatByMongoId(mongoId, "es");
             
             if (data == null) return null;
             
@@ -52,7 +52,7 @@ public class FormatService {
         }
     }
 
-    private FormatSummaryDto mapToSummary(StrapiFormatData data) {
+    private FormatSummaryDto mapToSummary(DirectusFormatData data) {
         // Description is available in the full detail mapping; don't compute it here to avoid unused-variable warnings.
         // If needed in the summary view later, include it explicitly.
         return FormatSummaryDto.builder()
@@ -64,7 +64,7 @@ public class FormatService {
                 .build();
     }
 
-    private FormatDetailDto mapToDetail(StrapiFormatData data) {
+    private FormatDetailDto mapToDetail(DirectusFormatData data) {
         FormatDetailDto.FormatSectionDto descriptionSection = data.getSection().stream()
                 .filter(c -> "description".equals(c.getName()))
                 .findFirst()
@@ -88,7 +88,7 @@ public class FormatService {
                 .build();
     }
 
-    private SeoDto mapSeo(StrapiSeo seo) {
+    private SeoDto mapSeo(DirectusSeo seo) {
         if (seo == null) return null;
         return SeoDto.builder()
                 .title(seo.getTitle())
@@ -98,7 +98,7 @@ public class FormatService {
                 .build();
     }
 
-    private FormatDetailDto.FormatSectionDto mapToSectionDto(StrapiComponent component) {
+    private FormatDetailDto.FormatSectionDto mapToSectionDto(DirectusComponent component) {
         return FormatDetailDto.FormatSectionDto.builder()
                 .name(component.getName())
                 .title(component.getTitle())

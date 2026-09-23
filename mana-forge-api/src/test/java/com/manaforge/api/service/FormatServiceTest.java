@@ -2,7 +2,7 @@ package com.manaforge.api.service;
 
 import com.manaforge.api.dto.FormatDetailDto;
 import com.manaforge.api.dto.FormatSummaryDto;
-import com.manaforge.api.model.directus.StrapiFormatData;
+import com.manaforge.api.model.directus.DirectusFormatData;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -19,13 +19,13 @@ import static org.mockito.Mockito.*;
 class FormatServiceTest {
 
     @Mock
-    private ContentService contentService;
+    private DirectusService directusService;
 
     @InjectMocks
     private FormatService formatService;
 
-    private StrapiFormatData buildFormatData(String mongoId, String title) {
-        StrapiFormatData data = new StrapiFormatData();
+    private DirectusFormatData buildFormatData(String mongoId, String title) {
+            DirectusFormatData data = new DirectusFormatData();
         data.setMongoId(mongoId);
         data.setTitle(title);
         data.setSubtitle("The classic format");
@@ -37,9 +37,9 @@ class FormatServiceTest {
 
     @Test
     void getAllFormats_mapsTwoFormatsToSummaryDtos() throws Exception {
-        StrapiFormatData f1 = buildFormatData("fmt1", "Premodern");
-        StrapiFormatData f2 = buildFormatData("fmt2", "Classic");
-        when(contentService.getFormats("es", null)).thenReturn(List.of(f1, f2));
+        DirectusFormatData f1 = buildFormatData("fmt1", "Premodern");
+        DirectusFormatData f2 = buildFormatData("fmt2", "Classic");
+        when(directusService.getFormats("es")).thenReturn(List.of(f1, f2));
 
         List<FormatSummaryDto> result = formatService.getAllFormats();
 
@@ -51,7 +51,7 @@ class FormatServiceTest {
 
     @Test
     void getAllFormats_returnsEmptyListWhenDirectusServiceThrows() throws Exception {
-        when(contentService.getFormats("es", null)).thenThrow(new RuntimeException("CMS down"));
+        when(directusService.getFormats("es")).thenThrow(new RuntimeException("CMS down"));
 
         List<FormatSummaryDto> result = formatService.getAllFormats();
 
@@ -60,9 +60,9 @@ class FormatServiceTest {
 
     @Test
     void getFormatByMongoId_returnsFormatDetailDtoWhenFound() throws Exception {
-        StrapiFormatData data = buildFormatData("fmt1", "Premodern");
+        DirectusFormatData data = buildFormatData("fmt1", "Premodern");
         data.setSection(Collections.emptyList());
-        when(contentService.getFormatByMongoId("fmt1", "es")).thenReturn(data);
+        when(directusService.getFormatByMongoId("fmt1", "es")).thenReturn(data);
 
         FormatDetailDto result = formatService.getFormatByMongoId("fmt1");
 
@@ -73,7 +73,7 @@ class FormatServiceTest {
 
     @Test
     void getFormatByMongoId_returnsNullWhenStrapiReturnsNull() throws Exception {
-        when(contentService.getFormatByMongoId("missing", "es")).thenReturn(null);
+        when(directusService.getFormatByMongoId("missing", "es")).thenReturn(null);
 
         FormatDetailDto result = formatService.getFormatByMongoId("missing");
 

@@ -6,12 +6,12 @@ import java.util.List;
 
 public interface ContentService {
     // Articles
-    List<StrapiArticleData> getLatestArticles(String locale, int limit, String acceptLanguage) throws Exception;
-    StrapiArticleData getArticleByDocumentId(String documentId, String locale, String acceptLanguage) throws Exception;
+    List<DirectusArticleData> getLatestArticles(String locale, int limit, String acceptLanguage) throws Exception;
+    DirectusArticleData getArticleByDocumentId(String documentId, String locale, String acceptLanguage) throws Exception;
 
     // Formats
-    List<StrapiFormatData> getFormats(String locale, String acceptLanguage) throws Exception;
-    StrapiFormatData getFormatByMongoId(String mongoId, String locale) throws Exception;
+    List<DirectusFormatData> getFormats(String locale, String acceptLanguage) throws Exception;
+    DirectusFormatData getFormatByMongoId(String mongoId, String locale) throws Exception;
 
     // Other content
     Footer getFooter(String locale) throws Exception;

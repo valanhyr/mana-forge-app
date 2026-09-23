@@ -1,0 +1,10 @@
+version: '3.8'
+
+services:
+  api:
+    environment:
+      - DIRECTUS_URL=http://directus_app:8080
+      - directus.url=http://directus_app:8080
+      - SPRING_PROFILES_ACTIVE=dev
+      # optional: set a token for local testing
+      - DIRECTUS_TOKEN=

@@ -28,6 +28,15 @@ public class DirectusService {
     // static token from env/property
     private volatile String accessToken;
 
+    // No-arg constructor for frameworks/tests that instantiate via component-scan without supplying RestClient.Builder
+    @SuppressWarnings("unused")
+    public DirectusService() {
+        this.objectMapper = new ObjectMapper().copy().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        this.baseUrl = "http://localhost:9055";
+        this.accessToken = "";
+        System.out.println("DirectusService: instantiated no-arg placeholder");
+    }
+
     public DirectusService(RestClient.Builder builder,
                            ObjectMapper objectMapper,
                            @Value("${directus.url:http://directus:8080}") String directusUrl,
@@ -36,14 +45,20 @@ public class DirectusService {
                 .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
         // Ensure URL doesn't end with / to avoid double slashes
-        String cleanBaseUrl = directusUrl.endsWith("/")
-            ? directusUrl.substring(0, directusUrl.length() - 1)
-            : directusUrl;
+        // Allow explicit env override if property binding did not apply inside container
+        String envDirectus = System.getenv("DIRECTUS_URL");
+        String resolved = (envDirectus != null && !envDirectus.isBlank()) ? envDirectus : directusUrl;
+
+        String cleanBaseUrl = resolved.endsWith("/")
+            ? resolved.substring(0, resolved.length() - 1)
+            : resolved;
         this.baseUrl = cleanBaseUrl;
 
-        // Prefer static token from directus.token property
-        if (directusToken != null && !directusToken.isBlank()) {
-            this.accessToken = directusToken.trim();
+        // Prefer static token from directus.token property or env DIRECTUS_TOKEN
+        String envToken = System.getenv("DIRECTUS_TOKEN");
+        String resolvedToken = (envToken != null && !envToken.isBlank()) ? envToken : directusToken;
+        if (resolvedToken != null && !resolvedToken.isBlank()) {
+            this.accessToken = resolvedToken.trim();
             System.out.println("DirectusService using static token from directus.token");
         } else {
             System.err.println("DirectusService no static token provided (directus.token). Requests will be unauthenticated unless token set at runtime.");
@@ -77,7 +92,13 @@ public class DirectusService {
 
     private JsonNode fetchFromDirectus(String endpoint, String query, String acceptLanguage) throws JsonProcessingException {
         String path = endpoint.startsWith("/") ? endpoint : "/" + endpoint;
-        // Accept both /api/items/... and /items/...; normalize to /items/...
+                // Normalize to always include /api prefix for compatibility with stubs that expect /api/items
+                if (!path.startsWith("/api/") && path.startsWith("/items/")) {
+                    path = "/api" + path; // /items/... -> /api/items/...
+                } else if (!path.startsWith("/api/") && !path.startsWith("/items/") && !path.startsWith("/api")) {
+                    // if caller passed 'articles' or 'items/articles', assume items namespace
+                    path = "/api/items" + (path.startsWith("/") ? path : "/" + path);
+                }
         if (path.startsWith("/api/")) {
             path = path.substring(4); // remove leading /api
         }
@@ -110,6 +131,10 @@ public class DirectusService {
                 System.err.println("   -> No data found for: " + endpoint);
                 return null;
             }
+            // Debug: print fetched data for inspection
+            try {
+                System.out.println("Directus fetched data for endpoint " + endpoint + ": " + dataNode.toString());
+            } catch (Exception ignored) {}
             return dataNode;
         } catch (org.springframework.web.client.HttpClientErrorException.Unauthorized ue) {
             System.err.println("   -> Unauthorized from Directus. Token may be invalid.");
@@ -224,11 +249,11 @@ public class DirectusService {
      * Get all formats for a locale
      */
     @Cacheable(value = "formats", key = "#locale")
-    public List<StrapiFormatData> getFormats(String locale) throws JsonProcessingException {
+    public List<DirectusFormatData> getFormats(String locale) throws JsonProcessingException {
         return getFormats(locale, null);
     }
 
-    public List<StrapiFormatData> getFormats(String locale, String acceptLanguage) throws JsonProcessingException {
+    public List<DirectusFormatData> getFormats(String locale, String acceptLanguage) throws JsonProcessingException {
         String languageCode = normalizeLanguageCode(locale);
         String query = "fields=id,slug,mongo_id,imageUrl,translations.languages_code,translations.title,"
                 + "translations.subtitle,translations.description,translations.rules";
@@ -237,10 +262,10 @@ public class DirectusService {
         }
         JsonNode dataNode = fetchFromDirectus("api/items/formats", query, acceptLanguage);
 
-        List<StrapiFormatData> formats = new ArrayList<>();
+        List<DirectusFormatData> formats = new ArrayList<>();
         if (dataNode != null && dataNode.isArray()) {
             for (JsonNode node : dataNode) {
-                StrapiFormatData fmt = objectMapper.treeToValue(node, StrapiFormatData.class);
+                DirectusFormatData fmt = objectMapper.treeToValue(node, DirectusFormatData.class);
 
                 JsonNode translation = pickTranslation(node.path("translations"), languageCode);
                 if (translation != null) {
@@ -296,15 +321,15 @@ public class DirectusService {
      * Converts the Directus translation blocks (description, rules) into the Strapi component shape
      * expected by the frontend.
      */
-    private List<StrapiComponent> buildSections(JsonNode translation) {
-        List<StrapiComponent> sections = new ArrayList<>();
+    private List<DirectusComponent> buildSections(JsonNode translation) {
+        List<DirectusComponent> sections = new ArrayList<>();
         for (String blockName : List.of("description", "rules")) {
             JsonNode block = translation.path(blockName);
             if (block.isMissingNode() || block.isNull()) {
                 continue;
             }
             try {
-                sections.add(objectMapper.treeToValue(block, StrapiComponent.class));
+                sections.add(objectMapper.treeToValue(block, DirectusComponent.class));
             } catch (JsonProcessingException ignored) {
                 // skip malformed block
             }
@@ -316,7 +341,7 @@ public class DirectusService {
      * Get format details by MongoDB ID and locale
      */
     @Cacheable(value = "format-detail", key = "#mongoId + '-' + #locale")
-    public StrapiFormatData getFormatByMongoId(String mongoId, String locale) throws JsonProcessingException {
+    public DirectusFormatData getFormatByMongoId(String mongoId, String locale) throws JsonProcessingException {
         String query = "filter[mongo_id][_eq]=" + mongoId;
         
         if (locale != null) {
@@ -326,7 +351,7 @@ public class DirectusService {
         JsonNode dataNode = fetchFromDirectus("api/items/formats", query);
 
         if (dataNode != null && dataNode.isArray() && dataNode.size() > 0) {
-            return objectMapper.treeToValue(dataNode.get(0), StrapiFormatData.class);
+            return objectMapper.treeToValue(dataNode.get(0), DirectusFormatData.class);
         }
         return null;
     }
@@ -335,7 +360,7 @@ public class DirectusService {
      * Get latest articles for a locale
      */
     @Cacheable(value = "articles-latest", key = "#locale + '-' + #limit")
-    public List<StrapiArticleData> getLatestArticles(String locale, int limit, String acceptLanguage) throws JsonProcessingException {
+    public List<DirectusArticleData> getLatestArticles(String locale, int limit, String acceptLanguage) throws JsonProcessingException {
         // prefer explicit Accept-Language when provided by caller; fallback to locale param
         String languageCode = normalizeLanguageCode(acceptLanguage != null && !acceptLanguage.isBlank() ? acceptLanguage : locale);
         String query = "fields=id,publishedAt,author,imageUrl,translations.languages_code,translations.title,translations.subtitle,translations.seo,translations.content";
@@ -346,7 +371,7 @@ public class DirectusService {
 
         JsonNode dataNode = fetchFromDirectus("api/items/articles", query, acceptLanguage);
 
-        List<StrapiArticleData> articles = new ArrayList<>();
+        List<DirectusArticleData> articles = new ArrayList<>();
         if (dataNode != null && dataNode.isArray()) {
             int idx = 0;
             for (JsonNode node : dataNode) {
@@ -356,7 +381,7 @@ public class DirectusService {
                 }
                 idx++;
 
-                StrapiArticleData art = objectMapper.treeToValue(node, StrapiArticleData.class);
+                DirectusArticleData art = objectMapper.treeToValue(node, DirectusArticleData.class);
 
                 // Ensure documentId is populated from Directus 'id' when missing
                 if ((art.getDocumentId() == null || art.getDocumentId().isBlank()) && art.getId() != null) {
@@ -364,8 +389,8 @@ public class DirectusService {
                 }
 
                 JsonNode tr = pickTranslation(node.path("translations"), languageCode);
-                System.out.println("Directus raw article node: " + tr.toString());
-                if (tr != null) {
+                                if (tr != null) {
+                                    System.out.println("Directus raw article node: " + tr.toString());
                     // If translation has its own id/documentId fields, prefer them; otherwise reuse top-level
                     if (!tr.path("documentId").isMissingNode() && !tr.path("documentId").isNull()) {
                         art.setDocumentId(tr.path("documentId").asText(null));
@@ -377,17 +402,66 @@ public class DirectusService {
                     }
                     art.setTitle(tr.path("title").asText(art.getTitle()));
                     art.setSubtitle(tr.path("subtitle").asText(art.getSubtitle()));
-                    art.setContent(tr.path("content").asText(art.getContent()));
+                    // content may be textual or an object; preserve as string
+                    JsonNode contentNode = tr.path("content");
+                    if (!contentNode.isMissingNode() && !contentNode.isNull()) {
+                        if (contentNode.isTextual()) {
+                            art.setContent(contentNode.asText());
+                        } else {
+                            art.setContent(contentNode.toString());
+                        }
+                    } else {
+                        // Fallbacks: try top-level content or legacy 'article' field
+                        JsonNode topContent = node.path("content");
+                        if (!topContent.isMissingNode() && !topContent.isNull()) {
+                            art.setContent(topContent.isTextual() ? topContent.asText() : topContent.toString());
+                        } else {
+                            JsonNode legacy = node.path("article");
+                            if (!legacy.isMissingNode() && !legacy.isNull()) {
+                                art.setContent(legacy.isTextual() ? legacy.asText() : legacy.toString());
+                            }
+                        }
+                    }
                     art.setLocale(tr.path("languages_code").asText(languageCode));
-                    // seo may be an object; assign if present
+                    // seo may be an object or string; try to map safely
                     JsonNode seoNode = tr.path("seo");
                     if (!seoNode.isMissingNode() && !seoNode.isNull()) {
                         try {
-                            art.setSeo(objectMapper.treeToValue(seoNode, com.manaforge.api.model.directus.StrapiSeo.class));
-                        } catch (JsonProcessingException ignored) {}
+                            if (seoNode.isObject()) {
+                                art.setSeo(objectMapper.treeToValue(seoNode, com.manaforge.api.model.directus.DirectusSeo.class));
+                            } else if (seoNode.isTextual() && !seoNode.asText().isBlank()) {
+                                // attempt to parse textual JSON
+                                art.setSeo(objectMapper.readValue(seoNode.asText(), com.manaforge.api.model.directus.DirectusSeo.class));
+                            }
+                        } catch (Exception ignored) {}
                     }
                 }
 
+                // If DTO missing content (some Directus responses omit translations), try top-level fallbacks
+                if ((art.getContent() == null || art.getContent().isBlank())) {
+                    JsonNode topContent = node.path("content");
+                    if (!topContent.isMissingNode() && !topContent.isNull()) {
+                        art.setContent(topContent.isTextual() ? topContent.asText() : topContent.toString());
+                    } else {
+                        JsonNode legacy = node.path("article");
+                        if (!legacy.isMissingNode() && !legacy.isNull()) {
+                            art.setContent(legacy.isTextual() ? legacy.asText() : legacy.toString());
+                        }
+                    }
+                }
+                // Populate missing title/subtitle/seo from top-level if needed
+                if ((art.getTitle() == null || art.getTitle().isBlank()) && node.hasNonNull("title")) {
+                    art.setTitle(node.path("title").asText(null));
+                }
+                if ((art.getSubtitle() == null || art.getSubtitle().isBlank()) && node.hasNonNull("subtitle")) {
+                    art.setSubtitle(node.path("subtitle").asText(null));
+                }
+                if (art.getSeo() == null && node.hasNonNull("seo")) {
+                    try {
+                        art.setSeo(objectMapper.treeToValue(node.path("seo"), com.manaforge.api.model.directus.DirectusSeo.class));
+                    } catch (JsonProcessingException ignored) {}
+                }
+                try { System.out.println("Mapped DirectusArticleData: " + art.toString()); } catch (Exception ignored) {}
                 articles.add(art);
             }
         }
@@ -398,7 +472,7 @@ public class DirectusService {
      * Get article by documentId and locale
      */
     @Cacheable(value = "article-detail", key = "#documentId + '-' + #locale")
-    public StrapiArticleData getArticleByDocumentId(String documentId, String locale, String acceptLanguage) throws JsonProcessingException {
+    public DirectusArticleData getArticleByDocumentId(String documentId, String locale, String acceptLanguage) throws JsonProcessingException {
         String languageCode = normalizeLanguageCode(acceptLanguage != null && !acceptLanguage.isBlank() ? acceptLanguage : locale);
         String query = "fields=id,publishedAt,author,imageUrl,translations.languages_code,translations.title,translations.content";
         if (languageCode != null) {
@@ -408,7 +482,7 @@ public class DirectusService {
         JsonNode dataNode = fetchFromDirectus("api/items/articles/" + documentId, query, acceptLanguage);
 
         if (dataNode != null && !dataNode.isArray()) {
-            StrapiArticleData art = objectMapper.treeToValue(dataNode, StrapiArticleData.class);
+            DirectusArticleData art = objectMapper.treeToValue(dataNode, DirectusArticleData.class);
 
             // Ensure documentId is populated from Directus 'id' when missing
             if ((art.getDocumentId() == null || art.getDocumentId().isBlank()) && art.getId() != null) {
@@ -416,18 +490,41 @@ public class DirectusService {
             }
 
             JsonNode tr = pickTranslation(dataNode.path("translations"), languageCode);
-            System.out.println("Directus raw article node: " + tr.toString());
-            if (tr != null) {
+                        if (tr != null) {
+                            System.out.println("Directus raw article node: " + tr.toString());
                 art.setTitle(tr.path("title").asText(art.getTitle()));
                 art.setSubtitle(tr.path("subtitle").asText(art.getSubtitle()));
-                art.setContent(tr.path("content").asText(art.getContent()));
+                // content may be textual or an object; preserve as string
+                JsonNode contentNode = tr.path("content");
+                if (!contentNode.isMissingNode() && !contentNode.isNull()) {
+                    if (contentNode.isTextual()) {
+                        art.setContent(contentNode.asText());
+                    } else {
+                        art.setContent(contentNode.toString());
+                    }
+                } else {
+                    // Fallbacks: try top-level content or legacy 'article' field
+                    JsonNode topContent = dataNode.isArray() && dataNode.size() > 0 ? dataNode.get(0).path("content") : dataNode.path("content");
+                    if (!topContent.isMissingNode() && !topContent.isNull()) {
+                        art.setContent(topContent.isTextual() ? topContent.asText() : topContent.toString());
+                    } else {
+                                            JsonNode legacy = dataNode.path("article");
+                        if (!legacy.isMissingNode() && !legacy.isNull()) {
+                            art.setContent(legacy.isTextual() ? legacy.asText() : legacy.toString());
+                        }
+                    }
+                }
                 art.setLocale(tr.path("languages_code").asText(languageCode));
 
                 JsonNode seoNode = tr.path("seo");
                 if (!seoNode.isMissingNode() && !seoNode.isNull()) {
                     try {
-                        art.setSeo(objectMapper.treeToValue(seoNode, StrapiSeo.class));
-                    } catch (JsonProcessingException ignored) {}
+                        if (seoNode.isObject()) {
+                            art.setSeo(objectMapper.treeToValue(seoNode, DirectusSeo.class));
+                        } else if (seoNode.isTextual() && !seoNode.asText().isBlank()) {
+                            art.setSeo(objectMapper.readValue(seoNode.asText(), DirectusSeo.class));
+                        }
+                    } catch (Exception ignored) {}
                 }
             }
             return art;
