@@ -437,6 +437,8 @@ public class DirectusService {
                     }
                 }
 
+                // Debug: show final mapped article
+                try { System.out.println("Mapped DirectusArticleData: " + art.toString()); } catch (Exception ignored) {}
                 articles.add(art);
             }
         }
@@ -483,7 +485,7 @@ public class DirectusService {
                     if (!topContent.isMissingNode() && !topContent.isNull()) {
                         art.setContent(topContent.isTextual() ? topContent.asText() : topContent.toString());
                     } else {
-                        JsonNode legacy = node.path("article");
+                                            JsonNode legacy = dataNode.path("article");
                         if (!legacy.isMissingNode() && !legacy.isNull()) {
                             art.setContent(legacy.isTextual() ? legacy.asText() : legacy.toString());
                         }
