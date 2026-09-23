@@ -60,7 +60,7 @@ public class ArticleService {
                 .title(data.getTitle())
                 .subtitle(data.getSubtitle())
                 .imageUrl(data.getCoverUrl() != null ? data.getCoverUrl() : data.getImageUrl())
-                .content(data.getArticle())
+                .content(data.getContent() != null ? data.getContent() : data.getArticle())
                 .publishedAt(data.getPublishedAt())
                 .author(data.getAuthor())
                 .seo(mapSeo(data.getSeo()))
