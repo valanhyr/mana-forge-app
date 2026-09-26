@@ -14,7 +14,7 @@ public class RestClientConfig  {
     @Value("${directus.token:}")
     private String directusToken;
 
-    @Value("${directus.url:http://localhost:9055}")
+    @Value("${directus.url:http://directus:8080}")
     private String directusUrl;
 
     @Bean

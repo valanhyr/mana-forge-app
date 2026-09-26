@@ -1,7 +1,7 @@
 # Production-ready docker-compose.yml
 # Usage (production):
 #   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
-# - Keep secrets out of the repo; use .env.production or Docker secrets for DIRECTUS_TOKEN, DB passwords, etc.
+# - Keep secrets out of the repo; use  or Docker secrets for DIRECTUS_TOKEN, DB passwords, etc.
 # - For quick local dev override use docker-compose.override.yml (checked in) or edit env files.
 # - To apply only env/token changes without rebuilding all services:
 #     docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --no-deps --force-recreate --build api

@@ -32,9 +32,12 @@ public class DirectusService {
     @SuppressWarnings("unused")
     public DirectusService() {
         this.objectMapper = new ObjectMapper().copy().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        this.baseUrl = "http://localhost:9055";
-        this.accessToken = "";
-        System.out.println("DirectusService: instantiated no-arg placeholder");
+        // Resolve base URL from env or default to service name so containers use the compose network
+        String envDirectus = System.getenv("DIRECTUS_URL");
+        String resolved = (envDirectus != null && !envDirectus.isBlank()) ? envDirectus : "http://directus:8080";
+        this.baseUrl = resolved.endsWith("/") ? resolved.substring(0, resolved.length() - 1) : resolved;
+        this.accessToken = System.getenv("DIRECTUS_TOKEN") != null ? System.getenv("DIRECTUS_TOKEN") : "";
+        System.out.println("DirectusService: instantiated no-arg placeholder with URL: " + this.baseUrl);
     }
 
     public DirectusService(RestClient.Builder builder,
