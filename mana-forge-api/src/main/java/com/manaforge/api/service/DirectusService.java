@@ -477,24 +477,35 @@ public class DirectusService {
     @Cacheable(value = "article-detail", key = "#documentId + '-' + #locale")
     public DirectusArticleData getArticleByDocumentId(String documentId, String locale, String acceptLanguage) throws JsonProcessingException {
         String languageCode = normalizeLanguageCode(acceptLanguage != null && !acceptLanguage.isBlank() ? acceptLanguage : locale);
+        // Query by documentId field instead of fetching by primary id path
         String query = "fields=id,documentId,publishedAt,author,imageUrl,translations.languages_code,translations.title,translations.content";
+        query += "&filter[documentId][_eq]=" + documentId;
         if (languageCode != null) {
             query += "&deep[translations][_filter][languages_code][_eq]=" + languageCode;
         }
 
-        JsonNode dataNode = fetchFromDirectus("api/items/articles/" + documentId, query, acceptLanguage);
+        JsonNode dataNode = fetchFromDirectus("api/items/articles", query, acceptLanguage);
 
-        if (dataNode != null && !dataNode.isArray()) {
-            DirectusArticleData art = objectMapper.treeToValue(dataNode, DirectusArticleData.class);
+        if (dataNode != null && dataNode.isArray() && dataNode.size() > 0) {
+            JsonNode node = dataNode.get(0);
+            DirectusArticleData art = objectMapper.treeToValue(node, DirectusArticleData.class);
 
-            // Ensure documentId is populated from Directus 'id' when missing
-            if ((art.getDocumentId() == null || art.getDocumentId().isBlank()) && art.getId() != null) {
-                art.setDocumentId(String.valueOf(art.getId()));
+            // Ensure documentId is populated from Directus 'documentId' or top-level 'id' when missing
+            if ((art.getDocumentId() == null || art.getDocumentId().isBlank())) {
+                if (node.hasNonNull("documentId")) {
+                    art.setDocumentId(node.path("documentId").asText());
+                } else if (art.getId() != null) {
+                    art.setDocumentId(String.valueOf(art.getId()));
+                }
             }
 
-            JsonNode tr = pickTranslation(dataNode.path("translations"), languageCode);
-                        if (tr != null) {
-                            System.out.println("Directus raw article node: " + tr.toString());
+            JsonNode tr = pickTranslation(node.path("translations"), languageCode);
+            if (tr != null) {
+                System.out.println("Directus raw article node: " + tr.toString());
+                // Prefer translation-level documentId if present
+                if (!tr.path("documentId").isMissingNode() && !tr.path("documentId").isNull()) {
+                    art.setDocumentId(tr.path("documentId").asText(null));
+                }
                 art.setTitle(tr.path("title").asText(art.getTitle()));
                 art.setSubtitle(tr.path("subtitle").asText(art.getSubtitle()));
                 // content may be textual or an object; preserve as string
@@ -507,18 +518,17 @@ public class DirectusService {
                     }
                 } else {
                     // Fallbacks: try top-level content or legacy 'article' field
-                    JsonNode topContent = dataNode.isArray() && dataNode.size() > 0 ? dataNode.get(0).path("content") : dataNode.path("content");
+                    JsonNode topContent = node.path("content");
                     if (!topContent.isMissingNode() && !topContent.isNull()) {
                         art.setContent(topContent.isTextual() ? topContent.asText() : topContent.toString());
                     } else {
-                                            JsonNode legacy = dataNode.path("article");
+                        JsonNode legacy = node.path("article");
                         if (!legacy.isMissingNode() && !legacy.isNull()) {
                             art.setContent(legacy.isTextual() ? legacy.asText() : legacy.toString());
                         }
                     }
                 }
                 art.setLocale(tr.path("languages_code").asText(languageCode));
-
                 JsonNode seoNode = tr.path("seo");
                 if (!seoNode.isMissingNode() && !seoNode.isNull()) {
                     try {
