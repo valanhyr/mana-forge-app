@@ -413,6 +413,27 @@ public class DirectusService {
 
         JsonNode dataNode = fetchFromDirectus("api/items/formats", query, locale);
 
+        // If not found by mongo_id, try fallback queries: by slug or by Directus numeric id
+        if (dataNode == null || !dataNode.isArray() || dataNode.size() == 0) {
+            // Try by slug
+            String q2 = "fields=id,slug,mongo_id,imageUrl,translations.languages_code,translations.title,translations.subtitle,translations.description,translations.rules";
+            q2 += "&filter[slug][_eq]=" + java.net.URLEncoder.encode(mongoId, java.nio.charset.StandardCharsets.UTF_8);
+            q2 += "&limit=1";
+            JsonNode dataNode2 = fetchFromDirectus("api/items/formats", q2, locale);
+            if (dataNode2 != null && dataNode2.isArray() && dataNode2.size() > 0) {
+                dataNode = dataNode2;
+            } else {
+                // Try by Directus top-level id (numeric)
+                String q3 = "fields=id,slug,mongo_id,imageUrl,translations.languages_code,translations.title,translations.subtitle,translations.description,translations.rules";
+                q3 += "&filter[id][_eq]=" + java.net.URLEncoder.encode(mongoId, java.nio.charset.StandardCharsets.UTF_8);
+                q3 += "&limit=1";
+                JsonNode dataNode3 = fetchFromDirectus("api/items/formats", q3, locale);
+                if (dataNode3 != null && dataNode3.isArray() && dataNode3.size() > 0) {
+                    dataNode = dataNode3;
+                }
+            }
+        }
+
         if (dataNode != null && dataNode.isArray() && dataNode.size() > 0) {
             JsonNode node = dataNode.get(0);
             DirectusFormatData fmt = objectMapper.treeToValue(node, DirectusFormatData.class);
