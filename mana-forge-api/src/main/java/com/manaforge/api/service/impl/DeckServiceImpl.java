@@ -367,7 +367,36 @@ public class DeckServiceImpl implements DeckService {
 
     @Override
     public Map<String, Object> analyzeDeck(Map<String, Object> deckPayload) {
-        return aiService.analyzeDeck(deckPayload);
+        Map<String, Object> analysis = aiService.analyzeDeck(deckPayload);
+        // If AI failed or returned an error object, fallback to a random deck generation or latest deck in DB
+        if (analysis == null || analysis.containsKey("error")) {
+            // Try to generate a random deck (local AI generate) as fallback
+            try {
+                Map<String, Object> random = generateRandomDeck(deckPayload);
+                if (random != null && !random.isEmpty()) {
+                    // Tag response to indicate fallback
+                    random.put("fallback", "random_deck");
+                    return random;
+                }
+            } catch (Exception ignored) {}
+
+            // As last resort, return the most recent public deck from DB as a basic representation
+            List<Deck> publicDecks = deckRepository.findByIsPrivateFalse();
+            if (!publicDecks.isEmpty()) {
+                Deck deck = publicDecks.get(publicDecks.size() - 1);
+                Map<String, Object> resp = new HashMap<>();
+                resp.put("fallback", "latest_public_deck");
+                resp.put("id", deck.getId());
+                resp.put("name", deck.getName());
+                resp.put("formatId", deck.getFormatId());
+                resp.put("cards", deck.getCards());
+                return resp;
+            }
+
+            // Final empty response
+            return Collections.emptyMap();
+        }
+        return analysis;
     }
 
     private static final List<String> SUPPORTED_LOCALES = List.of("es", "en");

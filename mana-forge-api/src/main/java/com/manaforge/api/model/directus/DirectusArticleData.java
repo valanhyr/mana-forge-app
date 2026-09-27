@@ -31,6 +31,13 @@ public class DirectusArticleData implements Serializable {
                     this.content = contentNode.isTextual() ? contentNode.asText() : contentNode.toString();
                 }
                 if (tr.hasNonNull("languages_code")) this.locale = tr.path("languages_code").asText(null);
+                // Prefer a translation-level documentId if provided by Directus translation record
+                if (tr.hasNonNull("documentId")) {
+                    this.documentId = tr.path("documentId").asText(null);
+                } else if (tr.hasNonNull("id")) {
+                    // Some Directus setups store translation id; coerce to string for documentId
+                    this.documentId = tr.path("id").asText(null);
+                }
                 if (tr.hasNonNull("seo")) {
                     try {
                         this.seo = new com.fasterxml.jackson.databind.ObjectMapper()
