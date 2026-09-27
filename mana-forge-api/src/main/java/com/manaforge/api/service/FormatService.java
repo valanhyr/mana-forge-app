@@ -25,6 +25,11 @@ public class FormatService {
         this.directusService = directusService;
     }
 
+    // Backwards-compatible overloads used by older tests/controllers
+    public List<FormatSummaryDto> getAllFormats() {
+        return getAllFormats("es");
+    }
+
     public List<FormatSummaryDto> getAllFormats(String acceptLanguage) {
         try {
             List<DirectusFormatData> formats = directusService.getFormats(acceptLanguage, acceptLanguage);
@@ -37,6 +42,11 @@ public class FormatService {
             logger.error("Error fetching formats from Directus: {}", e.getMessage());
             return Collections.emptyList();
         }
+    }
+
+    // Backwards-compatible overload
+    public FormatDetailDto getFormatByMongoId(String mongoId) {
+        return getFormatByMongoId(mongoId, "es");
     }
 
     public FormatDetailDto getFormatByMongoId(String mongoId, String acceptLanguage) {
