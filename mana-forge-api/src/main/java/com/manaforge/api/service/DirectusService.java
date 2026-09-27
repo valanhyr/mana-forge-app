@@ -366,7 +366,7 @@ public class DirectusService {
     public List<DirectusArticleData> getLatestArticles(String locale, int limit, String acceptLanguage) throws JsonProcessingException {
         // prefer explicit Accept-Language when provided by caller; fallback to locale param
         String languageCode = normalizeLanguageCode(acceptLanguage != null && !acceptLanguage.isBlank() ? acceptLanguage : locale);
-        String query = "fields=id,publishedAt,author,imageUrl,translations.languages_code,translations.title,translations.subtitle,translations.seo,translations.content";
+        String query = "fields=id,documentId,publishedAt,author,imageUrl,translations.languages_code,translations.title,translations.subtitle,translations.seo,translations.content";
         query += "&sort=-publishedAt&limit=" + limit;
         if (languageCode != null) {
             query += "&deep[translations][_filter][languages_code][_eq]=" + languageCode;
@@ -477,7 +477,7 @@ public class DirectusService {
     @Cacheable(value = "article-detail", key = "#documentId + '-' + #locale")
     public DirectusArticleData getArticleByDocumentId(String documentId, String locale, String acceptLanguage) throws JsonProcessingException {
         String languageCode = normalizeLanguageCode(acceptLanguage != null && !acceptLanguage.isBlank() ? acceptLanguage : locale);
-        String query = "fields=id,publishedAt,author,imageUrl,translations.languages_code,translations.title,translations.content";
+        String query = "fields=id,documentId,publishedAt,author,imageUrl,translations.languages_code,translations.title,translations.content";
         if (languageCode != null) {
             query += "&deep[translations][_filter][languages_code][_eq]=" + languageCode;
         }
