@@ -259,11 +259,9 @@ public class DirectusService {
 
     public List<DirectusFormatData> getFormats(String locale, String acceptLanguage) throws JsonProcessingException {
         String languageCode = normalizeLanguageCode(locale);
+        // Always fetch translations (no deep filter) so we can choose the best match in code.
         String query = "fields=id,slug,mongo_id,imageUrl,translations.languages_code,translations.title,"
                 + "translations.subtitle,translations.description,translations.rules";
-        if (languageCode != null) {
-            query += "&deep[translations][_filter][languages_code][_eq]=" + languageCode;
-        }
         JsonNode dataNode = fetchFromDirectus("api/items/formats", query, acceptLanguage);
 
         List<DirectusFormatData> formats = new ArrayList<>();
