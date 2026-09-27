@@ -395,16 +395,38 @@ public class DirectusService {
      */
     @Cacheable(value = "format-detail", key = "#mongoId + '-' + #locale")
     public DirectusFormatData getFormatByMongoId(String mongoId, String locale) throws JsonProcessingException {
-        String query = "filter[mongo_id][_eq]=" + mongoId;
-        
-        if (locale != null) {
-            query += "&filter[locale][_eq]=" + locale;
+        if (mongoId == null || mongoId.isBlank()) return null;
+
+        String languageCode = normalizeLanguageCode(locale);
+        // Use the same fields as getFormats so mapping is consistent
+        String query = "fields=id,slug,mongo_id,imageUrl,translations.languages_code,translations.title,"
+                + "translations.subtitle,translations.description,translations.rules";
+
+        // Filter by mongo_id (URL-escape) and limit to 1
+        query += "&filter[mongo_id][_eq]=" + java.net.URLEncoder.encode(mongoId, java.nio.charset.StandardCharsets.UTF_8);
+        query += "&limit=1";
+
+        // If a language is requested, prefer filtering translations server-side for efficiency
+        if (languageCode != null) {
+            query += "&deep[translations][_filter][languages_code][_eq]=" + languageCode;
         }
 
-        JsonNode dataNode = fetchFromDirectus("api/items/formats", query);
+        JsonNode dataNode = fetchFromDirectus("api/items/formats", query, locale);
 
         if (dataNode != null && dataNode.isArray() && dataNode.size() > 0) {
-            return objectMapper.treeToValue(dataNode.get(0), DirectusFormatData.class);
+            JsonNode node = dataNode.get(0);
+            DirectusFormatData fmt = objectMapper.treeToValue(node, DirectusFormatData.class);
+
+            JsonNode translation = pickTranslation(node.path("translations"), languageCode);
+            if (translation != null) {
+                fmt.setTitle(translation.path("title").asText(null));
+                fmt.setSubtitle(translation.path("subtitle").asText(null));
+                String lang = translation.path("languages_code").asText(null);
+                fmt.setLocale(lang != null ? lang : languageCode);
+                fmt.setSection(buildSections(translation));
+            }
+
+            return fmt;
         }
         return null;
     }
