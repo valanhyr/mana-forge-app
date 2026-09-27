@@ -12,6 +12,7 @@ import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.web.client.RestClient;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -326,17 +327,68 @@ public class DirectusService {
      */
     private List<DirectusComponent> buildSections(JsonNode translation) {
         List<DirectusComponent> sections = new ArrayList<>();
-        for (String blockName : List.of("description", "rules")) {
-            JsonNode block = translation.path(blockName);
-            if (block.isMissingNode() || block.isNull()) {
-                continue;
-            }
+
+        // Handle 'description' block: may be a string or an object
+        JsonNode descNode = translation.path("description");
+        if (!descNode.isMissingNode() && !descNode.isNull()) {
             try {
-                sections.add(objectMapper.treeToValue(block, DirectusComponent.class));
+                if (descNode.isTextual()) {
+                    DirectusComponent comp = new DirectusComponent();
+                    comp.setName("description");
+                    comp.setTitle(null);
+                    comp.setDescription(descNode.asText());
+                    comp.setRules(Collections.emptyList());
+                    sections.add(comp);
+                } else {
+                    sections.add(objectMapper.treeToValue(descNode, DirectusComponent.class));
+                }
             } catch (JsonProcessingException ignored) {
-                // skip malformed block
+                // skip malformed description
             }
         }
+
+        // Handle 'rules' block: can be array of strings or array of objects
+        JsonNode rulesNode = translation.path("rules");
+        if (!rulesNode.isMissingNode() && !rulesNode.isNull()) {
+            try {
+                DirectusComponent rulesComp = new DirectusComponent();
+                rulesComp.setName("rules");
+                rulesComp.setTitle(null);
+                rulesComp.setDescription(null);
+
+                List<DirectusComponent.DirectusRule> ruleList = new ArrayList<>();
+                if (rulesNode.isArray()) {
+                    int idx = 1;
+                    for (JsonNode rn : rulesNode) {
+                        if (rn.isTextual()) {
+                            DirectusComponent.DirectusRule r = new DirectusComponent.DirectusRule();
+                            r.setId(idx++);
+                            r.setText(rn.asText());
+                            ruleList.add(r);
+                        } else if (rn.isObject()) {
+                            // Try to map object to DirectusRule
+                            try {
+                                DirectusComponent.DirectusRule r = objectMapper.treeToValue(rn, DirectusComponent.DirectusRule.class);
+                                // If id is zero/unset, assign sequential id
+                                if (r.getId() == 0) {
+                                    r.setId(idx++);
+                                }
+                                ruleList.add(r);
+                            } catch (JsonProcessingException ignored) {
+                                // skip malformed rule object
+                            }
+                        }
+                    }
+                }
+                rulesComp.setRules(ruleList);
+                if (!ruleList.isEmpty()) {
+                    sections.add(rulesComp);
+                }
+            } catch (Exception ignored) {
+                // skip malformed rules block
+            }
+        }
+
         return sections;
     }
 
