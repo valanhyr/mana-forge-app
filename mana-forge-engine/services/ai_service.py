@@ -66,8 +66,13 @@ class AIService:
             self.provider = "google"
             self.client = OpenAI(api_key=google_key, base_url="https://generativelanguage.googleapis.com/v1beta/openai/")
             env_model = os.environ.get("GOOGLE_MODEL")
-            self.model = env_model if env_model else "gemini-2.5-flash"
-            logger.info("Using Google Gemini model: %s", self.model)
+            if env_model:
+                self.model = env_model
+                logger.info("Using Google Gemini model: %s", self.model)
+            else:
+                # Do not assume an available Gemini model by default. Require explicit configuration
+                self.model = None
+                logger.error("GOOGLE_MODEL not set — no default Gemini model will be used. Set GOOGLE_MODEL to a model you have access to.")
         elif groq_key and AsyncGroq is not None:
             self.provider = "groq"
             self.client = AsyncGroq(api_key=groq_key)
