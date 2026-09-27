@@ -117,8 +117,8 @@ const FormatDetail = () => {
           );
 
           if (formatSummary) {
-            // 3. Usamos el mongoId para obtener el detalle
-            const result = await FormatService.getCMSFormatDetail(formatSummary.mongoId);
+          // 3. Usamos el slug para obtener el detalle (más estable que mongoId)
+          const result = await FormatService.getCMSFormatDetail(formatSummary.slug);
             if (result) {
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
             setData(result as any);

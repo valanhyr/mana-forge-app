@@ -30,8 +30,8 @@ public class FormatController {
     }
 
     @GetMapping
-    public ResponseEntity<List<FormatSummaryDto>> getAllFormats() {
-        return ResponseEntity.ok(formatService.getAllFormats());
+    public ResponseEntity<List<FormatSummaryDto>> getAllFormats(@RequestHeader(value = "Accept-Language", required = false) String acceptLanguage) {
+        return ResponseEntity.ok(formatService.getAllFormats(acceptLanguage));
     }
 
     @DeleteMapping("/cache")
@@ -42,8 +42,9 @@ public class FormatController {
     }
 
     @GetMapping("/{mongoId}")
-    public ResponseEntity<FormatDetailDto> getFormatById(@PathVariable String mongoId) {
-        FormatDetailDto format = formatService.getFormatByMongoId(mongoId);
+    public ResponseEntity<FormatDetailDto> getFormatById(@PathVariable String mongoId,
+                                                         @RequestHeader(value = "Accept-Language", required = false) String acceptLanguage) {
+        FormatDetailDto format = formatService.getFormatByMongoId(mongoId, acceptLanguage);
         if (format == null) {
             return ResponseEntity.notFound().build();
         }

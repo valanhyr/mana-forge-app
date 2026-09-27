@@ -25,9 +25,9 @@ public class FormatService {
         this.directusService = directusService;
     }
 
-    public List<FormatSummaryDto> getAllFormats() {
+    public List<FormatSummaryDto> getAllFormats(String acceptLanguage) {
         try {
-            List<DirectusFormatData> formats = directusService.getFormats("es");
+            List<DirectusFormatData> formats = directusService.getFormats(acceptLanguage, acceptLanguage);
             logger.info("Found {} formats from Directus", formats.size());
             
             return formats.stream()
@@ -39,9 +39,9 @@ public class FormatService {
         }
     }
 
-    public FormatDetailDto getFormatByMongoId(String mongoId) {
+    public FormatDetailDto getFormatByMongoId(String mongoId, String acceptLanguage) {
         try {
-            DirectusFormatData data = directusService.getFormatByMongoId(mongoId, "es");
+            DirectusFormatData data = directusService.getFormatByMongoId(mongoId, acceptLanguage);
             
             if (data == null) return null;
             
