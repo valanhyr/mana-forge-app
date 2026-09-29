@@ -1,0 +1,19 @@
+{
+  "slug": "duel-commander",
+  "name": "Duel Commander",
+  "locale": "en",
+  "subtitle_short": "1v1 Commander format",
+  "description": "One-vs-one Commander variant (also French EDH) using a 100-card singleton deck built around a Commander. Emphasizes competitive 1v1 play with ban lists and specialized timing rules.",
+  "rules_summary": "100-card singleton; one-vs-one play; commander color identity; format-specific ban list.",
+  "main_rules": [
+    "Commander color identity",
+    "100 cards including the Commander",
+    "Singleton (max 1 copy non-basic)",
+    "One-vs-one match structure",
+    "Format ban list"
+  ],
+  "recommended_archetypes": ["Tempo","Control","Combo","Aggro"],
+  "allowed_sets": ["Most printed sets unless restricted"],
+  "ban_list_example": [],
+  "tags": ["duel","commander","1v1"]
+}

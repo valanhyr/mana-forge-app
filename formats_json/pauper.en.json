@@ -1,0 +1,19 @@
+{
+  "slug": "pauper",
+  "name": "Pauper",
+  "locale": "en",
+  "subtitle_short": "Commons-only constructed",
+  "description": "Constructed format where decks may only include cards printed at common rarity in a supported set. Typically 60-card minimum main decks with a 15-card sideboard; focuses on affordable, skill-intensive gameplay.",
+  "rules_summary": "60-card minimum; only commons (in supported printings); 15-card sideboard; format ban list may apply.",
+  "main_rules": [
+    "60-card minimum",
+    "Only common rarity cards allowed (supported printings)",
+    "Up to four copies of a card unless restricted",
+    "Sideboard: 15 cards",
+    "Format ban list"
+  ],
+  "recommended_archetypes": ["Mono-Blue Delver","Affinity (common-only variants)","Burn","Control"],
+  "allowed_sets": ["Sets where a card was printed at common rarity"],
+  "ban_list_example": [],
+  "tags": ["constructed","pauper","commons"]
+}

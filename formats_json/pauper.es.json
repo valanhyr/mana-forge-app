@@ -1,0 +1,19 @@
+{
+  "slug": "pauper",
+  "name": "Pauper",
+  "locale": "es",
+  "subtitle_short": "Formato solo comunes",
+  "description": "Formato construido donde solo se permiten cartas impresas en rareza común en impresiones válidas. Mazo mínimo 60 cartas y sideboard de 15; formato económico y centrado en la habilidad del jugador.",
+  "rules_summary": "60 cartas mínimo; solo cartas comunes (en impresiones válidas); sideboard de 15; lista de prohibidas del formato.",
+  "main_rules": [
+    "60 cartas mínimo",
+    "Solo cartas de rareza común (impresiones válidas)",
+    "Hasta cuatro copias salvo restricciones",
+    "Sideboard: 15 cartas",
+    "Lista de prohibidas del formato"
+  ],
+  "recommended_archetypes": ["Mono-Blue Delver","Affinity (variantes comunes)","Burn","Control"],
+  "allowed_sets": ["Sets donde la carta fue impresa como común"],
+  "ban_list_example": [],
+  "tags": ["constructed","pauper","comunes"]
+}

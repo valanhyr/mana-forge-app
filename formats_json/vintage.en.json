@@ -1,0 +1,19 @@
+{
+  "slug": "vintage",
+  "name": "Vintage",
+  "locale": "en",
+  "subtitle_short": "King of powerful formats",
+  "description": "Vintage is a constructed format with the largest legal card pool in Magic, allowing nearly all printed cards but enforcing a restricted list (some cards limited to a single copy per deck) and a small banned list. Because of the allowance of the most powerful cards, Vintage games often involve fast, high-power plays and deep strategy regarding resource management and restriction choices. Tournaments typically follow a strict policy for ante/restricted card handling and judge oversight.",
+  "rules_summary": "60-card minimum main deck; 15-card sideboard allowed; most cards legal but some are restricted (limit 1) and a few are banned; adhere to Vintage restricted list and tournament rules.",
+  "main_rules": [
+    "Deck construction: minimum 60 cards.",
+    "Restricted list: certain cards are limited to one copy per deck (the Vintage restricted list).",
+    "Card legality: nearly all printed cards are legal unless explicitly banned or restricted.",
+    "Banned list: very small; restricted list is the primary balancing mechanism.",
+    "Tournament play: strict judge enforcement due to complexity and power level."
+  ],
+  "recommended_archetypes": ["Shop (Artifact-based)","High Tide","Goblins","Oath","Reanimator"],
+  "allowed_sets": ["All printed Magic sets except those explicitly excluded"],
+  "ban_list_example": ["Chaos Orb","Contract from Below"],
+  "tags": ["constructed","vintage"]
+}

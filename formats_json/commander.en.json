@@ -1,0 +1,20 @@
+{
+  "slug": "commander",
+  "name": "Commander",
+  "locale": "en",
+  "subtitle_short": "Multiplayer social format",
+  "description": "Multiplayer format built around a Commander card. Decks are 100 cards, singleton (except basic lands), with color identity and commander-damage rules and a separate ban list.",
+  "rules_summary": "100-card singleton; color identity limits; commander damage (21); multiplayer; format-specific ban list.",
+  "main_rules": [
+    "Commander color identity",
+    "100 cards including the Commander",
+    "Singleton (max 1 copy of non-basic cards)",
+    "Commander damage (21)",
+    "Multiplayer focus",
+    "Format ban list"
+  ],
+  "recommended_archetypes": ["Voltron","Token","Stax","Combo","Group Hug"],
+  "allowed_sets": ["Most printed sets unless card-specific restrictions apply"],
+  "ban_list_example": ["Primeval Titan","Griselbrand"],
+  "tags": ["multiplayer","commander","singleton"]
+}

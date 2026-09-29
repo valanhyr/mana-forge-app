@@ -1,0 +1,19 @@
+{
+  "slug": "duel-commander",
+  "name": "Duel Commander",
+  "locale": "es",
+  "subtitle_short": "Formato 1v1 de Commander",
+  "description": "Variante uno contra uno de Commander con mazos singleton de 100 cartas centrados en un Comandante. Enfatiza juego competitivo 1v1 con listas de prohibidas y reglas de tiempo específicas.",
+  "rules_summary": "100 cartas singleton; juego 1v1; identidad de color del comandante; lista de prohibidas del formato.",
+  "main_rules": [
+    "Identidad de color del Comandante",
+    "100 cartas incluyendo el Comandante",
+    "Singleton (máx. 1 copia no básica)",
+    "Estructura 1v1",
+    "Lista de prohibidas del formato"
+  ],
+  "recommended_archetypes": ["Tempo","Control","Combo","Aggro"],
+  "allowed_sets": ["La mayoría de sets impresos salvo restricciones"],
+  "ban_list_example": [],
+  "tags": ["duel","commander","1v1"]
+}

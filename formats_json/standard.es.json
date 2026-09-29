@@ -1,0 +1,19 @@
+{
+  "slug": "standard",
+  "name": "Standard",
+  "locale": "es",
+  "subtitle_short": "Rotación competitiva actual",
+  "description": "Formato rotatorio que usa los sets más recientes. Mínimo 60 cartas, sideboard de 15 y rotación periódica para renovar el pool de cartas.",
+  "rules_summary": "Mínimo 60 cartas en el mazo principal; sideboard de 15 permitido; solo los sets recientes según el calendario de rotación son legales.",
+  "main_rules": [
+    "60 cartas mínimo",
+    "Sideboard de 15 permitido",
+    "Rotación de sets",
+    "Lista pequeña de prohibidas",
+    "Amplio soporte en torneos"
+  ],
+  "recommended_archetypes": ["Mono-Red Aggro","Esper Control","Ramp","Midrange"],
+  "allowed_sets": ["Core and expansion sets in current rotation"],
+  "ban_list_example": ["Example banned card"],
+  "tags": ["constructed","standard","rotating"]
+}

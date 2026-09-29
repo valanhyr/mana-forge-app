@@ -1,0 +1,19 @@
+{
+  "slug": "premodern",
+  "name": "Premodern",
+  "locale": "en",
+  "subtitle_short": "Old-school constructed format",
+  "description": "Constructed format using cards printed up through Urza's Saga; 60-card minimum, optional 15-card sideboard, and a format-specific ban list.",
+  "rules_summary": "60-card minimum; 15-card sideboard; set legality up to Urza's Saga; follow the Premodern ban list.",
+  "main_rules": [
+    "60-card minimum",
+    "15-card sideboard allowed",
+    "Set legality: up to Urza's Saga",
+    "Format ban list",
+    "Tournament: best-of-three"
+  ],
+  "recommended_archetypes": ["Aluren Combo","Reanimator","Burn","Affinity","Aggro-Control"],
+  "allowed_sets": ["Alpha","Beta","Unlimited","Revised","Arabian Nights","Antiquities","Legends","Urza's Saga"],
+  "ban_list_example": ["Black Lotus","Ancestral Recall","Time Walk"],
+  "tags": ["constructed","premodern"]
+}

@@ -1,0 +1,18 @@
+{
+  "slug": "vintage",
+  "name": "Vintage",
+  "locale": "es",
+  "description": "Vintage es un formato construido con el pool de cartas más amplio de Magic, permitiendo casi todas las cartas impresas pero aplicando una lista de restringidas (algunas cartas limitadas a una copia por mazo) y una pequeña lista de prohibidas. Dado el uso de cartas extremadamente potentes, las partidas de Vintage suelen presentar jugadas rápidas y de alto impacto, y requieren estrategias profundas sobre gestión de recursos y decisiones de restricción. Los torneos tienen políticas estrictas sobre cartas restringidas y supervisión de jueces.",
+  "rules_summary": "Mínimo 60 cartas en el mazo principal; sideboard de 15 permitido; la mayoría de cartas son legales pero algunas están restringidas (1 copia) y pocas están prohibidas; respetar la lista de restringidas de Vintage.",
+  "main_rules": [
+    "60 cartas mínimo",
+    "Lista de restringidas (1 copia)",
+    "Pool de cartas muy amplio",
+    "Pocas cartas prohibidas",
+    "Juego de torneo de alto poder"
+  ],
+  "recommended_archetypes": ["Shop (basado en artefactos)","High Tide","Goblins","Oath","Reanimator"],
+  "allowed_sets": ["Todas las ediciones impresas de Magic excepto las explícitamente excluidas"],
+  "ban_list_example": ["Chaos Orb","Contract from Below"],
+  "tags": ["constructed","vintage"]
+}

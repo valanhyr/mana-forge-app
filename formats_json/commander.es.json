@@ -1,0 +1,20 @@
+{
+  "slug": "commander",
+  "name": "Commander",
+  "locale": "es",
+  "subtitle_short": "Formato social multijugador",
+  "description": "Formato multijugador centrado en un Comandante. Mazo de 100 cartas, singleton (excepto tierras básicas), con identidad de color, daño por comandante (21) y lista de prohibidas.",
+  "rules_summary": "Mazo de 100 cartas singleton; la identidad de color del comandante restringe las cartas permitidas; lista de prohibidas propia; formato enfocado a multijugador.",
+  "main_rules": [
+    "Identidad de color del Comandante",
+    "100 cartas incluyendo el Comandante",
+    "Singleton (máx. 1 copia de cartas no básicas)",
+    "Daño del comandante (21)",
+    "Enfoque multijugador",
+    "Lista de prohibidas del formato"
+  ],
+  "recommended_archetypes": ["Voltron","Token Swarm","Stax","Combo","Group Hug"],
+  "allowed_sets": ["La mayoría de sets impresos salvo restricciones específicas; existen lanzamientos enfocados a Commander"],
+  "ban_list_example": ["Primeval Titan (ejemplo)","Griselbrand (ejemplo)"],
+  "tags": ["multiplayer","commander","casual","singleton"]
+}

@@ -1,0 +1,19 @@
+{
+  "slug": "legacy",
+  "name": "Legacy",
+  "locale": "en",
+  "subtitle_short": "Historic high-powered format",
+  "description": "Constructed format with a near-complete card pool; 60-card minimum, 15-card sideboard, and a Legacy banned list to restrict certain cards.",
+  "rules_summary": "60-card minimum; 15-card sideboard; broad card pool with Legacy ban list.",
+  "main_rules": [
+    "60-card minimum",
+    "15-card sideboard",
+    "Near-complete card pool",
+    "Format ban list",
+    "Tournament play and judge calls"
+  ],
+  "recommended_archetypes": ["Delver","Sneak and Show","Storm","Death and Taxes","Merfolk"],
+  "allowed_sets": ["Most printed Magic sets"],
+  "ban_list_example": ["Braids, Cabal Minion","Venser, Shaper Savant"],
+  "tags": ["constructed","legacy"]
+}

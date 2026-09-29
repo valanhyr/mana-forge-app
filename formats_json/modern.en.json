@@ -1,0 +1,19 @@
+{
+  "slug": "modern",
+  "name": "Modern",
+  "locale": "en",
+  "subtitle_short": "Modern competitive format",
+  "description": "Constructed format with cards from Eighth Edition onward (with exceptions). 60-card minimum, 15-card sideboard, and a Modern ban list.",
+  "rules_summary": "60-card minimum; up to four copies per card (except basics); 15-card sideboard; Modern ban list.",
+  "main_rules": [
+    "60-card minimum",
+    "Up to four copies of a card",
+    "15-card sideboard",
+    "Card legality since Eighth Edition",
+    "Format ban list"
+  ],
+  "recommended_archetypes": ["Burn","Tron","Jund","Affinity","Control"],
+  "allowed_sets": ["Eighth Edition","Mirrodin","Scars of Mirrodin","..."],
+  "ban_list_example": ["Gifts Ungiven","Karn Liberated"],
+  "tags": ["constructed","modern"]
+}

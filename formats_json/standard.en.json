@@ -1,0 +1,19 @@
+{
+  "slug": "standard",
+  "name": "Standard",
+  "locale": "en",
+  "subtitle_short": "Current competitive rotation",
+  "description": "Rotating constructed format using the most recent sets. 60-card minimum, 15-card sideboard, and periodic rotation to refresh the card pool.",
+  "rules_summary": "60-card minimum; 15-card sideboard; rotation limits legality; small banned list for health.",
+  "main_rules": [
+    "60-card minimum",
+    "15-card sideboard",
+    "Rotating set legality",
+    "Small banned list",
+    "Tournament support"
+  ],
+  "recommended_archetypes": ["Mono-Red Aggro","Esper Control","Ramp","Midrange"],
+  "allowed_sets": ["Most recent core and expansion sets per the current rotation"],
+  "ban_list_example": ["Hash Nexus Example Card"],
+  "tags": ["constructed","standard","rotating"]
+}

@@ -1,0 +1,19 @@
+{
+  "slug": "pauper-commander",
+  "name": "Pauper Commander",
+  "locale": "en",
+  "subtitle_short": "Commander at common rarity",
+  "description": "Commander-style format where the deck and Commander must be cards printed at common rarity (in supported printings). Decks are 100 cards, singleton rules apply, offering a budget Commander experience.",
+  "rules_summary": "100-card singleton; Commander and deck cards must have common printings; commander color identity applies; format-specific ban list may exist.",
+  "main_rules": [
+    "Commander color identity",
+    "100 cards including Commander",
+    "Singleton (max 1 non-basic copy)",
+    "All cards must have been printed at common rarity",
+    "Format ban list"
+  ],
+  "recommended_archetypes": ["Mono-Color Aggro","Token","Budget Combo"],
+  "allowed_sets": ["Sets where a card had a common printing"],
+  "ban_list_example": [],
+  "tags": ["commander","pauper","singleton"]
+}

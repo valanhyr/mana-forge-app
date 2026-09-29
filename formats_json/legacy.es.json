@@ -1,0 +1,19 @@
+{
+  "slug": "legacy",
+  "name": "Legacy",
+  "locale": "es",
+  "subtitle_short": "Formato histórico de alto poder",
+  "description": "Formato construido con acceso a la mayoría de cartas impresas; mínimo 60 cartas, sideboard opcional de 15 y lista de prohibidas para limitar cartas específicas.",
+  "rules_summary": "60 cartas mínimo en mazo principal; sideboard de 15 cartas permitido; amplio pool de cartas con lista de prohibidas propia; seguir normas de torneo.",
+  "main_rules": [
+    "60 cartas mínimo",
+    "Sideboard de 15 permitido",
+    "Pool de cartas amplio",
+    "Lista de prohibidas del formato",
+    "Juego de torneo avanzado"
+  ],
+  "recommended_archetypes": ["Blue-Red Delver","Sneak and Show","Storm","Death and Taxes","Merfolk"],
+  "allowed_sets": ["Todas las ediciones impresas de Magic excepto las explícitamente excluidas por la lista de prohibidas"],
+  "ban_list_example": ["Braids, Cabal Minion","Venser, Shaper Savant"],
+  "tags": ["constructed","legacy"]
+}

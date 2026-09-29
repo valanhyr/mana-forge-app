@@ -1,0 +1,19 @@
+{
+  "slug": "modern",
+  "name": "Modern",
+  "locale": "es",
+  "subtitle_short": "Formato competitivo moderno",
+  "description": "Formato construido con cartas desde Octava Edición en adelante (con excepciones). Mínimo 60 cartas, sideboard de 15 y lista de prohibidas para equilibrar el formato.",
+  "rules_summary": "Mínimo 60 cartas en el mazo principal; sideboard de 15 cartas; cartas legales impresas desde Octava Edición hacia adelante salvo excepciones; usar la lista de prohibidas oficial de Modern.",
+  "main_rules": [
+    "60 cartas mínimo",
+    "Hasta cuatro copias por carta",
+    "Sideboard de 15 permitido",
+    "Legalidad: desde Octava Edición",
+    "Lista de prohibidas del formato"
+  ],
+  "recommended_archetypes": ["Burn","Tron","Jund","Affinity","Control"],
+  "allowed_sets": ["Eighth Edition","Mirrodin","Scars of Mirrodin","..."],
+  "ban_list_example": ["Gifts Ungiven","Karn Liberated"],
+  "tags": ["constructed","modern"]
+}

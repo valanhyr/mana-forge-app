@@ -1,0 +1,19 @@
+{
+  "slug": "pauper-commander",
+  "name": "Pauper Commander",
+  "locale": "es",
+  "subtitle_short": "Commander con comunes",
+  "description": "Variante de Commander donde el Comandante y las cartas del mazo deben haber sido impresas como comunes. Mazo de 100 cartas, reglas singleton, ofreciendo una experiencia Commander económica.",
+  "rules_summary": "100 cartas singleton; Comandante y cartas del mazo con impresiones comunes; identidad de color del comandante; posible lista de prohibidas.",
+  "main_rules": [
+    "Identidad de color del Comandante",
+    "100 cartas incluyendo el Comandante",
+    "Singleton (máx. 1 copia no básica)",
+    "Todas las cartas deben haber sido impresas como comunes",
+    "Lista de prohibidas del formato"
+  ],
+  "recommended_archetypes": ["Aggro mono-color","Token","Combo económico"],
+  "allowed_sets": ["Sets donde la carta tuvo impresión común"],
+  "ban_list_example": [],
+  "tags": ["commander","pauper","comunes"]
+}
