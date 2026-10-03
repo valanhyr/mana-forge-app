@@ -1,4 +1,45 @@
-# Mana Forge – Copilot Instructions
+# Mana Forge – Agent Instructions
+
+## Project Overview
+
+**Mana Forge** is a Magic: The Gathering deck analysis platform focused on the **Premodern** format. It is a monorepo with three independent services that communicate over HTTP/REST.
+
+| Service | Tech | Port |
+|---|---|---|
+| `mana-forge-web` | React 19 + TypeScript + Vite + Tailwind CSS 4 | 5173 (dev) / 80 (prod) |
+| `mana-forge-api` | Spring Boot 4 + Java 25 + Maven | 8080 |
+| `mana-forge-engine` | FastAPI + Python 3.11 + Groq (Llama 3.3) | 8000 |
+
+---
+
+## Purpose
+
+This file documents repository conventions and expectations for automated agents or programmatic tooling (CI agents, AI assistants, local automation). It is intentionally tool-agnostic: avoid referencing a specific assistant implementation.
+
+## Build, Dev & Lint Commands
+
+(unchanged; keep per-service run instructions here — maintainers should update when tooling changes)
+
+---
+
+## Architecture & Conventions
+
+(unchanged core architecture details remain useful; keep sections that describe request flow, caching, i18n patterns, and API client conventions)
+
+---
+
+## Agenting conventions (new)
+
+- Be tool-agnostic: specify behaviour and constraints, not a platform name.
+- Make minimal, surgical changes and include tests/validation when applicable.
+- Prefer creating issues or draft PRs for high-risk changes instead of unreviewed edits.
+- Respect secrets: never hardcode credentials; use environment variables or configured secret stores.
+- Follow repository-specific instruction files (CLAUDE.md, GEMINI.md, AGENTS.md, .github/instructions/*) for additional guidance.
+
+---
+
+## Contact
+For questions about conventions or agent behavior, see the repository README or ask @valanhyr.
 
 ## Project Overview
 
