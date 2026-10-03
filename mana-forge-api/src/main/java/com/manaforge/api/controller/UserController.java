@@ -101,6 +101,18 @@ public class UserController extends BaseMongoController<User, String> {
                 .build();
     }
 
+    /**
+     * El nombre visible es opcional en el registro. Si viene vacío o en blanco,
+     * se usa el username como fallback para que las plantillas de email y la UI
+     * nunca impriman un {@code null}.
+     */
+    private String normalizeName(String name, String username) {
+        if (name == null || name.isBlank()) {
+            return username;
+        }
+        return name.trim();
+    }
+
     private String normalizeAvatar(String avatar) {
         if (avatar == null || avatar.isBlank()) {
             return User.DEFAULT_AVATAR;
@@ -135,6 +147,7 @@ public class UserController extends BaseMongoController<User, String> {
         if (userRepository.findByUsername(user.getUsername()).isPresent()) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "El nombre de usuario ya está en uso");
         }
+        user.setName(normalizeName(user.getName(), user.getUsername()));
         String encryptedEmail = emailEncryptionService.encrypt(user.getEmail());
         if (userRepository.findByEmail(encryptedEmail).isPresent()) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "El correo electrónico ya está registrado");

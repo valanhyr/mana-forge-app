@@ -106,6 +106,51 @@ class UserControllerTest {
     }
 
     @Test
+    void createUser_withoutName_fallsBackToUsername() throws Exception {
+        when(emailEncryptionService.encrypt("new@example.com")).thenReturn("ENC_new");
+        when(userRepository.findByUsername("newuser")).thenReturn(Optional.empty());
+        when(userRepository.findByEmail("ENC_new")).thenReturn(Optional.empty());
+        when(userRepository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        mockMvc.perform(post("/api/users")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"username\":\"newuser\",\"password\":\"pass123\",\"email\":\"new@example.com\"}"))
+                .andExpect(status().is2xxSuccessful());
+
+        verify(userRepository).save(argThat(u -> "newuser".equals(u.getName())));
+    }
+
+    @Test
+    void createUser_withBlankName_fallsBackToUsername() throws Exception {
+        when(emailEncryptionService.encrypt("new@example.com")).thenReturn("ENC_new");
+        when(userRepository.findByUsername("newuser")).thenReturn(Optional.empty());
+        when(userRepository.findByEmail("ENC_new")).thenReturn(Optional.empty());
+        when(userRepository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        mockMvc.perform(post("/api/users")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"name\":\"   \",\"username\":\"newuser\",\"password\":\"pass123\",\"email\":\"new@example.com\"}"))
+                .andExpect(status().is2xxSuccessful());
+
+        verify(userRepository).save(argThat(u -> "newuser".equals(u.getName())));
+    }
+
+    @Test
+    void createUser_withExplicitName_keepsIt() throws Exception {
+        when(emailEncryptionService.encrypt("new@example.com")).thenReturn("ENC_new");
+        when(userRepository.findByUsername("newuser")).thenReturn(Optional.empty());
+        when(userRepository.findByEmail("ENC_new")).thenReturn(Optional.empty());
+        when(userRepository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        mockMvc.perform(post("/api/users")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"name\":\"Nuevo Usuario\",\"username\":\"newuser\",\"password\":\"pass123\",\"email\":\"new@example.com\"}"))
+                .andExpect(status().is2xxSuccessful());
+
+        verify(userRepository).save(argThat(u -> "Nuevo Usuario".equals(u.getName())));
+    }
+
+    @Test
     void createUser_emailIsEncryptedBeforePersisting() throws Exception {
         when(emailEncryptionService.encrypt("new@example.com")).thenReturn("ENC_new");
         when(userRepository.findByUsername("newuser")).thenReturn(Optional.empty());

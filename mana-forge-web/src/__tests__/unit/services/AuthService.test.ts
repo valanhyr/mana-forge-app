@@ -39,6 +39,20 @@ describe('AuthService', () => {
       expect(user.userId).toBe(mockUser.userId);
     });
 
+    it('envía el nombre visible al backend', async () => {
+      let captured: Record<string, unknown> = {};
+      server.use(
+        http.post(`${BASE}/users`, async ({ request }) => {
+          captured = (await request.json()) as Record<string, unknown>;
+          return HttpResponse.json(mockUser, { status: 201 });
+        })
+      );
+
+      await AuthService.register('newuser', 'new@example.com', 'pass', 'Nuevo Usuario');
+
+      expect(captured.name).toBe('Nuevo Usuario');
+    });
+
     it('lanza el mensaje del backend si la respuesta no es ok', async () => {
       server.use(
         http.post(`${BASE}/users`, () =>

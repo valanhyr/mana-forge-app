@@ -19,6 +19,7 @@ const AuthModal = ({ isOpen = true, onClose }: AuthModalProps) => {
   const navigate = useNavigate();
   const [isLogin, setIsLogin] = useState(true);
   const [username, setUsername] = useState('');
+  const [displayName, setDisplayName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -44,6 +45,7 @@ const AuthModal = ({ isOpen = true, onClose }: AuthModalProps) => {
     if (!password) return t('auth.error.passwordRequired');
     if (password.length < 6) return t('auth.error.passwordMinLength');
     if (!isLogin) {
+      if (!displayName.trim()) return t('auth.error.displayNameRequired');
       if (!email.trim()) return t('auth.error.emailRequired');
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return t('auth.error.emailInvalid');
       if (!betaAccepted) return t('beta.betaCheckboxRequired');
@@ -69,7 +71,7 @@ const AuthModal = ({ isOpen = true, onClose }: AuthModalProps) => {
           navigate('/');
         }
       } else {
-        await register(username, email, password);
+        await register(username, email, password, displayName.trim());
         setRegisteredEmail(email);
         setRegistrationDone(true);
       }
@@ -89,6 +91,7 @@ const AuthModal = ({ isOpen = true, onClose }: AuthModalProps) => {
     setIsLogin(toLogin);
     setError('');
     setUsername('');
+    setDisplayName('');
     setEmail('');
     setPassword('');
     setBetaAccepted(false);
@@ -179,6 +182,25 @@ const AuthModal = ({ isOpen = true, onClose }: AuthModalProps) => {
                 disabled={isLoading}
               />
             </div>
+
+            {!isLogin && (
+              <div>
+                <label className="block text-sm font-medium text-zinc-500 mb-2">
+                  {t('auth.displayName')}
+                </label>
+                <input
+                  type="text"
+                  className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-orange-500/50 transition-all disabled:opacity-50"
+                  placeholder={t('auth.displayNamePlaceholder')}
+                  value={displayName}
+                  onChange={(e) => {
+                    setDisplayName(e.target.value);
+                    setError('');
+                  }}
+                  disabled={isLoading}
+                />
+              </div>
+            )}
 
             {!isLogin && (
               <div>

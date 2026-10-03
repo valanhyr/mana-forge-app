@@ -32,6 +32,20 @@ const renderLogin = (search = '') =>
     </AllProviders>
   );
 
+// Fuerza locale español para poder afirmar sobre los textos de labels.json
+const switchToRegister = async () => {
+  localStorage.setItem('app_locale', 'es');
+  const user = userEvent.setup();
+  renderLogin();
+  await waitFor(() => screen.getAllByRole('button'));
+  const registerTabBtn = screen
+    .getAllByRole('button')
+    .find((btn) => btn.textContent?.toLowerCase().includes('registrarse'));
+  expect(registerTabBtn).toBeDefined();
+  await user.click(registerTabBtn!);
+  return user;
+};
+
 describe('Login (AuthModal)', () => {
   beforeEach(() => {
     // Por defecto checkSession falla para no auto-redirigir
@@ -100,6 +114,76 @@ describe('Login (AuthModal)', () => {
     }
   });
 
+  it('el campo de nombre visible no aparece en modo login', async () => {
+    localStorage.setItem('app_locale', 'es');
+    renderLogin();
+    await waitFor(() => screen.getAllByRole('textbox'));
+    expect(screen.queryByPlaceholderText('Tu nombre')).not.toBeInTheDocument();
+  });
+
+  it('el formulario de registro pide el nombre visible', async () => {
+    await switchToRegister();
+
+    // El campo de nombre visible solo existe en modo registro
+    expect(screen.getByPlaceholderText('Tu nombre')).toBeInTheDocument();
+  });
+
+  it('exige nombre visible al registrarse', async () => {
+    const user = userEvent.setup();
+    await switchToRegister();
+
+    // Rellena todo menos el nombre visible
+    const textboxes = screen.getAllByRole('textbox');
+    await user.type(textboxes[0], 'newuser');
+    await user.type(screen.getByPlaceholderText('tu@email.com'), 'new@example.com');
+    await user.type(document.querySelector('input[type="password"]') as HTMLElement, 'pass123');
+    await user.click(screen.getByRole('checkbox'));
+
+    const submitBtn = screen
+      .getAllByRole('button')
+      .find((btn) => btn.getAttribute('type') === 'submit');
+    await user.click(submitBtn!);
+
+    await waitFor(() => {
+      expect(screen.getByText(/El nombre visible es obligatorio/)).toBeInTheDocument();
+    });
+  });
+
+  it('registra con nombre visible, usuario, email y contraseña', async () => {
+    const user = userEvent.setup();
+    let captured: Record<string, unknown> = {};
+    server.use(
+      http.post(`${BASE}/users`, async ({ request }) => {
+        captured = (await request.json()) as Record<string, unknown>;
+        return HttpResponse.json(mockUser, { status: 201 });
+      })
+    );
+    await switchToRegister();
+
+    const textboxes = screen.getAllByRole('textbox');
+    await user.type(screen.getByPlaceholderText('Tu nombre'), 'Nuevo Usuario');
+    await user.type(textboxes[0], 'newuser');
+    await user.type(screen.getByPlaceholderText('tu@email.com'), 'new@example.com');
+    await user.type(document.querySelector('input[type="password"]') as HTMLElement, 'pass123');
+    await user.click(screen.getByRole('checkbox'));
+
+    const submitBtn = screen
+      .getAllByRole('button')
+      .find((btn) => btn.getAttribute('type') === 'submit');
+    await user.click(submitBtn!);
+
+    await waitFor(() => {
+      expect(captured).toEqual(
+        expect.objectContaining({
+          name: 'Nuevo Usuario',
+          username: 'newuser',
+          email: 'new@example.com',
+          password: 'pass123',
+        })
+      );
+    });
+  });
+
   it('muestra mensaje de error si el login falla', async () => {
     server.use(http.post(`${BASE}/users/login`, () => new HttpResponse(null, { status: 401 })));
     const user = userEvent.setup();
@@ -155,9 +239,11 @@ describe('Login (AuthModal)', () => {
     renderLogin();
 
     await user.click(screen.getByRole('button', { name: /sign up/i }));
+    // Orden de campos en modo registro: displayName, username, email
     const textboxes = screen.getAllByRole('textbox');
     await user.type(textboxes[0], 'newuser');
-    await user.type(textboxes[1], 'newuser@example.com');
+    await user.type(textboxes[1], 'Nuevo Usuario');
+    await user.type(textboxes[2], 'newuser@example.com');
     const passwordInput = document.querySelector('input[type="password"]');
     expect(passwordInput).toBeTruthy();
     await user.type(passwordInput as HTMLElement, 'secret1');

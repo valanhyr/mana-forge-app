@@ -13,7 +13,7 @@ interface UserContextType {
   isAuthenticated: boolean;
   isSessionLoading: boolean;
   login: (username: string, password: string) => Promise<void>;
-  register: (username: string, email: string, password: string) => Promise<void>;
+  register: (username: string, email: string, password: string, name?: string) => Promise<void>;
   logout: () => Promise<void>;
   updateUser: (user: User) => void;
   loadDecks: (force?: boolean) => Promise<void>;
@@ -75,9 +75,9 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const register = async (username: string, email: string, password: string) => {
+  const register = async (username: string, email: string, password: string, name?: string) => {
     try {
-      await AuthService.register(username, email, password);
+      await AuthService.register(username, email, password, name);
       // No auto-login: user must verify email first
     } catch (error: unknown) {
       console.error('Register error:', error);

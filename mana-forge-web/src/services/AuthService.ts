@@ -30,14 +30,14 @@ export const AuthService = {
     return response.json();
   },
 
-  register: async (username: string, email: string, password: string): Promise<User> => {
+  register: async (username: string, email: string, password: string, name?: string): Promise<User> => {
     const response = await fetch(`${API_URL}/users`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       credentials: 'include',
-      body: JSON.stringify({ username, email, password }),
+      body: JSON.stringify({ username, email, password, name }),
     });
 
     if (!response.ok) {

@@ -58,6 +58,8 @@
       "createAccount": "Crea tu cuenta",
       "username": "Usuario",
       "usernamePlaceholder": "Tu nombre de usuario",
+      "displayName": "Nombre visible",
+      "displayNamePlaceholder": "Tu nombre",
       "email": "Email",
       "emailPlaceholder": "tu@email.com",
       "password": "Contraseña",
@@ -73,6 +75,7 @@
         "passwordMinLength": "La contraseña debe tener al menos 6 caracteres",
         "emailRequired": "El email es obligatorio",
         "emailInvalid": "Introduce un email válido",
+        "displayNameRequired": "El nombre visible es obligatorio",
         "emailNotVerified": "Debes verificar tu correo antes de entrar. Revisa tu bandeja de entrada."
       },
       "errors": {
@@ -580,6 +583,8 @@
       "createAccount": "Create Account",
       "username": "Username",
       "usernamePlaceholder": "Your username",
+      "displayName": "Display name",
+      "displayNamePlaceholder": "Your name",
       "email": "Email",
       "emailPlaceholder": "you@email.com",
       "password": "Password",
@@ -595,6 +600,7 @@
         "passwordMinLength": "Password must be at least 6 characters",
         "emailRequired": "Email is required",
         "emailInvalid": "Please enter a valid email",
+        "displayNameRequired": "Display name is required",
         "emailNotVerified": "Please verify your email before logging in. Check your inbox."
       },
       "verifyEmail": {
