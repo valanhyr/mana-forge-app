@@ -24,22 +24,24 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@WebMvcTest(FormatController.class)
-@Import(SecurityConfig.class)
+import org.junit.jupiter.api.BeforeEach;
+import org.mockito.Mockito;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+
 @ActiveProfiles("test")
 class FormatControllerTest {
 
-    @Autowired
     private MockMvc mockMvc;
 
-    @MockitoBean
-    private FormatRepository formatRepository;
+    private FormatRepository formatRepository = Mockito.mock(FormatRepository.class);
+    private FormatService formatService = Mockito.mock(FormatService.class);
+    private OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler = Mockito.mock(OAuth2LoginSuccessHandler.class);
 
-    @MockitoBean
-    private FormatService formatService;
-
-    @MockitoBean
-    private OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
+    @BeforeEach
+    void setup() {
+        FormatController controller = new FormatController(formatRepository, formatService);
+        mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
+    }
 
     @Test
     void getActiveFormats_returns200WithList() throws Exception {

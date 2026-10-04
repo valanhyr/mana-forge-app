@@ -30,6 +30,9 @@ public class SecurityConfig {
     @Autowired(required = false)
     private SecurityAuthEntryPoint securityAuthEntryPoint;
 
+    @Autowired(required = false)
+    private SessionRevocationFilter sessionRevocationFilter;
+
     /** Production frontend URL (e.g. https://mana-forge.com). Injected from FRONTEND_URL env var. */
     @Value("${services.frontend.url}")
     private String frontendUrl;
@@ -61,6 +64,11 @@ public class SecurityConfig {
                 .successHandler(oAuth2LoginSuccessHandler)
             )
             .logout(logout -> logout.logoutSuccessHandler((req, res, auth) -> res.setStatus(200)));
+
+        if (sessionRevocationFilter != null) {
+            // ensure session revocation check runs after authentication
+            http.addFilterAfter(sessionRevocationFilter, org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class);
+        }
 
         return http.build();
     }

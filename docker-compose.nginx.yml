@@ -1,0 +1,15 @@
+version: '3.8'
+services:
+  nginx:
+    image: nginx:stable
+    container_name: mana-nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./nginx/certs:/etc/nginx/certs:ro
+    restart: unless-stopped
+
+# Note: This compose is focused on the nginx reverse-proxy only. Run your services
+# (frontend, api, engine) locally as usual (or add them here if you prefer).

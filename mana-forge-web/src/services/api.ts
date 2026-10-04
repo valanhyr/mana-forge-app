@@ -13,7 +13,7 @@ api.interceptors.request.use(
     // Leemos directamente del localStorage para evitar problemas de sincronización de estado en el ciclo de vida de React
     const locale = localStorage.getItem('app_locale') || 'es';
 
-    config.headers['Accept-Language'] = locale;
+    if (config.headers) config.headers['Accept-Language'] = locale;
 
     return config;
   },
@@ -21,3 +21,6 @@ api.interceptors.request.use(
     return Promise.reject(error);
   }
 );
+
+export default api;
+

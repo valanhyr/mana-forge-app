@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useCallback } from 'react';
+import { createContext, useContext, useState, useCallback, useEffect } from 'react';
 
 export type ToastType = 'success' | 'error' | 'info';
 
@@ -26,6 +26,18 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       setToasts((prev) => prev.filter((t) => t.id !== id));
     }, 3500);
   }, []);
+
+  // allow global dispatch via window event for simple imports like `import { toast } from '...'
+  const onGlobalToast = (e: Event) => {
+    const detail = (e as CustomEvent).detail as { message: string; type?: ToastType } | undefined;
+    if (detail) showToast(detail.message, detail.type ?? 'info');
+  };
+
+  // register global listener
+  useEffect(() => {
+    window.addEventListener('manaforge:toast', onGlobalToast as EventListener);
+    return () => window.removeEventListener('manaforge:toast', onGlobalToast as EventListener);
+  }, [onGlobalToast]);
 
   const dismiss = (id: number) => setToasts((prev) => prev.filter((t) => t.id !== id));
 
@@ -76,4 +88,17 @@ export const useToast = () => {
   const ctx = useContext(ToastContext);
   if (!ctx) throw new Error('useToast must be used within ToastProvider');
   return ctx;
+};
+
+// simple helper so tests/components can import { toast } directly
+const dispatchToast = (message: string, type: ToastType = 'info') => {
+  const ev = new CustomEvent('manaforge:toast', { detail: { message, type } });
+  if (typeof window !== 'undefined') window.dispatchEvent(ev);
+};
+
+export const toast = {
+  show: (message: string, type: ToastType = 'info') => dispatchToast(message, type),
+  success: (message: string) => dispatchToast(message, 'success'),
+  error: (message: string) => dispatchToast(message, 'error'),
+  info: (message: string) => dispatchToast(message, 'info'),
 };
