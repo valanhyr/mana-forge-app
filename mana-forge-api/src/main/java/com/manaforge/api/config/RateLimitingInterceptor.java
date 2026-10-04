@@ -45,7 +45,7 @@ public class RateLimitingInterceptor implements HandlerInterceptor {
         String ip = resolveClientIp(request);
 
         Bucket bucket = switch (path) {
-            case "/api/users/login" -> loginBuckets.computeIfAbsent(ip, k -> newBucket(LOGIN_CAPACITY));
+            case "/api/users/login", "/api/auth/forgot-password" -> loginBuckets.computeIfAbsent(ip, k -> newBucket(LOGIN_CAPACITY));
             case "/api/decks/analyze", "/api/decks/random", "/api/decks/scores", "/api/contact"
                     -> aiBuckets.computeIfAbsent(ip, k -> newBucket(AI_CAPACITY));
             default -> null;

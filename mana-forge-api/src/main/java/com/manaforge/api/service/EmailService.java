@@ -172,6 +172,22 @@ public class EmailService {
             );
     }
 
+    public void sendHtml(String to, String subject, String html) {
+        try {
+            String plainEmail = emailEncryptionService.decrypt(to);
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            helper.setFrom(fromAddress);
+            helper.setTo(plainEmail);
+            helper.setSubject(subject);
+            helper.setText(html, true);
+            mailSender.send(message);
+            log.info("Html email sent to {}", plainEmail);
+        } catch (Exception e) {
+            log.error("Failed to send html email to {}: {}", to, e.getMessage());
+        }
+    }
+
     // ── Contact form ──────────────────────────────────────────────────────────
 
     @Async

@@ -27,6 +27,7 @@ public class User {
     private String verificationToken;
     private Boolean betaAccepted = false;
     private String pendingEmail;
+    private java.time.Instant passwordChangedAt;
 
     public User(
         String name,
