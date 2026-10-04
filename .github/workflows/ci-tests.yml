@@ -30,8 +30,10 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-m2-
 
-      - name: Run Maven tests
-        run: mvn -B -V test
+      - name: Run Maven tests (backend module)
+        run: |
+          cd mana-forge-api
+          mvn -B -V test
 
       - name: Upload test results
         if: always()
