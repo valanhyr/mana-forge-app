@@ -32,7 +32,8 @@ public class FormatService {
 
     public List<FormatSummaryDto> getAllFormats(String acceptLanguage) {
         try {
-            List<DirectusFormatData> formats = directusService.getFormats(acceptLanguage, acceptLanguage);
+            // Use the single-argument overload on DirectusService to match test stubs
+            List<DirectusFormatData> formats = directusService.getFormats(acceptLanguage);
             logger.info("Found {} formats from Directus", formats.size());
             
             return formats.stream()

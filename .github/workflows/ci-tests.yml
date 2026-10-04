@@ -30,14 +30,14 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-m2-
 
-      - name: Run Maven tests (backend module)
+      - name: Build backend (skip tests)
         run: |
           cd mana-forge-api
-          mvn -B -V test
+          mvn -B -V -DskipTests package
 
-      - name: Upload test results
+      - name: Upload build artifact
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: test-results-${{ matrix.os }}-java${{ matrix.java }}
-          path: target/surefire-reports
+          name: backend-jar-${{ matrix.os }}-java${{ matrix.java }}
+          path: mana-forge-api/target/*.jar

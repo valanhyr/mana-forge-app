@@ -2,7 +2,7 @@ import axios from 'axios';
 
 export const API_URL = import.meta.env.VITE_API_URL || 'https://mana-forge.com/api';
 // Crear instancia base de Axios
-const api = axios.create({
+export const api = axios.create({
   baseURL: API_URL,
   withCredentials: true,
 });
@@ -13,7 +13,7 @@ api.interceptors.request.use(
     // Leemos directamente del localStorage para evitar problemas de sincronización de estado en el ciclo de vida de React
     const locale = localStorage.getItem('app_locale') || 'es';
 
-    config.headers['Accept-Language'] = locale;
+    if (config.headers) config.headers['Accept-Language'] = locale;
 
     return config;
   },
@@ -21,3 +21,6 @@ api.interceptors.request.use(
     return Promise.reject(error);
   }
 );
+
+export default api;
+
