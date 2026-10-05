@@ -92,6 +92,13 @@ describe('AuthService', () => {
       await expect(AuthService.changePassword('old', 'new')).rejects.toThrow('wrongPassword');
     });
 
+    it('lanza "passwordRejected" cuando el backend responde 400', async () => {
+      server.use(
+        http.patch(`${BASE}/users/me/password`, () => new HttpResponse(null, { status: 400 }))
+      );
+      await expect(AuthService.changePassword('old', 'new')).rejects.toThrow('passwordRejected');
+    });
+
     it('lanza "changePasswordFailed" para otros errores', async () => {
       server.use(
         http.patch(`${BASE}/users/me/password`, () => new HttpResponse(null, { status: 500 }))

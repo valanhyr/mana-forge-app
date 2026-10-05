@@ -353,7 +353,7 @@ class UserControllerTest {
                         .session(session)
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"email\":\"new@example.com\"}"))
+                        .content("{\"email\":\"new@example.com\",\"currentPassword\":\"password123\"}"))
                 .andExpect(status().isOk());
 
         verify(userRepository).save(argThat(user ->
@@ -418,12 +418,271 @@ class UserControllerTest {
                 .andExpect(status().isUnauthorized());
     }
 
+    @Test
+    void patchMe_emailChange_withoutCurrentPassword_returns400() throws Exception {
+        when(emailEncryptionService.encrypt("new@example.com")).thenReturn("ENC_new");
+        when(userRepository.findByEmail("ENC_new")).thenReturn(Optional.empty());
+
+        mockMvc.perform(patch("/api/users/me")
+                        .with(authentication(mockAuth()))
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"email\":\"new@example.com\"}"))
+                .andExpect(status().isBadRequest());
+
+        verify(userRepository, never()).save(any(User.class));
+        verify(emailService, never()).sendEmailChangeVerificationEmail(any(), anyString());
+    }
+
+    @Test
+    void patchMe_emailChange_withWrongCurrentPassword_returns401() throws Exception {
+        when(emailEncryptionService.encrypt("new@example.com")).thenReturn("ENC_new");
+        when(userRepository.findByEmail("ENC_new")).thenReturn(Optional.empty());
+
+        mockMvc.perform(patch("/api/users/me")
+                        .with(authentication(mockAuth()))
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"email\":\"new@example.com\",\"currentPassword\":\"wrong-password\"}"))
+                .andExpect(status().isUnauthorized());
+
+        verify(userRepository, never()).save(any(User.class));
+        verify(emailService, never()).sendEmailChangeVerificationEmail(any(), anyString());
+    }
+
+    @Test
+    void patchMe_emailChange_withCorrectCurrentPassword_startsVerification() throws Exception {
+        when(emailEncryptionService.encrypt("new@example.com")).thenReturn("ENC_new");
+        when(userRepository.findByEmail("ENC_new")).thenReturn(Optional.empty());
+
+        mockMvc.perform(patch("/api/users/me")
+                        .with(authentication(mockAuth()))
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"email\":\"new@example.com\",\"currentPassword\":\"password123\"}"))
+                .andExpect(status().isOk());
+
+        verify(userRepository).save(argThat(user ->
+                hasFieldValue(user, "pendingEmail", "ENC_new")
+                        && user.getVerificationToken() != null));
+    }
+
+    @Test
+    void patchMe_emailChange_toSameAddress_isNoOpAndNeedsNoPassword() throws Exception {
+        mockMvc.perform(patch("/api/users/me")
+                        .with(authentication(mockAuth()))
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"email\":\"" + PLAIN_EMAIL + "\"}"))
+                .andExpect(status().isOk());
+
+        verify(emailService, never()).sendEmailChangeVerificationEmail(any(), anyString());
+    }
+
+    @Test
+    void getAllUsers_isNotExposed() throws Exception {
+        // POST /api/users is mapped, so Spring answers 405 for GET on the same path.
+        // What matters is that no user list is ever serialized.
+        mockMvc.perform(get("/api/users"))
+                .andExpect(status().isMethodNotAllowed());
+    }
+
+    @Test
+    void getUserById_isNotExposed() throws Exception {
+        mockMvc.perform(get("/api/users/user1"))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void deleteUserById_isNotExposed() throws Exception {
+        mockMvc.perform(delete("/api/users/user1")
+                        .with(authentication(mockAuth()))
+                        .with(csrf()))
+                .andExpect(status().isNotFound());
+
+        verify(userRepository, never()).deleteById(anyString());
+    }
+
+    @Test
+    void updateUserById_isNotExposed() throws Exception {
+        mockMvc.perform(put("/api/users/user1")
+                        .with(authentication(mockAuth()))
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"username\":\"hijacked\"}"))
+                .andExpect(status().isNotFound());
+
+        verify(userRepository, never()).save(any(User.class));
+    }
+
+    @Test
+    void register_neverEchoesThePasswordHash() throws Exception {
+        when(emailEncryptionService.encrypt("new@example.com")).thenReturn("ENC_new");
+        when(userRepository.findByUsername("newuser")).thenReturn(Optional.empty());
+        when(userRepository.findByEmail("ENC_new")).thenReturn(Optional.empty());
+        when(userRepository.save(any(User.class))).thenAnswer(inv -> {
+            User u = inv.getArgument(0);
+            u.setId("new-user-id");
+            return u;
+        });
+
+        mockMvc.perform(post("/api/users")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"name\":\"New User\",\"username\":\"newuser\",\"password\":\"pass123\",\"email\":\"new@example.com\"}"))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.username").value("newuser"))
+                .andExpect(jsonPath("$.password").doesNotExist())
+                .andExpect(jsonPath("$.email").doesNotExist())
+                .andExpect(jsonPath("$.verificationToken").doesNotExist());
+    }
+
+    @Test
+    void register_withNullPassword_returns400() throws Exception {
+        mockMvc.perform(post("/api/users")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"username\":\"newuser\",\"email\":\"new@example.com\"}"))
+                .andExpect(status().isBadRequest());
+
+        verify(userRepository, never()).save(any(User.class));
+    }
+
+    @Test
+    void register_withBlankPassword_returns400() throws Exception {
+        when(emailEncryptionService.encrypt("new@example.com")).thenReturn("ENC_new");
+        when(userRepository.findByUsername("newuser")).thenReturn(Optional.empty());
+
+        mockMvc.perform(post("/api/users")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"username\":\"newuser\",\"password\":\"      \",\"email\":\"new@example.com\"}"))
+                .andExpect(status().isBadRequest());
+
+        verify(userRepository, never()).save(any(User.class));
+    }
+
+    @Test
+    void register_withShortPassword_returns400() throws Exception {
+        when(emailEncryptionService.encrypt("new@example.com")).thenReturn("ENC_new");
+        when(userRepository.findByUsername("newuser")).thenReturn(Optional.empty());
+
+        mockMvc.perform(post("/api/users")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"username\":\"newuser\",\"password\":\"12345\",\"email\":\"new@example.com\"}"))
+                .andExpect(status().isBadRequest());
+
+        verify(userRepository, never()).save(any(User.class));
+    }
+
+    @Test
+    void changePassword_withValidCurrentPassword_returns204AndStoresHash() throws Exception {
+        mockMvc.perform(patch("/api/users/me/password")
+                        .with(authentication(mockAuth()))
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"currentPassword\":\"password123\",\"newPassword\":\"newpass123\"}"))
+                .andExpect(status().isNoContent());
+
+        verify(userRepository).save(argThat(u -> u.getPassword() != null
+                && u.getPassword().startsWith("$2")
+                && encoder.matches("newpass123", u.getPassword())));
+
+        Assertions.assertTrue(passwordChangeNotificationWasSent(),
+                "expected a password change notification email");
+    }
+
+    @Test
+    void changePassword_withWhitespaceOnlyPassword_returns400() throws Exception {
+        mockMvc.perform(patch("/api/users/me/password")
+                        .with(authentication(mockAuth()))
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"currentPassword\":\"password123\",\"newPassword\":\"      \"}"))
+                .andExpect(status().isBadRequest());
+
+        verify(userRepository, never()).save(any(User.class));
+    }
+
+    @Test
+    void changePassword_withSamePassword_returns400() throws Exception {
+        mockMvc.perform(patch("/api/users/me/password")
+                        .with(authentication(mockAuth()))
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"currentPassword\":\"password123\",\"newPassword\":\"password123\"}"))
+                .andExpect(status().isBadRequest());
+
+        verify(userRepository, never()).save(any(User.class));
+    }
+
+    @Test
+    void changePassword_withInactiveAccount_returns403() throws Exception {
+        mockUser.setActive(false);
+        when(userRepository.findByUsername("testuser")).thenReturn(Optional.of(mockUser));
+
+        mockMvc.perform(patch("/api/users/me/password")
+                        .with(authentication(mockAuth()))
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"currentPassword\":\"password123\",\"newPassword\":\"newpass123\"}"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void changePassword_rotatesTheSessionId() throws Exception {
+        MvcResult loginResult = mockMvc.perform(post("/api/users/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"username\":\"testuser\",\"password\":\"password123\"}"))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        MockHttpSession session = (MockHttpSession) loginResult.getRequest().getSession(false);
+        Assertions.assertNotNull(session);
+        String sessionIdBefore = session.getId();
+
+        mockMvc.perform(patch("/api/users/me/password")
+                        .session(session)
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"currentPassword\":\"password123\",\"newPassword\":\"newpass123\"}"))
+                .andExpect(status().isNoContent());
+
+        Assertions.assertNotEquals(sessionIdBefore, session.getId(),
+                "session id must be rotated so a pre-change cookie cannot be replayed");
+    }
+
+    @Test
+    void changePassword_withOAuthAccountWithoutPassword_returns401() throws Exception {
+        // Google signups store password=""; matches() always fails, so this path can never succeed.
+        mockUser.setPassword("");
+
+        OAuth2User oAuth2User = mock(OAuth2User.class);
+        when(oAuth2User.getAttribute("email")).thenReturn(PLAIN_EMAIL);
+        when(emailEncryptionService.encrypt(PLAIN_EMAIL)).thenReturn(ENC_EMAIL);
+        when(userRepository.findByEmail(ENC_EMAIL)).thenReturn(Optional.of(mockUser));
+
+        mockMvc.perform(patch("/api/users/me/password")
+                        .with(authentication(new UsernamePasswordAuthenticationToken(
+                                oAuth2User,
+                                null,
+                                List.of(new SimpleGrantedAuthority("ROLE_USER")))))
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"currentPassword\":\"whatever\",\"newPassword\":\"newpass123\"}"))
+                .andExpect(status().isUnauthorized());
+    }
+
     private boolean emailChangeVerificationWasSent(String email) {
         return mockingDetails(emailService).getInvocations().stream()
                 .anyMatch(invocation -> invocation.getMethod().getName().equals("sendEmailChangeVerificationEmail")
                         && invocation.getArguments().length == 2
                         && invocation.getArguments()[0] instanceof User
                         && email.equals(invocation.getArguments()[1]));
+    }
+
+    private boolean passwordChangeNotificationWasSent() {
+        return mockingDetails(emailService).getInvocations().stream()
+                .anyMatch(invocation -> invocation.getMethod().getName().equals("sendPasswordChangedNotificationEmail")
+                        && invocation.getArguments().length == 1
+                        && invocation.getArguments()[0] instanceof User);
     }
 
     private boolean hasFieldValue(User user, String fieldName, String expectedValue) {

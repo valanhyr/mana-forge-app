@@ -18,6 +18,7 @@ import jakarta.servlet.http.HttpServletResponse;
  *
  * Limits per client IP:
  *  - /api/users/login    → 10 requests / minute
+ *  - /api/users/me/password → 10 requests / minute
  *  - /api/decks/analyze  → 5  requests / minute
  *  - /api/decks/random   → 5  requests / minute
  *  - /api/decks/scores   → 5  requests / minute
@@ -33,10 +34,12 @@ import jakarta.servlet.http.HttpServletResponse;
 public class RateLimitingInterceptor implements HandlerInterceptor {
 
     private static final int LOGIN_CAPACITY = 10;
+    private static final int PASSWORD_CAPACITY = 10;
     private static final int AI_CAPACITY = 5;
     private static final Duration REFILL_PERIOD = Duration.ofMinutes(1);
 
     private final ConcurrentHashMap<String, Bucket> loginBuckets = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, Bucket> passwordBuckets = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, Bucket> aiBuckets = new ConcurrentHashMap<>();
 
     @Override
@@ -46,6 +49,8 @@ public class RateLimitingInterceptor implements HandlerInterceptor {
 
         Bucket bucket = switch (path) {
             case "/api/users/login" -> loginBuckets.computeIfAbsent(ip, k -> newBucket(LOGIN_CAPACITY));
+            // Separate bucket so password attempts cannot exhaust (or be starved by) the login quota.
+            case "/api/users/me/password" -> passwordBuckets.computeIfAbsent(ip, k -> newBucket(PASSWORD_CAPACITY));
             case "/api/decks/analyze", "/api/decks/random", "/api/decks/scores", "/api/contact"
                     -> aiBuckets.computeIfAbsent(ip, k -> newBucket(AI_CAPACITY));
             default -> null;

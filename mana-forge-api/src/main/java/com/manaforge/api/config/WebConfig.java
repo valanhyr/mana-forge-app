@@ -19,6 +19,7 @@ public class WebConfig implements WebMvcConfigurer {
             registry.addInterceptor(rateLimitingInterceptor)
                     .addPathPatterns(
                         "/api/users/login",
+                        "/api/users/me/password",
                         "/api/decks/analyze",
                         "/api/decks/random",
                         "/api/decks/scores",

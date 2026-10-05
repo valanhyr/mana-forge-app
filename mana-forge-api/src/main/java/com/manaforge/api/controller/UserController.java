@@ -40,10 +40,20 @@ import java.util.UUID;
 
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * NOTA DE SEGURIDAD: esta clase NO extiende {@link BaseMongoController} a proposito.
+ * El CRUD generico de la clase base serializa la entidad Mongo cruda, y como
+ * SecurityConfig marca `GET /api/**` como publico, heredar `getAll()`/`getById()`
+ * exponia sin autenticacion el hash de contraseña, el email cifrado y el
+ * verificationToken de todos los usuarios. Ademas `PUT`/`DELETE /{id}` permitian
+ * que cualquier cuenta autenticada modificara o borrara la cuenta de otra.
+ *
+ * Toda exposicion de usuarios debe pasar por un DTO explicito (UserDto / PublicUserDto).
+ */
 @Slf4j
 @RestController
 @RequestMapping("/api/users")
-public class UserController extends BaseMongoController<User, String> {
+public class UserController {
 
     private static final Pattern AVATAR_FILE_PATTERN = Pattern.compile("^ava(?:[1-9]|[1-9][0-9]|10[0-5])\\.jpg$");
 
@@ -57,7 +67,6 @@ public class UserController extends BaseMongoController<User, String> {
     private String frontendUrl;
 
     public UserController(UserRepository repository, EmailService emailService, EmailEncryptionService emailEncryptionService) {
-        super(repository);
         this.userRepository = repository;
         this.emailService = emailService;
         this.emailEncryptionService = emailEncryptionService;
@@ -82,6 +91,16 @@ public class UserController extends BaseMongoController<User, String> {
         String username = principal.toString();
         return userRepository.findByUsername(username)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED));
+    }
+
+    private PublicUserDto toPublicUser(User user) {
+        return PublicUserDto.builder()
+                .userId(user.getId())
+                .name(user.getName())
+                .username(user.getUsername())
+                .biography(user.getBiography())
+                .avatar(user.getAvatar())
+                .build();
     }
 
     private UserDto toDto(User user) {
@@ -141,19 +160,32 @@ public class UserController extends BaseMongoController<User, String> {
         return ResponseEntity.ok(toDto(getAuthenticatedUser()));
     }
 
-    @Override
     @PostMapping
-    public ResponseEntity<User> create(@RequestBody User user) {
+    public ResponseEntity<PublicUserDto> create(@RequestBody User user) {
+        if (user.getUsername() == null || user.getUsername().trim().isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Username is required");
+        }
         if (userRepository.findByUsername(user.getUsername()).isPresent()) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "El nombre de usuario ya está en uso");
         }
+
+        // Validate the raw password BEFORE encoding: encode(null) throws and used to
+        // surface as an unhandled 500, and blank/short passwords were accepted outright.
+        String rawPassword = user.getPassword();
+        if (rawPassword == null || rawPassword.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Password is required");
+        }
+        if (rawPassword.length() < 6) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Password must be at least 6 characters");
+        }
+
         user.setName(normalizeName(user.getName(), user.getUsername()));
         String encryptedEmail = emailEncryptionService.encrypt(user.getEmail());
         if (userRepository.findByEmail(encryptedEmail).isPresent()) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "El correo electrónico ya está registrado");
         }
 
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        user.setPassword(passwordEncoder.encode(rawPassword));
         user.setEmail(encryptedEmail);
 
         // Normalize defaults so local signups create the same user shape as Google OAuth signups.
@@ -173,11 +205,12 @@ public class UserController extends BaseMongoController<User, String> {
         user.setValidated(false);
         user.setVerificationToken(UUID.randomUUID().toString());
         user.setAvatar(normalizeAvatar(user.getAvatar()));
-        ResponseEntity<User> response = super.create(user);
-        if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
-            emailService.sendVerificationEmail(response.getBody());
-        }
-        return response;
+
+        // Never echo the persisted entity: it carries the password hash and the
+        // verification token. The frontend ignores this body entirely.
+        User saved = userRepository.save(user);
+        emailService.sendVerificationEmail(saved);
+        return ResponseEntity.status(HttpStatus.CREATED).body(toPublicUser(saved));
     }
 
     @GetMapping("/verify")
@@ -275,6 +308,17 @@ public class UserController extends BaseMongoController<User, String> {
                 if (user.getPassword() == null || user.getPassword().isEmpty()) {
                     throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email change not allowed for OAuth accounts");
                 }
+
+                // Moving the login email is account takeover material: whoever controls the
+                // new address can later recover the account. A live session must not be enough,
+                // so the current password is mandatory (per the profile editability spec).
+                if (req.getCurrentPassword() == null || req.getCurrentPassword().isBlank()) {
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "currentPassword is required to change the email");
+                }
+                if (!passwordEncoder.matches(req.getCurrentPassword(), user.getPassword())) {
+                    throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Current password is incorrect");
+                }
+
                 String encryptedNewEmail = emailEncryptionService.encrypt(newEmail);
                 if (userRepository.findByEmail(encryptedNewEmail).isPresent()) {
                     throw new ResponseStatusException(HttpStatus.CONFLICT, "El correo electrónico ya está registrado");
@@ -301,7 +345,7 @@ public class UserController extends BaseMongoController<User, String> {
     }
 
     @PatchMapping("/me/password")
-    public ResponseEntity<Void> changePassword(@RequestBody ChangePasswordRequest req) {
+    public ResponseEntity<Void> changePassword(@RequestBody ChangePasswordRequest req, HttpServletRequest request) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !authentication.isAuthenticated() || "anonymousUser".equals(authentication.getPrincipal())) {
             return ResponseEntity.status(401).build();
@@ -317,16 +361,33 @@ public class UserController extends BaseMongoController<User, String> {
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
         }
 
+        if (!Boolean.TRUE.equals(user.getActive())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Account is not active");
+        }
+
         if (!passwordEncoder.matches(req.getCurrentPassword(), user.getPassword())) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Current password is incorrect");
         }
 
-        if (req.getNewPassword() == null || req.getNewPassword().length() < 6) {
+        if (req.getNewPassword() == null || req.getNewPassword().isBlank() || req.getNewPassword().length() < 6) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "New password must be at least 6 characters");
+        }
+
+        // Reject a "change" that would silently be a no-op.
+        if (passwordEncoder.matches(req.getNewPassword(), user.getPassword())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "New password must be different from the current one");
         }
 
         user.setPassword(passwordEncoder.encode(req.getNewPassword()));
         userRepository.save(user);
+
+        // Rotate the session id so a cookie captured before the change cannot be replayed.
+        if (request.getSession(false) != null) {
+            request.changeSessionId();
+        }
+
+        emailService.sendPasswordChangedNotificationEmail(user);
+
         return ResponseEntity.noContent().build();
     }
 
@@ -346,6 +407,7 @@ public class UserController extends BaseMongoController<User, String> {
         private Boolean betaAccepted;
         private String username;
         private String email;
+        private String currentPassword;
 
         public String getBiography() { return biography; }
         public void setBiography(String biography) { this.biography = biography; }
@@ -357,6 +419,8 @@ public class UserController extends BaseMongoController<User, String> {
         public void setUsername(String username) { this.username = username; }
         public String getEmail() { return email; }
         public void setEmail(String email) { this.email = email; }
+        public String getCurrentPassword() { return currentPassword; }
+        public void setCurrentPassword(String currentPassword) { this.currentPassword = currentPassword; }
     }
 
     public static class LoginRequest {

@@ -106,6 +106,8 @@ export const AuthService = {
       body: JSON.stringify({ currentPassword, newPassword }),
     });
     if (response.status === 401) throw new Error('wrongPassword');
+    // 400 = el backend rechaza la nueva contraseña (en blanco, corta o idéntica a la actual)
+    if (response.status === 400) throw new Error('passwordRejected');
     if (!response.ok) throw new Error('changePasswordFailed');
   },
 

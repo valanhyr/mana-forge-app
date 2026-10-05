@@ -166,8 +166,12 @@ const Profile = () => {
       setPasswordError(t('profile.passwordMismatch'));
       return;
     }
-    if (newPassword.length < 6) {
+    if (newPassword.trim().length === 0 || newPassword.length < 6) {
       setPasswordError(t('auth.error.passwordMinLength'));
+      return;
+    }
+    if (newPassword === currentPassword) {
+      setPasswordError(t('profile.passwordRejected'));
       return;
     }
     setPasswordError('');
@@ -186,7 +190,9 @@ const Profile = () => {
       setPasswordError(
         (err as Error).message === 'wrongPassword'
           ? t('profile.passwordWrong')
-          : t('auth.error.credentials')
+          : (err as Error).message === 'passwordRejected'
+            ? t('profile.passwordRejected')
+            : t('auth.error.credentials')
       );
     } finally {
       setPasswordLoading(false);
