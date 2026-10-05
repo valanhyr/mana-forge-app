@@ -90,6 +90,18 @@ export const handlers = [
   http.post(`${BASE}/users/login`, () => HttpResponse.json(mockUser)),
   http.post(`${BASE}/users`, () => HttpResponse.json(mockUser, { status: 201 })),
   http.get(`${BASE}/users/me`, () => HttpResponse.json(mockUser)),
+  http.get(`${BASE}/users/username/:username`, ({ params }) => {
+    if (params.username === mockUser.username) {
+      return HttpResponse.json({
+        userId: mockUser.userId,
+        name: mockUser.name,
+        username: mockUser.username,
+        biography: mockUser.biography,
+        avatar: mockUser.avatar,
+      });
+    }
+    return new HttpResponse(null, { status: 404 });
+  }),
   http.post(`${BASE}/users/logout`, () => new HttpResponse(null, { status: 200 })),
   http.patch(`${BASE}/users/me`, () => HttpResponse.json(mockUser)),
   http.patch(`${BASE}/users/me/password`, () => new HttpResponse(null, { status: 200 })),

@@ -32,6 +32,11 @@ const Profile = () => {
   const [activeTab, setActiveTab] = useState<'personalInfo' | 'preferences'>('personalInfo');
   const [newsletter, setNewsletter] = useState(true);
 
+  const [username, setUsername] = useState('');
+  const [usernameStatus, setUsernameStatus] = useState<
+    'idle' | 'checking' | 'available' | 'taken' | 'empty' | 'error'
+  >('idle');
+
   const [biography, setBiography] = useState('');
   const [selectedAvatar, setSelectedAvatar] = useState(DEFAULT_AVATAR);
   const [draftAvatar, setDraftAvatar] = useState(DEFAULT_AVATAR);
@@ -53,10 +58,45 @@ const Profile = () => {
   useEffect(() => {
     if (!user) return;
 
+    setUsername(user.username ?? '');
     setBiography(user.biography ?? '');
     setSelectedAvatar(user.avatar || DEFAULT_AVATAR);
     setDraftAvatar(user.avatar || DEFAULT_AVATAR);
+    setUsernameStatus('idle');
   }, [user]);
+
+  const trimmedUsername = username.trim();
+  const usernameChanged = !!user && trimmedUsername !== (user.username ?? '');
+
+  // Verificación en vivo contra la API, con debounce para no saturar el backend
+  useEffect(() => {
+    if (!user) return;
+
+    if (!usernameChanged) {
+      setUsernameStatus('idle');
+      return;
+    }
+    if (!trimmedUsername) {
+      setUsernameStatus('empty');
+      return;
+    }
+
+    let cancelled = false;
+    setUsernameStatus('checking');
+    const timer = setTimeout(async () => {
+      try {
+        const available = await AuthService.isUsernameAvailable(trimmedUsername);
+        if (!cancelled) setUsernameStatus(available ? 'available' : 'taken');
+      } catch {
+        if (!cancelled) setUsernameStatus('error');
+      }
+    }, 400);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [trimmedUsername, usernameChanged, user]);
 
   const avatarUrl = useMemo(() => getAvatarUrl(selectedAvatar), [selectedAvatar]);
 
@@ -77,25 +117,44 @@ const Profile = () => {
 
   const hasProfileChanges =
     !!user &&
-    (biography.trim() !== (user.biography ?? '') ||
+    (usernameChanged ||
+      biography.trim() !== (user.biography ?? '') ||
       selectedAvatar !== (user.avatar || DEFAULT_AVATAR));
+
+  const isUsernameBlocked =
+    usernameChanged &&
+    (usernameStatus === 'taken' || usernameStatus === 'empty' || usernameStatus === 'error');
 
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user || !hasProfileChanges) return;
 
+    if (!trimmedUsername) {
+      showToast(t('profile.usernameEmpty'), 'error');
+      return;
+    }
+    if (isUsernameBlocked || usernameStatus === 'checking') return;
+
     setProfileLoading(true);
     try {
       const updatedUser = await AuthService.updateProfile({
+        ...(usernameChanged ? { username: trimmedUsername } : {}),
         biography: biography.trim(),
         avatar: selectedAvatar,
       });
       updateUser(updatedUser);
+      setUsername(updatedUser.username ?? '');
+      setUsernameStatus('idle');
       setBiography(updatedUser.biography ?? '');
       setSelectedAvatar(updatedUser.avatar || DEFAULT_AVATAR);
       showToast(t('profile.saveSuccess'), 'success');
-    } catch {
-      showToast(t('profile.saveError'), 'error');
+    } catch (err: unknown) {
+      if ((err as Error).message === 'USERNAME_TAKEN') {
+        setUsernameStatus('taken');
+        showToast(t('profile.usernameTaken'), 'error');
+      } else {
+        showToast(t('profile.saveError'), 'error');
+      }
     } finally {
       setProfileLoading(false);
     }
@@ -223,10 +282,37 @@ const Profile = () => {
                         />
                         <input
                           type="text"
-                          value={user.username}
-                          disabled
-                          className="w-full bg-zinc-950 border border-zinc-800 rounded-lg py-2.5 pl-10 pr-4 text-zinc-500 cursor-not-allowed"
+                          value={username}
+                          onChange={(e) => setUsername(e.target.value)}
+                          disabled={profileLoading}
+                          aria-invalid={usernameChanged && usernameStatus === 'taken'}
+                          className={`w-full bg-zinc-950 border rounded-lg py-2.5 pl-10 pr-4 text-white focus:outline-none focus:ring-1 transition-all disabled:opacity-50 ${
+                            usernameChanged && usernameStatus === 'taken'
+                              ? 'border-red-600 focus:border-red-500 focus:ring-red-500'
+                              : 'border-zinc-800 focus:border-orange-500 focus:ring-orange-500'
+                          }`}
                         />
+                        {usernameChanged && usernameStatus !== 'idle' && (
+                          <p
+                            className={`text-xs ${
+                              usernameStatus === 'available'
+                                ? 'text-green-500'
+                                : usernameStatus === 'checking'
+                                  ? 'text-zinc-500'
+                                  : 'text-red-500'
+                            }`}
+                          >
+                            {usernameStatus === 'available'
+                              ? t('profile.usernameAvailable')
+                              : usernameStatus === 'checking'
+                                ? t('profile.usernameChecking')
+                                : usernameStatus === 'taken'
+                                  ? t('profile.usernameTaken')
+                                  : usernameStatus === 'empty'
+                                    ? t('profile.usernameEmpty')
+                                    : t('profile.usernameCheckError')}
+                          </p>
+                        )}
                       </div>
                     </div>
 
@@ -265,7 +351,9 @@ const Profile = () => {
                   <div className="pt-4 border-t border-zinc-800 flex justify-end">
                     <button
                       type="submit"
-                      disabled={!hasProfileChanges || profileLoading}
+                      disabled={
+                        !hasProfileChanges || profileLoading || isUsernameBlocked || usernameStatus === 'checking'
+                      }
                       className="flex items-center gap-2 bg-orange-600 hover:bg-orange-500 disabled:opacity-60 disabled:cursor-not-allowed text-white px-6 py-2.5 rounded-lg font-medium transition-colors shadow-lg shadow-orange-900/20"
                     >
                       {profileLoading ? (

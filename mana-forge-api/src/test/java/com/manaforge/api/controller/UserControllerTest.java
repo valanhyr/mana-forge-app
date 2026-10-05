@@ -9,6 +9,8 @@ import com.manaforge.api.service.OAuth2LoginSuccessHandler;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Assertions;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
@@ -272,6 +274,45 @@ class UserControllerTest {
                         .session(session))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.username").value("newuser"));
+    }
+
+    @Test
+    void patchMe_withUsernameTakenByAnotherUser_returns409() throws Exception {
+        User other = new User();
+        other.setId("user2");
+        other.setUsername("takenuser");
+        when(userRepository.findByUsername("takenuser")).thenReturn(Optional.of(other));
+
+        mockMvc.perform(patch("/api/users/me")
+                        .with(authentication(mockAuth()))
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"username\":\"takenuser\"}"))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.code").value("USERNAME_TAKEN"));
+
+        assertEquals("testuser", mockUser.getUsername());
+    }
+
+    @Test
+    void patchMe_withOwnUsername_doesNotConflict() throws Exception {
+        mockMvc.perform(patch("/api/users/me")
+                        .with(authentication(mockAuth()))
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"username\":\"testuser\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.username").value("testuser"));
+    }
+
+    @Test
+    void patchMe_withBlankUsername_returns400() throws Exception {
+        mockMvc.perform(patch("/api/users/me")
+                        .with(authentication(mockAuth()))
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"username\":\"   \"}"))
+                .andExpect(status().isBadRequest());
     }
 
     @Test

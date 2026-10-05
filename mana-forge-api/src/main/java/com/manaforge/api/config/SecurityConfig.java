@@ -71,7 +71,7 @@ public class SecurityConfig {
 
         // Explicit origin allowlist — never use wildcard with credentials.
         // The dev origin (localhost:5173) is always included; the production URL is read from env.
-        List<String> allowedOrigins = List.of("http://localhost:5173", frontendUrl);
+        List<String> allowedOrigins = List.of("http://localhost:5173", "http://127.0.0.1", frontendUrl);
         configuration.setAllowedOrigins(allowedOrigins);
 
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));

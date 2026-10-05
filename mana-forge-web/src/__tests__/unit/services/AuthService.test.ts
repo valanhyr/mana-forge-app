@@ -118,5 +118,54 @@ describe('AuthService', () => {
       const updated = await AuthService.updateProfile({ biography: 'Bio', avatar: 'ava2.jpg' });
       expect(updated.userId).toBe(mockUser.userId);
     });
+
+    it('envía el username cuando viene incluido en el payload', async () => {
+      let captured: Record<string, unknown> = {};
+      server.use(
+        http.patch(`${BASE}/users/me`, async ({ request }) => {
+          captured = (await request.json()) as Record<string, unknown>;
+          return HttpResponse.json({ ...mockUser, username: String(captured.username) });
+        })
+      );
+
+      const updated = await AuthService.updateProfile({
+        biography: 'Bio',
+        avatar: 'ava1.jpg',
+        username: 'nuevoalias',
+      });
+
+      expect(captured.username).toBe('nuevoalias');
+      expect(updated.username).toBe('nuevoalias');
+    });
+
+    it('lanza USERNAME_TAKEN cuando el backend responde 409', async () => {
+      server.use(
+        http.patch(`${BASE}/users/me`, () =>
+          HttpResponse.json({ code: 'USERNAME_TAKEN', message: 'ya está en uso' }, { status: 409 })
+        )
+      );
+
+      await expect(
+        AuthService.updateProfile({ biography: 'Bio', avatar: 'ava1.jpg', username: 'taken' })
+      ).rejects.toThrow('USERNAME_TAKEN');
+    });
+  });
+
+  describe('isUsernameAvailable', () => {
+    it('devuelve true cuando el endpoint responde 404', async () => {
+      await expect(AuthService.isUsernameAvailable('libre')).resolves.toBe(true);
+    });
+
+    it('devuelve false cuando el username ya existe', async () => {
+      await expect(AuthService.isUsernameAvailable(mockUser.username)).resolves.toBe(false);
+    });
+
+    it('propaga el error cuando la comprobación falla por otra causa', async () => {
+      server.use(
+        http.get(`${BASE}/users/username/:username`, () => new HttpResponse(null, { status: 500 }))
+      );
+
+      await expect(AuthService.isUsernameAvailable('testuser')).rejects.toThrow();
+    });
   });
 });

@@ -4,6 +4,12 @@ import { api, API_URL } from './api';
 interface UpdateProfilePayload {
   biography: string;
   avatar: string;
+  username?: string;
+}
+
+interface PublicUser {
+  userId: string;
+  username: string;
 }
 
 export const AuthService = {
@@ -104,8 +110,29 @@ export const AuthService = {
   },
 
   updateProfile: async (payload: UpdateProfilePayload): Promise<User> => {
-    const response = await api.patch<User>('/users/me', payload);
-    return response.data;
+    try {
+      const response = await api.patch<User>('/users/me', payload);
+      return response.data;
+    } catch (err: unknown) {
+      const status = (err as { response?: { status?: number } })?.response?.status;
+      if (status === 409) {
+        throw new Error('USERNAME_TAKEN');
+      }
+      throw err;
+    }
+  },
+
+  // El endpoint público devuelve 404 cuando el username está libre.
+  isUsernameAvailable: async (username: string): Promise<boolean> => {
+    try {
+      await api.get<PublicUser>(`/users/username/${encodeURIComponent(username)}`);
+      return false;
+    } catch (err: unknown) {
+      if ((err as { response?: { status?: number } })?.response?.status === 404) {
+        return true;
+      }
+      throw err;
+    }
   },
 
   verifyEmail: async (token: string): Promise<void> => {
