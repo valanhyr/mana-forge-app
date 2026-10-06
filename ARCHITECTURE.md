@@ -235,6 +235,18 @@ SERVICES_PYTHON_ENGINE_URL=http://engine:8000
 
 # Frontend
 FRONTEND_URL=https://mana-forge.com
+
+# Cloudflare Turnstile (protección del análisis público de IA)
+# SITE_KEY es pública y se compila dentro del bundle web.
+# La presencia de SECRET_KEY activa la verificación automáticamente.
+CLOUDFLARE_TS_SITE_KEY=0x4AAAAA...
+CLOUDFLARE_TS_SECRET_KEY=0x4AAAAA...
+
+# Controles de abuso del análisis público (0 = sin cuota)
+AI_QUOTA_ENABLED=true
+AI_QUOTA_ANONYMOUS_DAILY=5
+AI_QUOTA_AUTHENTICATED_DAILY=25
+AI_CACHE_TTL_HOURS=24
 ```
 
 ### Deployment
@@ -281,6 +293,12 @@ mana-forge-engine/
 ```
 
 ### Endpoints
+
+> **Nota**: el engine **no acepta listas en texto plano**. Todos los endpoints de
+> análisis esperan una lista ya estructurada (`main_deck: [{name, quantity}]`).
+> El parseo de texto pegado ocurre en el frontend
+> (`mana-forge-web/src/utils/decklistParser.ts`), que resuelve los nombres contra
+> Scryfall antes de llamar a la API.
 
 #### 1. POST /v1/ai/suggest-sideboard
 **Request:**
@@ -393,9 +411,12 @@ services:
       - SERVICES_PYTHON_ENGINE_URL=http://engine:8000
 
   engine:     # AI Engine (FastAPI)
-    ports: ["8000:8000"]
+    # Sin `ports`: red interna únicamente. Publicar 8000 exponía la IA
+    # directamente, saltándose Cloudflare, nginx y el rate limit del backend.
+    expose: ["8000"]
     environment:
       - GROQ_API_KEY=${GROQ_API_KEY}
+      - AI_MAX_CONCURRENT_REQUESTS=${AI_MAX_CONCURRENT_REQUESTS:-4}
 
   couchbase:  # Cache (Couchbase Server)
     ports: ["8091-8096:8091-8096", "11210:11210"]
@@ -469,8 +490,74 @@ User → Frontend → Backend → Couchbase (hit/miss)
 
 ### Seguridad del Motor IA
 - El motor FastAPI **no tiene autenticación propia** — depende de no estar expuesto públicamente.
-- En producción Docker, el puerto 8000 del engine **no se publica al host** (`ports: "8000:8000"` eliminado). El Spring API lo llama como `http://engine:8000` via la red interna `mana-forge-network`.
+- En producción Docker, el puerto 8000 del engine **no se publica al host** (`expose: ["8000"]`, sin `ports`). El Spring API lo llama como `http://engine:8000` via la red interna `mana-forge-network`. Publicar 8000 habría permitido saltarse Cloudflare, nginx y el rate limit del backend.
 - Todos los inputs de usuario (card names, format_name, locale, archetypes) son sanitizados en `utils/sanitize.py` antes de ser interpolados en prompts LLM para mitigar prompt injection.
+- `AI_MAX_CONCURRENT_REQUESTS` (default 4) limita las llamadas a IA simultáneas: si se agotan los huecos se responde **429** en lugar de acumular peticiones que cada una retiene una conexión 60s+.
+
+### Protección contra abuso del análisis público
+La homepage permite analizar un mazo sin registro (`POST /api/decks/analyze`). Como cada análisis consume presupuesto del proveedor de IA, hay cuatro capas:
+
+| Capa | Dónde | Qué protege |
+|---|---|---|
+| Cloudflare Turnstile | `TurnstileService` | Bots. El token se verifica server-side contra `siteverify`; sin secreto configurado el servicio **rechaza** en vez de aceptar. |
+| Cuota diaria | `AiQuotaService` (Redis) | Coste. 5/día anónimo por IP, 25/día por usuario. La IP se guarda hasheada (SHA-256), nunca en claro. |
+| Caché de resultados | `AiQuotaService` (Redis) | Desperdicio. Mazos idénticos (mismo hash canónico) se sirven desde caché sin gastar tokens. Los errores nunca se cachean. |
+| Rate limit por ráfaga | `RateLimitingInterceptor` | Pico de tráfico. 5/min por IP (Bucket4j, en memoria). |
+
+Detalles de diseño relevantes:
+- **Identidad del cliente**: `resolveClientIp` prioriza `CF-Connecting-IP` sobre `X-Forwarded-For`, porque Cloudflare sobrescribe el primero y no puede ser falsificado por el cliente, mientras que el segundo sí. El nginx del contenedor web sobrescribe (`=` en vez de `+=`) `X-Forwarded-For` para que no se pueda inyectar.
+- **Degradación**: si Redis no está disponible, `AiQuotaService` cae a contadores en memoria. La cuota se sigue aplicando durante la vida del proceso; simplemente no se comparte entre réplicas. Una caída de Redis no tumba el endpoint.
+- `GET /api/decks/analyze/quota` permite mostrar los análisis restantes antes de que el usuario escriba nada.
+
+### Turnstile en local: 400 en `challenges.cloudflare.com`
+**Síntoma**: en `localhost` la consola muestra `400 (Bad Request)` contra
+`/cdn-cgi/challenge-platform/...` y el widget nunca resuelve.
+
+**Causa**: cada site key está vinculada a una lista de hostnames permitidos. Las claves de
+producción solo aceptan `mana-forge.com`, así que Cloudflare rechaza el challenge
+desde `localhost`. **No es un bug del código.**
+
+**Cómo trabajar en local** — usar las claves dummy oficiales de Cloudflare
+(`/turnstile/troubleshooting/testing`), que funcionan en cualquier dominio:
+
+```
+# mana-forge-web/.env.development
+VITE_TURNSTILE_SITE_KEY=1x00000000000000000000AA
+
+# backend, para que siteverify acepte el token dummy
+CLOUDFLARE_TS_SECRET_KEY=1x0000000000000000000000000000000AA
+```
+
+El secret de producción **rechaza** el token dummy, y el site key de producción
+**rechaza** el hostname: las dos claves deben cambiarse a la vez.
+
+En producción, `docker-compose.yml` inyecta `CLOUDFLARE_TS_SITE_KEY` del `.env`
+raíz al bundle web. Un build local con ese fichero produce un widget inservible;
+por eso el `.env` raíz lleva un aviso.
+
+`TurnstileWidget` tiene un timeout de 8s y comprueba que `window.turnstile` exista
+tras la carga: si el script se cuelga (que es justo lo que hace una clave no
+permitida) el componente avisa en lugar de dejar el botón desactivado para
+siempre.
+
+#### Reglas WAF en el panel de Cloudflare (manual, fuera del repo)
+Nada de esto está en el código: son reglas del dashboard. Están documentadas aquí
+para que no se pierdan.
+
+1. **Rate limiting** — `Security → WAF → Rate limiting rules`
+   - Expresión: `http.request.uri.path eq "/api/decks/analyze"`
+   - Requests: `1 requests / 10 seconds` (mitigación) · Period: `60 seconds`
+   - Acción: `Block` ·también `http.request.method eq "POST"`
+   - Es una red de seguridad **por debajo** de la cuota diaria: frena ráfagas, no
+     sustituye al control de coste.
+2. **Bot Fight Mode** — `Security → Bots`: activar. Complementa a Turnstile en el
+   resto de la superficie pública.
+3. **Regla de rate limit sobre `/api/decks/scores` y `/api/decks/random`**: mismo
+   patrón. `scores` es el endpoint que llama automáticamente `handleSaveDeck`, así
+   que recibe tráfico legítimo pero automatizado.
+4. **Verificar `CF-Connecting-IP`**: tras desplegar, comprobar que el backend
+   recibe esa cabecera. Si no llega, la cuota por IP estaría agrupando a todos los
+   visitantes en la IP de Cloudflare y se bloquearían entre sí.
 
 ### Cifrado de Email
 ⚠️ **Riesgo Conocido y Aceptado**: El servicio `EmailEncryptionService` usa **AES/ECB** (sin IV). Este modo es criptográficamente débil (emails idénticos producen ciphertexts idénticos). Sin embargo, el comportamiento determinista es **intencional y necesario**: el email cifrado se usa como clave de búsqueda en MongoDB (`findByEmail(encrypt(email))`). Cambiar a AES/GCM requeriría una migración completa de la base de datos. Mitigación futura recomendada: usar HMAC del email como clave de lookup en lugar del ciphertext.

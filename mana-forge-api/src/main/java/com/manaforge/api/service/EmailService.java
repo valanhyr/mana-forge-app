@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import com.manaforge.api.dto.ContactRequest;
 import com.manaforge.api.model.mongo.User;
 
+import jakarta.annotation.PostConstruct;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,6 +30,18 @@ public class EmailService {
 
     @Value("${services.frontend.url}")
     private String frontendUrl;
+
+    /** Logs the resolved mail addresses at boot so a missing MAIL_ADMIN is visible immediately. */
+    @PostConstruct
+    void logMailConfiguration() {
+        log.info("Mail config → from: {}, admin (contact notifications): {}",
+                fromAddress, adminAddress);
+        if (adminAddress == null || adminAddress.isBlank() || !adminAddress.contains("@")) {
+            log.error("mail.admin (MAIL_ADMIN) is missing or invalid: '{}'. "
+                    + "Contact form notifications will NOT be delivered. "
+                    + "Set MAIL_ADMIN in the api container environment.", adminAddress);
+        }
+    }
 
     @Async
     public void sendVerificationEmail(User user) {
@@ -192,17 +205,25 @@ public class EmailService {
 
     @Async
     public void sendContactNotification(ContactRequest req) {
+        // An unset/blank MAIL_ADMIN would make setTo("") throw AddressException, which the
+        // catch below would swallow while the client already saw HTTP 200. Fail loudly instead.
+        if (adminAddress == null || adminAddress.isBlank()) {
+            log.error("Contact notification NOT sent: mail.admin (MAIL_ADMIN) is not configured. "
+                    + "Set MAIL_ADMIN in the environment of the api container.");
+            return;
+        }
         try {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
             helper.setFrom(fromAddress);
             helper.setTo(adminAddress);
+            helper.setReplyTo(req.getEmail(), req.getName());
             helper.setSubject("[ManaForge Contact] " + req.getSubject() + " — " + req.getName());
             helper.setText(buildContactNotificationHtml(req), true);
             mailSender.send(message);
-            log.info("Contact notification sent to admin for {}", req.getEmail());
+            log.info("Contact notification sent to {} for {}", adminAddress, req.getEmail());
         } catch (Exception e) {
-            log.error("Failed to send contact notification: {}", e.getMessage());
+            log.error("Failed to send contact notification to {}: {}", adminAddress, e.getMessage(), e);
         }
     }
 

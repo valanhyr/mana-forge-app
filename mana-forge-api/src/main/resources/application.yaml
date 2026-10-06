@@ -120,10 +120,34 @@ spring:
           ssl:
             trust: smtp.resend.com
 
+# Cloudflare Turnstile — bot protection for the public AI analysis endpoint.
+# enabled=true requires a real secret key, otherwise verification is skipped and
+# anonymous analyses are rejected (see TurnstileService).
+cloudflare:
+  turnstile:
+    # Leave `enabled` empty to auto-enable whenever a secret key is present.
+    # An explicit true/false still requires a secret key — see TurnstileService.
+    enabled: ${CLOUDFLARE_TS_ENABLED:}
+    secret-key: ${CLOUDFLARE_TS_SECRET_KEY:}
+    site-key: ${CLOUDFLARE_TS_SITE_KEY:}
+
+# AI abuse controls for the public analysis endpoint.
+# A limit of 0 disables the quota entirely (unlimited).
+ai:
+  quota:
+    enabled: ${AI_QUOTA_ENABLED:true}
+    anonymous-daily: ${AI_QUOTA_ANONYMOUS_DAILY:5}
+    authenticated-daily: ${AI_QUOTA_AUTHENTICATED_DAILY:25}
+  cache:
+    ttl-hours: ${AI_CACHE_TTL_HOURS:24}
+
 # Email
 mail:
   from: ${SMTP_FROM:noreply@localhost}
-  admin: ${MAIL_ADMIN:admin@localhost}
+  # Destinatario de las notificaciones del formulario de contacto.
+  # Sin default a propósito: un valor inventado (admin@localhost) hace que el envío
+  # se pierda en silencio. EmailService lo valida al arrancar y en cada envío.
+  admin: ${MAIL_ADMIN:}
 
 # CONFIGURACIÓN PERSONALIZADA: Conexión con el motor de Python (FastAPI)
 services:

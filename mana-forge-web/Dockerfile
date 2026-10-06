@@ -17,6 +17,11 @@ ENV VITE_FARO_URL=$VITE_FARO_URL
 
 ARG VITE_FARO_APP_NAME
 ENV VITE_FARO_APP_NAME=$VITE_FARO_APP_NAME
+
+# Public Turnstile site key. Safe to bake into the bundle: only the SECRET
+# key protects anything, and that stays server-side in the API.
+ARG VITE_TURNSTILE_SITE_KEY
+ENV VITE_TURNSTILE_SITE_KEY=$VITE_TURNSTILE_SITE_KEY
 # -------------------------------------
 
 RUN npm run build

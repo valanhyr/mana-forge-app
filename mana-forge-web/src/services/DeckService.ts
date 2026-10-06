@@ -1,5 +1,73 @@
 import { api } from './api';
 
+/**
+ * Quota state for the anonymous AI analysis trial. `remaining` is null when the
+ * caller has unlimited access (authenticated user or quota disabled).
+ */
+export interface AnalysisQuota {
+  limit: number | null;
+  remaining: number | null;
+  authenticated: boolean;
+  /** ISO timestamp of the next daily reset; null when there is no limit. */
+  resetsAt: string | null;
+}
+
+export interface DeckAnalysisResult {
+  general_summary?: string;
+  mana_curve_analysis?: string;
+  strengths?: string[];
+  weaknesses?: string[];
+  matchups?: Array<{
+    archetype: string;
+    strategy: string;
+    win_rate_pre: number;
+    win_rate_post: number;
+  }>;
+  suggested_changes?: Array<{
+    card_out: string;
+    card_in: string;
+    reason: string;
+    quantity?: number;
+  }>;
+  scores?: Record<string, { value: number; key_cards: string[] }>;
+  projected_scores?: Record<string, { value: number; key_cards: string[] }>;
+  /** Present when the engine failed and the backend returned its fallback. */
+  error?: string;
+  quota?: AnalysisQuota | null;
+}
+
+/** Reads the quota headers the backend attaches to every analysis response. */
+const readQuotaHeaders = (
+  headers: unknown
+): { quota: AnalysisQuota | null } => {
+  const h = headers as Record<string, unknown> | undefined;
+  if (!h) return { quota: null };
+
+  const get = (name: string): string | null => {
+    const raw = h[name] ?? h[name.toLowerCase()];
+    return typeof raw === 'string' ? raw : null;
+  };
+
+  const remainingRaw = get('x-analysis-quota-remaining');
+  const limitRaw = get('x-analysis-quota-limit');
+  if (remainingRaw === null && limitRaw === null) return { quota: null };
+
+  const toNumber = (value: string | null): number | null => {
+    if (value === null) return null;
+    const n = Number(value);
+    return Number.isFinite(n) ? n : null;
+  };
+
+  return {
+    quota: {
+      remaining: toNumber(remainingRaw),
+      limit: toNumber(limitRaw),
+      authenticated: get('x-analysis-authenticated') === 'true',
+      resetsAt: get('x-analysis-quota-resets-at'),
+    },
+  };
+};
+
 export interface DailyDeck {
   deck_name: string;
   format_name: string;
@@ -135,9 +203,36 @@ export const DeckService = {
     return response.data;
   },
 
-  analyzeDeck: async (payload: unknown) => {
-    const response = await api.post('/decks/analyze', payload);
-    return response.data;
+  /**
+   * Runs the AI analysis.
+   *
+   * Anonymous callers must include `turnstileToken`: the backend refuses to
+   * spend AI tokens without a verified Cloudflare challenge, so omitting it
+   * simply yields a 403. Authenticated users never need one.
+   */
+  analyzeDeck: async (
+    payload: unknown,
+    turnstileToken?: string
+  ): Promise<DeckAnalysisResult> => {
+    const response = await api.post<DeckAnalysisResult>('/decks/analyze', {
+      ...(payload as object),
+      ...(turnstileToken ? { turnstile_token: turnstileToken } : {}),
+    });
+    const { quota } = readQuotaHeaders(response.headers);
+    return { ...response.data, quota };
+  },
+
+  /**
+   * Returns how many analyses the current caller has left. Never throws —
+   * the homepage just renders the form without a counter.
+   */
+  getAnalysisQuota: async (): Promise<AnalysisQuota | null> => {
+    try {
+      const response = await api.get('/decks/analyze/quota');
+      return response.data as AnalysisQuota;
+    } catch {
+      return null;
+    }
   },
   likeDeck: async (deckId: string): Promise<{ likesCount: number; likedByMe: boolean }> => {
     const response = await api.post<{ likesCount: number; likedByMe: boolean }>(

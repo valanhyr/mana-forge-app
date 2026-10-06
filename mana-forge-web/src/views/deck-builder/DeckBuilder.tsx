@@ -34,6 +34,8 @@ import DeckProfileChart from '../../components/ui/DeckProfileChart';
 import { useUser } from '../../services/UserContext';
 import { useTranslation } from '../../hooks/useTranslation';
 import SEO from '../../components/ui/SEO';
+import { findInBatch, safeNested, safeNumber, safeString } from '../../utils/scryfallHelpers';
+import { parseDecklist, sanitizeDecklistText } from '../../utils/decklistParser';
 
 // Extendemos DeckCard localmente para incluir la imagen hasta que se actualice la definición base
 type DeckCardWithImage = DeckCard & { image: string };
@@ -90,25 +92,7 @@ const TYPE_ORDER = [
 ];
 
 // Small helpers to safely extract fields from unknown-shaped Scryfall responses
-const safeString = (obj: Record<string, unknown> | null | undefined, key: string, fallback = ''): string => {
-  if (!obj) return fallback;
-  const v = obj[key];
-  return typeof v === 'string' ? v : fallback;
-};
-const safeNumber = (obj: Record<string, unknown> | null | undefined, key: string, fallback = 0): number => {
-  if (!obj) return fallback;
-  const v = obj[key];
-  return typeof v === 'number' ? v : fallback;
-};
-const safeNested = (obj: Record<string, unknown> | null | undefined, path: string[], fallback: unknown = undefined): unknown => {
-  if (!obj) return fallback;
-  let cur: unknown = obj;
-  for (const p of path) {
-    if (!cur || typeof cur !== 'object') return fallback;
-    cur = (cur as Record<string, unknown>)[p];
-  }
-  return cur === undefined ? fallback : cur;
-};
+// Shared with the homepage analysis section, see utils/scryfallHelpers.ts.
 
 // Mock de base de datos de arquetipos (esto debería venir de tu API/DB en el futuro)
 const ARCHETYPES_DB: Record<string, string[]> = {
@@ -454,10 +438,8 @@ const DeckBuilder = () => {
   };
 
   const handleImportDeck = async () => {
-    const lines = importText.split('\n').filter((line) => line.trim() !== '');
     const failedLines: string[] = [];
     const cardsToProcess: DeckCardWithImage[] = [];
-    let isSideboardSection = false;
 
     setIsImportModalOpen(false);
     setImportText('');
@@ -465,92 +447,45 @@ const DeckBuilder = () => {
 
       setIsImporting(true);
       try {
-        // Use backend batch endpoint to resolve all names at once
-          const names = lines.map(l => l.trim()).filter(l => l !== '');
-          const batch = await CardService.batchSearch(names);
+        // Resolve every card name in a single backend round-trip.
+          const parsed = parseDecklist(sanitizeDecklistText(importText));
+          const names = parsed.map((l) => l.name);
+          const batch = names.length > 0 ? await CardService.batchSearch(names) : {};
 
-          for (const line of lines) {
-              const trimmedLine = line.trim();
-              // Detectar "Sideboard" o "Sideboard:" insensible a mayúsculas
-              if (trimmedLine.toLowerCase().replace(':', '') === 'sideboard') {
-                isSideboardSection = true;
-                continue;
-              }
+          for (const entry of parsed) {
+            const cardData = findInBatch(batch, entry.name);
+            if (!cardData) {
+              failedLines.push(`${entry.quantity} ${entry.name}`);
+              continue;
+            }
 
-              const match = trimmedLine.match(/^(\d+)\s+(.+)$/);
-              let quantity = 1;
-              let cardName = trimmedLine;
+            let isValid = true;
+            if (selectedFormat) {
+              const legal = safeNested(cardData, ['legalities', selectedFormat.scryfallKey]);
+              isValid = legal === 'legal' || legal === 'restricted';
+            }
 
-              if (match) {
-                quantity = parseInt(match[1], 10);
-                cardName = match[2].trim();
-              }
+            const cardImage =
+              safeNested(cardData, ['image_uris', 'normal']) ||
+              safeNested(cardData, ['card_faces', '0', 'image_uris', 'normal']) ||
+              '';
 
-              try {
-                // Use batch result
-                const queryKey = cardName;
-                let result = batch[queryKey] || batch[`!"${cardName}"`] || batch[cardName.toLowerCase()] || null;
-
-                // If not found, attempt a fuzzy search through batch values (normalized)
-                if (!result) {
-                  const vals = Object.values(batch || {});
-                  const normalize = (s: string) => s.trim().toLowerCase().replace(/["']/g, '');
-                  const target = normalize(cardName);
-                  for (const v of vals) {
-                    if (!v) continue;
-                    const candidateName = (v.name || (v.card && v.card.name) || (Array.isArray(v.data) && v.data[0] && v.data[0].name) || v.line || '').toString();
-                    if (normalize(candidateName) === target) {
-                      result = v;
-                      break;
-                    }
-                    // also allow startsWith for cases with set codes or extra text
-                    if (normalize(candidateName).startsWith(target) || target.startsWith(normalize(candidateName))) {
-                      result = v;
-                      break;
-                    }
-                  }
-                }
-
-                // Support multiple backend shapes: { data: [...] }, { card: {...} }, or direct card object
-                let cardData: Record<string, unknown> | null = null;
-                if (result) {
-                  const resultRecord = result as Record<string, unknown>;
-                  if (Array.isArray(resultRecord.data) && (resultRecord.data as unknown[]).length > 0) {
-                    cardData = ((resultRecord.data as unknown[])[0]) as Record<string, unknown>;
-                  } else if (resultRecord.card) {
-                    cardData = resultRecord.card as Record<string, unknown>;
-                  } else if (resultRecord.id && resultRecord.name) {
-                    cardData = resultRecord; // already a card object
-                  }
-                }
-                if (!cardData) throw new Error('Not found');
-
-                let isValid = true;
-                if (selectedFormat) {
-                  const formatKey = selectedFormat.scryfallKey;
-                  const legal = safeNested(cardData, ['legalities', formatKey]);
-                  isValid = legal === 'legal' || legal === 'restricted';
-                }
-
-                const cardImage = safeNested(cardData, ['image_uris', 'normal']) || safeNested(cardData, ['card_faces', '0', 'image_uris', 'normal']) || '';
-
-                cardsToProcess.push({
-                  id: safeString(cardData, 'id'),
-                  name: safeString(cardData, 'name'),
-                  quantity: quantity,
-                  manaCost: safeString(cardData, 'mana_cost'),
-                  cmc: safeNumber(cardData, 'cmc'),
-                  type: (safeString(cardData, 'type_line')?.split('—')[0]?.trim()) || 'Unknown',
-                  price: parseFloat((safeNested(cardData, ['prices', 'eur']) as string) || '0'),
-                  inCollection: false,
-                  isValid: isValid,
-                  board: isSideboardSection ? 'side' : 'main',
-                  isGameChanger: (safeNested(cardData, ['games_changer']) === true) || (safeNested(cardData, ['game_changer']) === true),
-                  image: cardImage as string,
-                });
-              } catch {
-                failedLines.push(line);
-              }
+            cardsToProcess.push({
+              id: safeString(cardData, 'id'),
+              name: safeString(cardData, 'name'),
+              quantity: entry.quantity,
+              manaCost: safeString(cardData, 'mana_cost'),
+              cmc: safeNumber(cardData, 'cmc'),
+              type: (safeString(cardData, 'type_line')?.split('—')[0]?.trim()) || 'Unknown',
+              price: parseFloat((safeNested(cardData, ['prices', 'eur']) as string) || '0'),
+              inCollection: false,
+              isValid: isValid,
+              board: entry.board === 'side' ? 'side' : entry.board === 'maybe' ? 'maybe' : 'main',
+              isGameChanger:
+                (safeNested(cardData, ['games_changer']) === true) ||
+                (safeNested(cardData, ['game_changer']) === true),
+              image: cardImage as string,
+            });
           }
     if (cardsToProcess.length > 0) {
       addCardsToDeck(cardsToProcess);

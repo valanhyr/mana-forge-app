@@ -215,11 +215,11 @@
       "importing": "Importando...",
       "loadingCards": "Cargando cartas...",
       "updateDeck": "Guardar y salir",
-            "saveDeck": "Guardar y salir",
+      "saveDeck": "Guardar y salir",
       "deckUpdated": "¡Mazo actualizado con éxito!",
       "deckSaved": "¡Mazo guardado con éxito!",
       "saveDeckError": "Error al guardar el mazo. Inténtalo de nuevo.",
-            "saveAndContinue": "Guardar y continuar" ,
+      "saveAndContinue": "Guardar y continuar",
       "manaCurve": "Curva de Maná",
       "avgCmc": "CMC Medio",
       "typeDistribution": "Tipos",
@@ -268,9 +268,7 @@
       "validationIllegalCards": "Hay cartas no permitidas en el formato seleccionado.",
       "validationMaxCopies": "Alguna carta supera el límite de {max} copias.",
       "allFormats": "Todos los formatos",
-      "viewMyDecks": "Ver todos mis mazos",
-      "chooseImage": "Elegir imagen",
-      "noImages": "No hay imágenes disponibles"
+      "viewMyDecks": "Ver todos mis mazos"
     },
     "formatDetail": {
       "notFoundTitle": "Formato no encontrado",
@@ -529,6 +527,42 @@
         "messageTooShort": "El mensaje debe tener al menos 10 caracteres.",
         "sendFailed": "No se pudo enviar el mensaje. Inténtalo de nuevo."
       }
+    },
+    "home": {
+      "tryAnalysisTitle": "Prueba el análisis de tu mazo",
+      "tryAnalysisSubtitle": "Pega tu lista, elige el formato y obtén el análisis completo de la IA. Sin registro.",
+      "decklistLabel": "Tu lista de mazo",
+      "decklistPlaceholder": "4 Lightning Bolt\n4 Mutagenic Growth\n...\n\nSideboard\n2 Duress\n2 Cryptic Command",
+      "decklistHint": "Un caso por línea. Añade una línea 'Sideboard' para separar el bando. Se aceptan los símbolos de maná y los códigos de set.",
+      "formatLabel": "Formato",
+      "loadSample": "Usar ejemplo",
+      "mainDeckCount": "Mazo principal",
+      "sideboardCount": "Bando",
+      "deckTooSmall": "El mazo principal parece muy pequeño",
+      "challengeNotice": "Verificación de seguridad de Cloudflare. Es invisible y solo aparece si detectamos actividad automatizada.",
+      "analyzeButton": "Analizar mi mazo",
+      "analyzing": "Analizando tu mazo...",
+      "analyzingCanTakeWhile": "La IA puede tardar hasta un minuto.",
+      "resolvingCards": "Buscando las cartas...",
+      "quotaRemaining": "Te quedan {remaining} análisis hoy.",
+      "quotaExhausted": "Has alcanzado tu límite diario de análisis.",
+      "signInForMore": "Inicia sesión para más",
+      "whatYouGetTitle": "Qué obtienes",
+      "benefitProfile": "Perfil del mazo: curva de maná, consistencia, Yum, resistencia, interacción y combos.",
+      "benefitMatchups": "Matchups con arquetipos del meta y cómo improves frente a cada uno.",
+      "benefitChanges": "Cambios concretos sugeridos, con el porqué de cada uno.",
+      "stepsTitle": "Cómo funciona",
+      "stepPaste": "Pega tu lista de mazo tal cual la tienes en MTGO o Arena.",
+      "stepFormat": "Elige el formato para que la IA use las listas de baneo correctas.",
+      "stepRead": "Lee el análisis y decide qué cambiar antes de tu próxima sesión.",
+      "saveDeckPitch": "Crea tu cuenta para guardar mazos, seguir usándolos y comparar versiones.",
+      "analysisResultTitle": "Análisis de tu mazo",
+      "unresolvedCards": "Estas cartas no las encontramos en Scryfall y se han analizado por su nombre:",
+      "analyzeError": "No hemos podido completar el análisis. Inténtalo de nuevo en un momento.",
+      "analyzeQuotaReached": "Has alcanzado tu límite diario de análisis. Inicia sesión para analyses ilimitados.",
+      "analyzeChallengeFailed": "La verificación de seguridad ha fallado. Recarga la página e inténtalo de nuevo.",
+      "challengeFailedTitle": "No hemos podido cargar la verificación de seguridad.",
+      "challengeFailedHint": "Puede que la clave de Turnstile no esté permitida en este dominio. En local, usa la clave de prueba de Cloudflare (1x00000000000000000000AA) en .env.development."
     }
   },
   "en": {
@@ -570,9 +604,9 @@
       "copied": "Copied!",
       "clone": "Clone",
       "cloning": "Cloning...",
-            "confirmDelete": "Are you sure you want to delete this deck?",
-            "accept": "Accept",
-            "ok": "OK"
+      "confirmDelete": "Are you sure you want to delete this deck?",
+      "accept": "Accept",
+      "ok": "OK"
     },
     "articles": {
       "writtenBy": "Written by",
@@ -730,7 +764,7 @@
       "maxCopiesLabel": "Max Copies:",
       "sideboardLabel": "Sideboard:",
       "maybeboardLabel": "Maybeboard:",
-      "maybeboardEmpty": "No cards in maybeboard yet. Use the card menu to add cards." ,
+      "maybeboardEmpty": "No cards in maybeboard yet. Use the card menu to add cards.",
       "private": "Private",
       "public": "Public",
       "privateDescription": "Only you can see this deck.",
@@ -794,9 +828,9 @@
       "allFormats": "All Formats",
       "viewMyDecks": "View all my decks",
       "chooseImage": "Choose image",
-            "noImages": "No images available",
-            "saveAndContinue": "Save and continue"
-          },
+      "noImages": "No images available",
+      "saveAndContinue": "Save and continue"
+    },
     "formatDetail": {
       "notFoundTitle": "Format not found",
       "notFoundDescription": "Sorry, we don't have information about the \"{formatName}\" format.",
@@ -1054,6 +1088,42 @@
         "messageTooShort": "Message must be at least 10 characters long.",
         "sendFailed": "Failed to send message. Please try again."
       }
+    },
+    "home": {
+      "tryAnalysisTitle": "Try your deck analysis",
+      "tryAnalysisSubtitle": "Paste your list, pick a format and get the full AI analysis. No sign-up needed.",
+      "decklistLabel": "Your decklists",
+      "decklistPlaceholder": "4 Lightning Bolt\n4 Mutagenic Growth\n...\n\nSideboard\n2 Duress\n2 Cryptic Command",
+      "decklistHint": "One card per line. Add a 'Sideboard' line to separate the sideboard. Mana symbols and set codes are handled.",
+      "formatLabel": "Format",
+      "loadSample": "Use a sample",
+      "mainDeckCount": "Main deck",
+      "sideboardCount": "Sideboard",
+      "deckTooSmall": "Main deck looks too small",
+      "challengeNotice": "Cloudflare security check. It is invisible and only appears if we detect automated activity.",
+      "analyzeButton": "Analyze my deck",
+      "analyzing": "Analyzing your deck...",
+      "analyzingCanTakeWhile": "The AI can take up to a minute.",
+      "resolvingCards": "Looking up cards...",
+      "quotaRemaining": "You have {remaining} analyses left today.",
+      "quotaExhausted": "You have reached your daily analysis limit.",
+      "signInForMore": "Sign in for more",
+      "whatYouGetTitle": "What you get",
+      "benefitProfile": "Deck profile: mana curve, consistency, Yum, resilience, interaction and combos.",
+      "benefitMatchups": "Matchups against meta archetypes and how you improve against each one.",
+      "benefitChanges": "Concrete suggested swaps, each with the reasoning behind it.",
+      "stepsTitle": "How it works",
+      "stepPaste": "Paste your decklists exactly as you have it in MTGO or Arena.",
+      "stepFormat": "Pick the format so the AI uses the right ban lists.",
+      "stepRead": "Read the analysis and decide what to change before your next session.",
+      "saveDeckPitch": "Create an account to save decks, keep using them and compare versions.",
+      "analysisResultTitle": "Your deck analysis",
+      "unresolvedCards": "These cards were not found on Scryfall and were analysed by name:",
+      "analyzeError": "We could not complete the analysis. Please try again in a moment.",
+      "analyzeQuotaReached": "You have reached your daily analysis limit. Sign in for unlimited analyses.",
+      "analyzeChallengeFailed": "The security check failed. Please reload the page and try again.",
+      "challengeFailedTitle": "We could not load the security check.",
+      "challengeFailedHint": "The Turnstile site key may not be allowed on this hostname. Locally, use Cloudflare's test key (1x00000000000000000000AA) in .env.development."
     }
   }
 }

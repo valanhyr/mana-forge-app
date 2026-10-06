@@ -74,8 +74,20 @@ public class RateLimitingInterceptor implements HandlerInterceptor {
         return Bucket.builder().addLimit(limit).build();
     }
 
-    /** Extracts real client IP, respecting X-Forwarded-For when behind a proxy. */
+    /**
+     * Extracts the real client IP.
+     *
+     * <p>Order matters. Behind Cloudflare the socket address is the Cloudflare
+     * edge, so {@code CF-Connecting-IP} is authoritative — Cloudflare sets it
+     * itself and strips any inbound value, so a client cannot forge it.
+     * {@code X-Forwarded-For} is only a fallback because it is client-controlled
+     * unless every proxy in front of us overwrites it.
+     */
     private String resolveClientIp(HttpServletRequest request) {
+        String cfIp = request.getHeader("CF-Connecting-IP");
+        if (cfIp != null && !cfIp.isBlank()) {
+            return cfIp.trim();
+        }
         String xff = request.getHeader("X-Forwarded-For");
         if (xff != null && !xff.isBlank()) {
             return xff.split(",")[0].strip();

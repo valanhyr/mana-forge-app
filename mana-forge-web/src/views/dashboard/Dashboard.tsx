@@ -24,6 +24,7 @@ import { ArticleService } from '../../services/ArticleService';
 import { type Article } from '../../core/models/Article';
 import ManaCost from '../../components/ui/ManaCost';
 import SEO from '../../components/ui/SEO';
+import DeckAnalyzerSection from '../../components/home/DeckAnalyzerSection';
 import { useUser } from '../../services/UserContext';
 import { useToast } from '../../services/ToastContext';
 
@@ -527,6 +528,11 @@ const Dashboard = () => {
           {renderAiDeckCard()}
         </div>
       </section>
+
+      {/* --- Sección: probar el análisis de IA sin registro --- */}
+      <DeckAnalyzerSection
+        formats={popularFormats.map((f) => ({ mongoId: f.mongoId, title: f.title }))}
+      />
 
       {/* --- Sección Formatos Populares (Sugerencia) --- */}
       <section>

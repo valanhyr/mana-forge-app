@@ -20,6 +20,8 @@ services:
         - VITE_API_URL=/api
         - VITE_FARO_URL=${VITE_FARO_URL:-}
         - VITE_FARO_APP_NAME=${VITE_FARO_APP_NAME:-mana-forge-web}
+        # Public Turnstile site key (safe to expose; the secret stays server-side)
+        - VITE_TURNSTILE_SITE_KEY=${CLOUDFLARE_TS_SITE_KEY:-}
     container_name: mana-forge-web-1
     ports:
       - "127.0.0.1:5173:80"
@@ -70,6 +72,18 @@ services:
       - GRAFANA_OTEL_ENABLED=${GRAFANA_OTEL_ENABLED:-false}
       - GRAFANA_OTLP_ENDPOINT=${GRAFANA_OTLP_ENDPOINT:-}
       - GRAFANA_OTLP_AUTH=${GRAFANA_OTLP_AUTH:-}
+      # Concurrency guard: fail fast with 429 instead of opening unbounded
+      # simultaneous provider calls (which would trip Groq/Gemini rate limits).
+      - AI_MAX_CONCURRENT_REQUESTS=${AI_MAX_CONCURRENT_REQUESTS:-4}
+      # Cloudflare Turnstile — verifies the token sent by the homepage widget.
+      # Enabling is automatic once CLOUDFLARE_TS_SECRET_KEY is present.
+      - CLOUDFLARE_TS_SITE_KEY=${CLOUDFLARE_TS_SITE_KEY:-}
+      - CLOUDFLARE_TS_SECRET_KEY=${CLOUDFLARE_TS_SECRET_KEY:-}
+      # AI abuse controls for the public analysis endpoint
+      - AI_QUOTA_ENABLED=${AI_QUOTA_ENABLED:-true}
+      - AI_QUOTA_ANONYMOUS_DAILY=${AI_QUOTA_ANONYMOUS_DAILY:-5}
+      - AI_QUOTA_AUTHENTICATED_DAILY=${AI_QUOTA_AUTHENTICATED_DAILY:-25}
+      - AI_CACHE_TTL_HOURS=${AI_CACHE_TTL_HOURS:-24}
     depends_on:
       engine:
         condition: service_healthy
@@ -89,14 +103,18 @@ services:
       - mana-forge-network
 
   # ENGINE: Python FastAPI (Puerto 8000)
+  # CRÍTICO: sin `ports`, el engine es inalcanzable desde internet y solo
+  # escucha en la red interna de Docker. Publicar 8000 exponía la IA
+  # directamente, saltándose Cloudflare, nginx y el rate limit del backend.
+  # El proxy sigue siendo el único camino: web/nginx -> api -> engine.
   engine:
     image: ${ENGINE_IMAGE:-ghcr.io/valanhyr/mana-forge-engine:latest}
     build:
       context: ./mana-forge-engine
       dockerfile: Dockerfile
     container_name: mana-forge-engine-1
-    ports:
-      - "8000:8000"
+    expose:
+      - "8000"
     environment:
       - GROQ_API_KEY=${GROQ_API_KEY}
       - GROQ_MODEL=${GROQ_MODEL:-groq/compound-mini}
@@ -216,6 +234,18 @@ services:
       - "8088:8080"
     networks:
       - mana-forge-network
+
+  nginx:
+    image: nginx:stable
+    container_name: mana-forge-nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - web
+      - api
+    restart: unless-stopped
 
 networks:
   mana-forge-network:

@@ -6,8 +6,14 @@ import com.manaforge.api.dto.DeckViewDTO;
 import com.manaforge.api.dto.FeaturedDeckDTO;
 import com.manaforge.api.model.mongo.Deck;
 import com.manaforge.api.repository.UserRepository;
+import com.manaforge.api.service.AiQuotaService;
 import com.manaforge.api.service.DeckService;
 import com.manaforge.api.service.EmailEncryptionService;
+import com.manaforge.api.service.TurnstileService;
+import jakarta.servlet.http.HttpServletRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -16,6 +22,7 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -23,15 +30,23 @@ import java.util.Map;
 @RequestMapping("/api/decks")
 public class DeckController {
 
+    private static final Logger logger = LoggerFactory.getLogger(DeckController.class);
+
     private final DeckService deckService;
     private final UserRepository userRepository;
     private final EmailEncryptionService emailEncryptionService;
+    private final AiQuotaService aiQuotaService;
+    private final TurnstileService turnstileService;
 
     public DeckController(DeckService deckService, UserRepository userRepository,
-                          EmailEncryptionService emailEncryptionService) {
+                          EmailEncryptionService emailEncryptionService,
+                          AiQuotaService aiQuotaService,
+                          TurnstileService turnstileService) {
         this.deckService = deckService;
         this.userRepository = userRepository;
         this.emailEncryptionService = emailEncryptionService;
+        this.aiQuotaService = aiQuotaService;
+        this.turnstileService = turnstileService;
     }
 
     // ── Auth helper ───────────────────────────────────────────────────────────
@@ -47,6 +62,127 @@ public class DeckController {
                 .or(() -> userRepository.findByEmail(identifier))
                 .map(u -> u.getId())
                 .orElse(null);
+    }
+
+    // ── AI analysis gating ────────────────────────────────────────────────────
+
+    /**
+     * Runs the AI analysis for the public endpoint, applying the abuse controls
+     * that protect the provider budget: Turnstile proof, daily quota and a result
+     * cache so identical decks are never paid for twice.
+     */
+    @PostMapping("/analyze")
+    public ResponseEntity<Map<String, Object>> analyzeDeck(
+            @RequestBody Map<String, Object> deckPayload,
+            HttpServletRequest request) {
+        String userId = getCurrentUserId();
+        boolean authenticated = userId != null;
+        String identity = authenticated ? userId : clientIp(request);
+
+        // 1. Cached answers are free: serve them before any quota or challenge work.
+        String cacheKey = aiQuotaService.buildCacheKey(deckPayload);
+        Map<String, Object> cached = aiQuotaService.getCached(cacheKey);
+        if (cached != null && !cached.isEmpty()) {
+            cached.put("cached", true);
+            return withQuotaHeaders(cached, aiQuotaService.check(identity, authenticated), true, HttpStatus.OK);
+        }
+
+        // 2. Anonymous callers must prove they are not a bot.
+        AiQuotaService.QuotaResult quota = aiQuotaService.check(identity, authenticated);
+        if (!authenticated && turnstileService.isEnabled()) {
+            String token = asString(deckPayload.remove("turnstile_token"));
+            if (!turnstileService.verify(token, identity)) {
+                Map<String, Object> body = new HashMap<>();
+                body.put("error", "Human verification required. Please reload and try again.");
+                body.put("code", "TURNSTILE_FAILED");
+                return withQuotaHeaders(body, quota, false, HttpStatus.FORBIDDEN);
+            }
+        } else {
+            // Strip the token even when verification is off so it never reaches the engine.
+            deckPayload.remove("turnstile_token");
+        }
+
+        // 3. Daily allowance.
+        if (!quota.allowed()) {
+            Map<String, Object> body = new HashMap<>();
+            body.put("error", "Daily analysis limit reached. Sign in to raise it, or try again tomorrow.");
+            body.put("code", "AI_QUOTA_EXCEEDED");
+            return withQuotaHeaders(body, quota, authenticated, HttpStatus.TOO_MANY_REQUESTS);
+        }
+
+        // 4. Spend quota and call the engine.
+        aiQuotaService.consume(identity, authenticated);
+        Map<String, Object> analysis = deckService.analyzeDeck(deckPayload);
+
+        cacheIfSuccessful(cacheKey, analysis);
+        return withQuotaHeaders(analysis, aiQuotaService.check(identity, authenticated), authenticated, HttpStatus.OK);
+    }
+
+    /**
+     * Lets the homepage show "N analyses left" before the user types a decklists,
+     * so the limit is never a surprise.
+     */
+    @GetMapping("/analyze/quota")
+    public ResponseEntity<Map<String, Object>> getAnalysisQuota(HttpServletRequest request) {
+        String userId = getCurrentUserId();
+        boolean authenticated = userId != null;
+        AiQuotaService.QuotaResult quota =
+                aiQuotaService.check(authenticated ? userId : clientIp(request), authenticated);
+
+        Map<String, Object> body = new HashMap<>();
+        body.put("authenticated", authenticated);
+        body.put("limit", quota.limited() ? quota.limit() : null);
+        body.put("remaining", quota.limited() ? quota.remaining() : null);
+        body.put("resetsAt", quota.resetsAt() == null ? null : quota.resetsAt().toString());
+        return withQuotaHeaders(body, quota, authenticated, HttpStatus.OK);
+    }
+
+    /**
+     * Builds the response, attaching the quota state as headers so the client can
+     * update its counter without parsing the body.
+     */
+    private ResponseEntity<Map<String, Object>> withQuotaHeaders(
+            Map<String, Object> body, AiQuotaService.QuotaResult quota, boolean authenticated, HttpStatus status) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("X-Analysis-Authenticated", Boolean.toString(authenticated));
+        if (quota.limited()) {
+            headers.set("X-Analysis-Quota-Limit", String.valueOf(quota.limit()));
+            headers.set("X-Analysis-Quota-Remaining", String.valueOf(quota.remaining()));
+        }
+        if (quota.resetsAt() != null) {
+            headers.set("X-Analysis-Quota-Resets-At", quota.resetsAt().toString());
+        }
+        return new ResponseEntity<>(body, headers, status);
+    }
+
+    /**
+     * Caches successful analyses only. A fallback or an engine error must not be
+     * pinned into the cache for 24h, or a transient outage would poison every
+     * visitor for a day.
+     */
+    private void cacheIfSuccessful(String cacheKey, Map<String, Object> analysis) {
+        if (analysis == null || analysis.isEmpty() || analysis.containsKey("error")) return;
+        aiQuotaService.putCached(cacheKey, analysis);
+    }
+
+    private static String asString(Object value) {
+        return value instanceof String s ? s : "";
+    }
+
+    /**
+     * Real client IP for anonymous quota accounting. Behind Cloudflare and nginx
+     * the socket address is useless, so the proxy-provided headers win.
+     */
+    private String clientIp(HttpServletRequest request) {
+        String cfConnectingIp = request.getHeader("CF-Connecting-IP");
+        if (cfConnectingIp != null && !cfConnectingIp.isBlank()) {
+            return cfConnectingIp.trim();
+        }
+        String forwardedFor = request.getHeader("X-Forwarded-For");
+        if (forwardedFor != null && !forwardedFor.isBlank()) {
+            return forwardedFor.split(",")[0].strip();
+        }
+        return request.getRemoteAddr();
     }
 
     @PostMapping
@@ -96,11 +232,6 @@ public class DeckController {
     @PostMapping("/scores")
     public Map<String, Object> getDeckScores(@RequestBody Map<String, Object> deckPayload) {
         return deckService.getDeckScores(deckPayload);
-    }
-
-    @PostMapping("/analyze")
-    public Map<String, Object> analyzeDeck(@RequestBody Map<String, Object> deckPayload) {
-        return deckService.analyzeDeck(deckPayload);
     }
 
     @GetMapping("/search")

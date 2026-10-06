@@ -90,7 +90,23 @@ GOOGLE_CLIENT_SECRET=your_google_client_secret
 # SMTP (Resend)
 SMTP_PASSWORD=your_resend_api_key
 SMTP_FROM=noreply@yourdomain.com
+# Destinatario de las notificaciones del formulario de contacto (/api/contact).
+# Obligatorio: si falta, la app arranca con un ERROR en el log y los mensajes
+# de contacto se pierden (el cliente sí recibe su email de confirmación).
+MAIL_ADMIN=info@yourdomain.com
 ```
+
+> **Nota `MAIL_ADMIN`:** `docker-compose.yml` inyecta esta variable con
+> `- MAIL_ADMIN=${MAIL_ADMIN}` en el bloque `environment`, sin `env_file:`.
+> Docker Compose resuelve `${MAIL_ADMIN}` desde el `.env` del **directorio desde el
+> que ejecutas `docker compose`** (o del `--env-file` que pases), no desde el archivo
+> que haya dentro del contenedor. Si la variable no está ahí, el contenedor la
+> recibe vacía. Verifícalo con:
+>
+> ```bash
+> docker exec mana-forge-api-1 printenv MAIL_ADMIN
+> docker logs mana-forge-api-1 2>&1 | grep -i 'Mail config'
+> ```
 
 ---
 
