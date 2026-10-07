@@ -62,9 +62,11 @@ class FormatControllerTest {
                 .title("Premodern")
                 .slug("premodern")
                 .build();
-        when(formatService.getAllFormats()).thenReturn(List.of(dto));
+        // The controller forwards Accept-Language to the service, so the stub has
+        // to match the two-argument call the endpoint actually makes.
+        when(formatService.getAllFormats("es")).thenReturn(List.of(dto));
 
-        mockMvc.perform(get("/api/formats"))
+        mockMvc.perform(get("/api/formats").header("Accept-Language", "es"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$[0].title").value("Premodern"));
@@ -76,18 +78,18 @@ class FormatControllerTest {
                 .slug("premodern")
                 .title("Premodern")
                 .build();
-        when(formatService.getFormatByMongoId("fmt1")).thenReturn(dto);
+        when(formatService.getFormatByMongoId("fmt1", "es")).thenReturn(dto);
 
-        mockMvc.perform(get("/api/formats/fmt1"))
+        mockMvc.perform(get("/api/formats/fmt1").header("Accept-Language", "es"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.title").value("Premodern"));
     }
 
     @Test
     void getFormatById_notFound_returns404() throws Exception {
-        when(formatService.getFormatByMongoId("missing")).thenReturn(null);
+        when(formatService.getFormatByMongoId("missing", "es")).thenReturn(null);
 
-        mockMvc.perform(get("/api/formats/missing"))
+        mockMvc.perform(get("/api/formats/missing").header("Accept-Language", "es"))
                 .andExpect(status().isNotFound());
     }
 

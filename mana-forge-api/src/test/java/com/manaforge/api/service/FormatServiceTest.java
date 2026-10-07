@@ -25,7 +25,7 @@ class FormatServiceTest {
     private FormatService formatService;
 
     private DirectusFormatData buildFormatData(String mongoId, String title) {
-            DirectusFormatData data = new DirectusFormatData();
+        DirectusFormatData data = new DirectusFormatData();
         data.setMongoId(mongoId);
         data.setTitle(title);
         data.setSubtitle("The classic format");
@@ -37,9 +37,11 @@ class FormatServiceTest {
 
     @Test
     void getAllFormats_mapsTwoFormatsToSummaryDtos() throws Exception {
+        // FormatService delegates to the two-argument overload; stubbing the
+        // single-argument one leaves the mock returning an empty list.
         DirectusFormatData f1 = buildFormatData("fmt1", "Premodern");
         DirectusFormatData f2 = buildFormatData("fmt2", "Classic");
-        when(directusService.getFormats("es")).thenReturn(List.of(f1, f2));
+        when(directusService.getFormats("es", "es")).thenReturn(List.of(f1, f2));
 
         List<FormatSummaryDto> result = formatService.getAllFormats();
 
@@ -51,7 +53,7 @@ class FormatServiceTest {
 
     @Test
     void getAllFormats_returnsEmptyListWhenDirectusServiceThrows() throws Exception {
-        when(directusService.getFormats("es")).thenThrow(new RuntimeException("CMS down"));
+        when(directusService.getFormats("es", "es")).thenThrow(new RuntimeException("CMS down"));
 
         List<FormatSummaryDto> result = formatService.getAllFormats();
 

@@ -88,35 +88,56 @@ class DirectusServiceTest {
 
     // ── getArticleByDocumentId ──────────────────────────────────────────────
 
+    /**
+     * The service no longer fetches by primary-key path. It queries the
+     * collection with a documentId filter and expects an array back, so the
+     * stubs must match the path {@code /items/articles} and return
+     * {@code data: [...]}. The requested language is visible in the
+     * {@code deep[translations][_filter]} query parameter.
+     */
     @Test
     void getArticleByDocumentId_returnsArticleOnSuccess() throws Exception {
-        wireMock.stubFor(get(urlPathEqualTo("/items/articles/doc-abc"))
+        wireMock.stubFor(get(urlPathEqualTo("/items/articles"))
+                .withQueryParam("filter[documentId][_eq]", equalTo("doc-abc"))
                 .willReturn(aResponse()
                         .withStatus(200)
                         .withHeader("Content-Type", "application/json")
                         .withBody("""
                                 {
-                                  "data": {
-                                    "documentId": "doc-abc",
-                                    "title": "Detail Article",
-                                    "subtitle": "Sub"
-                                  }
+                                  "data": [
+                                    {
+                                      "documentId": "doc-abc",
+                                      "translations": [
+                                        {
+                                          "languages_code": "en",
+                                          "title": "Detail Article",
+                                          "subtitle": "Sub"
+                                        }
+                                      ]
+                                    }
+                                  ]
                                 }
                                 """)));
 
         DirectusArticleData result = directusService.getArticleByDocumentId("doc-abc", "en", null);
 
         assertThat(result).isNotNull();
+        assertThat(result.getDocumentId()).isEqualTo("doc-abc");
         assertThat(result.getTitle()).isEqualTo("Detail Article");
+        assertThat(result.getLocale()).isEqualTo("en");
     }
 
     @Test
     void getArticleByDocumentId_returnsNullWhenDataMissing() throws Exception {
-        wireMock.stubFor(get(urlPathEqualTo("/items/articles/no-such-doc"))
+        // An empty array, not `data: null`: a null payload makes
+        // fetchFromDirectus return null early, which does not exercise the
+        // "no matching article" branch under test.
+        wireMock.stubFor(get(urlPathEqualTo("/items/articles"))
+                .withQueryParam("filter[documentId][_eq]", equalTo("no-such-doc"))
                 .willReturn(aResponse()
                         .withStatus(200)
                         .withHeader("Content-Type", "application/json")
-                        .withBody("{\"data\": null}")));
+                        .withBody("{\"data\": []}")));
 
         DirectusArticleData result = directusService.getArticleByDocumentId("no-such-doc", "es", null);
 
