@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import pkg from '../../package.json';
 
 const initializeFaro = vi.fn();
 const getWebInstrumentations = vi.fn(() => []);
@@ -47,7 +48,9 @@ describe('observability bootstrap', () => {
       url: 'https://collector.example/collect/app',
       app: {
         name: 'mana-forge-web',
-    version: '1.0.13',
+        // Injected from package.json, so this fails loudly on a version bump
+        // only if the plumbing breaks — not silently reporting a stale build.
+        version: pkg.version,
         environment: 'production',
       },
       instrumentations: [{ name: 'tracing' }],

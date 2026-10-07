@@ -1,6 +1,75 @@
 {
   "releases": [
     {
+      "version": "1.0.14",
+      "features": {
+        "es": [
+          {
+            "icon": "🤖",
+            "title": "Análisis de mazo con IA sin registro",
+            "description": "Pega tu lista en la portada, elige el formato y obtén el análisis completo de la IA sin crear cuenta. Incluye perfil del mazo, emparejamientos contra el meta y cambios concretos sugeridos. Puedes hacer 5 análisis al día sin registrarte, y más si inicias sesión."
+          },
+          {
+            "icon": "🃏",
+            "title": "Importación de listas con detalle",
+            "description": "La importación de mazos ahora te dice cuántas cartas se añadieron y cuáles fallaron, con el nombre de cada carta que no se pudo resolver, en lugar de un único aviso genérico."
+          },
+          {
+            "icon": "⏳",
+            "title": "Indicador de carga en la Forja",
+            "description": "Al abrir un mazo, importar una lista o esperar al análisis de la IA, ahora verás una capa de carga con el motivo, en vez de una pantalla vacía."
+          },
+          {
+            "icon": "🧑",
+            "title": "Nombre de usuario y contraseña desde tu perfil",
+            "description": "Puedes cambiar tu nombre visible con comprobación de disponibilidad mientras escribes, y cambiar la contraseña desde el perfil, con validación de longitud y de que no sea la actual."
+          },
+          {
+            "icon": "🏷️",
+            "title": "Distintivo Game Changer",
+            "description": "Las cartas marcadas como Game Changer en Premodern se identifican con un distintivo en tu lista de mazos y en el visualizador, para no pasarlas por alto al construir."
+          },
+          {
+            "icon": "🛡️",
+            "title": "Formulario de contacto protegido contra spam",
+            "description": "El formulario de contacto ahora incluye una verificación de Cloudflare Turnstile que es invisible en la mayoría de los casos y solo aparece cuando detectamos actividad automatizada."
+          }
+        ],
+        "en": [
+          {
+            "icon": "🤖",
+            "title": "AI deck analysis with no sign-up",
+            "description": "Paste your list on the homepage, pick a format and get the full AI analysis without creating an account. It includes deck profile, meta matchups and concrete suggested swaps. You get 5 analyses a day while signed out, and more once you sign in."
+          },
+          {
+            "icon": "🃏",
+            "title": "Detailed list import",
+            "description": "Deck imports now tell you how many cards were added and which ones failed, naming every card that could not be resolved, instead of a single generic message."
+          },
+          {
+            "icon": "⏳",
+            "title": "Loading indicator in the Forge",
+            "description": "When opening a deck, importing a list or waiting for the AI analysis, you now get a loading overlay that says what it is doing, instead of an empty screen."
+          },
+          {
+            "icon": "🧑",
+            "title": "Username and password from your profile",
+            "description": "You can change your display name with availability checked as you type, and change your password from your profile, with length validation and a check that it is not your current one."
+          },
+          {
+            "icon": "🏷️",
+            "title": "Game Changer badge",
+            "description": "Cards flagged as Game Changers in Premodern now carry a badge in your deck list and in the deck viewer, so they are harder to miss while building."
+          },
+          {
+            "icon": "🛡️",
+            "title": "Spam-protected contact form",
+            "description": "The contact form now includes a Cloudflare Turnstile check that is invisible in most cases and only appears when we detect automated activity."
+          }
+        ]
+      }
+    },
+    {
       "version": "1.0.5",
       "features": {
         "es": [

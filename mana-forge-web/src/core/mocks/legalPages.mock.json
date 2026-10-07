@@ -3,7 +3,7 @@
     {
       "slug": "privacy-policy",
       "title": "Privacy Policy",
-      "lastUpdated": "2025-01-15",
+      "lastUpdated": "2026-10-07",
       "sections": [
         {
           "heading": "Introduction",
@@ -11,7 +11,7 @@
         },
         {
           "heading": "Information We Collect",
-          "content": "<p>We may collect information about you in a variety of ways, including:</p><ul><li><strong>Personal Data:</strong> Name, email address, and username provided during registration or Google OAuth login.</li><li><strong>Usage Data:</strong> Information about how you interact with the platform, such as pages visited, decks created, and features used.</li><li><strong>Device Data:</strong> Browser type, IP address, and operating system, collected automatically for security and analytics purposes.</li></ul>"
+          "content": "<p>We may collect information about you in a variety of ways, including:</p><ul><li><strong>Personal Data:</strong> Name, email address, and username provided during registration or Google OAuth login.</li><li><strong>Usage Data:</strong> Information about how you interact with the platform, such as pages visited, decks created, and features used.</li><li><strong>Device Data:</strong> Browser type, IP address, and operating system, collected automatically for security and analytics purposes.</li><li><strong>Anti-Bot Verification Data:</strong> When you run a public deck analysis or send us a message through the contact form, <a href='https://www.cloudflare.com/privacypolicy/' target='_blank' rel='noopener noreferrer'>Cloudflare Turnstile</a> processes your IP address together with signals from your browser to produce a short-lived verification token. That token is checked against Cloudflare's servers from our backend and then discarded; we do not store it. Turnstile does not set cookies, and it writes nothing to your device beyond challenge state kept in your browser's local storage.</li></ul>"
         },
         {
           "heading": "How We Use Your Information",
@@ -19,7 +19,7 @@
         },
         {
           "heading": "Sharing Your Information",
-          "content": "<p>We do not sell, trade, or otherwise transfer your personally identifiable information to third parties, except in the following limited circumstances:</p><ul><li><strong>Service Providers:</strong> We may share data with trusted third-party vendors (e.g., cloud hosting, AI inference providers) solely to operate our platform.</li><li><strong>Legal Requirements:</strong> We may disclose your information if required to do so by law or in response to valid legal processes.</li></ul>"
+          "content": "<p>We do not sell, trade, or otherwise transfer your personally identifiable information to third parties, except in the following limited circumstances:</p><ul><li><strong>Service Providers:</strong> We may share data with trusted third-party vendors (e.g., cloud hosting, AI inference providers) solely to operate our platform.</li><li><strong>Cloudflare:</strong> Delivers our site and provides bot protection. Your IP address and browser signals are shared with Cloudflare only when a Turnstile challenge is solved, in order to validate that a real person is using the form. See the <a href='https://www.cloudflare.com/privacypolicy/' target='_blank' rel='noopener noreferrer'>Cloudflare Privacy Policy</a>.</li><li><strong>Grafana (Faro):</strong> Receives technical telemetry from your browser — console output, errors, performance traces and the paths you visit — used solely to diagnose faults in the platform. It does not receive the contents of your decks or your message text.</li><li><strong>Legal Requirements:</strong> We may disclose your information if required to do so by law or in response to valid legal processes.</li></ul>"
         },
         {
           "heading": "Data Retention",
@@ -97,7 +97,7 @@
     {
       "slug": "cookie-policy",
       "title": "Cookie Policy",
-      "lastUpdated": "2025-01-15",
+      "lastUpdated": "2026-10-07",
       "sections": [
         {
           "heading": "What Are Cookies?",
@@ -113,7 +113,7 @@
         },
         {
           "heading": "Third-Party Cookies",
-          "content": "<p>We may use third-party services that set their own cookies on your device, including:</p><ul><li><strong>Google OAuth:</strong> Used during the login process. Governed by Google's own Privacy Policy.</li><li><strong>Analytics Providers:</strong> Used to collect aggregated usage statistics.</li></ul><p>We have no direct control over third-party cookies. We recommend reviewing the privacy policies of these providers.</p>"
+          "content": "<p>We may use third-party services that set their own cookies on your device, including:</p><ul><li><strong>Google OAuth:</strong> Used during the login process. Governed by Google's own Privacy Policy.</li><li><strong>Analytics Providers:</strong> Used to collect aggregated usage statistics.</li></ul><p>We have no direct control over third-party cookies. We recommend reviewing the privacy policies of these providers.</p><p><strong>Not cookie-based:</strong> Cloudflare Turnstile and Grafana Faro appear in our Privacy Policy because they process technical data, but neither sets cookies on your device. Turnstile keeps challenge state in your browser's local storage, and Faro transmits telemetry directly to our own collector. Neither can be switched off without disabling bot protection and error reporting respectively.</p>"
         },
         {
           "heading": "Managing Cookies",
@@ -138,7 +138,7 @@
     {
       "slug": "privacy-policy",
       "title": "Política de Privacidad",
-      "lastUpdated": "2025-01-15",
+      "lastUpdated": "2026-10-07",
       "sections": [
         {
           "heading": "Introducción",
@@ -146,7 +146,7 @@
         },
         {
           "heading": "Información que Recopilamos",
-          "content": "<p>Podemos recopilar información sobre ti de diversas formas, incluyendo:</p><ul><li><strong>Datos Personales:</strong> Nombre, dirección de correo electrónico y nombre de usuario proporcionados durante el registro o el inicio de sesión con Google OAuth.</li><li><strong>Datos de Uso:</strong> Información sobre cómo interactúas con la plataforma, como las páginas visitadas, los mazos creados y las funciones utilizadas.</li><li><strong>Datos del Dispositivo:</strong> Tipo de navegador, dirección IP y sistema operativo, recopilados automáticamente con fines de seguridad y análisis.</li></ul>"
+          "content": "<p>Podemos recopilar información sobre ti de diversas formas, incluyendo:</p><ul><li><strong>Datos Personales:</strong> Nombre, dirección de correo electrónico y nombre de usuario proporcionados durante el registro o el inicio de sesión con Google OAuth.</li><li><strong>Datos de Uso:</strong> Información sobre cómo interactúas con la plataforma, como las páginas visitadas, los mazos creados y las funciones utilizadas.</li><li><strong>Datos del Dispositivo:</strong> Tipo de navegador, dirección IP y sistema operativo, recopilados automáticamente con fines de seguridad y análisis.</li><li><strong>Datos de Verificación Antibo:</strong> Cuando ejecutas un análisis público de mazos o nos envías un mensaje desde el formulario de contacto, <a href='https://www.cloudflare.com/privacypolicy/' target='_blank' rel='noopener noreferrer'>Cloudflare Turnstile</a> procesa tu dirección IP junto con señales de tu navegador para generar un token de verificación de corta duración. Ese token se valida contra los servidores de Cloudflare desde nuestro backend y se descarta; no lo almacenamos. Turnstile no establece cookies ni escribe nada en tu dispositivo salvo el estado del reto, que se guarda en el almacenamiento local de tu navegador.</li></ul>"
         },
         {
           "heading": "Cómo Usamos tu Información",
@@ -154,7 +154,7 @@
         },
         {
           "heading": "Compartir tu Información",
-          "content": "<p>No vendemos, intercambiamos ni transferimos tu información de identificación personal a terceros, excepto en las siguientes circunstancias limitadas:</p><ul><li><strong>Proveedores de Servicios:</strong> Podemos compartir datos con proveedores externos de confianza (por ejemplo, alojamiento en la nube, proveedores de inferencia de IA) únicamente para operar nuestra plataforma.</li><li><strong>Requisitos Legales:</strong> Podemos divulgar tu información si así lo exige la ley o en respuesta a procesos legales válidos.</li></ul>"
+          "content": "<p>No vendemos, intercambiamos ni transferimos tu información de identificación personal a terceros, excepto en las siguientes circunstancias limitadas:</p><ul><li><strong>Proveedores de Servicios:</strong> Podemos compartir datos con proveedores externos de confianza (por ejemplo, alojamiento en la nube, proveedores de inferencia de IA) únicamente para operar nuestra plataforma.</li><li><strong>Cloudflare:</strong> Entrega nuestro sitio y aporta la protección antibots. Tu dirección IP y las señales de tu navegador se comparten con Cloudflare solo cuando resuelves un reto de Turnstile, con el fin de comprobar que quien usa el formulario es una persona real. Consulta la <a href='https://www.cloudflare.com/privacypolicy/' target='_blank' rel='noopener noreferrer'>Política de Privacidad de Cloudflare</a>.</li><li><strong>Grafana (Faro):</strong> Recibe telemetría técnica de tu navegador —salidas de consola, errores, trazas de rendimiento y las rutas que visitas— usada únicamente para diagnosticar fallos de la plataforma. No recibe el contenido de tus mazos ni el texto de tus mensajes.</li><li><strong>Requisitos Legales:</strong> Podemos divulgar tu información si así lo exige la ley o en respuesta a procesos legales válidos.</li></ul>"
         },
         {
           "heading": "Retención de Datos",
@@ -232,7 +232,7 @@
     {
       "slug": "cookie-policy",
       "title": "Política de Cookies",
-      "lastUpdated": "2025-01-15",
+      "lastUpdated": "2026-10-07",
       "sections": [
         {
           "heading": "¿Qué son las Cookies?",
@@ -248,7 +248,7 @@
         },
         {
           "heading": "Cookies de Terceros",
-          "content": "<p>Podemos utilizar servicios de terceros que establecen sus propias cookies en tu dispositivo, incluyendo:</p><ul><li><strong>Google OAuth:</strong> Utilizado durante el proceso de inicio de sesión. Sujeto a la propia Política de Privacidad de Google.</li><li><strong>Proveedores de Analítica:</strong> Utilizados para recopilar estadísticas de uso agregadas.</li></ul><p>No tenemos control directo sobre las cookies de terceros. Te recomendamos que revises las políticas de privacidad de estos proveedores.</p>"
+          "content": "<p>Podemos utilizar servicios de terceros que establecen sus propias cookies en tu dispositivo, incluyendo:</p><ul><li><strong>Google OAuth:</strong> Utilizado durante el proceso de inicio de sesión. Sujeto a la propia Política de Privacidad de Google.</li><li><strong>Proveedores de Analítica:</strong> Utilizados para recopilar estadísticas de uso agregadas.</li></ul><p>No tenemos control directo sobre las cookies de terceros. Te recomendamos que revises las políticas de privacidad de estos proveedores.</p><p><strong>No basado en cookies:</strong> Cloudflare Turnstile y Grafana Faro aparecen en nuestra Política de Privacidad porque procesan datos técnicos, pero ninguno de los dos establece cookies en tu dispositivo. Turnstile conserva el estado del reto en el almacenamiento local de tu navegador, y Faro transmite la telemetría directamente a nuestro propio colector. Ninguno se puede desactivar sin renunciar, respectivamente, a la protección antibots o al reporte de errores.</p>"
         },
         {
           "heading": "Gestión de Cookies",

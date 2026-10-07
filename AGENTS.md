@@ -32,6 +32,25 @@ The frontend calls the Spring API only. The Spring API proxies Scryfall, Strapi 
 - Verify claims against the code before repeating them. The instruction files have drifted from the source before, and a stale note is worse than none: check that a file exists and that a command runs before documenting it as available.
 - When in doubt, open an issue or a draft PR instead of making high-risk changes without review.
 
+## Releases
+
+Versioning is per service, and Jenkins reads each one from a different file:
+
+| Service | Version file | Tag prefix |
+|---|---|---|
+| web | `mana-forge-web/package.json` → `version` | `web-v` |
+| api | `mana-forge-api/pom.xml` → `<version>` | `api-v` |
+| engine | `mana-forge-engine/version.txt` | `engine-v` |
+
+Each `jenkins/Jenkinsfile.*` reads that file, refuses to run if the version still contains `SNAPSHOT`, and refuses to proceed if the tag already exists. So a release is: strip `-SNAPSHOT`, commit, let the pipeline tag.
+
+Two traps that have already bitten this repo:
+
+- **Do not append `-SNAPSHOT` to a version you already released.** After releasing 1.0.7, bump `version.txt` to `1.0.8-SNAPSHOT`. Writing `1.0.7-SNAPSHOT` deadlocks the engine: the SNAPSHOT check rejects it, and removing the suffix collides with the existing tag.
+- **APIs skip versions.** `api-v1.0.3` was the last API tag but `pom.xml` is already at 1.0.x, because the version was bumped without a deploy. Check `git tag -l 'api-v*'` before assuming the next number.
+
+The app version reported to Grafana Faro comes from `package.json` via `define.__APP_VERSION__` in `vite.config.ts`. Do not reintroduce a hardcoded version in `observability.ts`.
+
 ## Verification
 
 Run the tests for whatever you touched:

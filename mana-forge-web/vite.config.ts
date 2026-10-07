@@ -1,9 +1,15 @@
 import { defineConfig } from 'vitest/config'
 import react from '@vitejs/plugin-react-swc'
+import pkg from './package.json'
 
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
+  define: {
+    // Single source of truth for the app version. Previously observability.ts
+    // hardcoded '1.0.13' and silently drifted from package.json on every release.
+    __APP_VERSION__: JSON.stringify(pkg.version),
+  },
   test: {
     globals: true,
     environment: 'jsdom',

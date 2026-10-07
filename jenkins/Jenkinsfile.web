@@ -41,6 +41,12 @@ pipeline {
                     ).trim()
                     env.RELEASE_VERSION = version
                     echo "📦 Version: ${version}"
+                    // Mirrors Jenkinsfile.api and Jenkinsfile.engine: without this
+                    // the tag check below would happily create web-v1.0.14-SNAPSHOT
+                    // and ship a SNAPSHOT to production.
+                    if (version.contains('SNAPSHOT')) {
+                        error("🚫 Cannot deploy SNAPSHOT (${version}) to production. Remove -SNAPSHOT from package.json first.")
+                    }
                     def tagExists = sh(
                         returnStatus: true,
                         script: "git fetch --tags && git tag -l 'web-v${version}' | grep -q ."
