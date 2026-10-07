@@ -3,6 +3,8 @@ package com.manaforge.api.config;
 import java.time.Duration;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.manaforge.api.util.ClientIpResolver;
+
 import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
@@ -45,7 +47,7 @@ public class RateLimitingInterceptor implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         String path = request.getRequestURI();
-        String ip = resolveClientIp(request);
+        String ip = ClientIpResolver.resolve(request);
 
         Bucket bucket = switch (path) {
             case "/api/users/login" -> loginBuckets.computeIfAbsent(ip, k -> newBucket(LOGIN_CAPACITY));
@@ -74,24 +76,4 @@ public class RateLimitingInterceptor implements HandlerInterceptor {
         return Bucket.builder().addLimit(limit).build();
     }
 
-    /**
-     * Extracts the real client IP.
-     *
-     * <p>Order matters. Behind Cloudflare the socket address is the Cloudflare
-     * edge, so {@code CF-Connecting-IP} is authoritative — Cloudflare sets it
-     * itself and strips any inbound value, so a client cannot forge it.
-     * {@code X-Forwarded-For} is only a fallback because it is client-controlled
-     * unless every proxy in front of us overwrites it.
-     */
-    private String resolveClientIp(HttpServletRequest request) {
-        String cfIp = request.getHeader("CF-Connecting-IP");
-        if (cfIp != null && !cfIp.isBlank()) {
-            return cfIp.trim();
-        }
-        String xff = request.getHeader("X-Forwarded-For");
-        if (xff != null && !xff.isBlank()) {
-            return xff.split(",")[0].strip();
-        }
-        return request.getRemoteAddr();
     }
-}

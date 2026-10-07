@@ -10,6 +10,7 @@ import com.manaforge.api.service.AiQuotaService;
 import com.manaforge.api.service.DeckService;
 import com.manaforge.api.service.EmailEncryptionService;
 import com.manaforge.api.service.TurnstileService;
+import com.manaforge.api.util.ClientIpResolver;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -77,7 +78,7 @@ public class DeckController {
             HttpServletRequest request) {
         String userId = getCurrentUserId();
         boolean authenticated = userId != null;
-        String identity = authenticated ? userId : clientIp(request);
+        String identity = authenticated ? userId : ClientIpResolver.resolve(request);
 
         // 1. Cached answers are free: serve them before any quota or challenge work.
         String cacheKey = aiQuotaService.buildCacheKey(deckPayload);
@@ -127,7 +128,7 @@ public class DeckController {
         String userId = getCurrentUserId();
         boolean authenticated = userId != null;
         AiQuotaService.QuotaResult quota =
-                aiQuotaService.check(authenticated ? userId : clientIp(request), authenticated);
+                aiQuotaService.check(authenticated ? userId : ClientIpResolver.resolve(request), authenticated);
 
         Map<String, Object> body = new HashMap<>();
         body.put("authenticated", authenticated);
@@ -169,21 +170,7 @@ public class DeckController {
         return value instanceof String s ? s : "";
     }
 
-    /**
-     * Real client IP for anonymous quota accounting. Behind Cloudflare and nginx
-     * the socket address is useless, so the proxy-provided headers win.
-     */
-    private String clientIp(HttpServletRequest request) {
-        String cfConnectingIp = request.getHeader("CF-Connecting-IP");
-        if (cfConnectingIp != null && !cfConnectingIp.isBlank()) {
-            return cfConnectingIp.trim();
-        }
-        String forwardedFor = request.getHeader("X-Forwarded-For");
-        if (forwardedFor != null && !forwardedFor.isBlank()) {
-            return forwardedFor.split(",")[0].strip();
-        }
-        return request.getRemoteAddr();
-    }
+    
 
     @PostMapping
     public ResponseEntity<Deck> saveDeck(@RequestBody DeckRequestDTO dto) {

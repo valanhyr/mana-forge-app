@@ -509,6 +509,35 @@ Detalles de diseño relevantes:
 - **Degradación**: si Redis no está disponible, `AiQuotaService` cae a contadores en memoria. La cuota se sigue aplicando durante la vida del proceso; simplemente no se comparte entre réplicas. Una caída de Redis no tumba el endpoint.
 - `GET /api/decks/analyze/quota` permite mostrar los análisis restantes antes de que el usuario escriba nada.
 
+### Protección contra spam del formulario de contacto
+
+`POST /api/contact` es anónimo y sin coste por llamada, pero cada envío dispara dos correos,
+así que un bot que lo rellene produce ruido en `MAIL_ADMIN`. `ContactController` aplica tres
+capas, en este orden:
+
+| Capa | Dónde | Qué protege |
+|---|---|---|
+| Honeypot `website` | `ContactRequest.website` | Bots que rellenan todos los inputs. El campo está `hidden` + `aria-hidden` en `Contact.tsx`, así que ni screen readers ni el autofill lo tocan. |
+| Tiempo de relleno | `ContactRequest.formRenderedAt` | Scripts que hacen fetch de la página y reenvían los campos. Se rechazan los envíos con menos de 2s desde el render. |
+| Cloudflare Turnstile | `TurnstileService` | El resto. Se verifica server-side contra `siteverify` con la IP resuelta por `ClientIpResolver`. |
+
+Ambos rechazos devuelven `403` con `code: FORM_REJECTED`; el de Turnstile, `TURNSTILE_FAILED`.
+El cliente distingue el 403 y lo muestra inline (no como toast), porque el token es de un solo uso:
+hay que pedir uno nuevo en lugar de reintentar a ciegas.
+
+Decisiones que conviene no deshacer al tocar esto:
+
+- **El endpoint es anónimo siempre**, así que no hay bypass para "usuarios autenticados" como en
+  `DeckController`. Todo el mundo pasa el reto mientras Turnstile esté habilitado.
+- **Falla cerrado, no abierto**: si `siteverify` no responde, `TurnstileService.verify` devuelve
+  `false` y el envío se rechaza. Un atacante no debe poder tirar el servicio de verificación para
+  abrir el formulario.
+- **`formRenderedAt` es heurística, no prueba**: lo manda el cliente. Un reloj desfasado hacia el
+  futuro se ignora en vez de rechazar, y un timestamp ausente no bloquea (clientes viejos, curl).
+- **La IP se resuelve una sola vez**, con `ClientIpResolver`. `RateLimitingInterceptor`,
+  `DeckController` y `ContactController` la comparten: si divergieran, un mismo llamante podría
+  contar como anónimo para la cuota y como identificado para el rate limit.
+
 ### Turnstile en local: 400 en `challenges.cloudflare.com`
 **Síntoma**: en `localhost` la consola muestra `400 (Bad Request)` contra
 `/cdn-cgi/challenge-platform/...` y el widget nunca resuelve.
@@ -555,7 +584,12 @@ para que no se pierdan.
 3. **Regla de rate limit sobre `/api/decks/scores` y `/api/decks/random`**: mismo
    patrón. `scores` es el endpoint que llama automáticamente `handleSaveDeck`, así
    que recibe tráfico legítimo pero automatizado.
-4. **Verificar `CF-Connecting-IP`**: tras desplegar, comprobar que el backend
+4. **Regla de rate limit sobre `/api/contact`**: `1 request / 10 seconds`, periodo
+   `60 seconds`, acción `Block`. El código ya limita a 5/min por IP
+   (`RateLimitingInterceptor`), pero es un contador en memoria: una sola réplica
+   aguanta, varias no comparten cuota. Esta regla vive en el edge y no depende de
+   eso. El Turnstile del formulario es la capa principal; esto es la red debajo.
+5. **Verificar `CF-Connecting-IP`**: tras desplegar, comprobar que el backend
    recibe esa cabecera. Si no llega, la cuota por IP estaría agrupando a todos los
    visitantes en la IP de Cloudflare y se bloquearían entre sí.
 

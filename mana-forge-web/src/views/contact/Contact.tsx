@@ -1,8 +1,10 @@
-import { useState } from 'react';
-import { Send, CheckCircle2, Loader2, Mail, User, FileText, MessageSquare } from 'lucide-react';
+import { useRef, useState } from 'react';
+import { Send, CheckCircle2, Loader2, Mail, User, FileText, MessageSquare, AlertTriangle } from 'lucide-react';
 import { useTranslation } from '../../hooks/useTranslation';
 import { useToast } from '../../services/ToastContext';
 import { ContactService, type ContactFormData } from '../../services/ContactService';
+import TurnstileWidget from '../../components/ui/TurnstileWidget';
+import { isTurnstileConfigured } from '../../config/turnstile';
 
 const SUBJECTS = [
   { value: 'general',  labelKey: 'contact.subject.general'  },
@@ -11,14 +13,27 @@ const SUBJECTS = [
   { value: 'other',    labelKey: 'contact.subject.other'    },
 ] as const;
 
+const EMPTY_FORM: ContactFormData = { name: '', email: '', subject: '', message: '' };
+
 const Contact = () => {
   const { t } = useTranslation();
   const { showToast } = useToast();
 
-  const [form, setForm] = useState<ContactFormData>({ name: '', email: '', subject: '', message: '' });
+  const [form, setForm] = useState<ContactFormData>(EMPTY_FORM);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [sent, setSent] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState('');
+  /** Set when the challenge script fails to load (e.g. a site key that is not
+   *  allowed on this hostname). The widget is then hidden instead of leaving the
+   *  submit button permanently dead. */
+  const [challengeFailed, setChallengeFailed] = useState(false);
+  /** Honeypot. Never rendered as visible, and never filled by a human. */
+  const [website, setWebsite] = useState('');
+  /** Render timestamp for the server-side "filled too fast" check. */
+  const renderedAtRef = useRef(Date.now());
+
+  const needsChallenge = isTurnstileConfigured() && !challengeFailed;
 
   const set = (field: keyof ContactFormData) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
     setForm((prev) => ({ ...prev, [field]: e.target.value }));
@@ -30,20 +45,33 @@ const Contact = () => {
     if (!form.subject) return t('contact.error.subjectRequired');
     if (!form.message.trim()) return t('contact.error.messageRequired');
     if (form.message.trim().length < 10) return t('contact.error.messageTooShort');
+    if (needsChallenge && !turnstileToken) return t('contact.error.challengeRequired');
     return '';
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const err = validate();
-    if (err) { setError(err); return; }
+    const validationError = validate();
+    if (validationError) { setError(validationError); return; }
     setError('');
     setIsLoading(true);
     try {
-      await ContactService.send(form);
+      await ContactService.send(form, {
+        turnstileToken: turnstileToken || undefined,
+        website,
+        formRenderedAt: renderedAtRef.current,
+      });
       setSent(true);
-    } catch {
-      showToast(t('contact.error.sendFailed'), 'error');
+    } catch (err: unknown) {
+      const status = (err as { response?: { status?: number } })?.response?.status;
+      if (status === 403) {
+        // Either the challenge was not solved/expired or the anti-spam heuristics
+        // tripped. The proof token is single-use, so ask for a fresh one.
+        setTurnstileToken('');
+        setError(t('contact.error.challengeFailed'));
+      } else {
+        showToast(t('contact.error.sendFailed'), 'error');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -61,7 +89,14 @@ const Contact = () => {
           <h2 className="text-2xl font-bold text-white mb-3">{t('contact.successTitle')}</h2>
           <p className="text-zinc-400">{t('contact.successMessage')}</p>
           <button
-            onClick={() => { setSent(false); setForm({ name: '', email: '', subject: '', message: '' }); }}
+            onClick={() => {
+              setSent(false);
+              setForm(EMPTY_FORM);
+              setTurnstileToken('');
+              // A proof token is single-use, and the render timestamp must not
+              // be inherited from the previous submission.
+              renderedAtRef.current = Date.now();
+            }}
             className="mt-8 text-orange-500 hover:text-orange-400 transition-colors text-sm font-medium"
           >
             {t('contact.sendAnother')}
@@ -146,6 +181,44 @@ const Contact = () => {
           />
           <p className="text-xs text-zinc-600 mt-1 text-right">{form.message.length} / 2000</p>
         </div>
+
+        {/* Honeypot. `display:none` plus `aria-hidden` keeps it out of the a11y
+            tree and away from autofill heuristics; only a bot parsing the DOM
+            will find and fill it, which is exactly what we want. */}
+        <div className="hidden" aria-hidden="true">
+          <label htmlFor="contact-website">{t('contact.websiteLabel')}</label>
+          <input
+            id="contact-website"
+            name="website"
+            type="text"
+            tabIndex={-1}
+            autoComplete="off"
+            value={website}
+            onChange={(e) => setWebsite(e.target.value)}
+          />
+        </div>
+
+        {/* Turnstile. Rendered only when a site key is configured, and the submit
+            button is gated on the token so nobody can bypass it from the UI. */}
+        {isTurnstileConfigured() && !challengeFailed && (
+          <div>
+            <TurnstileWidget
+              onToken={(token) => { setTurnstileToken(token); setError(''); }}
+              onError={() => { setTurnstileToken(''); setChallengeFailed(true); }}
+            />
+            <p className="text-xs text-zinc-600 mt-2">{t('contact.challengeNotice')}</p>
+          </div>
+        )}
+
+        {challengeFailed && (
+          <div className="bg-red-400/10 border border-red-400/20 rounded-lg px-4 py-3 flex items-start gap-2">
+            <AlertTriangle size={16} className="text-red-400 shrink-0 mt-0.5" />
+            <div>
+              <p className="text-sm text-red-300">{t('contact.challengeFailedTitle')}</p>
+              <p className="text-xs text-zinc-500 mt-1">{t('contact.challengeFailedHint')}</p>
+            </div>
+          </div>
+        )}
 
         {/* Error */}
         {error && (

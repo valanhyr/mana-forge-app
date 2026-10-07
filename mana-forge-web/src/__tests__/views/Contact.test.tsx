@@ -121,6 +121,33 @@ describe('Contact page', () => {
     });
   });
 
+  it('shows an inline error (not a toast) when the API rejects as automated', async () => {
+    // 403 covers both the Turnstile failure and the honeypot/speed heuristics.
+    server.use(
+      http.post(`${BASE}/contact`, () =>
+        new HttpResponse(JSON.stringify({ code: 'FORM_REJECTED' }), { status: 403 })
+      )
+    );
+    const user = userEvent.setup();
+    renderContact();
+    await fillForm(user);
+    await user.click(getSubmitButton());
+    await waitFor(() => {
+      expect(
+        screen.getByText(/verificación de seguridad ha fallado|security check failed/i)
+      ).toBeInTheDocument();
+    });
+    // The message is shown inline, so a toast must not also fire.
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  });
+
+  it('keeps the honeypot out of the accessibility tree', () => {
+    // A honeypot that screen readers or autofill can see would get filled by humans.
+    renderContact();
+    expect(screen.queryByLabelText(/website/i)).not.toBeInTheDocument();
+    expect(screen.getAllByRole('textbox')).toHaveLength(3);
+  });
+
   it('send-another resets the form after success', async () => {
     const user = userEvent.setup();
     renderContact();

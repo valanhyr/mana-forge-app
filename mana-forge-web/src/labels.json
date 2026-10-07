@@ -512,6 +512,10 @@
       "successTitle": "¡Mensaje enviado!",
       "successMessage": "Gracias por contactarnos. Te responderemos en la dirección de correo proporcionada.",
       "sendAnother": "Enviar otro mensaje",
+      "websiteLabel": "NoFill",
+      "challengeNotice": "Verificación de seguridad de Cloudflare. Es invisible y solo aparece si detectamos actividad automatizada.",
+      "challengeFailedTitle": "No hemos podido cargar la verificación de seguridad.",
+      "challengeFailedHint": "Puede que la clave de Turnstile no esté permitida en este dominio. En local, usa la clave de prueba de Cloudflare (1x00000000000000000000AA) en .env.development.",
       "subject": {
         "general": "Consulta general",
         "support": "Soporte técnico",
@@ -525,7 +529,9 @@
         "subjectRequired": "Selecciona un asunto.",
         "messageRequired": "El mensaje es obligatorio.",
         "messageTooShort": "El mensaje debe tener al menos 10 caracteres.",
-        "sendFailed": "No se pudo enviar el mensaje. Inténtalo de nuevo."
+        "sendFailed": "No se pudo enviar el mensaje. Inténtalo de nuevo.",
+        "challengeRequired": "Completa la verificación de seguridad antes de enviar.",
+        "challengeFailed": "La verificación de seguridad ha fallado. Recarga la página e inténtalo de nuevo."
       }
     },
     "home": {
@@ -1073,6 +1079,10 @@
       "successTitle": "Message sent!",
       "successMessage": "Thank you for reaching out. We will reply to the email address you provided.",
       "sendAnother": "Send another message",
+      "websiteLabel": "NoFill",
+      "challengeNotice": "Cloudflare security check. It is invisible and only appears if we detect automated activity.",
+      "challengeFailedTitle": "We could not load the security check.",
+      "challengeFailedHint": "The Turnstile site key may not be allowed on this hostname. Locally, use Cloudflare's test key (1x00000000000000000000AA) in .env.development.",
       "subject": {
         "general": "General inquiry",
         "support": "Technical support",
@@ -1086,7 +1096,9 @@
         "subjectRequired": "Please select a subject.",
         "messageRequired": "Message is required.",
         "messageTooShort": "Message must be at least 10 characters long.",
-        "sendFailed": "Failed to send message. Please try again."
+        "sendFailed": "Failed to send message. Please try again.",
+        "challengeRequired": "Please complete the security check before sending.",
+        "challengeFailed": "The security check failed. Please reload the page and try again."
       }
     },
     "home": {
