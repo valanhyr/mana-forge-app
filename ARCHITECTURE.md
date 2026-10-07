@@ -597,15 +597,18 @@ para que no se pierdan.
 ⚠️ **Riesgo Conocido y Aceptado**: El servicio `EmailEncryptionService` usa **AES/ECB** (sin IV). Este modo es criptográficamente débil (emails idénticos producen ciphertexts idénticos). Sin embargo, el comportamiento determinista es **intencional y necesario**: el email cifrado se usa como clave de búsqueda en MongoDB (`findByEmail(encrypt(email))`). Cambiar a AES/GCM requeriría una migración completa de la base de datos. Mitigación futura recomendada: usar HMAC del email como clave de lookup en lugar del ciphertext.
 
 ### Secrets Management
-⚠️ **WARNING**: Actualmente hay credenciales hardcodeadas en:
-- `application.yaml` (MongoDB, OAuth2, Strapi)
-- `docker-compose.yml` (variables de entorno)
+Los secretos **no** están hardcodeados en el config versionado: `application.yaml` usa
+`${ENV_VAR:default}` en todos los valores sensibles (MongoDB, OAuth2, Directus, SMTP, Couchbase,
+cifrado de email, Turnstile). Viven en el `.env` de la raíz, que está en `.gitignore`, y llegan a
+los contenedores vía `docker-compose.yml`.
 
-**Recomendación**: Migrar a:
-- Kubernetes Secrets
-- AWS Secrets Manager
-- HashiCorp Vault
-- Variables de entorno del host
+⚠️ **Riesgo residual**: el `.env` de la raíz es un fichero plano en el disco de desarrollo y en el
+host de CI. Cualquiera con acceso a ese host lee todas las credenciales de producción. Rotar un
+secreto filtrado requiere intervención manual: cambiar el `.env` y redesplegar.
+
+**Recomendación** a medio plazo:
+- Kubernetes Secrets / AWS Secrets Manager / HashiCorp Vault para los despliegues
+- Variables de entorno del host como mínimo, nunca un `.env` en el repositorio de despliegue
 
 ---
 
@@ -627,6 +630,7 @@ cd mana-forge-api
 ./mvnw spring-boot:run  # http://localhost:8080
 # Swagger: http://localhost:8080/swagger-ui.html
 ```
+> En Windows PowerShell: `.\mvnw.cmd clean install`. El wrapper fija Maven 3.9.12.
 
 ### AI Engine
 ```bash

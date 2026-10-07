@@ -5,22 +5,41 @@ This repository includes human-editable agent instructions and conventions to gu
 ## Purpose
 Provide a concise, tool-agnostic reference describing expected agent behavior, repository boundaries, and programming conventions for any AI-driven or automated tooling used by contributors and CI.
 
-## Primary agent (default)
-- name: mana-forge
-- description: Assist contributors with frontend (React), backend (Spring Boot), and AI engine (FastAPI) tasks for the Mana Forge project.
-- entrypoint: repository root
-- typical-actions: implement features, propose and apply code changes, run builds/tests, generate documentation, and open pull requests or patches for review
+## Where the real conventions live
+
+This file holds agent expectations only. Do not look here for build commands, layer patterns, or code style:
+
+- `.github/copilot-instructions.md` — build and lint commands per service, request flow, i18n pattern, API client rules, auth model.
+- `ARCHITECTURE.md` — design decisions and their rationale: AI quota, Turnstile, contact anti-spam, caching, email encryption, WAF rules to configure by hand in the Cloudflare dashboard.
+- `README.md` — local setup and environment variables.
+
+Read `ARCHITECTURE.md` before changing anything that touches abuse controls, caching, or email. Those sections record *why* the code is the way it is, and several of the choices look wrong until you know the reason.
+
+## Repository shape
+
+| Service | Stack | Port |
+|---|---|---|
+| `mana-forge-web` | React 19 + TypeScript + Vite + Tailwind CSS 4 | 5173 dev / 80 prod |
+| `mana-forge-api` | Spring Boot 4 + Java + Maven | 8080 |
+| `mana-forge-engine` | FastAPI + Python + Groq (Llama 3.3) | 8000 |
+
+The frontend calls the Spring API only. The Spring API proxies Scryfall, Strapi and the AI engine. The engine is stateless.
 
 ## Agenting conventions
 - Be tool-agnostic: do not assume a specific assistant implementation. Describe capabilities and constraints instead of naming a platform.
-- Follow repository coding standards and existing patterns (see README and project-specific instruction files such as CLAUDE.md, GEMINI.md, and .github/instructions/*).
 - Prefer minimal, surgical changes and include tests or validation where applicable.
-- Respect secrets and environment boundaries; never hardcode credentials. Use environment variables or existing secret management conventions.
+- Respect secrets and environment boundaries; never hardcode credentials. New config values use the `${ENV_VAR:default}` substitution pattern.
+- Verify claims against the code before repeating them. The instruction files have drifted from the source before, and a stale note is worse than none: check that a file exists and that a command runs before documenting it as available.
 - When in doubt, open an issue or a draft PR instead of making high-risk changes without review.
 
-## Usage notes
-- This file documents agent expectations and conventions; it can be adapted by maintainers to reflect new workflows.
-- Keep descriptions concise and focused on behavior, not tooling.
+## Verification
+
+Run the tests for whatever you touched:
+
+- **Backend**: `./mvnw test` from `mana-forge-api` (or `.\mvnw.cmd test` in PowerShell). Prefer the wrapper over a local `mvn`: it pins the Maven version for everyone. `./mvnw test -Dtest=ClassName` runs one class.
+- **Frontend**: `npx vitest run <path>` for a subset, `npm run lint` and `npx tsc --noEmit` before calling frontend work done.
+
+Note that `FormatServiceTest`, `FormatControllerTest` and `DirectusServiceTest` fail on a clean checkout for reasons unrelated to most changes. Confirm a baseline before assuming you broke something, and do not "fix" them as a side effect of unrelated work.
 
 ## Contact
 For questions about agent behavior or conventions, see the repository README or ask @valanhyr.
