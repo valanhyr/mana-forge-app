@@ -1,5 +1,5 @@
 import { IEmailService } from '../../core/ports/email-service.port';
-import { EmailTemplate, SendEmailPayload, interpolateTemplate } from '../../core/domain/email';
+import { EmailTemplate, SendEmailPayload, SendBroadcastPayload, interpolateTemplate } from '../../core/domain/email';
 import { seedTemplates } from './seeds/seed-templates';
 
 export class MockEmailService implements IEmailService {
@@ -39,5 +39,16 @@ export class MockEmailService implements IEmailService {
     }
     const messageId = `msg-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
     return { success: true, messageId };
+  }
+
+  async sendBroadcast(payload: SendBroadcastPayload): Promise<{ success: boolean; recipientCount: number }> {
+    if (!payload.subject || !payload.body) {
+      throw new Error('Subject and body are required for broadcast');
+    }
+    let recipientCount = 30;
+    if (payload.audience === 'FREE') recipientCount = 18;
+    if (payload.audience === 'PRO_PATREON') recipientCount = 12;
+
+    return { success: true, recipientCount };
   }
 }

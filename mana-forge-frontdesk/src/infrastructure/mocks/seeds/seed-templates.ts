@@ -33,4 +33,12 @@ export const seedTemplates: EmailTemplate[] = [
     bodyTemplate: 'Hello {{user.name}},\n\nYour support ticket #{{ticket.id}} regarding "{{ticket.subject}}" has been marked as resolved.\n\nIf you have any further questions, simply reply to this email.\n\nBest regards,\nThe Mana Forge Team',
     availableMacros: ['user.name', 'ticket.id', 'ticket.subject'],
   },
+  {
+    id: 'tpl-newsletter-monthly-meta',
+    title: 'Monthly Premodern Meta & Features Update',
+    category: 'BROADCAST',
+    subject: 'Mana Forge Digest: {{month}} Meta Shifts & New AI Tools',
+    bodyTemplate: 'Hello {{user.name}},\n\nHere is your monthly digest of top-performing Premodern archetypes and new deck optimization algorithms available in Mana Forge.\n\n### Top Premodern Movers This Month\n- The Rock (+3.2% meta share)\n- Mono Blue Tide (AI sideboard scores updated)\n- Deadguy Ale (Optimized mana curves now live)\n\nTry out our updated AI suggestions on your decks today!\n\nBest regards,\nThe Mana Forge Team\n\n---\nTo unsubscribe from marketing updates, visit: {{unsubscribe_url}}',
+    availableMacros: ['user.name', 'month', 'unsubscribe_url'],
+  },
 ];

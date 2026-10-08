@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
-import { useEmailTemplates, useSendEmail } from '../hooks/use-emails';
+import { useEmailTemplates, useSendEmail, useSendBroadcast } from '../hooks/use-emails';
 import { EmailComposer } from '../components/emails/EmailComposer';
+import { BroadcastAudience } from '../core/domain/email';
 import { CheckCircle2, History } from 'lucide-react';
 
 export const EmailOutreachView: React.FC = () => {
   const { data: templates = [], isLoading: isTemplatesLoading } = useEmailTemplates();
   const sendEmailMutation = useSendEmail();
+  const sendBroadcastMutation = useSendBroadcast();
   const [dispatchedHistory, setDispatchedHistory] = useState<
     Array<{ to: string; subject: string; timestamp: string }>
   >([]);
@@ -33,6 +35,27 @@ export const EmailOutreachView: React.FC = () => {
     }
   };
 
+  const handleSendBroadcast = async (payload: {
+    audience: BroadcastAudience;
+    subject: string;
+    body: string;
+    templateId?: string;
+  }) => {
+    const res = await sendBroadcastMutation.mutateAsync(payload);
+    if (res.success) {
+      setDispatchedHistory((prev) => [
+        {
+          to: `Broadcast [${payload.audience}] (${res.recipientCount} recipients)`,
+          subject: payload.subject,
+          timestamp: new Date().toLocaleTimeString(),
+        },
+        ...prev,
+      ]);
+      setSuccessToast(`Newsletter broadcast successfully queued for ${res.recipientCount} players.`);
+      setTimeout(() => setSuccessToast(null), 4000);
+    }
+  };
+
   if (isTemplatesLoading) {
     return (
       <div className="flex items-center justify-center h-64 text-slate-500 text-sm">
@@ -54,7 +77,8 @@ export const EmailOutreachView: React.FC = () => {
         <EmailComposer
           templates={templates}
           onSend={handleSend}
-          isLoading={sendEmailMutation.isPending}
+          onSendBroadcast={handleSendBroadcast}
+          isLoading={sendEmailMutation.isPending || sendBroadcastMutation.isPending}
         />
       </div>
 

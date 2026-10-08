@@ -19,4 +19,12 @@ describe('EmailComposer', () => {
     fireEvent.change(recipientInput, { target: { value: 'mishra@manaforge.gg' } });
     expect(screen.getByDisplayValue('mishra@manaforge.gg')).toBeInTheDocument();
   });
+
+  it('should switch to audience broadcast mode', () => {
+    render(<EmailComposer templates={[mockTemplate]} onSend={vi.fn()} />);
+    const broadcastBtn = screen.getByRole('button', { name: /audience broadcast/i });
+    fireEvent.click(broadcastBtn);
+    expect(screen.getByText(/target broadcast audience/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/30 recipients/i).length).toBeGreaterThan(0);
+  });
 });

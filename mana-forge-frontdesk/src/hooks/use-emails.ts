@@ -1,6 +1,6 @@
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { container } from '../infrastructure/container';
-import { SendEmailPayload } from '../core/domain/email';
+import { SendEmailPayload, SendBroadcastPayload } from '../core/domain/email';
 
 export const EMAIL_QUERY_KEYS = {
   all: ['emails'] as const,
@@ -19,6 +19,12 @@ export function useEmailTemplates() {
 export function useSendEmail() {
   return useMutation({
     mutationFn: (payload: SendEmailPayload) => container.emailService.sendEmail(payload),
+  });
+}
+
+export function useSendBroadcast() {
+  return useMutation({
+    mutationFn: (payload: SendBroadcastPayload) => container.emailService.sendBroadcast(payload),
   });
 }
 
