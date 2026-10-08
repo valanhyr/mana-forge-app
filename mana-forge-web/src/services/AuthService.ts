@@ -1,5 +1,6 @@
 import { type User } from '../core/models/User';
 import { api, API_URL } from './api';
+import { csrfHeaders } from './csrf';
 
 interface UpdateProfilePayload {
   biography: string;
@@ -13,6 +14,15 @@ interface PublicUser {
 }
 
 export const AuthService = {
+  setNewsletterPreference: async (subscribed: boolean): Promise<{ subscribed: boolean }> => {
+    const headers = await csrfHeaders('/newsletter/csrf');
+    const { data } = await api.patch<{ subscribed: boolean }>('/newsletter/preference', { subscribed }, { headers });
+    return data;
+  },
+
+  unsubscribeNewsletter: async (token: string): Promise<void> => {
+    await api.post('/newsletter/unsubscribe', { token });
+  },
   login: async (username: string, password: string): Promise<User> => {
     const response = await fetch(`${API_URL}/users/login`, {
       method: 'POST',

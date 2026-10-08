@@ -1,9 +1,18 @@
 import { IEmailService } from '../../core/ports/email-service.port';
-import { EmailTemplate, SendEmailPayload, SendBroadcastPayload, interpolateTemplate } from '../../core/domain/email';
+import { EmailDelivery, EmailTemplate, SendEmailPayload, SendBroadcastPayload, interpolateTemplate } from '../../core/domain/email';
+import { PageRequest, pageOf } from '../../core/domain/page';
+import { NewsletterSubscriber, NewsletterPayload, NewsletterCampaign } from '../../core/domain/email';
 import { seedTemplates } from './seeds/seed-templates';
 
 export class MockEmailService implements IEmailService {
   private readonly storageKey = 'mana_forge_frontdesk_templates';
+  private deliveries: EmailDelivery[] = [];
+
+  async listDeliveries(pagination: PageRequest) { return pageOf(this.deliveries, pagination); }
+  async listSubscribers(_query: string, _tier: string, pagination: PageRequest) { return pageOf<NewsletterSubscriber>([], pagination); }
+  async sendNewsletter(_payload: NewsletterPayload): Promise<NewsletterCampaign> { throw new Error('Live newsletters are unavailable in demo mode'); }
+  async getCampaign(_id: string): Promise<NewsletterCampaign> { throw new Error('Live newsletters are unavailable in demo mode'); }
+  async listCampaigns(pagination: PageRequest) { return pageOf<NewsletterCampaign>([], pagination); }
 
   private getTemplates(): EmailTemplate[] {
     try {
@@ -38,6 +47,8 @@ export class MockEmailService implements IEmailService {
       throw new Error('Recipient and subject are required');
     }
     const messageId = `msg-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
+    this.deliveries.unshift({ id: messageId, messageId, recipientName: payload.recipientName,
+      subject: payload.subject, status: 'SENT', createdAt: new Date().toISOString(), sentAt: new Date().toISOString() });
     return { success: true, messageId };
   }
 

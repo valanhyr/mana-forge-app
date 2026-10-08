@@ -39,4 +39,14 @@ describe('User360View', () => {
     fireEvent.click(button);
     expect(onResetQuota).toHaveBeenCalledWith('USR-01');
   });
+
+  it('shows daily quota and unknown historical fields without inventing a date', () => {
+    render(<User360View user={{ ...mockUser, createdAt: null, lastLoginAt: null,
+      stats: { ...mockUser.stats, aiQuotaPeriod: 'DAILY', aiQueriesToday: 3, aiQueriesThisMonth: null, failedImportsCount: null } }}
+      onResetQuota={vi.fn()} onUpdateStatus={vi.fn()} />);
+    expect(screen.getByText('Daily AI Quota')).toBeInTheDocument();
+    expect(screen.getAllByText('Not recorded')).toHaveLength(3);
+    expect(screen.queryByText(/1970/)).not.toBeInTheDocument();
+    expect(screen.queryByText('95')).not.toBeInTheDocument();
+  });
 });

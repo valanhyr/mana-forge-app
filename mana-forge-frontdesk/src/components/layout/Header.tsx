@@ -1,17 +1,23 @@
 import React from 'react';
 import { Search, ShieldAlert, UserCheck } from 'lucide-react';
+import { useTranslation } from '../../hooks/use-translation';
 
 interface HeaderProps {
   onOpenOmnibox: () => void;
   operatorName?: string;
   onResetFactoryData?: () => void;
+  isMockMode?: boolean;
+  onLogout?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
   onOpenOmnibox,
   operatorName = 'Jace Beleren (Staff)',
   onResetFactoryData,
+  isMockMode = false,
+  onLogout,
 }) => {
+  const { t } = useTranslation();
   return (
     <header className="h-16 bg-slate-900 border-b border-slate-800 px-6 flex items-center justify-between">
       <div className="flex items-center gap-4">
@@ -29,11 +35,12 @@ export const Header: React.FC<HeaderProps> = ({
 
         <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-amber-500/10 text-amber-400 border border-amber-500/20">
           <ShieldAlert className="w-3.5 h-3.5" />
-          MOCK MODE
+          {t(isMockMode ? 'demoMode' : 'liveMode')}
         </span>
       </div>
 
       <div className="flex items-center gap-4">
+        {onLogout && <button type="button" onClick={onLogout} className="text-xs text-slate-400 hover:text-white">{t('logout')}</button>}
         {onResetFactoryData && (
           <button
             onClick={onResetFactoryData}

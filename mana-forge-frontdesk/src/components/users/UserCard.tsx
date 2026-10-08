@@ -1,6 +1,7 @@
 import React from 'react';
 import { User360 } from '../../core/domain/user';
 import { Mail, Layers, ShieldCheck, ShieldAlert, Cpu } from 'lucide-react';
+import { useTranslation } from '../../hooks/use-translation';
 
 interface UserCardProps {
   user: User360;
@@ -9,6 +10,7 @@ interface UserCardProps {
 }
 
 export const UserCard: React.FC<UserCardProps> = ({ user, isSelected = false, onSelect }) => {
+  const { t } = useTranslation();
   const getTierColor = (tier: string) => {
     switch (tier) {
       case 'PATREON':
@@ -72,7 +74,7 @@ export const UserCard: React.FC<UserCardProps> = ({ user, isSelected = false, on
           <div className="text-[10px] text-slate-500">AI Usage</div>
           <div className="text-xs font-semibold text-slate-200 flex items-center justify-center gap-1">
             <Cpu className="w-3 h-3 text-slate-500" />
-            {user.stats.aiQueriesThisMonth}
+            {(user.stats.aiQuotaPeriod === 'DAILY' ? user.stats.aiQueriesToday : user.stats.aiQueriesThisMonth) ?? t('unknown')}
           </div>
         </div>
         <div>

@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from '../../hooks/use-translation';
 import {
   Inbox,
   Users,
@@ -14,13 +15,16 @@ interface SidebarProps {
   currentTab: NavTab;
   onSelectTab: (tab: NavTab) => void;
   openTicketsCount?: number;
+  isMockMode?: boolean;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
   currentTab,
   onSelectTab,
   openTicketsCount = 0,
+  isMockMode = false,
 }) => {
+  const { t } = useTranslation();
   const navItems = [
     { id: 'dashboard' as NavTab, label: 'Dashboard', icon: LayoutDashboard },
     { id: 'tickets' as NavTab, label: 'Tickets', icon: Inbox, badge: openTicketsCount },
@@ -86,11 +90,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
             <span className="text-xs font-medium text-slate-300">
-              Mock Store Active
+              {isMockMode ? 'Mock Store Active' : t('serverData')}
             </span>
           </div>
           <p className="text-[11px] text-slate-400 mt-1">
-            MtG Premodern Seeds Loaded
+            {isMockMode ? 'MtG Premodern Seeds Loaded' : t('serverDataHint')}
           </p>
         </div>
       </div>

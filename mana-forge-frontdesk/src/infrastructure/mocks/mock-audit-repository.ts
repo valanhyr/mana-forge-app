@@ -1,6 +1,8 @@
 import { IAuditRepository } from '../../core/ports/audit-repository.port';
 import { AuditAction, AuditEntry } from '../../core/domain/audit';
 import { seedAudit } from './seeds/seed-audit';
+import { PageRequest, pageOf } from '../../core/domain/page';
+import { AuditFilters } from '../../core/ports/audit-repository.port';
 
 export class MockAuditRepository implements IAuditRepository {
   private readonly storageKey = 'mana_forge_frontdesk_audit';
@@ -31,6 +33,10 @@ export class MockAuditRepository implements IAuditRepository {
     if (filters?.targetUserId) logs = logs.filter((l) => l.targetUserId === filters.targetUserId);
     if (filters?.limit) logs = logs.slice(0, filters.limit);
     return logs;
+  }
+
+  async listPage(filters: AuditFilters, pagination: PageRequest) {
+    return pageOf(await this.list({ targetUserId: filters.targetUserId, action: filters.action }), pagination);
   }
 
   async logEvent(entry: Omit<AuditEntry, 'id' | 'timestamp'>): Promise<AuditEntry> {

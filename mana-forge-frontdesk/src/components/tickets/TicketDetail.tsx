@@ -4,13 +4,17 @@ import { StatusBadge } from '../ui/StatusBadge';
 import { PriorityBadge } from '../ui/PriorityBadge';
 import { ReplyBox } from './ReplyBox';
 import { Clock, User, Shield, Lock, Layers } from 'lucide-react';
+import { Operator } from '../../core/domain/operator';
+import { useTranslation } from '../../hooks/use-translation';
 
 interface TicketDetailProps {
   ticket: Ticket;
-  onAddMessage: (content: string, isInternalNote: boolean) => void;
+  onAddMessage: (content: string, isInternalNote: boolean) => void | Promise<void>;
   onUpdateStatus: (status: TicketStatus) => void;
   onAssignOperator?: (operatorId: string, operatorName: string) => void;
   onInspectUser?: (userId: string) => void;
+  currentOperator?: Operator;
+  isLoading?: boolean;
 }
 
 export const TicketDetail: React.FC<TicketDetailProps> = ({
@@ -18,7 +22,11 @@ export const TicketDetail: React.FC<TicketDetailProps> = ({
   onAddMessage,
   onUpdateStatus,
   onInspectUser,
+  onAssignOperator,
+  currentOperator,
+  isLoading = false,
 }) => {
+  const { t } = useTranslation();
   const statusOptions: TicketStatus[] = [
     'OPEN',
     'IN_PROGRESS',
@@ -50,6 +58,7 @@ export const TicketDetail: React.FC<TicketDetailProps> = ({
             <label className="text-xs text-slate-400">Status:</label>
             <select
               value={ticket.status}
+              disabled={isLoading}
               onChange={(e) => onUpdateStatus(e.target.value as TicketStatus)}
               className="bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1 text-xs text-slate-200 focus:outline-none focus:border-indigo-500"
             >
@@ -65,7 +74,8 @@ export const TicketDetail: React.FC<TicketDetailProps> = ({
         <div className="flex items-center justify-between text-xs text-slate-400 mt-3 pt-3 border-t border-slate-800/60">
           <div className="flex items-center gap-3">
             <button
-              onClick={() => onInspectUser?.(ticket.userId)}
+              disabled={!ticket.userId}
+              onClick={() => { if (ticket.userId) onInspectUser?.(ticket.userId); }}
               className="flex items-center gap-1.5 hover:text-indigo-400 transition-colors group"
             >
               <User className="w-3.5 h-3.5 text-slate-500 group-hover:text-indigo-400" />
@@ -91,6 +101,11 @@ export const TicketDetail: React.FC<TicketDetailProps> = ({
             <Clock className="w-3.5 h-3.5" />
             <span>{new Date(ticket.createdAt).toLocaleDateString()}</span>
           </div>
+        </div>
+        <div className="mt-2 flex justify-between text-xs text-slate-400">
+          <span>{ticket.assignedOperatorName || t('unassigned')}</span>
+          {currentOperator && onAssignOperator && <button disabled={isLoading} type="button"
+            onClick={() => onAssignOperator(currentOperator.id, currentOperator.name)}>{t('assignMe')}</button>}
         </div>
       </div>
 
@@ -152,7 +167,7 @@ export const TicketDetail: React.FC<TicketDetailProps> = ({
 
       {/* Reply composer */}
       <div className="p-3 border-t border-slate-800 bg-slate-900/90">
-        <ReplyBox onSendMessage={onAddMessage} />
+        <ReplyBox key={ticket.id} onSendMessage={onAddMessage} isLoading={isLoading} />
       </div>
     </div>
   );

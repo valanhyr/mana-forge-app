@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { AlertTriangle, Loader2, Lock, Sparkles, Wand2 } from 'lucide-react';
+import { AlertTriangle, Loader2, Sparkles, Wand2 } from 'lucide-react';
 
 import TextAreaInput from '../ui/TextAreaInput';
 import Modal from '../ui/Modal';
@@ -10,7 +10,9 @@ import { isTurnstileConfigured } from '../../config/turnstile';
 import ForgeSpinner from '../ui/ForgeSpinner';
 
 import { CardService } from '../../services/CardService';
-import { DeckService, type AnalysisQuota, type DeckAnalysisResult } from '../../services/DeckService';
+import { DeckService, type DeckAnalysisResult } from '../../services/DeckService';
+import { useAnalysisQuota } from '../../hooks/useAnalysisQuota';
+import AnalysisQuotaSummary from '../ui/AnalysisQuotaSummary';
 import { useUser } from '../../services/UserContext';
 import { useToast } from '../../services/ToastContext';
 import { useTranslation } from '../../hooks/useTranslation';
@@ -55,7 +57,7 @@ const DeckAnalyzerSection: React.FC<DeckAnalyzerSectionProps> = ({ formats }) =>
    *  is not allowed on this hostname. The button stays disabled but the user is
    *  told why, instead of staring at a dead form. */
   const [challengeFailed, setChallengeFailed] = useState(false);
-  const [quota, setQuota] = useState<AnalysisQuota | null>(null);
+  const { quota, setQuota } = useAnalysisQuota();
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isResolving, setIsResolving] = useState(false);
   const [result, setResult] = useState<DeckAnalysisResult | null>(null);
@@ -67,13 +69,6 @@ const DeckAnalyzerSection: React.FC<DeckAnalyzerSectionProps> = ({ formats }) =>
     if (!formatId && formats.length > 0) setFormatId(formats[0].mongoId);
   }, [formats, formatId]);
 
-  useEffect(() => {
-    let cancelled = false;
-    DeckService.getAnalysisQuota()
-      .then((q) => { if (!cancelled) setQuota(q); })
-      .catch(() => { /* counter is optional; ignore */ });
-    return () => { cancelled = true; };
-  }, [isAuthenticated]);
 
   const lines = useMemo(() => parseDecklist(sanitizeDecklistText(deckText)), [deckText]);
   const counts = useMemo(() => countCards(lines), [lines]);
@@ -136,7 +131,7 @@ const DeckAnalyzerSection: React.FC<DeckAnalyzerSectionProps> = ({ formats }) =>
     } finally {
       setIsAnalyzing(false);
     }
-  }, [lines, selectedFormat, locale, turnstileToken, isAnalyzing, showToast, t]);
+  }, [lines, selectedFormat, locale, turnstileToken, isAnalyzing, showToast, t, setQuota]);
 
   const handleLoadSample = () => {
     setDeckText(SAMPLE_DECK);
@@ -250,23 +245,11 @@ const DeckAnalyzerSection: React.FC<DeckAnalyzerSectionProps> = ({ formats }) =>
           </button>
 
           {/* Quota state: shown as a limit, an exhaustion warning, or hidden. */}
-          {quota && quota.remaining !== null && (
-            <p
-              className={`text-xs mt-3 flex items-center gap-1 ${
-                quotaExhausted ? 'text-red-400' : 'text-zinc-500'
-              }`}
-            >
-              <Lock size={12} />
-              {quotaExhausted
-                ? t('home.quotaExhausted')
-                : t('home.quotaRemaining', { remaining: quota.remaining })}
-              {!quotaExhausted && (
-                <Link to="/login" className="text-orange-500 hover:underline ml-1">
-                  {t('home.signInForMore')}
-                </Link>
-              )}
-            </p>
-          )}
+          {quota && <div className="mt-3"><AnalysisQuotaSummary quota={quota} />
+            {!isAuthenticated && <Link to="/login" className="text-xs text-orange-500 hover:underline">
+              {t('home.signInForMore')}
+            </Link>}
+          </div>}
         </div>
 
         {/* ── Pitch / how it works ── */}

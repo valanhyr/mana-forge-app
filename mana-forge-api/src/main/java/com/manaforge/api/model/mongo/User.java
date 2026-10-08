@@ -1,5 +1,7 @@
 package com.manaforge.api.model.mongo;
 
+import java.time.Instant;
+
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -27,6 +29,22 @@ public class User {
     private String verificationToken;
     private Boolean betaAccepted = false;
     private String pendingEmail;
+    private Tier tier = Tier.FREE;
+    private AccountStatus status;
+    private Instant createdAt;
+    private Instant lastLoginAt;
+    private Boolean newsletterSubscribed = false;
+    private Instant newsletterConsentAt;
+    private String newsletterTokenHash;
+    private String newsletterTokenEncrypted;
+
+    public enum Tier { FREE, PRO, PATREON }
+    public enum AccountStatus { ACTIVE, SUSPENDED, BANNED }
+
+    public AccountStatus effectiveStatus() {
+        if (status != null && status != AccountStatus.ACTIVE) return status;
+        return Boolean.FALSE.equals(active) ? AccountStatus.SUSPENDED : AccountStatus.ACTIVE;
+    }
 
     public User(
         String name,

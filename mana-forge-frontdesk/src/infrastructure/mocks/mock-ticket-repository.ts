@@ -1,5 +1,6 @@
-import { ITicketRepository } from '../../core/ports/ticket-repository.port';
-import { Ticket, TicketMessage, TicketPriority, TicketStatus } from '../../core/domain/ticket';
+import { ITicketRepository, TicketFilters } from '../../core/ports/ticket-repository.port';
+import { Ticket, TicketMessage, TicketStatus } from '../../core/domain/ticket';
+import { PageRequest, pageOf } from '../../core/domain/page';
 import { seedTickets } from './seeds/seed-tickets';
 
 export class MockTicketRepository implements ITicketRepository {
@@ -31,7 +32,11 @@ export class MockTicketRepository implements ITicketRepository {
     }
   }
 
-  async list(filters?: { status?: TicketStatus; priority?: TicketPriority; query?: string }): Promise<Ticket[]> {
+  async listPage(filters: TicketFilters, pagination: PageRequest) {
+    return pageOf(await this.list(filters), pagination);
+  }
+
+  async list(filters?: TicketFilters): Promise<Ticket[]> {
     let tickets = this.getTickets();
 
     if (filters?.status) {
@@ -41,6 +46,7 @@ export class MockTicketRepository implements ITicketRepository {
     if (filters?.priority) {
       tickets = tickets.filter((t) => t.priority === filters.priority);
     }
+    if (filters?.category) tickets = tickets.filter(ticket => ticket.category === filters.category);
 
     if (filters?.query) {
       const q = filters.query.toLowerCase();

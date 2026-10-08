@@ -165,7 +165,14 @@ email:
 # PRODUCTION
 directus:
   url: ${DIRECTUS_URL:http://directus_app:8080}
-  token: ${DIRECTUS_API_TOKEN:}
+  token: ${DIRECTUS_API_TOKEN:${DIRECTUS_TOKEN:}}
+
+# Internal backoffice: no operator access until immutable user IDs are allowlisted.
+frontdesk:
+  operator-ids: ${FRONTDESK_OPERATOR_IDS:}
+  url: ${FRONTDESK_URL:}
+  contact-tickets-enabled: ${FRONTDESK_CONTACT_TICKETS_ENABLED:true}
+  email-template-collection: ${FRONTDESK_EMAIL_TEMPLATE_COLLECTION:email_templates}
 
 # LOGGING: Nivel de detalle
 logging:

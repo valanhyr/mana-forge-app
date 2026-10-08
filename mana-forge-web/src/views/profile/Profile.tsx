@@ -23,6 +23,8 @@ import { useToast } from '../../services/ToastContext';
 import { AuthService } from '../../services/AuthService';
 import SEO from '../../components/ui/SEO';
 import { AVATAR_OPTIONS, DEFAULT_AVATAR, getAvatarUrl } from '../../core/utils/avatar';
+import { useAnalysisQuota } from '../../hooks/useAnalysisQuota';
+import AnalysisQuotaSummary from '../../components/ui/AnalysisQuotaSummary';
 
 const Profile = () => {
   const { t } = useTranslation();
@@ -30,7 +32,9 @@ const Profile = () => {
   const { user, logout, updateUser } = useUser();
   const { showToast } = useToast();
   const [activeTab, setActiveTab] = useState<'personalInfo' | 'preferences'>('personalInfo');
-  const [newsletter, setNewsletter] = useState(true);
+  const newsletter = user?.newsletterSubscribed === true;
+  const [newsletterSaving, setNewsletterSaving] = useState(false);
+  const { quota } = useAnalysisQuota();
 
   const [username, setUsername] = useState('');
   const [usernameStatus, setUsernameStatus] = useState<
@@ -197,6 +201,17 @@ const Profile = () => {
     } finally {
       setPasswordLoading(false);
     }
+  };
+
+  const saveNewsletter = async (subscribed: boolean) => {
+    if (!user || newsletterSaving) return;
+    setNewsletterSaving(true);
+    try {
+      const result = await AuthService.setNewsletterPreference(subscribed);
+      updateUser({ ...user, newsletterSubscribed: result.subscribed });
+      showToast(t('profile.saveSuccess'), 'success');
+    } catch { showToast(t('profile.saveError'), 'error'); }
+    finally { setNewsletterSaving(false); }
   };
 
   if (!user) {
@@ -569,12 +584,18 @@ const Profile = () => {
                     <input
                       type="checkbox"
                       checked={newsletter}
-                      onChange={(e) => setNewsletter(e.target.checked)}
+                      onChange={(e) => void saveNewsletter(e.target.checked)}
+                      disabled={newsletterSaving}
+                      aria-label={t('profile.newsletter')}
                       className="sr-only peer"
                     />
-                    <div className="w-11 h-6 bg-zinc-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-500"></div>
+                    <div className="w-11 h-6 bg-zinc-700 peer-focus:outline-none rounded-full peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-500"></div>
                   </label>
                 </div>
+                <section className="border-t border-zinc-800 pt-4">
+                  <h4 className="font-medium text-white mb-2">{t('usage.title')}</h4>
+                  <AnalysisQuotaSummary quota={quota} />
+                </section>
               </div>
             </div>
           )}

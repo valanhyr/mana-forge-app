@@ -1,6 +1,10 @@
 import { describe, it, expect } from 'vitest';
 import { interpolateTemplate } from './email';
 
+it('does not interpolate inherited object properties as template values', () => {
+  expect(interpolateTemplate('{{constructor}} {{__proto__}}', {})).toBe('{{constructor}} {{__proto__}}');
+});
+
 describe('interpolateTemplate', () => {
   it('should replace dynamic placeholders with variable values', () => {
     const template = 'Hello {{user.name}}, your deck {{deck.title}} has been reviewed.';

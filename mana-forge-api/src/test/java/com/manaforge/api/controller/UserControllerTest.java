@@ -58,6 +58,31 @@ class UserControllerTest {
     private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
     private User mockUser;
 
+    @Test
+    void registrationCannotChooseOperatorIdPaidTierOrModerationState() throws Exception {
+        when(userRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        mockMvc.perform(post("/api/users").contentType(MediaType.APPLICATION_JSON).content("""
+                {"id":"operator-id","username":"new-user","password":"pass123","email":"test@example.com",
+                "tier":"PATREON","status":"BANNED","createdAt":"2000-01-01T00:00:00Z",
+                "newsletterSubscribed":true,"newsletterTokenHash":"forged","newsletterTokenEncrypted":"forged"}
+                """))
+                .andExpect(status().isCreated());
+        verify(userRepository).save(argThat(user -> user.getId() == null && user.getTier() == User.Tier.FREE
+                && user.effectiveStatus() == User.AccountStatus.ACTIVE
+                && user.getCreatedAt().isAfter(java.time.Instant.parse("2000-12-31T00:00:00Z"))
+                && Boolean.FALSE.equals(user.getNewsletterSubscribed()) && user.getNewsletterTokenHash() == null
+                && user.getNewsletterTokenEncrypted() == null));
+    }
+
+    @Test
+    void bannedAccountCannotLogin() throws Exception {
+        mockUser.setStatus(User.AccountStatus.BANNED);
+        mockMvc.perform(post("/api/users/login").contentType(MediaType.APPLICATION_JSON)
+                .content("{\"username\":\"testuser\",\"password\":\"password123\"}"))
+                .andExpect(status().isForbidden()).andExpect(jsonPath("$.error").value("ACCOUNT_DISABLED"));
+        verify(userRepository, never()).updateLastLoginAt(any(), any());
+    }
+
     // Simulated encrypted form of "test@example.com"
     private static final String PLAIN_EMAIL = "test@example.com";
     private static final String ENC_EMAIL = "ENC_dGVzdEBleGFtcGxlLmNvbQ==";

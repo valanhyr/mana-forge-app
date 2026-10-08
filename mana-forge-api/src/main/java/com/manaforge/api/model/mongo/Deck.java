@@ -7,6 +7,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.time.Instant;
 
 @Data
 @Document(collection = "decks")
@@ -22,6 +23,8 @@ public class Deck {
     private List<String> colors;
     private List<DeckCardEntry> cards;
     private Map<String, Object> analysisScores;
+    private Instant createdAt;
+    private Instant updatedAt;
 
     private Set<String> likedBy = new HashSet<>();
     private int likesCount = 0;

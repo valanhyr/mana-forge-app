@@ -1,6 +1,8 @@
 package com.manaforge.api.service;
 
 import java.io.IOException;
+import java.time.Instant;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -10,6 +12,8 @@ import org.springframework.security.web.authentication.AuthenticationSuccessHand
 import org.springframework.stereotype.Component;
 
 import com.manaforge.api.model.mongo.User;
+import com.manaforge.api.model.mongo.AuditEvent;
+import org.springframework.security.core.context.SecurityContextHolder;
 import com.manaforge.api.repository.UserRepository;
 
 import jakarta.servlet.ServletException;
@@ -28,6 +32,9 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
     @Value("${services.frontend.url}")
     private String frontendUrl;
 
+    @Autowired(required = false)
+    private FrontdeskAuditService frontdeskAudit;
+
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
         OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
@@ -36,7 +43,9 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
         String name = oAuth2User.getAttribute("name");
         String encryptedEmail = emailEncryptionService.encrypt(email);
 
-        boolean isNewUser = userRepository.findByEmail(encryptedEmail).isEmpty();
+        var existingUser = userRepository.findByEmail(encryptedEmail);
+        boolean isNewUser = existingUser.isEmpty();
+        User user;
         if (isNewUser) {
             String givenName = oAuth2User.getAttribute("given_name");
             String baseUsername = (givenName != null && !givenName.isBlank())
@@ -62,7 +71,26 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
             newUser.setFriends(new String[0]);
             newUser.setBiography("");
             newUser.setAvatar(User.DEFAULT_AVATAR);
+            newUser.setCreatedAt(Instant.now());
+            newUser.setLastLoginAt(newUser.getCreatedAt());
             userRepository.save(newUser);
+            user = newUser;
+        } else {
+            user = existingUser.get();
+            if (user.effectiveStatus() != User.AccountStatus.ACTIVE) {
+                SecurityContextHolder.clearContext();
+                var session = request.getSession(false);
+                if (session != null) session.invalidate();
+                response.sendError(403, "Account is not active");
+                return;
+            }
+            user.setLastLoginAt(Instant.now());
+            userRepository.updateLastLoginAt(user.getId(), user.getLastLoginAt());
+        }
+
+        if (frontdeskAudit != null) {
+            frontdeskAudit.record(new AuditEvent.Actor(user.getId(), user.getUsername(), "USER"),
+                    user.getId(), user.getUsername(), AuditEvent.Action.USER_LOGIN, "Google login", Map.of());
         }
 
         String redirect = isNewUser ? frontendUrl + "/profile?beta_welcome=true" : frontendUrl + "/";

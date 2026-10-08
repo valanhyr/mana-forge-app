@@ -14,6 +14,11 @@ export function useUserSearch(query: string) {
   });
 }
 
+export function useUsersPage(query: string, page: number, size = 25, enabled = true) {
+  return useQuery({ queryKey: ['users', 'page', query, page, size],
+    queryFn: () => container.userRepo.searchPage(query, { page, size }), enabled });
+}
+
 export function useUser(id: string) {
   return useQuery({
     queryKey: USER_QUERY_KEYS.detail(id),
@@ -28,6 +33,8 @@ export function useUpdateUserStatus() {
     mutationFn: ({ userId, status }: { userId: string; status: 'ACTIVE' | 'SUSPENDED' | 'BANNED' }) =>
       container.userRepo.updateStatus(userId, status),
     onSuccess: (updatedUser) => {
+      queryClient.setQueryData(USER_QUERY_KEYS.detail(updatedUser.id), updatedUser);
+      queryClient.invalidateQueries({ queryKey: ['audit'] });
       queryClient.invalidateQueries({ queryKey: USER_QUERY_KEYS.detail(updatedUser.id) });
       queryClient.invalidateQueries({ queryKey: USER_QUERY_KEYS.all });
     },
@@ -39,6 +46,8 @@ export function useResetAiQuota() {
   return useMutation({
     mutationFn: (userId: string) => container.userRepo.resetAiQuota(userId),
     onSuccess: (updatedUser) => {
+      queryClient.setQueryData(USER_QUERY_KEYS.detail(updatedUser.id), updatedUser);
+      queryClient.invalidateQueries({ queryKey: ['audit'] });
       queryClient.invalidateQueries({ queryKey: USER_QUERY_KEYS.detail(updatedUser.id) });
       queryClient.invalidateQueries({ queryKey: USER_QUERY_KEYS.all });
     },

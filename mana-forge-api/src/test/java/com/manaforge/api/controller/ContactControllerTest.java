@@ -5,6 +5,7 @@ import com.manaforge.api.repository.UserRepository;
 import com.manaforge.api.service.EmailService;
 import com.manaforge.api.service.OAuth2LoginSuccessHandler;
 import com.manaforge.api.service.TurnstileService;
+import com.manaforge.api.service.SupportTicketService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,6 +41,9 @@ class ContactControllerTest {
 
     @MockitoBean
     private TurnstileService turnstileService;
+
+    @MockitoBean
+    private SupportTicketService supportTicketService;
 
     @BeforeEach
     void resetTurnstile() {
@@ -94,6 +98,7 @@ class ContactControllerTest {
 
         verify(emailService).sendContactConfirmation(any());
         verify(emailService).sendContactNotification(any());
+        verify(supportTicketService).createFromContact(any());
     }
 
     @Test
@@ -153,6 +158,7 @@ class ContactControllerTest {
                 .andExpect(jsonPath("$.code").value("FORM_REJECTED"));
 
         verify(emailService, never()).sendContactNotification(any());
+        verifyNoInteractions(supportTicketService);
         verify(emailService, never()).sendContactConfirmation(any());
     }
 
@@ -165,6 +171,7 @@ class ContactControllerTest {
                 .andExpect(jsonPath("$.code").value("FORM_REJECTED"));
 
         verify(emailService, never()).sendContactNotification(any());
+        verifyNoInteractions(supportTicketService);
     }
 
     @Test

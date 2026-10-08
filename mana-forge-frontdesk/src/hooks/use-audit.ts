@@ -1,6 +1,6 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { container } from '../infrastructure/container';
-import { AuditAction, AuditEntry } from '../core/domain/audit';
+import { AuditAction } from '../core/domain/audit';
 
 export const AUDIT_QUERY_KEYS = {
   all: ['audit'] as const,
@@ -15,12 +15,7 @@ export function useAuditLog(filters?: { targetUserId?: string; action?: AuditAct
   });
 }
 
-export function useLogAuditEvent() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (entry: Omit<AuditEntry, 'id' | 'timestamp'>) => container.auditRepo.logEvent(entry),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: AUDIT_QUERY_KEYS.all });
-    },
-  });
+export function useAuditPage(action: AuditAction | undefined, page: number) {
+  return useQuery({ queryKey: ['audit', 'page', action, page],
+    queryFn: () => container.auditRepo.listPage({ action }, { page, size: 25 }) });
 }

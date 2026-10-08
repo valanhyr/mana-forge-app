@@ -1,12 +1,14 @@
 import React from 'react';
 import { UserSummaryDeck } from '../../core/domain/user';
 import { Layers, Calendar } from 'lucide-react';
+import { useTranslation } from '../../hooks/use-translation';
 
 interface DeckMiniListProps {
   decks: UserSummaryDeck[];
 }
 
 export const DeckMiniList: React.FC<DeckMiniListProps> = ({ decks }) => {
+  const { t } = useTranslation();
   if (decks.length === 0) {
     return (
       <div className="text-xs text-slate-500 py-3 text-center">
@@ -40,7 +42,7 @@ export const DeckMiniList: React.FC<DeckMiniListProps> = ({ decks }) => {
             </span>
             <div className="text-[11px] text-slate-500 flex items-center gap-1">
               <Calendar className="w-3 h-3" />
-              <span>{deck.updatedAt}</span>
+              <span>{deck.updatedAt ? new Date(deck.updatedAt).toLocaleDateString() : t('unknown')}</span>
             </div>
           </div>
         </div>

@@ -1,9 +1,11 @@
 import React from 'react';
 import { Cpu, RotateCcw } from 'lucide-react';
+import { useTranslation } from '../../hooks/use-translation';
 
 interface QuotaMeterProps {
-  used: number;
-  limit: number;
+  used: number | null;
+  limit: number | null;
+  period?: 'DAILY' | 'MONTHLY';
   onReset?: () => void;
   isLoading?: boolean;
 }
@@ -13,8 +15,10 @@ export const QuotaMeter: React.FC<QuotaMeterProps> = ({
   limit,
   onReset,
   isLoading = false,
+  period = 'DAILY',
 }) => {
-  const percentage = Math.min(Math.round((used / limit) * 100), 100);
+  const { t } = useTranslation();
+  const percentage = limit !== null && limit > 0 && used !== null ? Math.min(Math.round((used / limit) * 100), 100) : 0;
 
   const getBarColor = (pct: number) => {
     if (pct >= 100) return 'bg-rose-500';
@@ -27,26 +31,26 @@ export const QuotaMeter: React.FC<QuotaMeterProps> = ({
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2 text-xs font-semibold text-slate-200">
           <Cpu className="w-4 h-4 text-indigo-400" />
-          <span>Monthly AI Quota</span>
+          <span>{t(period === 'DAILY' ? 'dailyQuota' : 'monthlyQuota')}</span>
         </div>
         <div className="text-xs font-mono font-medium text-slate-300">
           <span className={percentage >= 100 ? 'text-rose-400 font-bold' : ''}>
-            {used}
+            {used ?? t('unknown')}
           </span>
-          <span className="text-slate-500"> / {limit} queries</span>
+          <span className="text-slate-500"> / {limit ?? t('unlimited')} queries</span>
         </div>
       </div>
 
-      <div className="w-full h-2 bg-slate-800 rounded-full overflow-hidden mb-3">
+      {limit !== null && used !== null && <div className="w-full h-2 bg-slate-800 rounded-full overflow-hidden mb-3">
         <div
           className={`h-full transition-all duration-300 ${getBarColor(percentage)}`}
           style={{ width: `${percentage}%` }}
         />
-      </div>
+      </div>}
 
       <div className="flex items-center justify-between">
         <span className="text-[11px] text-slate-400">
-          {percentage}% consumed this period
+          {limit === null ? t('unlimited') : used === null ? t('unknown') : `${percentage}%`}
         </span>
         {onReset && (
           <button

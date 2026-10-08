@@ -18,6 +18,16 @@ export interface SendEmailPayload {
 
 export type BroadcastAudience = 'ALL' | 'FREE' | 'PRO_PATREON';
 
+export interface EmailDelivery {
+  id: string;
+  recipientName: string;
+  subject: string;
+  status: 'PENDING' | 'SENT' | 'FAILED';
+  createdAt: string;
+  sentAt: string | null;
+  messageId: string | null;
+}
+
 export interface SendBroadcastPayload {
   audience: BroadcastAudience;
   subject: string;
@@ -25,8 +35,12 @@ export interface SendBroadcastPayload {
   templateId?: string;
 }
 
+export interface NewsletterSubscriber { id: string; username: string; email: string; tier: 'FREE' | 'PRO' | 'PATREON' }
+export interface NewsletterPayload { campaignId: string; recipientIds: string[]; subject: string; body: string; templateId?: string }
+export interface NewsletterCampaign { id: string; state: 'RUNNING' | 'COMPLETED' | 'FAILED'; total: number; sent: number; failed: number; skipped: number }
+
 export function interpolateTemplate(text: string, variables: Record<string, string>): string {
   return text.replace(/\{\{([a-zA-Z0-9_.-]+)\}\}/g, (match, key) => {
-    return key in variables ? variables[key] : match;
+    return Object.prototype.hasOwnProperty.call(variables, key) ? variables[key] : match;
   });
 }

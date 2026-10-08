@@ -5,7 +5,7 @@ export interface UserSummaryDeck {
   name: string;
   format: string;
   cardCount: number;
-  updatedAt: string;
+  updatedAt: string | null;
 }
 
 export interface User360 {
@@ -14,14 +14,17 @@ export interface User360 {
   username: string;
   avatarUrl?: string;
   tier: UserTier;
-  createdAt: string;
-  lastLoginAt: string;
+  createdAt: string | null;
+  lastLoginAt: string | null;
   status: 'ACTIVE' | 'SUSPENDED' | 'BANNED';
   stats: {
     totalDecks: number;
-    aiQueriesThisMonth: number;
-    aiQuotaLimit: number;
-    failedImportsCount: number;
+    aiQueriesThisMonth: number | null;
+    aiQueriesToday?: number | null;
+    aiQuotaLimit: number | null;
+    aiQuotaPeriod?: 'DAILY' | 'MONTHLY';
+    aiQuotaResetsAt?: string | null;
+    failedImportsCount: number | null;
   };
   recentDecks: UserSummaryDeck[];
   openTicketsCount: number;

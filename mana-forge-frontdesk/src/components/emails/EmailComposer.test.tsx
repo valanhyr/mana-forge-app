@@ -21,10 +21,21 @@ describe('EmailComposer', () => {
   });
 
   it('should switch to audience broadcast mode', () => {
-    render(<EmailComposer templates={[mockTemplate]} onSend={vi.fn()} />);
+    render(<EmailComposer templates={[mockTemplate]} onSend={vi.fn()} onSendBroadcast={vi.fn()} />);
     const broadcastBtn = screen.getByRole('button', { name: /audience broadcast/i });
     fireEvent.click(broadcastBtn);
     expect(screen.getByText(/target broadcast audience/i)).toBeInTheDocument();
     expect(screen.getAllByText(/30 recipients/i).length).toBeGreaterThan(0);
+  });
+
+  it('disables unsupported broadcasts and unresolved macros in live mode', () => {
+    const onSend = vi.fn();
+    render(<EmailComposer templates={[mockTemplate]} onSend={onSend} />);
+    expect(screen.getByRole('button', { name: /audience broadcast/i })).toBeDisabled();
+    fireEvent.change(screen.getByLabelText(/recipient email/i), { target: { value: 'user@example.com' } });
+    expect(screen.getByRole('button', { name: /dispatch email/i })).toBeDisabled();
+    fireEvent.change(screen.getByLabelText(/macro value user.name/i), { target: { value: 'Actual customer' } });
+    expect(screen.getByRole('button', { name: /dispatch email/i })).toBeEnabled();
+    expect(onSend).not.toHaveBeenCalled();
   });
 });

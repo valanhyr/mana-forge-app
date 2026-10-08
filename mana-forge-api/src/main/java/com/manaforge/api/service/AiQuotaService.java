@@ -121,9 +121,8 @@ public class AiQuotaService {
         String key = quotaKey(identity, authenticated);
         Integer used = redisOps(() -> {
             Long value = redis.opsForValue().increment(key);
-            // Only the caller that created the key sets the expiry, so the window
-            // rolls over a day after the first request rather than being extended
-            // by every subsequent one.
+            // Only the caller that created the key sets expiry, at the next UTC
+            // midnight rather than 24 hours after the first request.
             if (value != null && value == 1L) {
                 redis.expire(key, untilReset());
             }
@@ -137,6 +136,14 @@ public class AiQuotaService {
 
     private int limitFor(boolean authenticated) {
         return authenticated ? authenticatedDailyLimit : anonymousDailyLimit;
+    }
+
+    /** Backoffice reset affects today's authenticated counter only, never the result cache. */
+    public void resetAuthenticatedQuota(String userId) {
+        String key = quotaKey(userId, true);
+        // Clear local state even when Redis is healthy: an earlier outage may have populated it.
+        fallbackQuota.remove(key);
+        redisOps(() -> redis.delete(key), () -> false);
     }
 
     private Integer readCount(String key) {

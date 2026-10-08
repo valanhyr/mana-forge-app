@@ -1,8 +1,7 @@
 import { api } from './api';
 
 /**
- * Quota state for the anonymous AI analysis trial. `remaining` is null when the
- * caller has unlimited access (authenticated user or quota disabled).
+ * Daily analysis quota for visitors and signed-in users. Null means unlimited.
  */
 export interface AnalysisQuota {
   limit: number | null;

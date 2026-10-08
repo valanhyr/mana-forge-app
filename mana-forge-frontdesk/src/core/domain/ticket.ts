@@ -13,7 +13,7 @@ export interface TicketMessage {
 
 export interface Ticket {
   id: string;
-  userId: string;
+  userId: string | null;
   userEmail: string;
   userName: string;
   subject: string;

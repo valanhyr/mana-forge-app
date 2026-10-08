@@ -39,6 +39,32 @@ services:
     networks:
       - mana-forge-network
 
+  # Internal backoffice: opt-in and session-protected; live API adapters by default.
+  # Explicitly start with: docker compose up -d --build frontdesk
+  frontdesk:
+    profiles: ["frontdesk"]
+    image: ${FRONTDESK_IMAGE:-ghcr.io/valanhyr/mana-forge-frontdesk:latest}
+    build:
+      context: ./mana-forge-frontdesk
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: ${FRONTDESK_API_URL:-/api}
+        VITE_USE_MOCKS: ${FRONTDESK_USE_MOCKS:-false}
+    ports:
+      - "127.0.0.1:${FRONTDESK_PORT:-5174}:80"
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1/healthz"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+    restart: unless-stopped
+    networks:
+      - mana-forge-network
+
   # BACKEND: Java Spring Boot (Puerto 8080)
   api:
     image: ${API_IMAGE:-ghcr.io/valanhyr/mana-forge-api:latest}
@@ -84,6 +110,11 @@ services:
       - AI_QUOTA_ANONYMOUS_DAILY=${AI_QUOTA_ANONYMOUS_DAILY:-5}
       - AI_QUOTA_AUTHENTICATED_DAILY=${AI_QUOTA_AUTHENTICATED_DAILY:-25}
       - AI_CACHE_TTL_HOURS=${AI_CACHE_TTL_HOURS:-24}
+      # Backoffice is closed unless authenticated user IDs are explicitly allowlisted.
+      - FRONTDESK_OPERATOR_IDS=${FRONTDESK_OPERATOR_IDS:-}
+      - FRONTDESK_URL=${FRONTDESK_URL:-}
+      - FRONTDESK_CONTACT_TICKETS_ENABLED=${FRONTDESK_CONTACT_TICKETS_ENABLED:-true}
+      - FRONTDESK_EMAIL_TEMPLATE_COLLECTION=${FRONTDESK_EMAIL_TEMPLATE_COLLECTION:-email_templates}
     depends_on:
       engine:
         condition: service_healthy

@@ -29,15 +29,17 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
               .append(request.getRequestURI());
 
             String query = request.getQueryString();
-            if (query != null) sb.append('?').append(query);
+            // Backoffice search queries may include decrypted contact emails.
+            if (query != null && !request.getRequestURI().startsWith("/api/frontdesk")) sb.append('?').append(query);
 
             sb.append(" Headers={");
             Enumeration<String> names = request.getHeaderNames();
             if (names != null) {
                 while (names.hasMoreElements()) {
                     String name = names.nextElement();
-                    // hide cookie values for safety
-                    String value = "Cookie".equalsIgnoreCase(name) ? "<cookie>" : request.getHeader(name);
+                    // Session, authorization and CSRF proof must never be written to logs.
+                    String value = "Cookie".equalsIgnoreCase(name) || "Authorization".equalsIgnoreCase(name)
+                            || "X-CSRF-TOKEN".equalsIgnoreCase(name) ? "<redacted>" : request.getHeader(name);
                     sb.append(name).append(": ").append(value).append(", ");
                 }
             }

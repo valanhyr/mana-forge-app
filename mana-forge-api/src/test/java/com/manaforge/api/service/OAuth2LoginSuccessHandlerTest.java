@@ -81,13 +81,27 @@ class OAuth2LoginSuccessHandlerTest {
     }
 
     @Test
-    void existingUser_isNotSavedAndRedirectedToHome() throws Exception {
-        when(userRepository.findByEmail(ENC_EMAIL)).thenReturn(Optional.of(new User()));
+    void existingUser_updatesOnlyLastLoginAndRedirectsToHome() throws Exception {
+        User user = new User();
+        user.setId("user1");
+        when(userRepository.findByEmail(ENC_EMAIL)).thenReturn(Optional.of(user));
 
         handler.onAuthenticationSuccess(request, response, authentication);
 
         verify(userRepository, never()).save(any());
+        verify(userRepository).updateLastLoginAt(eq("user1"), any(java.time.Instant.class));
         verify(response).sendRedirect("http://localhost:5173/");
+    }
+
+    @Test
+    void bannedOAuthUserIsRejectedWithoutRecordingSuccessfulLogin() throws Exception {
+        User user = new User();
+        user.setStatus(User.AccountStatus.BANNED);
+        when(userRepository.findByEmail(ENC_EMAIL)).thenReturn(Optional.of(user));
+        handler.onAuthenticationSuccess(request, response, authentication);
+        verify(response).sendError(403, "Account is not active");
+        verify(response, never()).sendRedirect(anyString());
+        verify(userRepository, never()).updateLastLoginAt(any(), any());
     }
 
     @Test
@@ -151,6 +165,8 @@ class OAuth2LoginSuccessHandlerTest {
         assertThat(saved.getFriends()).isEmpty();
         assertThat(saved.getActive()).isTrue();
         assertThat(saved.getValidated()).isTrue();
+        assertThat(saved.getCreatedAt()).isNotNull();
+        assertThat(saved.getLastLoginAt()).isEqualTo(saved.getCreatedAt());
     }
 }
 

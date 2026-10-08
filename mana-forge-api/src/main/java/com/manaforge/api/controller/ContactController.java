@@ -3,6 +3,8 @@ package com.manaforge.api.controller;
 import com.manaforge.api.dto.ContactRequest;
 import com.manaforge.api.service.EmailService;
 import com.manaforge.api.service.TurnstileService;
+import com.manaforge.api.service.SupportTicketService;
+import org.springframework.beans.factory.annotation.Value;
 import com.manaforge.api.util.ClientIpResolver;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -38,6 +40,10 @@ public class ContactController {
 
     private final EmailService emailService;
     private final TurnstileService turnstileService;
+    private final SupportTicketService supportTicketService;
+
+    @Value("${frontdesk.contact-tickets-enabled:true}")
+    private boolean contactTicketsEnabled;
 
     @PostMapping
     public ResponseEntity<Map<String, Object>> submit(
@@ -80,6 +86,8 @@ public class ContactController {
         request.setTurnstileToken(null);
         request.setWebsite(null);
         request.setFormRenderedAt(null);
+
+        if (contactTicketsEnabled) supportTicketService.createFromContact(request);
 
         log.info("Contact form submission from {} <{}>  subject: {}",
                 request.getName(), request.getEmail(), request.getSubject());

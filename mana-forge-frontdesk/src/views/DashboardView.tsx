@@ -1,7 +1,10 @@
 import React from 'react';
-import { useTickets } from '../hooks/use-tickets';
+import { useTicketsPage, useTicketSummary } from '../hooks/use-tickets';
 import { useAuditLog } from '../hooks/use-audit';
-import { useUserSearch } from '../hooks/use-users';
+import { useUsersPage } from '../hooks/use-users';
+import { useOperator } from '../hooks/use-operator';
+import { useTranslation } from '../hooks/use-translation';
+import { ErrorNotice } from '../components/ui/ErrorNotice';
 import { Ticket } from '../core/domain/ticket';
 import { StatusBadge } from '../components/ui/StatusBadge';
 import { PriorityBadge } from '../components/ui/PriorityBadge';
@@ -24,20 +27,28 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   onNavigateTab,
   onSelectTicket,
 }) => {
-  const { data: tickets = [] } = useTickets();
-  const { data: users = [] } = useUserSearch('');
+  const { t } = useTranslation();
+  const operator = useOperator();
+  const ticketPage = useTicketsPage({}, 0);
+  const userPage = useUsersPage('', 0);
+  const summary = useTicketSummary();
+  const tickets = ticketPage.data?.items || [];
+  const users = userPage.data?.items || [];
   const { data: recentAudit = [] } = useAuditLog({ limit: 5 });
 
-  const openTickets = tickets.filter((t) => t.status === 'OPEN' || t.status === 'IN_PROGRESS');
   const urgentTickets = tickets.filter(
     (t) => (t.priority === 'URGENT' || t.priority === 'HIGH') && t.status !== 'RESOLVED' && t.status !== 'CLOSED'
   );
   const quotaExceededUsers = users.filter(
-    (u) => u.stats.aiQueriesThisMonth >= u.stats.aiQuotaLimit
+    (u) => {
+      const used = u.stats.aiQuotaPeriod === 'DAILY' ? u.stats.aiQueriesToday : u.stats.aiQueriesThisMonth;
+      return used != null && u.stats.aiQuotaLimit != null && u.stats.aiQuotaLimit > 0 && used >= u.stats.aiQuotaLimit;
+    }
   );
 
   return (
     <div className="space-y-6 overflow-y-auto h-[calc(100vh-7rem)] pb-8 pr-1">
+      <ErrorNotice error={ticketPage.error || userPage.error || summary.error} />
       {/* Welcome Banner */}
       <div className="bg-gradient-to-r from-indigo-900/50 via-slate-900 to-slate-900 border border-indigo-800/40 rounded-2xl p-6 shadow-xl relative overflow-hidden">
         <div className="relative z-10">
@@ -46,7 +57,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <span>Support & Operations Center</span>
           </div>
           <h1 className="text-2xl font-bold text-white mb-2">
-            Welcome back, Jace Beleren
+            {t('welcome')} {operator?.name}
           </h1>
           <p className="text-sm text-slate-300 max-w-2xl leading-relaxed">
             Monitor Magic: The Gathering deck builder questions, analyze Premodern legality tickets, manage AI query allocations, and communicate with players.
@@ -64,7 +75,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <span className="text-xs font-medium">Open Tickets</span>
             <Inbox className="w-4 h-4 text-indigo-400" />
           </div>
-          <div className="text-2xl font-bold text-slate-100">{openTickets.length}</div>
+          <div className="text-2xl font-bold text-slate-100">{summary.data?.open ?? '—'}</div>
           <div className="text-[11px] text-slate-500 mt-1">Pending operator action</div>
         </div>
 
@@ -76,7 +87,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <span className="text-xs font-medium">Urgent Issues</span>
             <AlertTriangle className="w-4 h-4 text-rose-400" />
           </div>
-          <div className="text-2xl font-bold text-rose-400">{urgentTickets.length}</div>
+          <div className="text-2xl font-bold text-rose-400">{summary.data?.urgent ?? '—'}</div>
           <div className="text-[11px] text-slate-500 mt-1">High/Urgent priority</div>
         </div>
 
@@ -89,7 +100,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <Cpu className="w-4 h-4 text-amber-400" />
           </div>
           <div className="text-2xl font-bold text-amber-400">{quotaExceededUsers.length}</div>
-          <div className="text-[11px] text-slate-500 mt-1">Users at 100% monthly limit</div>
+          <div className="text-[11px] text-slate-500 mt-1">{t('loadedQuota')} ({users.length})</div>
         </div>
 
         <div
@@ -100,8 +111,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <span className="text-xs font-medium">Total Registered</span>
             <Users className="w-4 h-4 text-emerald-400" />
           </div>
-          <div className="text-2xl font-bold text-slate-100">{users.length}</div>
-          <div className="text-[11px] text-slate-500 mt-1">Active MtG deck builders</div>
+          <div className="text-2xl font-bold text-slate-100">{userPage.data?.total ?? '—'}</div>
+          <div className="text-[11px] text-slate-500 mt-1">{t('registeredAccounts')}</div>
         </div>
       </div>
 

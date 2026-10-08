@@ -1,20 +1,22 @@
 import React, { useState } from 'react';
 import { Send, Lock } from 'lucide-react';
+import { useTranslation } from '../../hooks/use-translation';
 
 interface ReplyBoxProps {
-  onSendMessage: (content: string, isInternalNote: boolean) => void;
+  onSendMessage: (content: string, isInternalNote: boolean) => void | Promise<void>;
   isLoading?: boolean;
 }
 
 export const ReplyBox: React.FC<ReplyBoxProps> = ({ onSendMessage, isLoading = false }) => {
+  const { t } = useTranslation();
   const [content, setContent] = useState('');
   const [isInternalNote, setIsInternalNote] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!content.trim() || isLoading) return;
-    onSendMessage(content.trim(), isInternalNote);
-    setContent('');
+    try { await onSendMessage(content.trim(), isInternalNote); setContent(''); }
+    catch { /* The owning view displays the error. Preserve the draft for manual recovery. */ }
   };
 
   return (
@@ -49,6 +51,8 @@ export const ReplyBox: React.FC<ReplyBoxProps> = ({ onSendMessage, isLoading = f
 
       <textarea
         value={content}
+        maxLength={8000}
+        disabled={isLoading}
         onChange={(e) => setContent(e.target.value)}
         placeholder={
           isInternalNote
@@ -61,7 +65,7 @@ export const ReplyBox: React.FC<ReplyBoxProps> = ({ onSendMessage, isLoading = f
 
       <div className="flex items-center justify-between mt-2.5">
         <span className="text-[11px] text-slate-500">
-          Tip: Press Submit to send response
+          {t('replyHint')}
         </span>
         <button
           type="submit"
@@ -73,7 +77,7 @@ export const ReplyBox: React.FC<ReplyBoxProps> = ({ onSendMessage, isLoading = f
           }`}
         >
           <Send className="w-3.5 h-3.5" />
-          <span>{isInternalNote ? 'Save Note' : 'Send Reply'}</span>
+          <span>{isInternalNote ? 'Save Note' : t('reply')}</span>
         </button>
       </div>
     </form>

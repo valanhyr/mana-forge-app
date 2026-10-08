@@ -1,5 +1,6 @@
 import React from 'react';
 import { Filter } from 'lucide-react';
+import { useTranslation } from '../../hooks/use-translation';
 
 interface AuditFilterProps {
   selectedAction: string;
@@ -10,6 +11,7 @@ export const AuditFilter: React.FC<AuditFilterProps> = ({
   selectedAction,
   onSelectAction,
 }) => {
+  const { t } = useTranslation();
   const actions: Array<{ value: string; label: string }> = [
     { value: 'ALL', label: 'All Actions' },
     { value: 'USER_LOGIN', label: 'User Login' },
@@ -18,7 +20,10 @@ export const AuditFilter: React.FC<AuditFilterProps> = ({
     { value: 'TICKET_CREATED', label: 'Ticket Creations' },
     { value: 'TICKET_STATUS_CHANGED', label: 'Ticket Status Changes' },
     { value: 'TICKET_NOTE_ADDED', label: 'Internal Notes' },
+    { value: 'TICKET_MESSAGE_ADDED', label: t('auditReplies') },
+    { value: 'TICKET_ASSIGNED', label: t('auditAssignments') },
     { value: 'EMAIL_SENT', label: 'Emails Dispatched' },
+    { value: 'EMAIL_FAILED', label: t('auditEmailFailures') },
     { value: 'DECK_IMPORT_FAILED', label: 'Deck Import Errors' },
   ];
 

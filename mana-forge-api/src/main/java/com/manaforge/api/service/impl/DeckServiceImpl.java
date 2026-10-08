@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.cache.annotation.CacheEvict;
 
 import java.time.LocalDate;
+import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.concurrent.CompletableFuture;
@@ -52,6 +53,8 @@ public class DeckServiceImpl implements DeckService {
         deck.setName(dto.getName());
         deck.setFormatId(dto.getFormatId());
         deck.setUserId(userId);
+        deck.setCreatedAt(Instant.now());
+        deck.setUpdatedAt(deck.getCreatedAt());
         deck.setPrivate(dto.isPrivate());
 
         List<Deck.DeckCardEntry> cardEntries = dto.getCards().stream().map(cardDto -> {
@@ -81,6 +84,7 @@ public class DeckServiceImpl implements DeckService {
                     }
 
                     existingDeck.setName(dto.getName());
+                    existingDeck.setUpdatedAt(Instant.now());
                     existingDeck.setFormatId(dto.getFormatId());
                     existingDeck.setPrivate(dto.isPrivate());
 

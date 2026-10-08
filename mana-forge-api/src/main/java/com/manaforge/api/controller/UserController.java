@@ -5,6 +5,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.AuthorityUtils;
@@ -27,9 +28,11 @@ import org.springframework.web.server.ResponseStatusException;
 import com.manaforge.api.dto.PublicUserDto;
 import com.manaforge.api.dto.UserDto;
 import com.manaforge.api.model.mongo.User;
+import com.manaforge.api.model.mongo.AuditEvent;
 import com.manaforge.api.repository.UserRepository;
 import com.manaforge.api.service.EmailEncryptionService;
 import com.manaforge.api.service.EmailService;
+import com.manaforge.api.service.FrontdeskAuditService;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -37,6 +40,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.UUID;
+import java.time.Instant;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -62,6 +66,9 @@ public class UserController {
     private final EmailEncryptionService emailEncryptionService;
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
     private final SecurityContextRepository securityContextRepository = new HttpSessionSecurityContextRepository();
+
+    @Autowired(required = false)
+    private FrontdeskAuditService frontdeskAudit;
 
     @Value("${services.frontend.url}")
     private String frontendUrl;
@@ -117,6 +124,7 @@ public class UserController {
                 .betaAccepted(user.getBetaAccepted())
                 .pendingEmail(decryptedPendingEmail)
                 .canChangeEmail(canChangeEmail)
+                .newsletterSubscribed(Boolean.TRUE.equals(user.getNewsletterSubscribed()))
                 .build();
     }
 
@@ -203,6 +211,18 @@ public class UserController {
         }
 
         user.setValidated(false);
+        // Registration must never accept an existing ID, paid tier, moderation state or forged dates.
+        user.setId(null);
+        user.setTier(User.Tier.FREE);
+        user.setStatus(User.AccountStatus.ACTIVE);
+        user.setActive(true);
+        user.setCreatedAt(Instant.now());
+        user.setLastLoginAt(null);
+        // Marketing consent is granted separately by an authenticated, verified account.
+        user.setNewsletterSubscribed(false);
+        user.setNewsletterConsentAt(null);
+        user.setNewsletterTokenHash(null);
+        user.setNewsletterTokenEncrypted(null);
         user.setVerificationToken(UUID.randomUUID().toString());
         user.setAvatar(normalizeAvatar(user.getAvatar()));
 
@@ -223,6 +243,11 @@ public class UserController {
             if (user.getPendingEmail() != null) {
                 user.setEmail(user.getPendingEmail());
                 user.setPendingEmail(null);
+                // Consent was given for the previous address, not this newly verified one.
+                user.setNewsletterSubscribed(false);
+                user.setNewsletterConsentAt(null);
+                user.setNewsletterTokenHash(null);
+                user.setNewsletterTokenEncrypted(null);
             }
             user.setValidated(true);
             user.setVerificationToken(null);
@@ -237,9 +262,19 @@ public class UserController {
         return userRepository.findByUsername(loginRequest.getUsername())
                 .filter(user -> passwordEncoder.matches(loginRequest.getPassword(), user.getPassword()))
                 .map(user -> {
+                    if (user.effectiveStatus() != User.AccountStatus.ACTIVE) {
+                        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "ACCOUNT_DISABLED"));
+                    }
                     if (!Boolean.TRUE.equals(user.getValidated())) {
                         return ResponseEntity.status(HttpStatus.FORBIDDEN)
                                 .body(Map.of("error", "EMAIL_NOT_VERIFIED"));
+                    }
+                    user.setLastLoginAt(Instant.now());
+                    userRepository.updateLastLoginAt(user.getId(), user.getLastLoginAt());
+                    if (frontdeskAudit != null) {
+                        frontdeskAudit.record(new AuditEvent.Actor(
+                                user.getId(), user.getUsername(), "USER"), user.getId(), user.getUsername(),
+                                AuditEvent.Action.USER_LOGIN, "Local login", Map.of());
                     }
                     UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
                         user.getUsername(), null, AuthorityUtils.createAuthorityList("ROLE_USER")

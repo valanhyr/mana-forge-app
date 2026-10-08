@@ -2,6 +2,7 @@ import React from 'react';
 import { User360 } from '../../core/domain/user';
 import { QuotaMeter } from './QuotaMeter';
 import { DeckMiniList } from './DeckMiniList';
+import { useTranslation } from '../../hooks/use-translation';
 import {
   User,
   Mail,
@@ -15,13 +16,16 @@ interface User360ViewProps {
   user: User360;
   onResetQuota: (userId: string) => void;
   onUpdateStatus: (userId: string, status: 'ACTIVE' | 'SUSPENDED' | 'BANNED') => void;
+  isLoading?: boolean;
 }
 
 export const User360View: React.FC<User360ViewProps> = ({
   user,
   onResetQuota,
   onUpdateStatus,
+  isLoading = false,
 }) => {
+  const { t } = useTranslation();
   return (
     <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden flex flex-col h-full">
       {/* Header Profile */}
@@ -64,6 +68,7 @@ export const User360View: React.FC<User360ViewProps> = ({
             {user.status === 'ACTIVE' ? (
               <button
                 onClick={() => onUpdateStatus(user.id, 'BANNED')}
+                disabled={isLoading}
                 className="flex items-center gap-1.5 px-3 py-1.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 rounded-lg text-xs font-medium transition-colors"
               >
                 <Ban className="w-3.5 h-3.5" />
@@ -72,6 +77,7 @@ export const User360View: React.FC<User360ViewProps> = ({
             ) : (
               <button
                 onClick={() => onUpdateStatus(user.id, 'ACTIVE')}
+                disabled={isLoading}
                 className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-lg text-xs font-medium transition-colors"
               >
                 <CheckCircle className="w-3.5 h-3.5" />
@@ -86,13 +92,13 @@ export const User360View: React.FC<User360ViewProps> = ({
             <div className="text-[10px] text-slate-500 font-medium">Account Created</div>
             <div className="text-xs font-semibold text-slate-200 mt-0.5 flex items-center gap-1">
               <Calendar className="w-3 h-3 text-slate-500" />
-              {new Date(user.createdAt).toLocaleDateString()}
+              {user.createdAt ? new Date(user.createdAt).toLocaleDateString() : t('unknown')}
             </div>
           </div>
           <div className="bg-slate-950/50 p-2.5 rounded-lg border border-slate-800/60">
             <div className="text-[10px] text-slate-500 font-medium">Last Login</div>
             <div className="text-xs font-semibold text-slate-200 mt-0.5">
-              {new Date(user.lastLoginAt).toLocaleString()}
+              {user.lastLoginAt ? new Date(user.lastLoginAt).toLocaleString() : t('unknown')}
             </div>
           </div>
           <div className="bg-slate-950/50 p-2.5 rounded-lg border border-slate-800/60">
@@ -105,7 +111,7 @@ export const User360View: React.FC<User360ViewProps> = ({
             <div className="text-[10px] text-slate-500 font-medium">Failed Imports</div>
             <div className="text-xs font-semibold text-slate-200 mt-0.5 flex items-center gap-1 text-amber-400">
               <AlertTriangle className="w-3 h-3" />
-              {user.stats.failedImportsCount}
+              {user.stats.failedImportsCount ?? t('unknown')}
             </div>
           </div>
         </div>
@@ -118,8 +124,10 @@ export const User360View: React.FC<User360ViewProps> = ({
             Resource Quotas
           </h3>
           <QuotaMeter
-            used={user.stats.aiQueriesThisMonth}
+            used={user.stats.aiQuotaPeriod === 'DAILY' ? user.stats.aiQueriesToday ?? null : user.stats.aiQueriesThisMonth}
             limit={user.stats.aiQuotaLimit}
+            period={user.stats.aiQuotaPeriod || 'MONTHLY'}
+            isLoading={isLoading}
             onReset={() => onResetQuota(user.id)}
           />
         </div>

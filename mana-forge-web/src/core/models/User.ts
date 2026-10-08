@@ -7,4 +7,5 @@ export interface User {
   friends: string[];
   avatar: string;
   betaAccepted?: boolean;
+  newsletterSubscribed?: boolean;
 }

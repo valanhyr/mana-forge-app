@@ -1,5 +1,33 @@
 {
   "es": {
+    "usage": {
+      "title": "Uso de análisis de IA",
+      "remaining": "Te quedan {remaining} de {limit} análisis hoy.",
+      "resets": "Se renueva el {time} (tu hora local).",
+      "unlimited": "Análisis sin límite diario.",
+      "unavailable": "No se puede consultar la cuota ahora."
+    },
+    "newsletter": {
+      "title": "Baja de la newsletter",
+      "hint": "Dejarás de recibir novedades y promociones. Los correos de tu cuenta y soporte no cambian.",
+      "confirm": "Confirmar baja",
+      "done": "Baja procesada. Si el enlace correspondía a tu suscripción actual, ya no recibirás la newsletter.",
+      "error": "No se ha podido procesar el enlace. Abre el enlace completo del correo o cambia la preferencia en tu perfil."
+    },
+    "support": {
+      "title": "Soporte", "friends": "Mensajes entre usuarios",
+      "hint": "Escríbenos y continúa la conversación aquí. No es un chat en tiempo real.",
+      "new": "Nueva consulta", "empty": "Todavía no tienes consultas.",
+      "subject": "Asunto", "category": "Categoría", "message": "Mensaje",
+      "create": "Abrir consulta", "reply": "Enviar respuesta", "you": "Tú", "team": "Equipo Mana Forge",
+      "previous": "Anterior", "next": "Siguiente",
+      "loadError": "No se pueden cargar las consultas. Comprueba tu sesión y vuelve a entrar.",
+      "sendError": "No se ha podido confirmar el envío. Comprueba la conversación antes de repetirlo.",
+      "conflict": "La consulta está cerrada o ha cambiado. Recárgala antes de responder.",
+      "notFound": "Esta consulta no está disponible para tu cuenta.",
+      "status": { "OPEN": "Abierta", "IN_PROGRESS": "En curso", "WAITING_USER": "Esperando tu respuesta", "RESOLVED": "Resuelta", "CLOSED": "Cerrada" },
+      "categories": { "DECK_BUILDER": "Constructor de mazos", "AI_ANALYSIS": "Análisis de IA", "RULES_FORMAT": "Reglas y formatos", "ACCOUNT": "Cuenta", "OTHER": "Otra consulta" }
+    },
     "deck": {
       "editor": {
         "chooseImage": "Elegir imagen"
@@ -572,6 +600,34 @@
     }
   },
   "en": {
+    "usage": {
+      "title": "AI analysis usage",
+      "remaining": "You have {remaining} of {limit} analyses left today.",
+      "resets": "Renews on {time} (your local time).",
+      "unlimited": "No daily analysis limit.",
+      "unavailable": "Usage is unavailable right now."
+    },
+    "newsletter": {
+      "title": "Unsubscribe from the newsletter",
+      "hint": "You will stop receiving news and promotions. Account and support emails are unaffected.",
+      "confirm": "Confirm unsubscribe",
+      "done": "Request processed. If the link matched your current subscription, you will no longer receive the newsletter.",
+      "error": "Unable to process this link. Open the complete email link or change the preference in your profile."
+    },
+    "support": {
+      "title": "Support", "friends": "Player messages",
+      "hint": "Contact us and continue the conversation here. This is not a live chat.",
+      "new": "New request", "empty": "You have no support requests yet.",
+      "subject": "Subject", "category": "Category", "message": "Message",
+      "create": "Open request", "reply": "Send reply", "you": "You", "team": "Mana Forge team",
+      "previous": "Previous", "next": "Next",
+      "loadError": "Unable to load support requests. Check your session and open this page again.",
+      "sendError": "Unable to confirm submission. Check the conversation before sending again.",
+      "conflict": "The request is closed or changed. Reload it before replying.",
+      "notFound": "This request is unavailable to your account.",
+      "status": { "OPEN": "Open", "IN_PROGRESS": "In progress", "WAITING_USER": "Waiting for your reply", "RESOLVED": "Resolved", "CLOSED": "Closed" },
+      "categories": { "DECK_BUILDER": "Deck builder", "AI_ANALYSIS": "AI analysis", "RULES_FORMAT": "Rules and formats", "ACCOUNT": "Account", "OTHER": "Other request" }
+    },
     "deck": {
       "editor": {
         "chooseImage": "Choose image"

@@ -3,6 +3,7 @@ import { EmailTemplate, BroadcastAudience, interpolateTemplate } from '../../cor
 import { TemplateSelector } from './TemplateSelector';
 import { MacroPreview } from './MacroPreview';
 import { Send, Sparkles, Mail, Radio } from 'lucide-react';
+import { useTranslation } from '../../hooks/use-translation';
 
 interface EmailComposerProps {
   templates: EmailTemplate[];
@@ -12,13 +13,13 @@ interface EmailComposerProps {
     subject: string;
     body: string;
     templateId?: string;
-  }) => void;
+  }) => void | Promise<void>;
   onSendBroadcast?: (data: {
     audience: BroadcastAudience;
     subject: string;
     body: string;
     templateId?: string;
-  }) => void;
+  }) => void | Promise<void>;
   initialRecipient?: { email: string; name: string };
   isLoading?: boolean;
 }
@@ -30,6 +31,7 @@ export const EmailComposer: React.FC<EmailComposerProps> = ({
   initialRecipient,
   isLoading = false,
 }) => {
+  const { t } = useTranslation();
   const [dispatchMode, setDispatchMode] = useState<'DIRECT' | 'BROADCAST'>('DIRECT');
   const [audience, setAudience] = useState<BroadcastAudience>('ALL');
   const [selectedTemplate, setSelectedTemplate] = useState<EmailTemplate | null>(
@@ -38,40 +40,40 @@ export const EmailComposer: React.FC<EmailComposerProps> = ({
   const [to, setTo] = useState(initialRecipient?.email || '');
   const [recipientName, setRecipientName] = useState(initialRecipient?.name || '');
   const [variables, setVariables] = useState<Record<string, string>>({
-    'user.name': initialRecipient?.name || 'Urza',
-    'deck.title': 'Mono Blue Premodern Tide',
-    'ticket.id': 'TCK-001',
-    'month': 'October 2026',
-    'unsubscribe_url': 'https://manaforge.gg/unsubscribe?token=usr_token_xyz',
+    'user.name': initialRecipient?.name || '',
   });
   const [subject, setSubject] = useState('');
   const [body, setBody] = useState('');
 
   useEffect(() => {
     if (selectedTemplate) {
-      setSubject(interpolateTemplate(selectedTemplate.subject, variables));
-      setBody(interpolateTemplate(selectedTemplate.bodyTemplate, variables));
-      if (selectedTemplate.category === 'BROADCAST') {
+      const filled = Object.fromEntries(Object.entries(variables).filter(([, value]) => value.trim()));
+      setSubject(interpolateTemplate(selectedTemplate.subject, filled));
+      setBody(interpolateTemplate(selectedTemplate.bodyTemplate, filled));
+      if (selectedTemplate.category === 'BROADCAST' && onSendBroadcast) {
         setDispatchMode('BROADCAST');
       }
     }
-  }, [selectedTemplate, variables]);
+  }, [selectedTemplate, variables, onSendBroadcast]);
 
   const handleVariableChange = (key: string, value: string) => {
     setVariables((prev) => ({ ...prev, [key]: value }));
+    if (key === 'user.name') setRecipientName(value);
   };
 
   const handleSelectTemplate = (tpl: EmailTemplate) => {
     setSelectedTemplate(tpl);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!subject.trim() || !body.trim() || isLoading) return;
 
+    try {
+
     if (dispatchMode === 'BROADCAST') {
       if (onSendBroadcast) {
-        onSendBroadcast({
+        await onSendBroadcast({
           audience,
           subject: subject.trim(),
           body: body.trim(),
@@ -80,7 +82,7 @@ export const EmailComposer: React.FC<EmailComposerProps> = ({
       }
     } else {
       if (!to.trim()) return;
-      onSend({
+      await onSend({
         to: to.trim(),
         recipientName: recipientName.trim() || to.trim(),
         subject: subject.trim(),
@@ -88,6 +90,7 @@ export const EmailComposer: React.FC<EmailComposerProps> = ({
         templateId: selectedTemplate?.id,
       });
     }
+    } catch { /* The owning view displays the server error; keep the draft, never retry automatically. */ }
   };
 
   const getAudienceCount = (aud: BroadcastAudience) => {
@@ -122,6 +125,8 @@ export const EmailComposer: React.FC<EmailComposerProps> = ({
           <button
             type="button"
             onClick={() => setDispatchMode('BROADCAST')}
+            disabled={!onSendBroadcast}
+            title={!onSendBroadcast ? t('broadcastUnavailable') : undefined}
             className={`flex-1 flex items-center justify-center gap-2 py-1.5 rounded-lg text-xs font-semibold transition-all ${
               dispatchMode === 'BROADCAST'
                 ? 'bg-purple-600 text-white shadow-sm shadow-purple-600/30'
@@ -132,6 +137,7 @@ export const EmailComposer: React.FC<EmailComposerProps> = ({
             <span>Audience Broadcast (Newsletter)</span>
           </button>
         </div>
+        {!onSendBroadcast && <p className="text-xs text-slate-400">{t('broadcastUnavailable')}</p>}
 
         <TemplateSelector
           templates={templates}
@@ -153,6 +159,7 @@ export const EmailComposer: React.FC<EmailComposerProps> = ({
                   id="recipient-email"
                   type="email"
                   required
+                  maxLength={254}
                   value={to}
                   onChange={(e) => setTo(e.target.value)}
                   placeholder="user@example.com"
@@ -165,6 +172,7 @@ export const EmailComposer: React.FC<EmailComposerProps> = ({
                 </label>
                 <input
                   id="recipient-name"
+                  maxLength={120}
                   type="text"
                   value={recipientName}
                   onChange={(e) => {
@@ -225,33 +233,13 @@ export const EmailComposer: React.FC<EmailComposerProps> = ({
               )}
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-              <div>
-                <span className="text-[10px] text-slate-500 font-mono block">{'{{user.name}}'}</span>
-                <input
-                  type="text"
-                  value={variables['user.name'] || ''}
-                  onChange={(e) => handleVariableChange('user.name', e.target.value)}
-                  className="w-full px-2 py-1 bg-slate-900 border border-slate-800 rounded text-xs text-slate-200"
-                />
-              </div>
-              <div>
-                <span className="text-[10px] text-slate-500 font-mono block">{'{{deck.title}}'}</span>
-                <input
-                  type="text"
-                  value={variables['deck.title'] || ''}
-                  onChange={(e) => handleVariableChange('deck.title', e.target.value)}
-                  className="w-full px-2 py-1 bg-slate-900 border border-slate-800 rounded text-xs text-slate-200"
-                />
-              </div>
-              <div>
-                <span className="text-[10px] text-slate-500 font-mono block">{'{{unsubscribe_url}}'}</span>
-                <input
-                  type="text"
-                  value={variables['unsubscribe_url'] || ''}
-                  onChange={(e) => handleVariableChange('unsubscribe_url', e.target.value)}
-                  className="w-full px-2 py-1 bg-slate-900 border border-slate-800 rounded text-xs text-slate-200"
-                />
-              </div>
+              {Array.from(new Set([...(selectedTemplate?.availableMacros || []),
+                ...Array.from(`${selectedTemplate?.subject || ''} ${selectedTemplate?.bodyTemplate || ''}`.matchAll(/\{\{([a-zA-Z0-9_.-]+)}}/g), match => match[1])]))
+                .map(key => <label key={key} className="text-[10px] text-slate-500 font-mono">
+                  {`{{${key}}}`}<input aria-label={`${t('macro')} ${key}`} type="text" maxLength={2000}
+                    value={variables[key] || ''} onChange={event => handleVariableChange(key, event.target.value)}
+                    className="block w-full px-2 py-1 bg-slate-900 border border-slate-800 rounded text-xs text-slate-200" />
+                </label>)}
             </div>
           </div>
 
@@ -261,6 +249,7 @@ export const EmailComposer: React.FC<EmailComposerProps> = ({
               type="text"
               required
               value={subject}
+              maxLength={200}
               onChange={(e) => setSubject(e.target.value)}
               className="w-full px-3 py-1.5 bg-slate-950/70 border border-slate-800 rounded-lg text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500"
             />
@@ -272,6 +261,7 @@ export const EmailComposer: React.FC<EmailComposerProps> = ({
               required
               rows={6}
               value={body}
+              maxLength={50000}
               onChange={(e) => setBody(e.target.value)}
               className="w-full flex-1 bg-slate-950/70 border border-slate-800 rounded-lg p-3 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500 resize-none font-sans"
             />
@@ -280,7 +270,8 @@ export const EmailComposer: React.FC<EmailComposerProps> = ({
           <div className="pt-2 flex items-center justify-end">
             <button
               type="submit"
-              disabled={isLoading || (dispatchMode === 'DIRECT' && !to.trim())}
+              disabled={isLoading || !subject.trim() || !body.trim() || /\{\{[a-zA-Z0-9_.-]+}}/.test(subject + body)
+                || (dispatchMode === 'DIRECT' && !to.trim()) || (dispatchMode === 'BROADCAST' && !onSendBroadcast)}
               className={`flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold transition-all disabled:opacity-50 ${
                 dispatchMode === 'BROADCAST'
                   ? 'bg-purple-600 hover:bg-purple-500 text-white shadow-purple-600/30'

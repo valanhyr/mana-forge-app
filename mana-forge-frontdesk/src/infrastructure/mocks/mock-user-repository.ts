@@ -1,6 +1,7 @@
 import { IUserRepository } from '../../core/ports/user-repository.port';
 import { User360 } from '../../core/domain/user';
 import { seedUsers } from './seeds/seed-users';
+import { PageRequest, pageOf } from '../../core/domain/page';
 
 export class MockUserRepository implements IUserRepository {
   private readonly storageKey = 'mana_forge_frontdesk_users';
@@ -32,6 +33,8 @@ export class MockUserRepository implements IUserRepository {
       (u) => u.username.toLowerCase().includes(q) || u.email.toLowerCase().includes(q)
     );
   }
+
+  async searchPage(query: string, pagination: PageRequest) { return pageOf(await this.search(query), pagination); }
 
   async getById(id: string): Promise<User360 | null> {
     const users = this.getUsers();

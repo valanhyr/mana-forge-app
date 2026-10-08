@@ -5,7 +5,10 @@ export type AuditAction =
   | 'TICKET_CREATED'
   | 'TICKET_STATUS_CHANGED'
   | 'TICKET_NOTE_ADDED'
+  | 'TICKET_MESSAGE_ADDED'
+  | 'TICKET_ASSIGNED'
   | 'EMAIL_SENT'
+  | 'EMAIL_FAILED'
   | 'DECK_IMPORT_FAILED';
 
 export interface AuditEntry {

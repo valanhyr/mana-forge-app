@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Search, X, Inbox, User } from 'lucide-react';
-import { container } from '../../infrastructure/container';
+import { ErrorNotice } from '../ui/ErrorNotice';
 import { Ticket } from '../../core/domain/ticket';
 import { User360 } from '../../core/domain/user';
 
@@ -9,6 +9,12 @@ interface OmniboxProps {
   onClose: () => void;
   onSelectTicket?: (ticket: Ticket) => void;
   onSelectUser?: (user: User360) => void;
+  query?: string;
+  onQueryChange?: (query: string) => void;
+  tickets?: Ticket[];
+  users?: User360[];
+  isLoading?: boolean;
+  error?: unknown;
 }
 
 export const Omnibox: React.FC<OmniboxProps> = ({
@@ -16,22 +22,16 @@ export const Omnibox: React.FC<OmniboxProps> = ({
   onClose,
   onSelectTicket,
   onSelectUser,
+  query: controlledQuery,
+  onQueryChange,
+  tickets = [], users = [], isLoading = false, error,
 }) => {
-  const [query, setQuery] = useState('');
-  const [tickets, setTickets] = useState<Ticket[]>([]);
-  const [users, setUsers] = useState<User360[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [localQuery, setLocalQuery] = useState('');
+  const query = controlledQuery ?? localQuery;
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-        e.preventDefault();
-        if (isOpen) {
-          onClose();
-        } else {
-          // Trigger open via parent
-        }
-      } else if (e.key === 'Escape' && isOpen) {
+      if (e.key === 'Escape' && isOpen) {
         onClose();
       }
     };
@@ -39,39 +39,6 @@ export const Omnibox: React.FC<OmniboxProps> = ({
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, onClose]);
-
-  useEffect(() => {
-    if (!isOpen) {
-      setQuery('');
-      setTickets([]);
-      setUsers([]);
-      return;
-    }
-
-    if (!query.trim()) {
-      setTickets([]);
-      setUsers([]);
-      return;
-    }
-
-    let isCancelled = false;
-    setIsLoading(true);
-
-    Promise.all([
-      container.ticketRepo.list({ query }),
-      container.userRepo.search(query),
-    ]).then(([ticketResults, userResults]) => {
-      if (!isCancelled) {
-        setTickets(ticketResults);
-        setUsers(userResults);
-        setIsLoading(false);
-      }
-    });
-
-    return () => {
-      isCancelled = true;
-    };
-  }, [query, isOpen]);
 
   if (!isOpen) return null;
 
@@ -84,7 +51,7 @@ export const Omnibox: React.FC<OmniboxProps> = ({
             type="text"
             autoFocus
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            onChange={(e) => { setLocalQuery(e.target.value); onQueryChange?.(e.target.value); }}
             placeholder="Search users, tickets, decks or issues..."
             className="w-full bg-transparent text-slate-100 placeholder-slate-400 text-sm focus:outline-none"
           />
@@ -97,11 +64,12 @@ export const Omnibox: React.FC<OmniboxProps> = ({
         </div>
 
         <div className="overflow-y-auto p-3 space-y-4">
+          <ErrorNotice error={error} />
           {isLoading && (
             <div className="text-center py-6 text-xs text-slate-400">Searching...</div>
           )}
 
-          {!isLoading && query && tickets.length === 0 && users.length === 0 && (
+          {!error && !isLoading && query && tickets.length === 0 && users.length === 0 && (
             <div className="text-center py-6 text-xs text-slate-400">
               No matching tickets or users found for "{query}".
             </div>
