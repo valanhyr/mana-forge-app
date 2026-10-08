@@ -1,5 +1,4 @@
 import { render, screen, fireEvent } from '@testing-library/react';
-import React from 'react';
 import { describe, it, expect, vi } from 'vitest';
 import { User360View } from './User360View';
 import { User360 } from '../../core/domain/user';

@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { useUserSearch, useUpdateUserStatus, useResetAiQuota } from '../../hooks/use-users';
-import { User360 } from '../../core/domain/user';
-import { UserCard } from '../../components/users/UserCard';
-import { User360View } from '../../components/users/User360View';
+import { useUserSearch, useUpdateUserStatus, useResetAiQuota } from '../hooks/use-users';
+import { User360 } from '../core/domain/user';
+import { UserCard } from '../components/users/UserCard';
+import { User360View } from '../components/users/User360View';
 import { Search, Users } from 'lucide-react';
 
 export const UsersView: React.FC = () => {

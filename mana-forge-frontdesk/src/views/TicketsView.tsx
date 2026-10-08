@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { useTickets, useAddTicketMessage, useUpdateTicketStatus } from '../../hooks/use-tickets';
-import { Ticket, TicketStatus } from '../../core/domain/ticket';
-import { TicketList } from '../../components/tickets/TicketList';
-import { TicketFilter } from '../../components/tickets/TicketFilter';
-import { TicketDetail } from '../../components/tickets/TicketDetail';
+import { useTickets, useAddTicketMessage, useUpdateTicketStatus } from '../hooks/use-tickets';
+import { Ticket, TicketStatus } from '../core/domain/ticket';
+import { TicketList } from '../components/tickets/TicketList';
+import { TicketFilter } from '../components/tickets/TicketFilter';
+import { TicketDetail } from '../components/tickets/TicketDetail';
 
 interface TicketsViewProps {
   onInspectUser?: (userId: string) => void;

@@ -1,5 +1,4 @@
 import React from 'react';
-import { TicketCategory, TicketPriority, TicketStatus } from '../../core/domain/ticket';
 import { Filter, Search } from 'lucide-react';
 
 interface TicketFilterProps {

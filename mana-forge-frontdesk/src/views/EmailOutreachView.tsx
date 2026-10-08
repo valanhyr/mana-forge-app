@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { useEmailTemplates, useSendEmail } from '../../hooks/use-emails';
-import { EmailComposer } from '../../components/emails/EmailComposer';
+import { useEmailTemplates, useSendEmail } from '../hooks/use-emails';
+import { EmailComposer } from '../components/emails/EmailComposer';
 import { CheckCircle2, History } from 'lucide-react';
 
 export const EmailOutreachView: React.FC = () => {

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { EmailTemplate, interpolateTemplate } from '../../core/domain/email';
 import { TemplateSelector } from './TemplateSelector';
 import { MacroPreview } from './MacroPreview';
-import { Send, Sparkles, User, Tag } from 'lucide-react';
+import { Send, Sparkles } from 'lucide-react';
 
 interface EmailComposerProps {
   templates: EmailTemplate[];
