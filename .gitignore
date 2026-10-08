@@ -30,3 +30,5 @@ mana-forge-web/coverage/
 /mana-forge-web/dist/
 directus.con
 .env.development
+mana-forge-frontdesk/node_modules
+
