@@ -2,6 +2,7 @@ package com.manaforge.api.service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -36,19 +37,26 @@ public class DirectusEmailTemplateService {
         client = configured.build();
     }
 
-    public List<EmailTemplate> list() { return fetch(null); }
+    public List<EmailTemplate> list() { return list(null); }
+
+    public List<EmailTemplate> list(String acceptLanguage) { return fetch(null, acceptLanguage); }
 
     public EmailTemplate get(String id) {
-        return fetch(id).stream().findFirst()
+        return get(id, null);
+    }
+
+    public EmailTemplate get(String id, String acceptLanguage) {
+        return fetch(id, acceptLanguage).stream().findFirst()
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Published template not found"));
     }
 
-    private List<EmailTemplate> fetch(String id) {
+    private List<EmailTemplate> fetch(String id, String acceptLanguage) {
         try {
             String json = client.get().uri(builder -> {
                 builder.path("/items/" + collection)
                         .queryParam("filter[status][_eq]", "published")
-                        .queryParam("fields", "id,title,category,subject,body_template,available_macros")
+                        .queryParam("fields", "id,title,category,available_macros,translations.languages_code,"
+                                + "translations.subject,translations.body_template")
                         .queryParam("sort", "title").queryParam("limit", id == null ? 100 : 1);
                 if (id != null) builder.queryParam("filter[id][_eq]", id);
                 return builder.build();
@@ -57,19 +65,49 @@ public class DirectusEmailTemplateService {
             if (!data.isArray()) throw new IllegalStateException("Invalid Directus response");
             List<EmailTemplate> templates = new ArrayList<>();
             for (JsonNode node : data) {
+                JsonNode translation = pickTranslation(node.path("translations"), languageCode(acceptLanguage));
                 List<String> macros = new ArrayList<>();
                 if (node.path("available_macros").isArray()) {
                     node.path("available_macros").forEach(macro -> macros.add(macro.asText()));
                 }
                 templates.add(new EmailTemplate(required(node, "id"), required(node, "title"),
-                        node.path("category").asText(""), required(node, "subject"),
-                        required(node, "body_template"), macros));
+                        node.path("category").asText(""), required(translation, "subject"),
+                        required(translation, "body_template"), macros));
             }
             return templates;
         } catch (Exception exception) {
             // Do not expose upstream credentials, URLs or response bodies in client-facing errors.
             throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, "Unable to load email templates");
         }
+    }
+
+    private String languageCode(String acceptLanguage) {
+        if (acceptLanguage == null || acceptLanguage.isBlank()) return "en";
+        try {
+            String range = Locale.LanguageRange.parse(acceptLanguage.replace('_', '-')).getFirst().getRange();
+            return range.split("-")[0];
+        } catch (IllegalArgumentException exception) {
+            return "en";
+        }
+    }
+
+    private JsonNode pickTranslation(JsonNode translations, String language) {
+        JsonNode first = null;
+        JsonNode english = null;
+        if (translations.isArray()) {
+            for (JsonNode translation : translations) {
+                // Keep subject and body in the same language; incomplete drafts cannot be sent.
+                if (translation.path("subject").asText("").isBlank()
+                        || translation.path("body_template").asText("").isBlank()) continue;
+                if (first == null) first = translation;
+                String code = languageCode(translation.path("languages_code").asText(""));
+                if (language.equals(code)) return translation;
+                if ("en".equals(code)) english = translation;
+            }
+        }
+        if (english != null) return english;
+        if (first != null) return first;
+        throw new IllegalStateException("Template has no complete translation");
     }
 
     private String required(JsonNode node, String field) {
@@ -80,7 +118,11 @@ public class DirectusEmailTemplateService {
     }
 
     public RenderedTemplate render(String id, Map<String, String> variables) {
-        EmailTemplate template = get(id);
+        return render(id, variables, null);
+    }
+
+    public RenderedTemplate render(String id, Map<String, String> variables, String acceptLanguage) {
+        EmailTemplate template = get(id, acceptLanguage);
         return new RenderedTemplate(interpolate(template.subject(), variables),
                 interpolate(template.bodyTemplate(), variables));
     }

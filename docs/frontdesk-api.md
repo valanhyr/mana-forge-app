@@ -67,8 +67,8 @@ Todos los siguientes requieren acceso de operador. Los listados paginados devuel
 | PATCH | `/users/{id}/status` | Activar, suspender o banear; no permite autobloqueo. |
 | POST | `/users/{id}/ai-quota/reset` | Reiniciar únicamente la cuota autenticada de hoy en Redis. |
 | GET | `/audit?targetUserId=&action=&page=&size=` | Auditoría de solo lectura. |
-| GET | `/email-templates` | Hasta 100 plantillas publicadas de Directus. |
-| POST | `/email-templates/{id}/render` | Interpolar macros para previsualización. |
+| GET | `/email-templates` | Hasta 100 plantillas publicadas de Directus, traducidas según `Accept-Language`. |
+| POST | `/email-templates/{id}/render` | Interpolar macros para previsualización en el idioma de `Accept-Language`. |
 | POST | `/emails` | Envío individual por SMTP, en texto plano. |
 | GET | `/emails?ticketId=&page=&size=` | Historial de intentos; destinatario cifrado. |
 | GET | `/newsletter/subscribers?query=&tier=&page=&size=` | Solo suscritos activos/verificados; username o email exacto, plan opcional. |
@@ -295,14 +295,40 @@ Crear estos campos (nombres exactos):
 | `status` | String / desplegable | `draft`, `published`, `archived`; solo se leen `published`. |
 | `title` | String | Nombre visible. |
 | `category` | String | Agrupación operativa (por ejemplo `SUPPORT`); **`BROADCAST`** para newsletter. |
-| `subject` | String | Asunto; admite macros. |
-| `body_template` | Text | Cuerpo en texto plano; admite macros. |
 | `available_macros` | JSON | Array de strings, por ejemplo `["user.name", "ticket.id"]`. |
+| `translations` | Relación de traducciones | Alias hacia `email_templates_translations`. |
 
-Dar permiso de lectura al token de servicio configurado en la API; no publicar la
-colección para acceso anónimo ni incluir el token en el frontend. Esta API no crea campos
-ni plantillas en tu instancia de Directus. Las plantillas se consultan sin caché para que
-archivar/despublicar una plantilla tenga efecto inmediato.
+En `email_templates_translations`:
+
+| Campo | Tipo | Uso |
+|---|---|---|
+| `id` | Clave primaria | Generada por Directus. |
+| `email_templates_id` | Relación M2O | Plantilla de la colección principal. |
+| `languages_code` | Relación M2O a `languages.code` | Idioma, por ejemplo `es` o `en`. |
+| `subject` | String | Asunto traducido; admite macros. |
+| `body_template` | Text | Cuerpo traducido en texto plano; admite macros. |
+
+La API lee `translations.languages_code`, `translations.subject` y
+`translations.body_template`; ya no consulta `subject` ni `body_template` en la colección
+principal. Si se migra desde el esquema sin traducciones, copiar el contenido al registro
+de su idioma antes de desplegar la API.
+
+Listado y renderizado seleccionan el idioma de mayor prioridad en `Accept-Language`,
+normalizando variantes como `es-ES` a `es`. Sin cabecera se usa `en`. Si falta una
+traducción completa (asunto y cuerpo no vacíos), se usa inglés y después la primera
+traducción completa disponible. Asunto y cuerpo siempre pertenecen al mismo registro;
+no se mezclan idiomas. Una plantilla publicada sin ninguna traducción completa produce
+`502`, igual que un fallo de Directus, en lugar de devolver una lista vacía engañosa.
+El contrato de respuesta de Frontdesk no cambia: `subject` y `bodyTemplate` contienen
+el texto seleccionado, no un array de traducciones. Frontdesk ya envía `Accept-Language`.
+
+Dar permiso de **lectura** al token de servicio configurado en la API mediante una
+política privada: `email_templates` (incluido el alias `translations`) y
+`email_templates_translations` (incluidos idioma, asunto y cuerpo). No añadir esos
+permisos a la política Public, aunque el usuario del token también la tenga asignada;
+eso expondría las plantillas al acceso anónimo. No incluir el token en el frontend.
+Esta API no crea campos ni plantillas en tu instancia de Directus. Las plantillas se
+consultan sin caché para que archivar/despublicar una plantilla tenga efecto inmediato.
 
 ## Verificación local
 

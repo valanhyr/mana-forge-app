@@ -1,6 +1,7 @@
 package com.manaforge.api.controller;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import com.manaforge.api.config.SecurityConfig;
 import com.manaforge.api.dto.FrontdeskDtos.*;
@@ -75,6 +76,37 @@ class FrontdeskControllerTest {
                 .andExpect(status().isOk());
         verify(queries).tickets(isNull(), isNull(), eq(com.manaforge.api.model.mongo.SupportTicket.Category.ACCOUNT),
                 isNull(), isNull(), eq(2), eq(25));
+    }
+
+    @Test
+    void templateListForwardsAcceptLanguageAndPreservesTheResponseContract() throws Exception {
+        when(templates.list("es-ES,es;q=0.9")).thenReturn(List.of(
+                new EmailTemplate("tpl1", "Reply", "SUPPORT", "Hola", "Buenas", List.of("user.name"))));
+        mvc.perform(get("/api/frontdesk/email-templates").with(user("operator"))
+                .header("Accept-Language", "es-ES,es;q=0.9"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$[0].subject").value("Hola"))
+                .andExpect(jsonPath("$[0].bodyTemplate").value("Buenas"))
+                .andExpect(jsonPath("$[0].availableMacros[0]").value("user.name"));
+        verify(templates).list("es-ES,es;q=0.9");
+    }
+
+    @Test
+    void templateListWithoutLanguageUsesTheServiceDefault() throws Exception {
+        mvc.perform(get("/api/frontdesk/email-templates").with(user("operator")))
+                .andExpect(status().isOk());
+        verify(templates).list(null);
+    }
+
+    @Test
+    void templateRenderForwardsLanguageAndVariables() throws Exception {
+        when(templates.render("tpl1", Map.of("user.name", "Cliente"), "es"))
+                .thenReturn(new RenderedTemplate("Hola Cliente", "Buenas Cliente"));
+        mvc.perform(post("/api/frontdesk/email-templates/tpl1/render").with(user("operator")).with(csrf())
+                .header("Accept-Language", "es").contentType(MediaType.APPLICATION_JSON)
+                .content("{\"variables\":{\"user.name\":\"Cliente\"}}"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.subject").value("Hola Cliente"))
+                .andExpect(jsonPath("$.body").value("Buenas Cliente"));
+        verify(templates).render("tpl1", Map.of("user.name", "Cliente"), "es");
     }
 
     @Test

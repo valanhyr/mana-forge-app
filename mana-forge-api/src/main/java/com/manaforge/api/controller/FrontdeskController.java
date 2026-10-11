@@ -102,11 +102,14 @@ public class FrontdeskController {
     }
 
     @GetMapping("/email-templates")
-    public List<EmailTemplate> templates() { return templates.list(); }
+    public List<EmailTemplate> templates(@RequestHeader(value = "Accept-Language", required = false) String acceptLanguage) {
+        return templates.list(acceptLanguage);
+    }
 
     @PostMapping("/email-templates/{id}/render")
-    public RenderedTemplate render(@PathVariable String id, @Valid @RequestBody RenderTemplate request) {
-        return templates.render(id, request.variables());
+    public RenderedTemplate render(@PathVariable String id, @Valid @RequestBody RenderTemplate request,
+            @RequestHeader(value = "Accept-Language", required = false) String acceptLanguage) {
+        return templates.render(id, request.variables(), acceptLanguage);
     }
 
     @PostMapping("/emails")
