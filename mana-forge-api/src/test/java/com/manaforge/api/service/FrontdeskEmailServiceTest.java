@@ -84,6 +84,21 @@ class FrontdeskEmailServiceTest {
     }
 
     @Test
+    void hiddenContactEmailUsesItsStoredAddressAndTicketReferenceWithoutPublishingConversation() throws Exception {
+        SupportTicket ticket = new SupportTicket(); ticket.setId("t1"); ticket.setUserId("email-matched-user");
+        ticket.setUserEmail("encrypted"); ticket.setOrigin("CONTACT_FORM");
+        ticket.getMessages().add(new SupportTicket.Message("private", SupportTicket.Sender.OPERATOR,
+                "op1", "Operator", "SECRET NOTE", java.time.Instant.now(), true));
+        when(tickets.requireTicket("t1")).thenReturn(ticket);
+        service.send(request("Reply", "Explicit email answer", "t1"), operator);
+        assertThat(message.getContent()).isEqualTo("Explicit email answer");
+        assertThat(ticket.isCustomerVisible()).isFalse();
+        assertThat(ticket.getStatus()).isEqualTo(SupportTicket.Status.OPEN);
+        assertThat(ticket.getMessages()).hasSize(1);
+        verify(deliveries, atLeastOnce()).save(argThat(delivery -> "t1".equals(delivery.getTicketId())));
+    }
+
+    @Test
     void headerInjectionAndUnresolvedMacrosCannotSend() {
         assertThatThrownBy(() -> service.send(request("Help\r\nBcc: victim@example.com", "Body", null), operator))
                 .isInstanceOf(ResponseStatusException.class);

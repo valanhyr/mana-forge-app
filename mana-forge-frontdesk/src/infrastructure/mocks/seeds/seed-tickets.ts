@@ -3,6 +3,7 @@ import { Ticket } from '../../../core/domain/ticket';
 export const seedTickets: Ticket[] = [
   {
     id: 'tck-001',
+    origin: 'SUPPORT_WEB', customerVisible: true, availableChannels: ['WEB', 'EMAIL'], webUnavailableReason: null,
     userId: 'user-urza',
     userEmail: 'urza@manaforge.gg',
     userName: 'Urza',
@@ -32,6 +33,7 @@ export const seedTickets: Ticket[] = [
   },
   {
     id: 'tck-002',
+    origin: 'CONTACT_FORM', customerVisible: false, availableChannels: ['EMAIL'], webUnavailableReason: 'NOT_CUSTOMER_VISIBLE',
     userId: 'user-mishra',
     userEmail: 'mishra@manaforge.gg',
     userName: 'Mishra',
@@ -59,6 +61,7 @@ export const seedTickets: Ticket[] = [
   },
   {
     id: 'tck-003',
+    origin: 'UNKNOWN', customerVisible: true, availableChannels: ['WEB', 'EMAIL'], webUnavailableReason: null,
     userId: 'user-teferi',
     userEmail: 'teferi@manaforge.gg',
     userName: 'Teferi Akosa',
@@ -96,6 +99,7 @@ export const seedTickets: Ticket[] = [
   },
   {
     id: 'tck-004',
+    origin: 'FRONTDESK', customerVisible: true, availableChannels: ['WEB', 'EMAIL'], webUnavailableReason: null,
     userId: 'user-karn',
     userEmail: 'karn@manaforge.gg',
     userName: 'Karn',
@@ -122,5 +126,11 @@ export const seedTickets: Ticket[] = [
       deckTitle: 'Artifact Ramp',
       format: 'Modern',
     },
+  },
+  {
+    id: 'tck-legacy-no-channel', userId: null, userEmail: '', userName: 'Legacy contact',
+    subject: 'Historical ticket without a response channel', category: 'OTHER', priority: 'LOW', status: 'OPEN',
+    origin: 'UNKNOWN', customerVisible: false, availableChannels: [], webUnavailableReason: 'NOT_CUSTOMER_VISIBLE',
+    messages: [], createdAt: '2026-10-01T10:00:00.000Z', updatedAt: '2026-10-01T10:00:00.000Z',
   },
 ];

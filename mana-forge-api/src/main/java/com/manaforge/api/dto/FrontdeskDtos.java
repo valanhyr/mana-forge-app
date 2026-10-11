@@ -20,7 +20,9 @@ public final class FrontdeskDtos {
                              String subject, SupportTicket.Category category, SupportTicket.Priority priority,
                              SupportTicket.Status status, String assignedOperatorId, String assignedOperatorName,
                              List<SupportTicket.Message> messages, Instant createdAt, Instant updatedAt,
-                             SupportTicket.Metadata metadata) {}
+                              SupportTicket.Metadata metadata, SupportTicket.Origin origin, boolean customerVisible,
+                              List<SupportTicket.Channel> availableChannels,
+                              SupportTicket.WebUnavailableReason webUnavailableReason) {}
     public record CreateTicket(@Size(max = 100) String userId,
                                @NotBlank @Email @Size(max = 254) String userEmail,
                                @NotBlank @Size(max = 120) String userName,

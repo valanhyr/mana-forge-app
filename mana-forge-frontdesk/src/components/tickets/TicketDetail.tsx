@@ -1,11 +1,12 @@
 import React from 'react';
-import { Ticket, TicketStatus } from '../../core/domain/ticket';
+import { Ticket, TicketStatus, normalizeTicket } from '../../core/domain/ticket';
 import { StatusBadge } from '../ui/StatusBadge';
 import { PriorityBadge } from '../ui/PriorityBadge';
 import { ReplyBox } from './ReplyBox';
 import { Clock, User, Shield, Lock, Layers } from 'lucide-react';
 import { Operator } from '../../core/domain/operator';
 import { useTranslation } from '../../hooks/use-translation';
+import { LabelKey } from '../../hooks/use-translation';
 
 interface TicketDetailProps {
   ticket: Ticket;
@@ -15,6 +16,8 @@ interface TicketDetailProps {
   onInspectUser?: (userId: string) => void;
   currentOperator?: Operator;
   isLoading?: boolean;
+  onReplyByEmail?: () => void;
+  onDraftChange?: (dirty: boolean) => void;
 }
 
 export const TicketDetail: React.FC<TicketDetailProps> = ({
@@ -25,8 +28,17 @@ export const TicketDetail: React.FC<TicketDetailProps> = ({
   onAssignOperator,
   currentOperator,
   isLoading = false,
+  onReplyByEmail,
+  onDraftChange,
 }) => {
   const { t } = useTranslation();
+  const metadata = normalizeTicket(ticket);
+  const canWeb = metadata.availableChannels?.includes('WEB') === true;
+  const canEmail = metadata.availableChannels?.includes('EMAIL') === true;
+  const originLabels: Record<string, LabelKey> = { SUPPORT_WEB: 'originSupportWeb', CONTACT_FORM: 'originContactForm',
+    FRONTDESK: 'originFrontdesk', UNKNOWN: 'originUnknown' };
+  const reasonLabels: Record<string, LabelKey> = { NOT_CUSTOMER_VISIBLE: 'notCustomerVisible', NO_OWNER: 'noOwner',
+    OWNER_NOT_FOUND: 'ownerNotFound', OWNER_INACTIVE: 'ownerInactive', OWNER_UNVERIFIED: 'ownerUnverified' };
   const statusOptions: TicketStatus[] = [
     'OPEN',
     'IN_PROGRESS',
@@ -55,8 +67,9 @@ export const TicketDetail: React.FC<TicketDetailProps> = ({
           </div>
 
           <div className="flex items-center gap-2">
-            <label className="text-xs text-slate-400">Status:</label>
+            <label htmlFor={`ticket-status-${ticket.id}`} className="text-xs text-slate-400">{t('statusLabel')}:</label>
             <select
+              id={`ticket-status-${ticket.id}`}
               value={ticket.status}
               disabled={isLoading}
               onChange={(e) => onUpdateStatus(e.target.value as TicketStatus)}
@@ -107,6 +120,19 @@ export const TicketDetail: React.FC<TicketDetailProps> = ({
           {currentOperator && onAssignOperator && <button disabled={isLoading} type="button"
             onClick={() => onAssignOperator(currentOperator.id, currentOperator.name)}>{t('assignMe')}</button>}
         </div>
+        <section aria-label={t('originLabel')} className="mt-3 space-y-2 text-xs break-words">
+          <p>{t('originLabel')}: {t(originLabels[metadata.origin || 'UNKNOWN'])}</p>
+          {metadata.origin === 'CONTACT_FORM' && <p className="text-amber-300">{t('contactIdentityWarning')}</p>}
+          {metadata.availableChannels === undefined ? <p role="status" className="text-amber-300">{t('channelsUnavailable')}</p> : <>
+            <p>{t(canWeb ? 'webReadable' : 'webNotReadable')}</p>
+            {metadata.webUnavailableReason && <p>{t(reasonLabels[metadata.webUnavailableReason])}</p>}
+            {canEmail ? <><p>{t('emailDestination')}: {ticket.userEmail}</p><p>{t('emailCapabilityHint')}</p>
+              {onReplyByEmail && <button type="button" disabled={isLoading} onClick={onReplyByEmail}
+                className="rounded border border-indigo-400 px-3 py-2">{t('respondEmail')}</button>}</>
+              : <p>{t('emailUnavailable')}</p>}
+            {!canWeb && !canEmail && <p>{t('noReplyChannel')}</p>}
+          </>}
+        </section>
       </div>
 
       {/* Messages Stream */}
@@ -124,7 +150,7 @@ export const TicketDetail: React.FC<TicketDetailProps> = ({
                 <div className="flex items-center justify-between text-xs mb-1.5 text-amber-400">
                   <div className="flex items-center gap-1.5 font-semibold">
                     <Lock className="w-3.5 h-3.5" />
-                    <span>Internal Note by {msg.senderName}</span>
+                    <span>{t('noteBy')} {msg.senderName}</span>
                   </div>
                   <span className="text-amber-500/80 text-[11px]">
                     {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -167,7 +193,7 @@ export const TicketDetail: React.FC<TicketDetailProps> = ({
 
       {/* Reply composer */}
       <div className="p-3 border-t border-slate-800 bg-slate-900/90">
-        <ReplyBox key={ticket.id} onSendMessage={onAddMessage} isLoading={isLoading} />
+        <ReplyBox key={ticket.id} onSendMessage={onAddMessage} isLoading={isLoading} canReplyOnWeb={canWeb} onDraftChange={onDraftChange} />
       </div>
     </div>
   );

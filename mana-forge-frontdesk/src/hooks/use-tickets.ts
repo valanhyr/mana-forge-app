@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { container } from '../infrastructure/container';
-import { Ticket, TicketMessage, TicketPriority, TicketStatus } from '../core/domain/ticket';
+import { TicketMessage, TicketPriority, TicketStatus, CreateTicketInput } from '../core/domain/ticket';
 import { TicketFilters } from '../core/ports/ticket-repository.port';
 
 export const TICKET_QUERY_KEYS = {
@@ -49,7 +49,7 @@ export function useCreateTicket() {
       ticket,
       initialMessage,
     }: {
-      ticket: Omit<Ticket, 'id' | 'createdAt' | 'updatedAt' | 'messages'>;
+      ticket: CreateTicketInput;
       initialMessage: string;
     }) => container.ticketRepo.createTicket(ticket, initialMessage),
     onSuccess: () => {

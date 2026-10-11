@@ -1,6 +1,7 @@
 import React from 'react';
 import { EmailTemplate } from '../../core/domain/email';
 import { FileText } from 'lucide-react';
+import { useTranslation } from '../../hooks/use-translation';
 
 interface TemplateSelectorProps {
   templates: EmailTemplate[];
@@ -13,19 +14,20 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
   selectedTemplateId,
   onSelectTemplate,
 }) => {
+  const { t } = useTranslation();
   return (
     <div className="space-y-2">
       <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider block">
-        Standard Templates & Macros
+        {t('emailTemplatesLabel')}
       </label>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
         {templates.map((tpl) => {
           const isSelected = tpl.id === selectedTemplateId;
           return (
-            <div
+            <button type="button" aria-pressed={isSelected}
               key={tpl.id}
               onClick={() => onSelectTemplate(tpl)}
-              className={`p-3 rounded-xl border cursor-pointer transition-all ${
+              className={`p-3 rounded-xl border cursor-pointer text-left transition-all ${
                 isSelected
                   ? 'bg-slate-800 border-indigo-500 shadow-md shadow-indigo-500/10'
                   : 'bg-slate-950/70 border-slate-800 hover:border-slate-700 hover:bg-slate-900'
@@ -41,7 +43,7 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
                 </span>
               </div>
               <p className="text-[11px] text-slate-400 line-clamp-1">{tpl.subject}</p>
-            </div>
+            </button>
           );
         })}
       </div>

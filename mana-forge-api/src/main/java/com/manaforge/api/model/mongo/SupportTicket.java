@@ -16,15 +16,27 @@ public class SupportTicket {
     public enum Priority { LOW, MEDIUM, HIGH, URGENT }
     public enum Category { DECK_BUILDER, AI_ANALYSIS, RULES_FORMAT, ACCOUNT, OTHER }
     public enum Sender { OPERATOR, USER, SYSTEM }
+    public enum Origin { SUPPORT_WEB, CONTACT_FORM, FRONTDESK, UNKNOWN }
+    public enum Channel { WEB, EMAIL }
+    public enum WebUnavailableReason { NOT_CUSTOMER_VISIBLE, NO_OWNER, OWNER_NOT_FOUND, OWNER_INACTIVE, OWNER_UNVERIFIED }
 
     @Id
     private String id;
     @Version
     private Long version;
     private String userId;
+    // Keep raw values so future/legacy origins never break reads or get rewritten as UNKNOWN.
+    private String origin;
+
+    public Origin effectiveOrigin() {
+        try { return origin == null ? Origin.UNKNOWN : Origin.valueOf(origin); }
+        catch (IllegalArgumentException ignored) { return Origin.UNKNOWN; }
+    }
     // Only explicitly authenticated/assigned tickets belong in the customer's inbox.
     // Anonymous contact email matching must never grant access to a conversation.
-    private boolean customerVisible;
+    private Boolean customerVisible = false;
+
+    public boolean isCustomerVisible() { return Boolean.TRUE.equals(customerVisible); }
     private String userEmail; // Encrypted with the same lookup scheme as users.email.
     private String userName;
     private String subject;

@@ -59,7 +59,7 @@ Todos los siguientes requieren acceso de operador. Los listados paginados devuel
 | GET | `/tickets?status=&priority=&category=&userId=&query=&page=&size=` | Resúmenes sin conversación. |
 | GET | `/tickets/{id}` | Ticket con conversación y notas internas. |
 | POST | `/tickets` | Crear ticket. |
-| POST | `/tickets/{id}/messages` | Añadir respuesta o nota; no envía correo automáticamente. |
+| POST | `/tickets/{id}/messages` | Añadir respuesta web si el cliente tiene acceso, o nota interna; no envía correo automáticamente. |
 | PATCH | `/tickets/{id}/status` | Cambiar estado. |
 | PATCH | `/tickets/{id}/assignee` | Asignar un operador activo/verificado de la lista. |
 | GET | `/users?query=&page=&size=` | Buscar por nombre, username, ID o email exacto. |
@@ -140,6 +140,59 @@ Con `ticketId`, el destinatario debe coincidir con el contacto del ticket. Si se
 `templateId`, debe existir una plantilla publicada. Las macros desconocidas permanecen
 visibles en la previsualización; un cuerpo con macros sin resolver no se puede enviar.
 Las notas internas no se incluyen automáticamente en ningún correo.
+
+### Origen, visibilidad y canales de soporte
+
+El DTO privado de ticket añade los siguientes campos en listados, detalle y respuestas
+de creación/mutación. No se añaden al DTO del cliente `/api/support/**`:
+
+| Campo | Contrato |
+|---|---|
+| `origin` | `SUPPORT_WEB`, `CONTACT_FORM`, `FRONTDESK` o `UNKNOWN`. El servidor fija la entrada de creación, no el canal de una respuesta. |
+| `customerVisible` | Visibilidad persistida explícita; histórico ausente o nulo equivale a falso. |
+| `availableChannels` | Lista sin duplicados de `WEB` y/o `EMAIL`; `[]` es válida y no implica entrega. |
+| `webUnavailableReason` | `null` con `WEB`; en otro caso `NOT_CUSTOMER_VISIBLE`, `NO_OWNER`, `OWNER_NOT_FOUND`, `OWNER_INACTIVE` u `OWNER_UNVERIFIED`, por ese orden. |
+
+`WEB` exige flag verdadero, propietario por ID y cuenta existente, activa y verificada.
+No exige sesión del cliente conectada en ese momento. Se revalida al procesar respuesta
+pública; el flag no se borra al suspender una cuenta ni el canal la reactiva. Los tickets
+cerrados/resueltos siguen siendo consultables según las reglas actuales.
+
+`EMAIL` indica una dirección válida del **ticket**, no disponibilidad de SMTP, existencia
+del buzón, autenticidad del remitente ni entrega. No se reemplaza por otra dirección de
+una cuenta. Dirección ausente/vacía/inválida excluye correo; fallo de descifrado se
+propaga como error, no como disponibilidad confirmada. Se conserva el cifrado y la
+comparación exacta de destinatario del endpoint de envío.
+
+Contacto puede conservar `userId` como asociación operativa por email coincidente, pero
+siempre crea con `customerVisible=false` y `origin=CONTACT_FORM`; esa coincidencia no
+autentica ni publica conversación, incluso con sesión. Soporte de sesión crea
+`SUPPORT_WEB`; Frontdesk crea `FRONTDESK`, con las reglas actuales de selección explícita
+de cuenta por ID. Campos de capacidades/visibilidad añadidos a un cuerpo no conceden acceso.
+
+Los documentos antiguos sin origen o con un valor no reconocido devuelven `UNKNOWN`.
+No se deduce origen de mensajes/email/auditoría ni se migra al leer. Los valores de origen
+no reconocidos se conservan en persistencia al editar una nota/estado. Flag explícito
+verdadero y propiedad válida mantienen el acceso; el desconocimiento de origen no lo revoca.
+
+Una respuesta no interna (`isInternalNote=false`, nulo o ausente) sin `WEB` devuelve
+**409** con `code=WEB_CHANNEL_UNAVAILABLE` antes de escribir mensaje, fecha, estado
+o auditoría de respuesta. No es un fallo 403 de permisos/CSRF. Las notas siguen
+autorizadas y privadas, con límites y `@Version` existentes. El error concurrente mantiene
+`code=CONCURRENT_UPDATE`. Ni respuesta ni nota disparan SMTP.
+
+En Frontdesk, el detalle muestra origen, acceso web, destino y motivos. «Responder en
+la web» confirma persistencia, no entrega/lectura. «Responder por correo» prepara un
+compositor local de Tickets con dirección fija y `ticketId`; abrir/cancelar no escribe,
+el envío explícito utiliza `/emails`, sin copiar notas, añadir respuesta web ni cambiar
+estado. SMTP aceptado sigue sin confirmar entrega. No se importan respuestas por email
+ni se integra su cronología en esta fase.
+
+Si una API anterior no informa capacidades válidas, Frontdesk muestra canales no
+disponibles y bloquea acciones públicas/contextuales; no las reconstruye por email/ID.
+Las notas mantienen el flujo autorizado. Desplegar API antes de Frontdesk; un cliente
+antiguo recibe 409 seguros al intentar responder a tickets ocultos. No hay backfill ni
+cambios de políticas requeridos. Spec y evidencia: `docs/specs/support-communication-channels/`.
 
 ## MongoDB
 

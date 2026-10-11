@@ -1,4 +1,4 @@
-import { Ticket } from '../../core/domain/ticket';
+import { Ticket, normalizeTicket } from '../../core/domain/ticket';
 import { User360 } from '../../core/domain/user';
 import { AuditEntry } from '../../core/domain/audit';
 import { EmailDelivery, EmailTemplate, SendBroadcastPayload, SendEmailPayload } from '../../core/domain/email';
@@ -16,27 +16,31 @@ const idPath = (id: string) => encodeURIComponent(id);
 
 export class HttpTicketRepository implements ITicketRepository {
   constructor(private readonly client: ApiClient) {}
-  listPage(filters: TicketFilters, pagination: PageRequest) {
-    return this.client.page<Ticket>('/frontdesk/tickets', { ...filters, ...pagination });
+  async listPage(filters: TicketFilters, pagination: PageRequest) {
+    const page = await this.client.page<Ticket>('/frontdesk/tickets', { ...filters, ...pagination });
+    return { ...page, items: page.items.map(normalizeTicket) };
   }
   async list(filters: TicketFilters = {}) { return (await this.listPage(filters, { page: 0, size: 25 })).items; }
-  getById(id: string) { return this.client.nullable<Ticket>(`/frontdesk/tickets/${idPath(id)}`); }
-  createTicket(ticket: Parameters<ITicketRepository['createTicket']>[0], initialMessage: string) {
+  async getById(id: string) {
+    const ticket = await this.client.nullable<Ticket>(`/frontdesk/tickets/${idPath(id)}`);
+    return ticket ? normalizeTicket(ticket) : null;
+  }
+  async createTicket(ticket: Parameters<ITicketRepository['createTicket']>[0], initialMessage: string) {
     const { userId, userEmail, userName, subject, category, priority, metadata } = ticket;
-    return this.client.request<Ticket>('/frontdesk/tickets', {
+    return normalizeTicket(await this.client.request<Ticket>('/frontdesk/tickets', {
       method: 'POST', body: { userId, userEmail, userName, subject, category, priority, metadata, initialMessage },
-    });
+    }));
   }
-  addMessage(ticketId: string, message: Parameters<ITicketRepository['addMessage']>[1]) {
-    return this.client.request<Ticket>(`/frontdesk/tickets/${idPath(ticketId)}/messages`, {
+  async addMessage(ticketId: string, message: Parameters<ITicketRepository['addMessage']>[1]) {
+    return normalizeTicket(await this.client.request<Ticket>(`/frontdesk/tickets/${idPath(ticketId)}/messages`, {
       method: 'POST', body: { content: message.content, isInternalNote: Boolean(message.isInternalNote) },
-    });
+    }));
   }
-  updateStatus(ticketId: string, status: Ticket['status']) {
-    return this.client.request<Ticket>(`/frontdesk/tickets/${idPath(ticketId)}/status`, { method: 'PATCH', body: { status } });
+  async updateStatus(ticketId: string, status: Ticket['status']) {
+    return normalizeTicket(await this.client.request<Ticket>(`/frontdesk/tickets/${idPath(ticketId)}/status`, { method: 'PATCH', body: { status } }));
   }
-  assignOperator(ticketId: string, operatorId: string, _operatorName: string) {
-    return this.client.request<Ticket>(`/frontdesk/tickets/${idPath(ticketId)}/assignee`, { method: 'PATCH', body: { operatorId } });
+  async assignOperator(ticketId: string, operatorId: string, _operatorName: string) {
+    return normalizeTicket(await this.client.request<Ticket>(`/frontdesk/tickets/${idPath(ticketId)}/assignee`, { method: 'PATCH', body: { operatorId } }));
   }
 }
 

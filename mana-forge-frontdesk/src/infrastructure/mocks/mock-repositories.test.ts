@@ -10,6 +10,18 @@ describe('Mock Repositories', () => {
   });
 
   describe('MockTicketRepository', () => {
+    it('does not grant web access to legacy stored tickets just because they have an owner or email', async () => {
+      const legacy = { id: 'legacy', userId: 'user-urza', userEmail: 'urza@manaforge.gg', subject: 'Old',
+        messages: [], status: 'OPEN' };
+      localStorage.setItem('mana_forge_frontdesk_tickets', JSON.stringify([legacy]));
+      const repo = new MockTicketRepository();
+      expect((await repo.getById('legacy'))?.availableChannels).toBeUndefined();
+      await expect(repo.addMessage('legacy', { sender: 'OPERATOR', senderName: 'Operator', content: 'Unreachable' }))
+        .rejects.toMatchObject({ code: 'WEB_CHANNEL_UNAVAILABLE' });
+      expect(JSON.parse(localStorage.getItem('mana_forge_frontdesk_tickets')!)).toEqual([legacy]);
+      const note = await repo.addMessage('legacy', { sender: 'OPERATOR', senderName: 'Operator', content: 'Private', isInternalNote: true });
+      expect(note.messages[0].isInternalNote).toBe(true);
+    });
     it('should list initial seed tickets', async () => {
       const repo = new MockTicketRepository();
       const tickets = await repo.list();

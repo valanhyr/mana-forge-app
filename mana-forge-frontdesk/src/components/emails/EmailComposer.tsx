@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { EmailTemplate, BroadcastAudience, interpolateTemplate } from '../../core/domain/email';
 import { TemplateSelector } from './TemplateSelector';
 import { MacroPreview } from './MacroPreview';
@@ -13,6 +13,7 @@ interface EmailComposerProps {
     subject: string;
     body: string;
     templateId?: string;
+    ticketId?: string;
   }) => void | Promise<void>;
   onSendBroadcast?: (data: {
     audience: BroadcastAudience;
@@ -22,6 +23,8 @@ interface EmailComposerProps {
   }) => void | Promise<void>;
   initialRecipient?: { email: string; name: string };
   isLoading?: boolean;
+  ticketId?: string;
+  onDraftChange?: (dirty: boolean) => void;
 }
 
 export const EmailComposer: React.FC<EmailComposerProps> = ({
@@ -30,6 +33,8 @@ export const EmailComposer: React.FC<EmailComposerProps> = ({
   onSendBroadcast,
   initialRecipient,
   isLoading = false,
+  ticketId,
+  onDraftChange,
 }) => {
   const { t } = useTranslation();
   const [dispatchMode, setDispatchMode] = useState<'DIRECT' | 'BROADCAST'>('DIRECT');
@@ -38,12 +43,17 @@ export const EmailComposer: React.FC<EmailComposerProps> = ({
     templates[0] || null
   );
   const [to, setTo] = useState(initialRecipient?.email || '');
+  const fixedRecipient = useRef(initialRecipient?.email || '');
   const [recipientName, setRecipientName] = useState(initialRecipient?.name || '');
   const [variables, setVariables] = useState<Record<string, string>>({
     'user.name': initialRecipient?.name || '',
   });
   const [subject, setSubject] = useState('');
   const [body, setBody] = useState('');
+  const submitting = useRef(false);
+  const [submitted, setSubmitted] = useState(false);
+
+  useEffect(() => { onDraftChange?.(!submitted && Boolean(subject.trim() || body.trim())); }, [subject, body, submitted, onDraftChange]);
 
   useEffect(() => {
     if (selectedTemplate) {
@@ -67,7 +77,8 @@ export const EmailComposer: React.FC<EmailComposerProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!subject.trim() || !body.trim() || isLoading) return;
+    if (!subject.trim() || !body.trim() || isLoading || submitting.current) return;
+    submitting.current = true;
 
     try {
 
@@ -83,14 +94,17 @@ export const EmailComposer: React.FC<EmailComposerProps> = ({
     } else {
       if (!to.trim()) return;
       await onSend({
-        to: to.trim(),
+        to: ticketId ? fixedRecipient.current : to.trim(),
         recipientName: recipientName.trim() || to.trim(),
         subject: subject.trim(),
         body: body.trim(),
         templateId: selectedTemplate?.id,
+        ...(ticketId ? { ticketId } : {}),
       });
     }
+    setSubmitted(true);
     } catch { /* The owning view displays the server error; keep the draft, never retry automatically. */ }
+    finally { submitting.current = false; }
   };
 
   const getAudienceCount = (aud: BroadcastAudience) => {
@@ -109,7 +123,7 @@ export const EmailComposer: React.FC<EmailComposerProps> = ({
       {/* Editor column */}
       <div className="lg:col-span-7 space-y-4 flex flex-col">
         {/* Mode Switcher */}
-        <div className="flex items-center gap-2 p-1.5 bg-slate-900 border border-slate-800 rounded-xl">
+        {!ticketId && <div className="flex items-center gap-2 p-1.5 bg-slate-900 border border-slate-800 rounded-xl">
           <button
             type="button"
             onClick={() => setDispatchMode('DIRECT')}
@@ -120,7 +134,7 @@ export const EmailComposer: React.FC<EmailComposerProps> = ({
             }`}
           >
             <Mail className="w-3.5 h-3.5" />
-            <span>Direct Message (1:1 Support)</span>
+            <span>{t('directSupportEmail')}</span>
           </button>
           <button
             type="button"
@@ -136,8 +150,8 @@ export const EmailComposer: React.FC<EmailComposerProps> = ({
             <Radio className="w-3.5 h-3.5" />
             <span>Audience Broadcast (Newsletter)</span>
           </button>
-        </div>
-        {!onSendBroadcast && <p className="text-xs text-slate-400">{t('broadcastUnavailable')}</p>}
+        </div>}
+        {!onSendBroadcast && !ticketId && <p className="text-xs text-slate-400">{t('broadcastUnavailable')}</p>}
 
         <TemplateSelector
           templates={templates}
@@ -145,7 +159,7 @@ export const EmailComposer: React.FC<EmailComposerProps> = ({
           onSelectTemplate={handleSelectTemplate}
         />
 
-        <form
+        <form onChange={() => setSubmitted(false)}
           onSubmit={handleSubmit}
           className="space-y-4 bg-slate-900 border border-slate-800 rounded-xl p-5 flex-1 flex flex-col"
         >
@@ -153,7 +167,7 @@ export const EmailComposer: React.FC<EmailComposerProps> = ({
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label htmlFor="recipient-email" className="text-xs text-slate-400 block mb-1">
-                  Recipient Email
+                  {t('recipientEmail')}
                 </label>
                 <input
                   id="recipient-email"
@@ -161,14 +175,15 @@ export const EmailComposer: React.FC<EmailComposerProps> = ({
                   required
                   maxLength={254}
                   value={to}
-                  onChange={(e) => setTo(e.target.value)}
+                  readOnly={Boolean(ticketId)}
+                  onChange={(e) => { if (!ticketId) setTo(e.target.value); }}
                   placeholder="user@example.com"
                   className="w-full px-3 py-1.5 bg-slate-950/70 border border-slate-800 rounded-lg text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500"
                 />
               </div>
               <div>
                 <label htmlFor="recipient-name" className="text-xs text-slate-400 block mb-1">
-                  Recipient Name
+                  {t('recipientName')}
                 </label>
                 <input
                   id="recipient-name"
@@ -224,7 +239,7 @@ export const EmailComposer: React.FC<EmailComposerProps> = ({
             <div className="flex items-center justify-between text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
               <div className="flex items-center gap-1.5">
                 <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
-                <span>Dynamic Macros & Interpolation</span>
+                  <span>{t('emailMacros')}</span>
               </div>
               {dispatchMode === 'BROADCAST' && (
                 <span className="text-[10px] text-emerald-400 font-mono">
@@ -244,8 +259,9 @@ export const EmailComposer: React.FC<EmailComposerProps> = ({
           </div>
 
           <div>
-            <label className="text-xs text-slate-400 block mb-1">Subject</label>
+            <label htmlFor="email-subject" className="text-xs text-slate-400 block mb-1">{t('emailSubject')}</label>
             <input
+              id="email-subject"
               type="text"
               required
               value={subject}
@@ -256,8 +272,9 @@ export const EmailComposer: React.FC<EmailComposerProps> = ({
           </div>
 
           <div className="flex-1 flex flex-col">
-            <label className="text-xs text-slate-400 block mb-1">Body Content</label>
+            <label htmlFor="email-body" className="text-xs text-slate-400 block mb-1">{t('emailBody')}</label>
             <textarea
+              id="email-body"
               required
               rows={6}
               value={body}
@@ -281,10 +298,10 @@ export const EmailComposer: React.FC<EmailComposerProps> = ({
               <Send className="w-4 h-4" />
               <span>
                 {isLoading
-                  ? 'Dispatching...'
+                  ? t('dispatching')
                   : dispatchMode === 'BROADCAST'
                   ? `Dispatch Broadcast (${getAudienceCount(audience)} Players)`
-                  : 'Dispatch Email'}
+                  : t('dispatchEmail')}
               </span>
             </button>
           </div>

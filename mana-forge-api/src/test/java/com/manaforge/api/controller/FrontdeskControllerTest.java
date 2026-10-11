@@ -168,4 +168,12 @@ class FrontdeskControllerTest {
                 .contentType(MediaType.APPLICATION_JSON).content("{\"content\":\"Reply\"}"))
                 .andExpect(status().isConflict()).andExpect(jsonPath("$.code").value("CONCURRENT_UPDATE"));
     }
+
+    @Test
+    void channelConflictIsNotAnOperatorAccessFailure() throws Exception {
+        when(tickets.addMessage(anyString(), any(), any())).thenThrow(new WebChannelUnavailableException());
+        mvc.perform(post("/api/frontdesk/tickets/t1/messages").with(user("operator")).with(csrf())
+                .contentType(MediaType.APPLICATION_JSON).content("{\"content\":\"Reply\"}"))
+                .andExpect(status().isConflict()).andExpect(jsonPath("$.code").value("WEB_CHANNEL_UNAVAILABLE"));
+    }
 }

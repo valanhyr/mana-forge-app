@@ -27,6 +27,7 @@ beforeEach(() => {
   emailFailure = false;
   newsletterCampaign = null;
   ticket = { id: 'real-ticket', userId: 'real-user', userName: 'Actual Customer', userEmail: 'customer@example.com',
+    origin: 'SUPPORT_WEB', customerVisible: true, availableChannels: ['WEB', 'EMAIL'], webUnavailableReason: null,
     subject: 'Actual backend support ticket', category: 'ACCOUNT', priority: 'HIGH', status: 'OPEN',
     createdAt: '2026-10-08T10:00:00Z', updatedAt: '2026-10-08T10:00:00Z',
     messages: [{ id: 'real-message', sender: 'USER', senderName: 'Actual Customer', content: 'Actual conversation from Mongo', createdAt: '2026-10-08T10:00:00Z' }] };
@@ -92,6 +93,105 @@ async function signIn() {
 }
 
 describe('Live Frontdesk integration', () => {
+  it('preserves a public draft on a channel conflict and never retries the mutation', async () => {
+    authenticated = true;
+    const normal = fetchMock.getMockImplementation()!;
+    fetchMock.mockImplementation(async (input, init) => String(input).endsWith('/real-ticket/messages')
+      ? json({ code: 'WEB_CHANNEL_UNAVAILABLE', error: 'No web access' }, 409) : normal(input, init));
+    render(<App />);
+    fireEvent.click(await screen.findByRole('button', { name: /^tickets/i }));
+    const draft = await screen.findByRole('textbox', { name: 'Web reply' });
+    fireEvent.change(draft, { target: { value: 'Keep my answer' } });
+    fireEvent.click(screen.getByRole('button', { name: /respond on the web/i }));
+    await screen.findByText(/web channel is no longer available/i);
+    expect(draft).toHaveValue('Keep my answer');
+    expect(fetchMock.mock.calls.filter(([url]) => String(url).endsWith('/real-ticket/messages'))).toHaveLength(1);
+    expect(sentEmails).toBe(0);
+  });
+  it('asks before closing a contextual draft and cancellation sends nothing', async () => {
+    authenticated = true;
+    const confirm = vi.spyOn(window, 'confirm').mockReturnValueOnce(false).mockReturnValueOnce(true);
+    render(<App />);
+    fireEvent.click(await screen.findByRole('button', { name: /^tickets/i }));
+    fireEvent.click(await screen.findByRole('button', { name: /respond by email/i }));
+    await screen.findByLabelText(/body content/i);
+    fireEvent.change(screen.getByLabelText(/body content/i), { target: { value: 'Unsent draft' } });
+    fireEvent.click(screen.getByRole('button', { name: /close email composer/i }));
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /close email composer/i }));
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(sentEmails).toBe(0);
+    expect(fetchMock.mock.calls.some(([url]) => String(url).endsWith('/real-ticket/messages'))).toBe(false);
+    confirm.mockRestore();
+  });
+  it('does not reuse a private draft when selecting a different ticket', async () => {
+    authenticated = true;
+    const other: Ticket = { ...ticket, id: 'other-ticket', subject: 'Other person query', userName: 'Other person', userEmail: 'other@example.com' };
+    const normal = fetchMock.getMockImplementation()!;
+    fetchMock.mockImplementation(async (input, init) => {
+      const path = new URL(String(input), 'http://frontdesk.test').pathname;
+      if (path === '/api/frontdesk/tickets') return json({ items: [{ ...ticket, messages: [] }, { ...other, messages: [] }], page: 0, size: 25, total: 2 });
+      if (path === '/api/frontdesk/tickets/other-ticket') return json(other);
+      return normal(input, init);
+    });
+    const confirm = vi.spyOn(window, 'confirm').mockReturnValue(true);
+    render(<App />);
+    fireEvent.click(await screen.findByRole('button', { name: /^tickets/i }));
+    await screen.findByRole('textbox', { name: 'Web reply' });
+    fireEvent.click(screen.getByRole('checkbox'));
+    fireEvent.change(screen.getByRole('textbox', { name: /internal note/i }), { target: { value: 'SECRET for A only' } });
+    fireEvent.click(screen.getByText('Other person query'));
+    await waitFor(() => expect(screen.getByRole('textbox', { name: 'Web reply' })).toHaveValue(''));
+    expect(confirm).toHaveBeenCalledTimes(1);
+    expect(screen.queryByDisplayValue('SECRET for A only')).not.toBeInTheDocument();
+    expect(sentEmails).toBe(0);
+    confirm.mockRestore();
+  });
+  it('saves a visible web reply without email and reports persistence rather than delivery', async () => {
+    authenticated = true;
+    render(<App />);
+    fireEvent.click(await screen.findByRole('button', { name: /^tickets/i }));
+    const draft = await screen.findByRole('textbox', { name: 'Web reply' });
+    fireEvent.change(draft, { target: { value: 'Public answer' } });
+    fireEvent.click(screen.getByRole('button', { name: /respond on the web/i }));
+    await screen.findByText('Public answer');
+    await screen.findByText(/Reply saved in the web conversation/);
+    expect(sentEmails).toBe(0);
+    expect(draft).toHaveValue('');
+  });
+  it('clears an open contextual composer when the session expires', async () => {
+    authenticated = true;
+    render(<App />);
+    fireEvent.click(await screen.findByRole('button', { name: /^tickets/i }));
+    fireEvent.click(await screen.findByRole('button', { name: /respond by email/i }));
+    await screen.findByLabelText(/recipient email/i);
+    authenticated = false;
+    fireEvent.click(screen.getByRole('button', { name: /dispatch email/i }));
+    await screen.findByLabelText('Username');
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(screen.queryByDisplayValue('customer@example.com')).not.toBeInTheDocument();
+  });
+  it('prepares contact email without saving an unreachable reply or copying notes', async () => {
+    authenticated = true;
+    ticket = { ...ticket, origin: 'CONTACT_FORM', customerVisible: false, availableChannels: ['EMAIL'],
+      webUnavailableReason: 'NOT_CUSTOMER_VISIBLE', messages: [...ticket.messages, { id: 'private-note', sender: 'OPERATOR',
+        senderName: 'Operator', content: 'SECRET investigation', isInternalNote: true, createdAt: ticket.createdAt }] };
+    render(<App />);
+    fireEvent.click(await screen.findByRole('button', { name: /^tickets/i }));
+    await screen.findByText(/cannot read this conversation/i);
+    expect(screen.queryByRole('button', { name: /respond on the web/i })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /respond by email/i }));
+    await screen.findByRole('dialog', { name: /prepare an email/i });
+    await screen.findByLabelText(/recipient email/i);
+    expect(sentEmails).toBe(0);
+    expect(screen.getByLabelText(/body content/i)).not.toHaveValue(expect.stringContaining('SECRET'));
+    expect(screen.getByLabelText(/recipient email/i)).toHaveValue('customer@example.com');
+    fireEvent.click(screen.getByRole('button', { name: /dispatch email/i }));
+    await screen.findByText(/Email accepted by SMTP/);
+    const email = fetchMock.mock.calls.find(([url, init]) => String(url).endsWith('/frontdesk/emails') && init?.method === 'POST')!;
+    expect(JSON.parse(email[1]!.body as string)).toMatchObject({ ticketId: 'real-ticket', to: 'customer@example.com' });
+    expect(fetchMock.mock.calls.some(([url]) => String(url).endsWith('/real-ticket/messages'))).toBe(false);
+  });
   it('gates private queries, signs in, loads full ticket detail and writes a note with CSRF', async () => {
     render(<App />);
     await screen.findByLabelText('Username');

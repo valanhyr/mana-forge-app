@@ -4,6 +4,10 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.ArrayList;
+import java.util.HashMap;
+import jakarta.mail.internet.InternetAddress;
+import jakarta.mail.internet.AddressException;
 import com.manaforge.api.dto.ContactRequest;
 import com.manaforge.api.dto.FrontdeskDtos.*;
 import com.manaforge.api.model.mongo.AuditEvent;
@@ -30,11 +34,50 @@ public class SupportTicketService {
     }
 
     public TicketView view(SupportTicket ticket) {
-        return new TicketView(ticket.getId(), ticket.getUserId(), encryption.decrypt(ticket.getUserEmail()),
+        User owner = ticket.isCustomerVisible() && ticket.getUserId() != null && !ticket.getUserId().isBlank()
+                ? users.findById(ticket.getUserId()).orElse(null) : null;
+        return view(ticket, owner);
+    }
+
+    /** Resolve a page's owners in one query; never load conversations or look up owners by email. */
+    public List<TicketView> views(List<SupportTicket> page) {
+        List<String> ids = page.stream().filter(SupportTicket::isCustomerVisible).map(SupportTicket::getUserId)
+                .filter(id -> id != null && !id.isBlank()).distinct().toList();
+        Map<String, User> owners = new HashMap<>();
+        if (!ids.isEmpty()) users.findAllById(ids).forEach(owner -> owners.put(owner.getId(), owner));
+        return page.stream().map(ticket -> view(ticket, owners.get(ticket.getUserId()))).toList();
+    }
+
+    private TicketView view(SupportTicket ticket, User owner) {
+        String email = encryption.decrypt(ticket.getUserEmail());
+        var reason = webUnavailableReason(ticket, owner);
+        List<SupportTicket.Channel> channels = new ArrayList<>();
+        if (reason == null) channels.add(SupportTicket.Channel.WEB);
+        if (isContactEmailValid(email)) channels.add(SupportTicket.Channel.EMAIL);
+        return new TicketView(ticket.getId(), ticket.getUserId(), email,
                 ticket.getUserName(), ticket.getSubject(), ticket.getCategory(), ticket.getPriority(),
                 ticket.getStatus(), ticket.getAssignedOperatorId(), ticket.getAssignedOperatorName(),
                 ticket.getMessages() == null ? List.of() : ticket.getMessages(),
-                ticket.getCreatedAt(), ticket.getUpdatedAt(), ticket.getMetadata());
+                ticket.getCreatedAt(), ticket.getUpdatedAt(), ticket.getMetadata(), ticket.effectiveOrigin(),
+                ticket.isCustomerVisible(), List.copyOf(channels), reason);
+    }
+
+    private SupportTicket.WebUnavailableReason webUnavailableReason(SupportTicket ticket, User owner) {
+        if (!ticket.isCustomerVisible()) return SupportTicket.WebUnavailableReason.NOT_CUSTOMER_VISIBLE;
+        if (ticket.getUserId() == null || ticket.getUserId().isBlank()) return SupportTicket.WebUnavailableReason.NO_OWNER;
+        if (owner == null) return SupportTicket.WebUnavailableReason.OWNER_NOT_FOUND;
+        if (owner.effectiveStatus() != User.AccountStatus.ACTIVE) return SupportTicket.WebUnavailableReason.OWNER_INACTIVE;
+        if (!Boolean.TRUE.equals(owner.getValidated())) return SupportTicket.WebUnavailableReason.OWNER_UNVERIFIED;
+        return null;
+    }
+
+    private boolean isContactEmailValid(String email) {
+        if (email == null || email.isBlank() || email.length() > 254 || email.contains("\r") || email.contains("\n")) return false;
+        try {
+            InternetAddress address = new InternetAddress(email, true);
+            address.validate();
+            return address.getPersonal() == null && email.equals(address.getAddress());
+        } catch (AddressException ignored) { return false; }
     }
 
     public TicketView create(CreateTicket request, User operator) {
@@ -48,6 +91,7 @@ public class SupportTicketService {
         ticket.setPriority(request.priority());
         ticket.setMetadata(request.metadata());
         ticket.setCustomerVisible(customer != null);
+        ticket.setOrigin(SupportTicket.Origin.FRONTDESK.name());
         ticket = tickets.save(ticket);
         record(operator, ticket, AuditEvent.Action.TICKET_CREATED, "Support ticket created");
         return view(ticket);
@@ -60,6 +104,7 @@ public class SupportTicketService {
         SupportTicket ticket = newTicket(customer == null ? null : customer.getId(), encryptedEmail,
                 request.getName(), request.getSubject(), request.getMessage(), SupportTicket.Sender.USER,
                 null, request.getName());
+        ticket.setOrigin(SupportTicket.Origin.CONTACT_FORM.name());
         ticket = tickets.save(ticket);
         // A contact email does not authenticate the sender; do not assert a registered user's identity.
         audit.record(new AuditEvent.Actor("contact", "Contact form", "SYSTEM"), ticket.getUserId(),
@@ -83,6 +128,11 @@ public class SupportTicketService {
 
     public TicketView addMessage(String id, AddMessage request, User operator) {
         SupportTicket ticket = requireTicket(id);
+        if (!request.isInternalNote()) {
+            User owner = ticket.isCustomerVisible() && ticket.getUserId() != null && !ticket.getUserId().isBlank()
+                    ? users.findById(ticket.getUserId()).orElse(null) : null;
+            if (webUnavailableReason(ticket, owner) != null) throw new WebChannelUnavailableException();
+        }
         // Keep the embedded conversation safely below MongoDB's document size limit.
         if (ticket.getMessages().size() >= 500) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Ticket message limit reached");
@@ -156,6 +206,7 @@ public class SupportTicketService {
                 customer.getId(), customer.getUsername());
         ticket.setCategory(request.category());
         ticket.setCustomerVisible(true);
+        ticket.setOrigin(SupportTicket.Origin.SUPPORT_WEB.name());
         ticket = tickets.save(ticket);
         recordCustomer(customer, ticket, AuditEvent.Action.TICKET_CREATED, "Customer opened support conversation");
         return customerView(ticket, true);

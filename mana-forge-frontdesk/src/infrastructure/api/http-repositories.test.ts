@@ -100,4 +100,26 @@ describe('HTTP adapters', () => {
     await new HttpAuthService(client).signOut();
     expect(ended).toHaveBeenCalledWith(401);
   });
+
+  it('normalizes unknown origins but never invents capabilities for old or inconsistent responses', async () => {
+    const repo = new HttpTicketRepository(new ApiClient());
+    const base = { id: 't1', userId: 'u1', userEmail: 'contact@example.com', messages: [] };
+    fetchMock.mockResolvedValueOnce(json(base));
+    expect(await repo.getById('t1')).toMatchObject({ origin: 'UNKNOWN', availableChannels: undefined });
+    fetchMock.mockResolvedValueOnce(json({ ...base, origin: 'NEW_SOURCE', customerVisible: true,
+      availableChannels: ['WEB', 'EMAIL'], webUnavailableReason: null }));
+    expect(await repo.getById('t1')).toMatchObject({ origin: 'UNKNOWN', availableChannels: ['WEB', 'EMAIL'] });
+    for (const fields of [
+      { customerVisible: false, availableChannels: ['WEB'], webUnavailableReason: null },
+      { customerVisible: true, availableChannels: ['FAX'], webUnavailableReason: null },
+      { customerVisible: true, availableChannels: ['WEB', 'WEB'], webUnavailableReason: null },
+      { customerVisible: true, availableChannels: [], webUnavailableReason: null },
+      { customerVisible: true, availableChannels: { WEB: true }, webUnavailableReason: null },
+      { customerVisible: true, availableChannels: ['EMAIL'], webUnavailableReason: 'NOT_CUSTOMER_VISIBLE' },
+      { customerVisible: false, availableChannels: ['EMAIL'], webUnavailableReason: 'OWNER_INACTIVE' },
+    ]) {
+      fetchMock.mockResolvedValueOnce(json({ ...base, ...fields }));
+      expect((await repo.getById('t1'))?.availableChannels).toBeUndefined();
+    }
+  });
 });

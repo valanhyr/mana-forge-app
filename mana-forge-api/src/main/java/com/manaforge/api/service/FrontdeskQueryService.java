@@ -46,7 +46,7 @@ public class FrontdeskQueryService {
         query.with(Sort.by(Sort.Direction.DESC, "updatedAt", "_id"));
         query.fields().exclude("messages"); // List summaries; full conversation is available on GET /{id}.
         paginate(query, page, size);
-        return new PageResult<>(mongo.find(query, SupportTicket.class).stream().map(tickets::view).toList(), page, size, total);
+        return new PageResult<>(tickets.views(mongo.find(query, SupportTicket.class)), page, size, total);
     }
 
     public PageResult<UserView> users(String search, int page, int size) {

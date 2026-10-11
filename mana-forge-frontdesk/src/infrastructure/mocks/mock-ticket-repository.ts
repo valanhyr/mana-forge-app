@@ -1,5 +1,6 @@
 import { ITicketRepository, TicketFilters } from '../../core/ports/ticket-repository.port';
-import { Ticket, TicketMessage, TicketStatus } from '../../core/domain/ticket';
+import { Ticket, TicketMessage, TicketStatus, CreateTicketInput, normalizeTicket } from '../../core/domain/ticket';
+import { ApiError } from '../api/api-client';
 import { PageRequest, pageOf } from '../../core/domain/page';
 import { seedTickets } from './seeds/seed-tickets';
 
@@ -62,16 +63,17 @@ export class MockTicketRepository implements ITicketRepository {
       );
     }
 
-    return tickets;
+    return tickets.map(normalizeTicket);
   }
 
   async getById(id: string): Promise<Ticket | null> {
     const tickets = this.getTickets();
-    return tickets.find((t) => t.id === id) || null;
+    const ticket = tickets.find((t) => t.id === id);
+    return ticket ? normalizeTicket(ticket) : null;
   }
 
   async createTicket(
-    ticket: Omit<Ticket, 'id' | 'createdAt' | 'updatedAt' | 'messages'>,
+    ticket: CreateTicketInput,
     initialMessage: string
   ): Promise<Ticket> {
     const tickets = this.getTickets();
@@ -80,6 +82,10 @@ export class MockTicketRepository implements ITicketRepository {
 
     const newTicket: Ticket = {
       ...ticket,
+      status: 'OPEN',
+      origin: 'FRONTDESK', customerVisible: Boolean(ticket.userId),
+      availableChannels: ticket.userId ? ['WEB', 'EMAIL'] : ['EMAIL'],
+      webUnavailableReason: ticket.userId ? null : 'NOT_CUSTOMER_VISIBLE',
       id,
       createdAt: now,
       updatedAt: now,
@@ -109,6 +115,10 @@ export class MockTicketRepository implements ITicketRepository {
 
     if (!ticket) {
       throw new Error(`Ticket with ID ${ticketId} not found`);
+    }
+
+    if (!message.isInternalNote && !normalizeTicket(ticket).availableChannels?.includes('WEB')) {
+      throw new ApiError(409, 'The customer cannot read this conversation on the web.', 'WEB_CHANNEL_UNAVAILABLE');
     }
 
     const now = new Date().toISOString();
