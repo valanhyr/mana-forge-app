@@ -20,6 +20,8 @@ This file documents repository conventions for automated agents or programmatic 
 
 For agent *expectations* rather than code conventions, see the root `AGENTS.md`. For design decisions and their rationale, see `ARCHITECTURE.md` — read it before touching abuse controls, caching, or email, because several choices there look wrong until you know why they were made.
 
+For the spec → approved plan → tasks → TDD workflow, follow `AGENTS.md` and `docs/spec-driven-development.md`. Do not start implementation from an unapproved roadmap.
+
 ---
 
 ## Build, Dev & Lint Commands

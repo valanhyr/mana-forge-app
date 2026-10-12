@@ -32,6 +32,17 @@ The frontend calls the Spring API only. The Spring API proxies Scryfall, Strapi 
 - Verify claims against the code before repeating them. The instruction files have drifted from the source before, and a stale note is worse than none: check that a file exists and that a command runs before documenting it as available.
 - When in doubt, open an issue or a draft PR instead of making high-risk changes without review.
 
+## Spec-driven development and TDD
+
+- Follow `docs/spec-driven-development.md` for feature work, behavior changes and non-trivial fixes. SDD means **spec-driven development**; TDD means **test-driven development**.
+- Use `docs/specs/<feature>/spec.md`, `plan.md` and `tasks.md`: agree on observable requirements first, then implementation and validation, then execute small tasks.
+- Do not implement production code until the user explicitly approves the spec and plan. A request to draft or save a plan is not implementation approval. Approval may cover one phase instead of the entire feature.
+- For each behavior change, write a failing test, confirm it fails for the intended reason, implement the minimum to pass, then refactor with tests green. Never claim a red/green step or verification that was not actually run.
+- Map acceptance criteria to tasks and tests; record validation evidence and blockers in `tasks.md`. Keep the approved spec and plan aligned with changes, requesting approval for material scope or contract changes.
+- Use the lightweight path for small fixes and documentation/configuration-only work; document why an automated red test is not applicable instead of creating artificial tests.
+- Existing roadmaps, including `docs/communication-implementation-plan.md`, are planning inputs, not approved executable specs. Do not mark historical work as TDD retroactively.
+- Spec/plan approval does not authorize production deployment, data migrations, external side effects or destructive actions; confirm those separately.
+
 ## Releases
 
 Versioning is per service, and Jenkins reads each one from a different file:
