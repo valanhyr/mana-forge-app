@@ -1,6 +1,6 @@
 package com.manaforge.api.controller;
 
-import com.manaforge.api.dto.UserDto;
+import com.manaforge.api.dto.PublicUserDto;
 import com.manaforge.api.model.mongo.Follow;
 import com.manaforge.api.model.mongo.User;
 import com.manaforge.api.repository.FollowRepository;
@@ -47,15 +47,8 @@ public class FollowController {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED));
     }
 
-    private UserDto toDto(User u) {
-        return UserDto.builder()
-                .userId(u.getId())
-                .name(u.getName())
-                .username(u.getUsername())
-                .email(emailEncryptionService.decrypt(u.getEmail()))
-                .biography(u.getBiography())
-                .avatar(u.getAvatar())
-                .build();
+    private PublicUserDto toDto(User u) {
+        return PublicUserDto.from(u);
     }
 
     // ── Endpoints ────────────────────────────────────────────────────────────
@@ -90,9 +83,9 @@ public class FollowController {
 
     /** Usuarios que sigo */
     @GetMapping("/following")
-    public ResponseEntity<List<UserDto>> getFollowing() {
+    public ResponseEntity<List<PublicUserDto>> getFollowing() {
         User me = getAuthenticatedUser();
-        List<UserDto> following = followRepository.findByFollowerId(me.getId()).stream()
+        List<PublicUserDto> following = followRepository.findByFollowerId(me.getId()).stream()
                 .map(f -> userRepository.findById(f.getFollowingId()).map(this::toDto).orElse(null))
                 .filter(u -> u != null)
                 .toList();
@@ -101,9 +94,9 @@ public class FollowController {
 
     /** Usuarios que me siguen */
     @GetMapping("/followers")
-    public ResponseEntity<List<UserDto>> getFollowers() {
+    public ResponseEntity<List<PublicUserDto>> getFollowers() {
         User me = getAuthenticatedUser();
-        List<UserDto> followers = followRepository.findByFollowingId(me.getId()).stream()
+        List<PublicUserDto> followers = followRepository.findByFollowingId(me.getId()).stream()
                 .map(f -> userRepository.findById(f.getFollowerId()).map(this::toDto).orElse(null))
                 .filter(u -> u != null)
                 .toList();

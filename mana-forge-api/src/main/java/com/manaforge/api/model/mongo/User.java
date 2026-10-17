@@ -32,6 +32,7 @@ public class User {
     private Tier tier = Tier.FREE;
     private AccountStatus status;
     private Instant createdAt;
+    private Instant updatedAt;
     private Instant lastLoginAt;
     private Boolean newsletterSubscribed = false;
     private Instant newsletterConsentAt;

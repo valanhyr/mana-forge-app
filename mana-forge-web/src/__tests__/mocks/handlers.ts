@@ -12,6 +12,16 @@ export const mockUser = {
   biography: 'Bio',
   friends: [],
   avatar: 'ava1.jpg',
+  pendingEmail: null,
+  canChangeEmail: true,
+  createdAt: null,
+  updatedAt: null,
+  lastLoginAt: null,
+};
+
+export const mockPublicUser = {
+  userId: mockUser.userId, name: mockUser.name, username: mockUser.username,
+  biography: mockUser.biography, avatar: mockUser.avatar,
 };
 
 export const mockDeck = {
@@ -88,7 +98,7 @@ export const mockCard = {
 export const handlers = [
   // Auth
   http.post(`${BASE}/users/login`, () => HttpResponse.json(mockUser)),
-  http.post(`${BASE}/users`, () => HttpResponse.json(mockUser, { status: 201 })),
+  http.post(`${BASE}/users`, () => HttpResponse.json(mockPublicUser, { status: 201 })),
   http.get(`${BASE}/users/me`, () => HttpResponse.json(mockUser)),
   http.get(`${BASE}/users/username/:username`, ({ params }) => {
     if (params.username === mockUser.username) {

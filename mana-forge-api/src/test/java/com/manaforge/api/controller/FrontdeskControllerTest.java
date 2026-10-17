@@ -176,7 +176,7 @@ class FrontdeskControllerTest {
     void userResponseDoesNotExposeCredentials() throws Exception {
         when(users.get("u1")).thenReturn(new UserView("u1", "user@example.com", "customer", "ava1.jpg",
                 User.Tier.FREE, null, null, User.AccountStatus.ACTIVE,
-                new UserStats(0, 2, 25, "DAILY", null, null, null), List.of(), 0));
+                new UserStats(0, 2, 25, "DAILY", null, null, null), List.of(), 0, null));
         mvc.perform(get("/api/frontdesk/users/u1").with(user("operator")))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.email").value("user@example.com"))
                 .andExpect(jsonPath("$.stats.aiQuotaPeriod").value("DAILY"))

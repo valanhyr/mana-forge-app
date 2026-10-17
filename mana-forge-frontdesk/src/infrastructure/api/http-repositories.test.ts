@@ -46,6 +46,7 @@ describe('HTTP adapters', () => {
     expect(user?.stats.aiQueriesToday).toBe(4);
     expect(user?.stats.aiQueriesThisMonth).toBeNull();
     expect(user?.createdAt).toBeNull();
+    expect(user?.updatedAt).toBeNull();
   });
 
   it('does not attempt unsupported campaigns or append arbitrary audit events', async () => {

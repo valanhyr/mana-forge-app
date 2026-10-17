@@ -52,9 +52,12 @@ class FrontdeskUserServiceTest {
 
     @Test
     void statusUpdateIsPartialAndAudited() {
+        when(users.patchUser(eq("u1"), anyMap(), anyMap())).thenAnswer(call -> {
+            user.setStatus(User.AccountStatus.BANNED); user.setActive(false); return user;
+        });
         var result = service.updateStatus("u1", User.AccountStatus.BANNED, operator);
         assertThat(result.status()).isEqualTo(User.AccountStatus.BANNED);
-        verify(mongo).updateFirst(any(), any(), eq(User.class));
+        verify(users).patchUser(eq("u1"), eq(java.util.Map.of("status", User.AccountStatus.BANNED, "active", false)), eq(java.util.Map.of()));
         verify(users, never()).save(any());
         verify(audit).record(same(operator), eq("u1"), eq("customer"), eq(AuditEvent.Action.USER_STATUS_UPDATE), anyString(), anyMap());
     }

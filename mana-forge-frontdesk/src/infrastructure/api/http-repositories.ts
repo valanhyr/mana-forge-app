@@ -1,5 +1,5 @@
 import { Ticket, normalizeTicket } from '../../core/domain/ticket';
-import { User360 } from '../../core/domain/user';
+import { User360, normalizeUser360 } from '../../core/domain/user';
 import { AuditEntry } from '../../core/domain/audit';
 import { EmailDelivery, EmailTemplate, SendBroadcastPayload, SendEmailPayload } from '../../core/domain/email';
 import { PageRequest, PageResult } from '../../core/domain/page';
@@ -46,14 +46,20 @@ export class HttpTicketRepository implements ITicketRepository {
 
 export class HttpUserRepository implements IUserRepository {
   constructor(private readonly client: ApiClient) {}
-  searchPage(query: string, pagination: PageRequest) { return this.client.page<User360>('/frontdesk/users', { query, ...pagination }); }
-  async search(query: string) { return (await this.searchPage(query, { page: 0, size: 25 })).items; }
-  getById(id: string) { return this.client.nullable<User360>(`/frontdesk/users/${idPath(id)}`); }
-  updateStatus(userId: string, status: User360['status']) {
-    return this.client.request<User360>(`/frontdesk/users/${idPath(userId)}/status`, { method: 'PATCH', body: { status } });
+  async searchPage(query: string, pagination: PageRequest) {
+    const page = await this.client.page<User360>('/frontdesk/users', { query, ...pagination });
+    return { ...page, items: page.items.map(normalizeUser360) };
   }
-  resetAiQuota(userId: string) {
-    return this.client.request<User360>(`/frontdesk/users/${idPath(userId)}/ai-quota/reset`, { method: 'POST' });
+  async search(query: string) { return (await this.searchPage(query, { page: 0, size: 25 })).items; }
+  async getById(id: string) {
+    const user = await this.client.nullable<User360>(`/frontdesk/users/${idPath(id)}`);
+    return user ? normalizeUser360(user) : null;
+  }
+  async updateStatus(userId: string, status: User360['status']) {
+    return normalizeUser360(await this.client.request<User360>(`/frontdesk/users/${idPath(userId)}/status`, { method: 'PATCH', body: { status } }));
+  }
+  async resetAiQuota(userId: string) {
+    return normalizeUser360(await this.client.request<User360>(`/frontdesk/users/${idPath(userId)}/ai-quota/reset`, { method: 'POST' }));
   }
 }
 

@@ -25,7 +25,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 
-import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Optional;
 
@@ -57,6 +56,40 @@ class UserControllerTest {
 
     private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
     private User mockUser;
+
+    @Test
+    @org.junit.jupiter.api.extension.ExtendWith(org.springframework.boot.test.system.OutputCaptureExtension.class)
+    void invalidRegistrationDoesNotLogOrEchoPassword(org.springframework.boot.test.system.CapturedOutput output) throws Exception {
+        String secret = "s3cr!";
+        mockMvc.perform(post("/api/users").contentType(MediaType.APPLICATION_JSON)
+                .content("{\"username\":\"new-user\",\"email\":\"test@example.com\",\"password\":\"" + secret + "\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().string(org.hamcrest.Matchers.not(org.hamcrest.Matchers.containsString(secret))));
+        org.assertj.core.api.Assertions.assertThat(output.getAll()).doesNotContain(secret);
+    }
+
+    @Test
+    void registrationIgnoresFriendsAndPendingEmail() throws Exception {
+        when(userRepository.save(any())).thenAnswer(call -> call.getArgument(0));
+        mockMvc.perform(post("/api/users").contentType(MediaType.APPLICATION_JSON).content("""
+                {"username":"new-user","email":"test@example.com","password":"pass123",
+                 "friends":["victim"],"pendingEmail":"forged","validated":true}
+                """))
+                .andExpect(status().isCreated());
+        verify(userRepository).save(argThat(user -> user.getFriends().length == 0
+                && user.getPendingEmail() == null && Boolean.FALSE.equals(user.getValidated())));
+    }
+
+    @Test
+    void registrationRequiresAValidEmail() throws Exception {
+        when(userRepository.save(any())).thenAnswer(call -> call.getArgument(0));
+        for (String email : List.of("", "not-an-email")) {
+            mockMvc.perform(post("/api/users").contentType(MediaType.APPLICATION_JSON)
+                    .content("{\"username\":\"new-user\",\"password\":\"pass123\",\"email\":\"" + email + "\"}"))
+                    .andExpect(status().isBadRequest());
+        }
+        verify(userRepository, never()).save(any());
+    }
 
     @Test
     void registrationCannotChooseOperatorIdPaidTierOrModerationState() throws Exception {
@@ -102,6 +135,16 @@ class UserControllerTest {
 
         when(emailEncryptionService.encrypt(PLAIN_EMAIL)).thenReturn(ENC_EMAIL);
         when(emailEncryptionService.decrypt(ENC_EMAIL)).thenReturn(PLAIN_EMAIL);
+        when(userRepository.updateLastLoginAt(eq("user1"), any())).thenAnswer(call -> {
+            mockUser.setLastLoginAt(call.getArgument(1));
+            mockUser.setUpdatedAt(mockUser.getLastLoginAt());
+            return mockUser;
+        });
+        when(userRepository.patchUser(eq("user1"), anyMap(), anyMap())).thenAnswer(call -> {
+            java.util.Map<String, Object> changes = call.getArgument(1);
+            changes.forEach((field, value) -> org.springframework.test.util.ReflectionTestUtils.setField(mockUser, field, value));
+            return mockUser;
+        });
     }
 
     private UsernamePasswordAuthenticationToken mockAuth() {
@@ -381,9 +424,8 @@ class UserControllerTest {
                         .content("{\"email\":\"new@example.com\",\"currentPassword\":\"password123\"}"))
                 .andExpect(status().isOk());
 
-        verify(userRepository).save(argThat(user ->
-                hasFieldValue(user, "pendingEmail", "ENC_new")
-                        && user.getVerificationToken() != null));
+        verify(userRepository).patchUser(eq("user1"), argThat(changes ->
+                "ENC_new".equals(changes.get("pendingEmail")) && changes.get("verificationToken") != null), anyMap());
 
         Assertions.assertTrue(emailChangeVerificationWasSent("new@example.com"));
     }
@@ -487,9 +529,8 @@ class UserControllerTest {
                         .content("{\"email\":\"new@example.com\",\"currentPassword\":\"password123\"}"))
                 .andExpect(status().isOk());
 
-        verify(userRepository).save(argThat(user ->
-                hasFieldValue(user, "pendingEmail", "ENC_new")
-                        && user.getVerificationToken() != null));
+        verify(userRepository).patchUser(eq("user1"), argThat(changes ->
+                "ENC_new".equals(changes.get("pendingEmail")) && changes.get("verificationToken") != null), anyMap());
     }
 
     @Test
@@ -606,9 +647,8 @@ class UserControllerTest {
                         .content("{\"currentPassword\":\"password123\",\"newPassword\":\"newpass123\"}"))
                 .andExpect(status().isNoContent());
 
-        verify(userRepository).save(argThat(u -> u.getPassword() != null
-                && u.getPassword().startsWith("$2")
-                && encoder.matches("newpass123", u.getPassword())));
+        verify(userRepository).patchUser(eq("user1"), argThat(changes -> changes.get("password") instanceof String hash
+                && hash.startsWith("$2") && encoder.matches("newpass123", hash)), anyMap());
 
         Assertions.assertTrue(passwordChangeNotificationWasSent(),
                 "expected a password change notification email");
@@ -708,17 +748,6 @@ class UserControllerTest {
                 .anyMatch(invocation -> invocation.getMethod().getName().equals("sendPasswordChangedNotificationEmail")
                         && invocation.getArguments().length == 1
                         && invocation.getArguments()[0] instanceof User);
-    }
-
-    private boolean hasFieldValue(User user, String fieldName, String expectedValue) {
-        try {
-            Field field = User.class.getDeclaredField(fieldName);
-            field.setAccessible(true);
-            Object actualValue = field.get(user);
-            return expectedValue.equals(actualValue);
-        } catch (ReflectiveOperationException ex) {
-            return false;
-        }
     }
 
 }

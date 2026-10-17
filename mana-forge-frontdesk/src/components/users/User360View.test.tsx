@@ -24,6 +24,20 @@ const mockUser: User360 = {
 };
 
 describe('User360View', () => {
+  it('renders a known modification date with the Spanish label', () => {
+    localStorage.setItem('app_locale', 'es');
+    try {
+      const updatedAt = '2026-10-17T10:15:00Z';
+      render(<User360View user={{ ...mockUser, updatedAt }} onResetQuota={vi.fn()} onUpdateStatus={vi.fn()} />);
+      expect(screen.getByText('Última modificación')).toBeInTheDocument();
+      expect(screen.getByText(new Date(updatedAt).toLocaleString())).toBeInTheDocument();
+    } finally { localStorage.removeItem('app_locale'); }
+  });
+  it('shows modification separately from creation and login, with an unknown fallback', () => {
+    render(<User360View user={mockUser} onResetQuota={vi.fn()} onUpdateStatus={vi.fn()} />);
+    expect(screen.getByText('Last Modified')).toBeInTheDocument();
+    expect(screen.getByText('Not recorded')).toBeInTheDocument();
+  });
   it('should render user statistics and tier badge', () => {
     render(<User360View user={mockUser} onResetQuota={vi.fn()} onUpdateStatus={vi.fn()} />);
     expect(screen.getByText('Urza')).toBeInTheDocument();
@@ -45,7 +59,7 @@ describe('User360View', () => {
       stats: { ...mockUser.stats, aiQuotaPeriod: 'DAILY', aiQueriesToday: 3, aiQueriesThisMonth: null, failedImportsCount: null } }}
       onResetQuota={vi.fn()} onUpdateStatus={vi.fn()} />);
     expect(screen.getByText('Daily AI Quota')).toBeInTheDocument();
-    expect(screen.getAllByText('Not recorded')).toHaveLength(3);
+    expect(screen.getAllByText('Not recorded')).toHaveLength(4);
     expect(screen.queryByText(/1970/)).not.toBeInTheDocument();
     expect(screen.queryByText('95')).not.toBeInTheDocument();
   });

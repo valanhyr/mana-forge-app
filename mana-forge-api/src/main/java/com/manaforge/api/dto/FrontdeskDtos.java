@@ -43,7 +43,7 @@ public final class FrontdeskDtos {
     public record DeckSummary(String id, String name, String format, int cardCount, Instant updatedAt) {}
     public record UserView(String id, String email, String username, String avatarUrl, User.Tier tier,
                            Instant createdAt, Instant lastLoginAt, User.AccountStatus status,
-                           UserStats stats, List<DeckSummary> recentDecks, long openTicketsCount) {}
+                           UserStats stats, List<DeckSummary> recentDecks, long openTicketsCount, Instant updatedAt) {}
     public record EmailTemplate(String id, String title, String category, String subject,
                                 String bodyTemplate, List<String> availableMacros) {}
     public record RenderTemplate(@NotNull @Size(max = 30) Map<@Size(max = 100) String,

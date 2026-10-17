@@ -1,5 +1,8 @@
 {
   "en": {
+    "accountCreated": "Account Created",
+    "lastLogin": "Last Login",
+    "lastModified": "Last Modified",
     "originLabel": "Origin",
     "originSupportWeb": "Authenticated web support",
     "originContactForm": "Contact form",
@@ -130,6 +133,9 @@
     "auditEmailFailures": "Email Failures"
   },
   "es": {
+    "accountCreated": "Creación de la cuenta",
+    "lastLogin": "Último inicio de sesión",
+    "lastModified": "Última modificación",
     "originLabel": "Origen",
     "originSupportWeb": "Soporte web autenticado",
     "originContactForm": "Formulario de contacto",

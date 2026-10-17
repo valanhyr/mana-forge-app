@@ -15,7 +15,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
-import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -57,7 +56,7 @@ public class FrontdeskUserService {
         String avatarUrl = frontendUrl.replaceAll("/$", "") + "/images/avatars/" + avatar;
         return new UserView(user.getId(), encryption.decrypt(user.getEmail()), user.getUsername(), avatarUrl,
                 user.getTier() == null ? User.Tier.FREE : user.getTier(), user.getCreatedAt(), user.getLastLoginAt(),
-                user.effectiveStatus(), stats, recent, open);
+                user.effectiveStatus(), stats, recent, open, user.getUpdatedAt());
     }
 
     public UserView updateStatus(String id, User.AccountStatus status, User operator) {
@@ -67,13 +66,10 @@ public class FrontdeskUserService {
         User user = requireUser(id);
         User.AccountStatus previous = user.effectiveStatus();
         // Partial update: do not overwrite a concurrent password/email/profile change.
-        mongo.updateFirst(Query.query(Criteria.where("_id").is(id)),
-                new Update().set("status", status).set("active", status == User.AccountStatus.ACTIVE), User.class);
-        user.setStatus(status);
-        user.setActive(status == User.AccountStatus.ACTIVE);
+        User saved = users.patchUser(id, Map.of("status", status, "active", status == User.AccountStatus.ACTIVE), Map.of());
         audit.record(operator, id, user.getUsername(), AuditEvent.Action.USER_STATUS_UPDATE,
                 previous + " -> " + status, Map.of());
-        return view(user);
+        return view(saved);
     }
 
     public UserView resetQuota(String id, User operator) {

@@ -16,6 +16,8 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -26,6 +28,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.manaforge.api.dto.PublicUserDto;
+import com.manaforge.api.dto.RegisterUserRequest;
 import com.manaforge.api.dto.UserDto;
 import com.manaforge.api.model.mongo.User;
 import com.manaforge.api.model.mongo.AuditEvent;
@@ -36,8 +39,10 @@ import com.manaforge.api.service.FrontdeskAuditService;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 
 import java.util.Map;
+import java.util.HashMap;
 import java.util.regex.Pattern;
 import java.util.UUID;
 import java.time.Instant;
@@ -101,13 +106,7 @@ public class UserController {
     }
 
     private PublicUserDto toPublicUser(User user) {
-        return PublicUserDto.builder()
-                .userId(user.getId())
-                .name(user.getName())
-                .username(user.getUsername())
-                .biography(user.getBiography())
-                .avatar(user.getAvatar())
-                .build();
+        return PublicUserDto.from(user);
     }
 
     private UserDto toDto(User user) {
@@ -125,6 +124,9 @@ public class UserController {
                 .pendingEmail(decryptedPendingEmail)
                 .canChangeEmail(canChangeEmail)
                 .newsletterSubscribed(Boolean.TRUE.equals(user.getNewsletterSubscribed()))
+                .createdAt(user.getCreatedAt())
+                .updatedAt(user.getUpdatedAt())
+                .lastLoginAt(user.getLastLoginAt())
                 .build();
     }
 
@@ -153,14 +155,14 @@ public class UserController {
     @GetMapping("/username/{username}")
     public ResponseEntity<PublicUserDto> getByUsername(@PathVariable String username) {
         return userRepository.findByUsername(username)
-                .map(user -> ResponseEntity.ok(PublicUserDto.builder()
-                        .userId(user.getId())
-                        .name(user.getName())
-                        .username(user.getUsername())
-                        .biography(user.getBiography())
-                        .avatar(user.getAvatar())
-                        .build()))
+                .map(user -> ResponseEntity.ok(toPublicUser(user)))
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    /** Do not let the default resolver log rejected credential values from Bean Validation. */
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<Map<String, String>> invalidRegistration() {
+        return ResponseEntity.badRequest().body(Map.of("code", "BAD_REQUEST", "message", "Invalid registration"));
     }
 
     @GetMapping("/me")
@@ -169,7 +171,15 @@ public class UserController {
     }
 
     @PostMapping
-    public ResponseEntity<PublicUserDto> create(@RequestBody User user) {
+    public ResponseEntity<PublicUserDto> create(@Valid @RequestBody RegisterUserRequest req) {
+        User user = new User();
+        user.setUsername(req.username());
+        user.setEmail(req.email());
+        user.setPassword(req.password());
+        user.setName(req.name());
+        user.setBiography(req.biography());
+        user.setAvatar(req.avatar());
+        user.setBetaAccepted(req.betaAccepted());
         if (user.getUsername() == null || user.getUsername().trim().isEmpty()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Username is required");
         }
@@ -216,7 +226,8 @@ public class UserController {
         user.setTier(User.Tier.FREE);
         user.setStatus(User.AccountStatus.ACTIVE);
         user.setActive(true);
-        user.setCreatedAt(Instant.now());
+        user.setCreatedAt(Instant.now().truncatedTo(java.time.temporal.ChronoUnit.MILLIS));
+        user.setUpdatedAt(user.getCreatedAt());
         user.setLastLoginAt(null);
         // Marketing consent is granted separately by an authenticated, verified account.
         user.setNewsletterSubscribed(false);
@@ -235,23 +246,26 @@ public class UserController {
 
     @GetMapping("/verify")
     public ResponseEntity<Void> verifyEmail(@RequestParam String token) {
-        log.info("Verifying token: {}", token);
         var userOpt = userRepository.findByVerificationToken(token);
-        log.info("User found: {}", userOpt.isPresent());
         if (userOpt.isPresent()) {
             var user = userOpt.get();
+            Map<String, Object> changes = new HashMap<>();
+            Map<String, Object> expected = new HashMap<>();
+            expected.put("verificationToken", token);
+            expected.put("pendingEmail", user.getPendingEmail());
+            expected.put("email", user.getEmail());
             if (user.getPendingEmail() != null) {
-                user.setEmail(user.getPendingEmail());
-                user.setPendingEmail(null);
+                changes.put("email", user.getPendingEmail());
+                changes.put("pendingEmail", null);
                 // Consent was given for the previous address, not this newly verified one.
-                user.setNewsletterSubscribed(false);
-                user.setNewsletterConsentAt(null);
-                user.setNewsletterTokenHash(null);
-                user.setNewsletterTokenEncrypted(null);
+                changes.put("newsletterSubscribed", false);
+                changes.put("newsletterConsentAt", null);
+                changes.put("newsletterTokenHash", null);
+                changes.put("newsletterTokenEncrypted", null);
             }
-            user.setValidated(true);
-            user.setVerificationToken(null);
-            userRepository.save(user);
+            changes.put("validated", true);
+            changes.put("verificationToken", null);
+            userRepository.patchUser(user.getId(), changes, expected);
             return ResponseEntity.<Void>ok().build();
         }
         return ResponseEntity.<Void>notFound().build();
@@ -269,8 +283,7 @@ public class UserController {
                         return ResponseEntity.status(HttpStatus.FORBIDDEN)
                                 .body(Map.of("error", "EMAIL_NOT_VERIFIED"));
                     }
-                    user.setLastLoginAt(Instant.now());
-                    userRepository.updateLastLoginAt(user.getId(), user.getLastLoginAt());
+                    User saved = userRepository.updateLastLoginAt(user.getId(), Instant.now());
                     if (frontdeskAudit != null) {
                         frontdeskAudit.record(new AuditEvent.Actor(
                                 user.getId(), user.getUsername(), "USER"), user.getId(), user.getUsername(),
@@ -291,7 +304,7 @@ public class UserController {
 
                     return ResponseEntity.ok()
                             .header(HttpHeaders.SET_COOKIE, cookie.toString())
-                            .body(toDto(user));
+                            .body(toDto(saved));
                 })
                 .orElse(ResponseEntity.status(401).build());
     }
@@ -302,15 +315,19 @@ public class UserController {
             HttpServletRequest request,
             HttpServletResponse response) {
         User user = getAuthenticatedUser();
+        Map<String, Object> changes = new HashMap<>();
+        Map<String, Object> expected = new HashMap<>();
+        String emailToVerify = null;
+        boolean usernameChanged = false;
 
         if (req.getBiography() != null) {
-            user.setBiography(req.getBiography().trim());
+            changes.put("biography", req.getBiography().trim());
         }
         if (req.getAvatar() != null) {
-            user.setAvatar(normalizeAvatar(req.getAvatar()));
+            changes.put("avatar", normalizeAvatar(req.getAvatar()));
         }
         if (req.getBetaAccepted() != null) {
-            user.setBetaAccepted(req.getBetaAccepted());
+            changes.put("betaAccepted", req.getBetaAccepted());
         }
 
         if (req.getUsername() != null) {
@@ -323,16 +340,9 @@ public class UserController {
                 if (existingUser.isPresent() && !existingUser.get().getId().equals(user.getId())) {
                     throw new ResponseStatusException(HttpStatus.CONFLICT, "El nombre de usuario ya está en uso");
                 }
-                user.setUsername(newUsername);
-                
-                // Update SecurityContext with new username
-                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                    newUsername, null, AuthorityUtils.createAuthorityList("ROLE_USER")
-                );
-                SecurityContext context = SecurityContextHolder.createEmptyContext();
-                context.setAuthentication(authentication);
-                SecurityContextHolder.setContext(context);
-                securityContextRepository.saveContext(context, request, response);
+                changes.put("username", newUsername);
+                expected.put("username", user.getUsername());
+                usernameChanged = true;
             }
         }
 
@@ -358,14 +368,27 @@ public class UserController {
                 if (userRepository.findByEmail(encryptedNewEmail).isPresent()) {
                     throw new ResponseStatusException(HttpStatus.CONFLICT, "El correo electrónico ya está registrado");
                 }
-                user.setPendingEmail(encryptedNewEmail);
-                user.setVerificationToken(UUID.randomUUID().toString());
-                emailService.sendEmailChangeVerificationEmail(user, newEmail);
+                expected.put("password", user.getPassword());
+                expected.put("email", user.getEmail());
+                expected.put("pendingEmail", user.getPendingEmail());
+                expected.put("verificationToken", user.getVerificationToken());
+                changes.put("pendingEmail", encryptedNewEmail);
+                changes.put("verificationToken", UUID.randomUUID().toString());
+                emailToVerify = newEmail;
             }
         }
 
-        userRepository.save(user);
-        return ResponseEntity.ok(toDto(user));
+        User saved = userRepository.patchUser(user.getId(), changes, expected);
+        if (usernameChanged) {
+            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                    saved.getUsername(), null, AuthorityUtils.createAuthorityList("ROLE_USER"));
+            SecurityContext context = SecurityContextHolder.createEmptyContext();
+            context.setAuthentication(authentication);
+            SecurityContextHolder.setContext(context);
+            securityContextRepository.saveContext(context, request, response);
+        }
+        if (emailToVerify != null) emailService.sendEmailChangeVerificationEmail(saved, emailToVerify);
+        return ResponseEntity.ok(toDto(saved));
     }
 
     @PostMapping("/logout")
@@ -413,15 +436,15 @@ public class UserController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "New password must be different from the current one");
         }
 
-        user.setPassword(passwordEncoder.encode(req.getNewPassword()));
-        userRepository.save(user);
+        User saved = userRepository.patchUser(user.getId(), Map.of("password", passwordEncoder.encode(req.getNewPassword())),
+                Map.of("password", user.getPassword()));
 
         // Rotate the session id so a cookie captured before the change cannot be replayed.
         if (request.getSession(false) != null) {
             request.changeSessionId();
         }
 
-        emailService.sendPasswordChangedNotificationEmail(user);
+        emailService.sendPasswordChangedNotificationEmail(saved);
 
         return ResponseEntity.noContent().build();
     }

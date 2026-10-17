@@ -22,7 +22,7 @@ class NewsletterServiceTest {
 
     @BeforeEach void setUp() {
         // Reuse the repository-test context instead of starting another memory-heavy mongod.
-        service = new NewsletterService(mongo, encryption, "http://localhost:5173");
+        service = new NewsletterService(mongo, users, encryption, "http://localhost:5173");
         users.deleteAll();
         when(encryption.encrypt(anyString())).thenAnswer(call -> "ENC:" + call.getArgument(0));
         when(encryption.decrypt(anyString())).thenAnswer(call -> ((String) call.getArgument(0)).substring(4));
@@ -37,6 +37,28 @@ class NewsletterServiceTest {
         User user = account("old");
         assertThat(user.getNewsletterSubscribed()).isFalse();
         assertThat(service.subscribers(null, null, 0, 25).items()).isEmpty();
+    }
+
+    @Test void legacyMissingPreferenceCanSubscribeWithoutBackfillingCreation() {
+        User user = account("legacy-fields");
+        mongo.updateFirst(org.springframework.data.mongodb.core.query.Query.query(
+                org.springframework.data.mongodb.core.query.Criteria.where("_id").is(user.getId())),
+                new org.springframework.data.mongodb.core.query.Update().unset("newsletterSubscribed"), User.class);
+        user = users.findById(user.getId()).orElseThrow();
+        service.setPreference(user, true);
+        User saved = users.findById(user.getId()).orElseThrow();
+        assertThat(saved.getNewsletterSubscribed()).isTrue();
+        assertThat(saved.getUpdatedAt()).isNotNull();
+        assertThat(saved.getCreatedAt()).isNull();
+    }
+
+    @Test void stalePreferenceCannotOverwriteAConsentForANewEmail() {
+        User snapshot = account("customer");
+        User changed = users.findById(snapshot.getId()).orElseThrow();
+        changed.setEmail("ENC:new@example.com"); users.save(changed);
+        assertThatThrownBy(() -> service.setPreference(snapshot, true))
+                .isInstanceOf(org.springframework.web.server.ResponseStatusException.class);
+        assertThat(users.findById(snapshot.getId()).orElseThrow().getNewsletterSubscribed()).isFalse();
     }
 
     @Test void consentPersistsOnlyPreferenceFieldsAndUnsubscribeIsIdempotent() {

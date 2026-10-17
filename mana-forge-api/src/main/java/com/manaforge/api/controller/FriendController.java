@@ -1,6 +1,6 @@
 package com.manaforge.api.controller;
 
-import com.manaforge.api.dto.UserDto;
+import com.manaforge.api.dto.PublicUserDto;
 import com.manaforge.api.model.mongo.FriendRequest;
 import com.manaforge.api.model.mongo.User;
 import com.manaforge.api.repository.FriendRequestRepository;
@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Arrays;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -49,28 +48,21 @@ public class FriendController {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED));
     }
 
-    private UserDto toDto(User u) {
-        return UserDto.builder()
-                .userId(u.getId())
-                .name(u.getName())
-                .username(u.getUsername())
-                .email(emailEncryptionService.decrypt(u.getEmail()))
-                .biography(u.getBiography())
-                .avatar(u.getAvatar())
-                .build();
+    private PublicUserDto toDto(User u) {
+        return PublicUserDto.from(u);
     }
 
     // ── Endpoints ────────────────────────────────────────────────────────────
 
     /** Lista de amigos aceptados del usuario autenticado */
     @GetMapping
-    public ResponseEntity<List<UserDto>> getFriends() {
+    public ResponseEntity<List<PublicUserDto>> getFriends() {
         User me = getAuthenticatedUser();
         String[] friendIds = me.getFriends();
         if (friendIds == null || friendIds.length == 0) {
             return ResponseEntity.ok(List.of());
         }
-        List<UserDto> friends = userRepository.findAllById(Arrays.asList(friendIds))
+        List<PublicUserDto> friends = userRepository.findAllById(Arrays.asList(friendIds))
                 .stream().map(this::toDto).toList();
         return ResponseEntity.ok(friends);
     }
@@ -83,7 +75,7 @@ public class FriendController {
                 .findByReceiverIdAndStatus(me.getId(), "PENDING");
 
         List<Map<String, Object>> result = requests.stream().map(req -> {
-            UserDto sender = userRepository.findById(req.getSenderId())
+            PublicUserDto sender = userRepository.findById(req.getSenderId())
                     .map(this::toDto).orElse(null);
             return Map.<String, Object>of(
                     "requestId", req.getId(),
@@ -103,7 +95,7 @@ public class FriendController {
                 .findBySenderIdAndStatus(me.getId(), "PENDING");
 
         List<Map<String, Object>> result = requests.stream().map(req -> {
-            UserDto receiver = userRepository.findById(req.getReceiverId())
+            PublicUserDto receiver = userRepository.findById(req.getReceiverId())
                     .map(this::toDto).orElse(null);
             return Map.<String, Object>of(
                     "requestId", req.getId(),
@@ -200,10 +192,10 @@ public class FriendController {
 
     /** Buscar usuarios por username (para añadir amigos) */
     @GetMapping("/search")
-    public ResponseEntity<List<UserDto>> searchUsers(@RequestParam String q) {
+    public ResponseEntity<List<PublicUserDto>> searchUsers(@RequestParam String q) {
         if (q == null || q.length() < 2) return ResponseEntity.ok(List.of());
         User me = getAuthenticatedUser();
-        List<UserDto> results = userRepository.findAll().stream()
+        List<PublicUserDto> results = userRepository.findAll().stream()
                 .filter(u -> !u.getId().equals(me.getId()))
                 .filter(u -> u.getUsername() != null && u.getUsername().toLowerCase().contains(q.toLowerCase()))
                 .limit(10)
@@ -215,21 +207,10 @@ public class FriendController {
     // ── Private helpers ──────────────────────────────────────────────────────
 
     private void addFriend(User user, String friendId) {
-        List<String> friends = new ArrayList<>(
-                user.getFriends() != null ? Arrays.asList(user.getFriends()) : List.of()
-        );
-        if (!friends.contains(friendId)) {
-            friends.add(friendId);
-            user.setFriends(friends.toArray(new String[0]));
-            userRepository.save(user);
-        }
+        userRepository.addFriend(user.getId(), friendId);
     }
 
     private void removeFriendFromUser(User user, String friendId) {
-        if (user.getFriends() == null) return;
-        List<String> friends = new ArrayList<>(Arrays.asList(user.getFriends()));
-        friends.remove(friendId);
-        user.setFriends(friends.toArray(new String[0]));
-        userRepository.save(user);
+        userRepository.removeFriend(user.getId(), friendId);
     }
 }

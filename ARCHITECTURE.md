@@ -488,6 +488,27 @@ User → Frontend → Backend → Couchbase (hit/miss)
 - Las cookies de sesión tienen `HttpOnly`, `Secure`, `SameSite=Lax` configurados en `application.yaml`.
 - Cache invalidation endpoints (`DELETE /api/*/cache`) requieren autenticación — no son accesibles de forma anónima.
 
+### Contratos y fechas de cuentas
+
+- Las cuentas viven en `users` de MongoDB, no en Directus. El registro usa un DTO
+  permitido; nunca deserializa campos internos de persistencia desde el cliente.
+- Las proyecciones públicas/sociales, incluidas solicitudes y conversaciones,
+  excluyen email, fechas y capacidades privadas. Perfil propio y Frontdesk son
+  contratos diferentes; conservar email en el backoffice no autoriza compartirlo
+  con otros usuarios de la web.
+- `createdAt` es el alta inmutable, `updatedAt` la modificación efectiva del documento
+  (también login), y `lastLoginAt` el último login aceptado, no la última visita.
+  No hay `lastSeenAt`. Fechas históricas desconocidas siguen nulas; ObjectId no es
+  prueba de alta y una lectura no rellena documentos.
+- Las escrituras de usuario existentes usan updates acotados, fechas monotónicas
+  y condiciones para contraseña/token/email/consentimiento obsoletos, no reemplazos
+  completos de una lectura anterior. Esto evita restaurar un baneo o consentimiento
+  durante otra edición, pero no introduce transacciones entre documentos ni con SMTP.
+- No se aplican índices únicos ni migraciones automáticamente. La unicidad de
+  username/email necesita comprobar los índices reales y sus duplicados, no basta
+  con un `find` previo. Detalles y diagnóstico preparado, aún sin acceso a la base
+  real: `docs/user-data-contracts.md`; especificación: `docs/specs/user-data-contracts/`.
+
 ### Backoffice Frontdesk
 - `/api/frontdesk/**` es privado, incluso sus lecturas: su regla de autorización precede al `GET /api/**` público. Una lista de IDs Mongo en `FRONTDESK_OPERATOR_IDS` concede acceso solo a cuentas verificadas y activas; vacía deniega todo acceso. No se aceptan roles de operador desde el registro público.
 - Las mutaciones del backoffice requieren el token de `GET /api/frontdesk/csrf` en `X-CSRF-TOKEN`, además de la sesión. El resto de endpoints mantiene su comportamiento anterior. `FRONTDESK_URL` añade únicamente el origen CORS exacto del backoffice.

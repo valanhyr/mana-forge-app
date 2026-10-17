@@ -166,6 +166,7 @@ class OAuth2LoginSuccessHandlerTest {
         assertThat(saved.getActive()).isTrue();
         assertThat(saved.getValidated()).isTrue();
         assertThat(saved.getCreatedAt()).isNotNull();
+        assertThat(saved.getUpdatedAt()).isEqualTo(saved.getCreatedAt());
         assertThat(saved.getLastLoginAt()).isEqualTo(saved.getCreatedAt());
     }
 }

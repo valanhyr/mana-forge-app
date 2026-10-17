@@ -15,6 +15,7 @@ export interface User360 {
   avatarUrl?: string;
   tier: UserTier;
   createdAt: string | null;
+  updatedAt?: string | null;
   lastLoginAt: string | null;
   status: 'ACTIVE' | 'SUSPENDED' | 'BANNED';
   stats: {
@@ -29,3 +30,10 @@ export interface User360 {
   recentDecks: UserSummaryDeck[];
   openTicketsCount: number;
 }
+
+export const normalizeUser360 = (user: User360): User360 => ({
+  ...user,
+  createdAt: user.createdAt ?? null,
+  updatedAt: user.updatedAt ?? null,
+  lastLoginAt: user.lastLoginAt ?? null,
+});

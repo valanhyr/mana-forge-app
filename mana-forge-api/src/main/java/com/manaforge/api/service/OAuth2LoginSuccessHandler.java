@@ -71,7 +71,8 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
             newUser.setFriends(new String[0]);
             newUser.setBiography("");
             newUser.setAvatar(User.DEFAULT_AVATAR);
-            newUser.setCreatedAt(Instant.now());
+            newUser.setCreatedAt(Instant.now().truncatedTo(java.time.temporal.ChronoUnit.MILLIS));
+            newUser.setUpdatedAt(newUser.getCreatedAt());
             newUser.setLastLoginAt(newUser.getCreatedAt());
             userRepository.save(newUser);
             user = newUser;
@@ -84,8 +85,7 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
                 response.sendError(403, "Account is not active");
                 return;
             }
-            user.setLastLoginAt(Instant.now());
-            userRepository.updateLastLoginAt(user.getId(), user.getLastLoginAt());
+            user = userRepository.updateLastLoginAt(user.getId(), Instant.now());
         }
 
         if (frontdeskAudit != null) {

@@ -2,6 +2,7 @@ package com.manaforge.api.service;
 
 import com.manaforge.api.dto.FrontdeskDtos.PageResult;
 import com.manaforge.api.model.mongo.User;
+import com.manaforge.api.repository.UserRepository;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.time.Instant;
@@ -10,6 +11,8 @@ import java.util.UUID;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
+import java.util.Map;
+import java.util.HashMap;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -25,24 +28,34 @@ import org.springframework.web.server.ResponseStatusException;
 public class NewsletterService {
     public record Subscriber(String id, String username, String email, User.Tier tier) {}
     private final MongoTemplate mongo;
+    private final UserRepository users;
     private final EmailEncryptionService encryption;
     private final String frontendUrl;
 
-    public NewsletterService(MongoTemplate mongo, EmailEncryptionService encryption,
+    public NewsletterService(MongoTemplate mongo, UserRepository users, EmailEncryptionService encryption,
                              @Value("${services.frontend.url}") String frontendUrl) {
         this.mongo = mongo;
+        this.users = users;
         this.encryption = encryption;
         this.frontendUrl = frontendUrl.replaceAll("/+$", "");
     }
 
     public void setPreference(User user, boolean subscribed) {
-        Update update = new Update().set("newsletterSubscribed", subscribed);
+        Map<String, Object> changes = new HashMap<>();
+        Map<String, Object> expected = new HashMap<>();
+        expected.put("email", user.getEmail());
+        expected.put("newsletterSubscribed", user.getNewsletterSubscribed());
+        expected.put("newsletterTokenHash", user.getNewsletterTokenHash());
+        expected.put("newsletterTokenEncrypted", user.getNewsletterTokenEncrypted());
+        expected.put("newsletterConsentAt", user.getNewsletterConsentAt());
+        changes.put("newsletterSubscribed", subscribed);
         if (subscribed && (!Boolean.TRUE.equals(user.getNewsletterSubscribed()) || user.getNewsletterTokenEncrypted() == null)) {
             String token = UUID.randomUUID().toString();
-            update.set("newsletterConsentAt", Instant.now()).set("newsletterTokenHash", hash(token))
-                    .set("newsletterTokenEncrypted", encryption.encrypt(token));
+            changes.put("newsletterConsentAt", Instant.now().truncatedTo(java.time.temporal.ChronoUnit.MILLIS));
+            changes.put("newsletterTokenHash", hash(token));
+            changes.put("newsletterTokenEncrypted", encryption.encrypt(token));
         }
-        mongo.updateFirst(Query.query(Criteria.where("_id").is(user.getId())), update, User.class);
+        users.patchUser(user.getId(), changes, expected);
     }
 
     public void unsubscribe(String token) {
@@ -50,8 +63,9 @@ public class NewsletterService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid unsubscribe token");
         }
         // Idempotent and non-disclosing: an expired/unknown token gets the same response.
-        mongo.updateFirst(Query.query(Criteria.where("newsletterTokenHash").is(hash(token))),
-                new Update().set("newsletterSubscribed", false), User.class);
+        mongo.updateFirst(Query.query(Criteria.where("newsletterTokenHash").is(hash(token)).and("newsletterSubscribed").is(true)),
+                new Update().set("newsletterSubscribed", false)
+                        .max("updatedAt", Instant.now().truncatedTo(java.time.temporal.ChronoUnit.MILLIS)), User.class);
     }
 
     public static boolean eligible(User user) {

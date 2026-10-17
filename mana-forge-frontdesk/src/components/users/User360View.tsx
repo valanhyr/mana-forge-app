@@ -89,16 +89,22 @@ export const User360View: React.FC<User360ViewProps> = ({
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-5 pt-4 border-t border-slate-800/80">
           <div className="bg-slate-950/50 p-2.5 rounded-lg border border-slate-800/60">
-            <div className="text-[10px] text-slate-500 font-medium">Account Created</div>
+            <div className="text-[10px] text-slate-500 font-medium">{t('accountCreated')}</div>
             <div className="text-xs font-semibold text-slate-200 mt-0.5 flex items-center gap-1">
               <Calendar className="w-3 h-3 text-slate-500" />
               {user.createdAt ? new Date(user.createdAt).toLocaleDateString() : t('unknown')}
             </div>
           </div>
           <div className="bg-slate-950/50 p-2.5 rounded-lg border border-slate-800/60">
-            <div className="text-[10px] text-slate-500 font-medium">Last Login</div>
+            <div className="text-[10px] text-slate-500 font-medium">{t('lastLogin')}</div>
             <div className="text-xs font-semibold text-slate-200 mt-0.5">
               {user.lastLoginAt ? new Date(user.lastLoginAt).toLocaleString() : t('unknown')}
+            </div>
+          </div>
+          <div className="bg-slate-950/50 p-2.5 rounded-lg border border-slate-800/60">
+            <div className="text-[10px] text-slate-500 font-medium">{t('lastModified')}</div>
+            <div className="text-xs font-semibold text-slate-200 mt-0.5">
+              {user.updatedAt ? new Date(user.updatedAt).toLocaleString() : t('unknown')}
             </div>
           </div>
           <div className="bg-slate-950/50 p-2.5 rounded-lg border border-slate-800/60">

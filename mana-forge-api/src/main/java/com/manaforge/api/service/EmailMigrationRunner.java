@@ -33,18 +33,20 @@ public class EmailMigrationRunner implements ApplicationRunner {
                 continue;
             }
             if (email.contains("@")) {
-                user.setEmail(emailEncryptionService.encrypt(email));
-                userRepository.save(user);
-                migrated++;
+                if (userRepository.encryptLegacyEmail(user.getId(), email, emailEncryptionService.encrypt(email))) {
+                    migrated++;
+                } else {
+                    skipped++;
+                }
             } else {
                 skipped++;
             }
         }
 
         if (migrated > 0) {
-            log.info("Email migration completed: {} encrypted, {} already migrated", migrated, skipped);
+            log.info("Email migration completed: {} encrypted, {} skipped", migrated, skipped);
         } else {
-            log.debug("Email migration: all {} emails already encrypted", skipped);
+            log.debug("Email migration: no matching legacy emails updated ({} skipped)", skipped);
         }
     }
 }

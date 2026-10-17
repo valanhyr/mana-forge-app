@@ -1,13 +1,7 @@
 import { api } from './api';
+import type { PublicUser } from '../core/models/User';
 
-export interface FriendUser {
-  userId: string;
-  name: string;
-  username: string;
-  email: string;
-  biography?: string;
-  avatar?: string;
-}
+export type FriendUser = PublicUser;
 
 export interface ReceivedRequest {
   requestId: string;

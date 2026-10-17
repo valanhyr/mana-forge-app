@@ -256,7 +256,7 @@ No es necesario añadir columnas manualmente. Se usan:
 - `audit_events`: fecha, actor, usuario afectado, acción, detalles y referencias.
 - `email_deliveries`: intención de envío y resultado `PENDING`, `SENT` o `FAILED`.
   Guarda destinatario cifrado y referencia SMTP, pero no el cuerpo.
-- `users`: campos `tier`, `status`, `createdAt`, `lastLoginAt`, `newsletterSubscribed`,
+- `users`: campos `tier`, `status`, `createdAt`, `updatedAt`, `lastLoginAt`, `newsletterSubscribed`,
   `newsletterConsentAt`, `newsletterTokenHash`, `newsletterTokenEncrypted` (tokens nunca en DTOs).
 - `decks`: nuevos campos `createdAt`, `updatedAt`.
 
@@ -264,6 +264,21 @@ Los documentos antiguos siguen siendo válidos: `active=false` equivale a suspen
 no hay estado más específico; el tier por defecto es `FREE`. Las fechas históricas
 desconocidas se devuelven como `null`: no se inventan fechas de registro. El último acceso
 se registra desde el próximo login y las fechas de mazo desde la próxima creación/edición.
+
+`users.updatedAt` registra la modificación efectiva del documento por la aplicación,
+incluido login, perfil, contraseña, verificación, amistad, estado y preferencias.
+No cambia por lecturas ni operaciones sin cambios. En cuentas antiguas puede existir
+modificación sin creación conocida: no se infiere alta desde ObjectId ni auditoría.
+Las tres fechas se exponen al titular y a Frontdesk, con `null` para desconocido;
+el perfil 360 añade `updatedAt` y la vista distingue modificación de último login.
+No se registra última visita/actividad con una sesión ya abierta.
+
+El registro recibe un DTO permitido, no la entidad Mongo. Los usuarios anidados en
+amigos/seguidores/conversaciones usan el perfil público sin email ni fechas privadas.
+Las ediciones son parciales y las precondiciones sensibles se comprueban al escribir;
+los conflictos obsoletos devuelven 409 `CONCURRENT_UPDATE`. No hay una transacción
+global de amistad bilateral, auditoría y correo. Contratos y consultas preparadas
+de solo lectura, sin ejecutar contra producción: [datos de usuario](user-data-contracts.md).
 
 El perfil 360 se calcula, no se duplica en Mongo. La API devuelve `aiQueriesToday`,
 `aiQuotaLimit`, `aiQuotaPeriod="DAILY"` y `aiQuotaResetsAt`. `aiQueriesThisMonth` y
