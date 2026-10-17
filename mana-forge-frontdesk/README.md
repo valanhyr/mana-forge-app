@@ -16,6 +16,7 @@ Vite escucha en `http://localhost:5174`. Validaciones disponibles:
 ```powershell
 npm run build
 npm test
+npx vitest run src/test/build-assets.test.ts
 npx tsc --noEmit
 ```
 
@@ -133,6 +134,16 @@ puerto elegido), conservar `Host` y sobrescribir `X-Forwarded-Proto` con el prot
 real. No se modifica el `nginx.conf` raíz, que pertenece al proxy existente.
 La API protege los datos incluso si alguien descarga la interfaz. Antes de publicarla,
 configurar el origen HTTPS, la lista de operadores, Directus y el login escogido.
+
+El build usa `base: './'`: los JS/CSS se resuelven tanto desde `/` como desde
+`/frontdesk/`. Para publicar bajo esa ruta, abrir siempre `/frontdesk/` con barra
+final y configurar el Nginx del host con `location /frontdesk/` y
+`proxy_pass http://127.0.0.1:5174/;` (barra final incluida), conservando las
+cabeceras anteriores. Así se elimina el prefijo antes de llegar al contenedor.
+Mantener `/api` apuntando a la API y no redirigir `/assets/` globalmente al
+backoffice, porque pertenece también a la web principal. Esta configuración no
+garantiza rutas anidadas de un futuro router. Cambiar la base requiere reconstruir
+la imagen; recargar Nginx no modifica el HTML ya compilado.
 
 El proxy descarta `CF-Connecting-IP`/`Forwarded` de entrada y sobrescribe `X-Forwarded-For`
 con su peer: no permite evadir límites de IP inyectando cabeceras. Para distinguir IPs
