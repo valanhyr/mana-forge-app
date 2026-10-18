@@ -69,7 +69,7 @@ Run the tests for whatever you touched:
 - **Backend**: `./mvnw test` from `mana-forge-api` (or `.\mvnw.cmd test` in PowerShell). Prefer the wrapper over a local `mvn`: it pins the Maven version for everyone. `./mvnw test -Dtest=ClassName` runs one class.
 - **Frontend**: `npx vitest run <path>` for a subset, `npm run lint` and `npx tsc --noEmit` before calling frontend work done.
 
-The backend suite is currently green: `./mvnw test` gives 247 tests, 0 failures. If you see failures, they are almost certainly yours, or you selected the wrong class name (see `copilot-instructions.md` — `DirectusServiceTest` lives in `StrapiServiceTest.java`).
+The backend suite is currently green: `./mvnw test` gives 372 tests, 0 failures. If you see failures, they are almost certainly yours.
 
 ## Contact
 For questions about agent behavior or conventions, see the repository README or ask @valanhyr.

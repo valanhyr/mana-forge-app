@@ -74,7 +74,7 @@ docker-compose down -v  # Stop and remove volumes
 
 ### Request Flow
 - The **React frontend** calls the **Spring Boot API** exclusively — it never calls the AI engine or external APIs directly.
-- The **Spring API** proxies Scryfall card data, **Directus** CMS content, and AI requests, caching the latter two in **Couchbase** with configurable TTLs. (Strapi was replaced by Directus; `StrapiService` is a deprecated placeholder, and the `Strapi*` model classes under `model/directus/` are shape-compatibility shims, not evidence of a live Strapi integration.)
+- The **Spring API** proxies Scryfall card data, **Directus** CMS content, and AI requests, caching the latter two in **Couchbase** with configurable TTLs. (Strapi was replaced by Directus; the old `StrapiService` and `Strapi*` model placeholders have been deleted, so nothing named `Strapi*` remains in the source tree.)
 - The **AI engine** is stateless; it receives deck data from the Spring API and calls **Groq Cloud** (Llama 3.3 70B) with structured JSON output (`response_format={"type": "json_object"}`).
 
 ### Spring API Layer Pattern
@@ -141,9 +141,9 @@ There are **two Axios instances** — only use the primary one for new code:
 
 ### Testing
 - Backend tests are `MockMvc` slices and unit tests under `src/test/java`. When adding controller fields, add the new dependencies as `@MockitoBean` or the slice fails to start.
-- The suite is green as of this writing: `./mvnw test` → 247 tests, 0 failures. Keep it that way.
+- The suite is green as of this writing: `./mvnw test` → 372 tests, 0 failures. Keep it that way.
 - When stubbing a service that takes a locale, stub the **exact overload the caller invokes**. `FormatService` delegates to `DirectusService.getFormats(locale, acceptLanguage)`, and `FormatController` forwards the `Accept-Language` header — stubbing the single-argument variant makes the mock return an empty list and the test fail with a confusing size mismatch instead of a clear "no stub".
-- `DirectusServiceTest` lives in a file named `StrapiServiceTest.java` (the class was renamed, the file was not). Select it with `-Dtest=DirectusServiceTest`; `-Dtest=StrapiServiceTest` silently matches nothing.
+- `DirectusServiceTest` lives in `DirectusServiceTest.java`. Select it with `-Dtest=DirectusServiceTest`.
 
 ---
 

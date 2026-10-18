@@ -54,7 +54,7 @@ python main.py
 Con el servidor corriendo:
 
 ```bash
-python test_request.py       # Sideboard — Mono Red Burn (Premodern)
-python test_custom_meta.py   # Análisis — Goblins con meta personalizado (Premodern)
+python scripts/smoke_sideboard.py      # Sideboard — Mono Red Burn (Premodern)
+python scripts/smoke_analyze_deck.py   # Análisis — Goblins con meta personalizado (Premodern)
 ```
 

@@ -125,7 +125,7 @@ EXPOSE 80
                   │
 ┌─────────────────▼───────────────────────┐
 │            Services                     │
-│  StrapiService, ScryfallService,        │
+│  DirectusService, ScryfallService,      │
 │  PremodernService, AiService            │
 └─────────────────┬───────────────────────┘
                   │
@@ -144,10 +144,10 @@ EXPOSE 80
 - **FormatController**: Listado y detalles de formatos
 - **UserController**: Gestión de usuarios
 - **ArticleController**: Artículos del CMS
-- **ContentController**: Contenido Strapi (footer, heros, sections)
+- **ContentController**: Contenido Directus (footer, heros, sections)
 
 #### 2. Services
-- **StrapiService**: Cliente HTTP para Strapi CMS (cacheable)
+- **DirectusService**: Cliente HTTP para el CMS Directus (cacheable)
 - **ScryfallService**: Cliente para Scryfall API (cacheable)
 - **PremodernService**: Lógica específica de Premodern (banlist)
 - **AiService**: Proxy a mana-forge-engine (sugerencias IA)

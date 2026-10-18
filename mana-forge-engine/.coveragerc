@@ -1,9 +1,9 @@
 [run]
 omit =
     tests/*
+    scripts/*
     venv/*
-    test_request.py
-    test_custom_meta.py
+    .venv/*
 
 [report]
 exclude_lines =
