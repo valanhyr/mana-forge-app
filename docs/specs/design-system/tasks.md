@@ -148,6 +148,19 @@ destapó tres defectos de accesibilidad en componentes que parecían correctos.
 - [x] C4.7 `Support.tsx`: superficies, radios y color de marca a tokens
 - [x] C4.8 `labels.json`: `messages.send`, `messages.unreadCount` en es y en
 
+### Ciclo 5 — Login y Contact
+
+Ninguna de las dos vistas tenía tests que comprobaran la asociación de labels.
+`Login.test.tsx` existía, pero todos sus tests localizaban los campos por
+placeholder, lo que oculta exactamente el defecto que había.
+
+- [x] C5.1 `LoginLabels.test.tsx`: 4 tests. Los 4 campos de `Login.tsx` reciben
+  `id` con `useId` y `htmlFor` en su label
+- [x] C5.2 `ContactLabels.test.tsx`: 5 tests. Los 4 campos visibles de
+  `Contact.tsx` reciben `id` y `htmlFor`
+- [x] C5.3 Verificado que el honeypot `#contact-website` sigue fuera del árbol
+  de accesibilidad y del orden de tabulación
+
 ## Evidencia del ciclo 2
 
 - `npx tsc --noEmit` → exit 0
@@ -216,9 +229,33 @@ duplicación actual, pero el layout debería reestructurarse en una sola
 instancia. No se ha hecho aquí porque es un cambio de comportamiento y de
 diseño, no una migración.
 
+### Evidencia del ciclo 5
+
+- `npx tsc --noEmit` → exit 0
+- `npm run lint` → exit 0
+- `npm run build` → correcto
+- `npx vitest run` → 51 ficheros, 354 tests en verde
+
+### Tests que no encontraron nada donde no había nada
+
+Se revisaron antes de tocar:
+
+- `Login.tsx`: los 4 `focus:outline-none` van acompañados de `focus:ring-2`,
+  así que el foco no se pierde. Solo faltaba la asociación de labels.
+- `Contact.tsx`, `DeckExplorer.tsx`: los `focus:outline-none` van con
+  `focus:border-orange-500`, que sí es indicador de foco.
+- `Support.tsx`: ya tenía `role="alert"` y labels asociados.
+
+### Placeholders como localizador
+
+Los tests existentes de Login usaban `getByPlaceholderText`. Un input sin
+`htmlFor` y con placeholder se localiza perfectamente por placeholder, así que
+esos tests no podían detectar la falta de etiqueta. Los nuevos usan
+`getByLabelText`, que sí la exige.
+
 ### Lo que sigue pendiente
 
-- Migrar las 13 vistas restantes
+- Migrar las 11 vistas restantes
 - **Restructurar el layout dual de `Messages`** (dos copias del mismo árbol)
 - Primitivas de comportamiento sobre Radix: Modal, Tabs, Switch, DropdownMenu
 - `DeckBuilder.tsx`

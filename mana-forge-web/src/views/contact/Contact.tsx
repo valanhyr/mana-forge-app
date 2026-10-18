@@ -120,11 +120,12 @@ const Contact = () => {
       <form onSubmit={handleSubmit} noValidate className="space-y-5">
         {/* Name */}
         <div>
-          <label className="block text-sm font-medium text-zinc-300 mb-1.5">
+          <label htmlFor="contact-name" className="block text-sm font-medium text-zinc-300 mb-1.5">
             <User size={14} className="inline mr-1.5 text-zinc-400" />
             {t('contact.name')} <span className="text-orange-500">*</span>
           </label>
           <input
+            id="contact-name"
             type="text"
             value={form.name}
             onChange={set('name')}
@@ -135,11 +136,12 @@ const Contact = () => {
 
         {/* Email */}
         <div>
-          <label className="block text-sm font-medium text-zinc-300 mb-1.5">
+          <label htmlFor="contact-email" className="block text-sm font-medium text-zinc-300 mb-1.5">
             <Mail size={14} className="inline mr-1.5 text-zinc-400" />
             {t('contact.email')} <span className="text-orange-500">*</span>
           </label>
           <input
+            id="contact-email"
             type="email"
             value={form.email}
             onChange={set('email')}
@@ -150,11 +152,12 @@ const Contact = () => {
 
         {/* Subject */}
         <div>
-          <label className="block text-sm font-medium text-zinc-300 mb-1.5">
+          <label htmlFor="contact-subject" className="block text-sm font-medium text-zinc-300 mb-1.5">
             <FileText size={14} className="inline mr-1.5 text-zinc-400" />
             {t('contact.subjectLabel')} <span className="text-orange-500">*</span>
           </label>
           <select
+            id="contact-subject"
             value={form.subject}
             onChange={set('subject')}
             className="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-orange-500 transition-colors appearance-none"
@@ -168,11 +171,12 @@ const Contact = () => {
 
         {/* Message */}
         <div>
-          <label className="block text-sm font-medium text-zinc-300 mb-1.5">
+          <label htmlFor="contact-message" className="block text-sm font-medium text-zinc-300 mb-1.5">
             <MessageSquare size={14} className="inline mr-1.5 text-zinc-400" />
             {t('contact.message')} <span className="text-orange-500">*</span>
           </label>
           <textarea
+            id="contact-message"
             value={form.message}
             onChange={set('message')}
             rows={6}
