@@ -175,6 +175,7 @@
     "profile": {
       "title": "Mi Perfil",
       "editProfile": "Editar Perfil",
+      "rankTitle": "Planeswalker",
       "personalInfo": "Información Personal",
       "preferences": "Preferencias",
       "preferencesTitle": "Configuración de Preferencias",
@@ -774,6 +775,7 @@
     "profile": {
       "title": "My Profile",
       "editProfile": "Edit Profile",
+      "rankTitle": "Planeswalker",
       "personalInfo": "Personal Info",
       "preferences": "Preferences",
       "preferencesTitle": "Preferences Settings",
