@@ -135,7 +135,7 @@ export default function Messages() {
 
   // ── Conversation list panel ──────────────────────────────────────────────
   const ConversationList = (
-    <div className="flex flex-col h-full bg-zinc-900">
+    <nav aria-label={t('messages.title')} className="flex flex-col h-full bg-surface">
       <div className="px-4 py-4 border-b border-zinc-800">
         <h1 className="text-xl font-bold text-white">{t('messages.title')}</h1>
       </div>
@@ -178,7 +178,12 @@ export default function Messages() {
                       {(conv.lastMessage as ChatMessage)?.content || ''}
                     </span>
                     {conv.unreadCount > 0 && (
-                      <span className="ml-2 shrink-0 bg-orange-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                      <span
+                        aria-label={t('messages.unreadCount', {
+                          count: conv.unreadCount,
+                        })}
+                        className="ml-2 shrink-0 bg-brand-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center"
+                      >
                         {conv.unreadCount > 9 ? '9+' : conv.unreadCount}
                       </span>
                     )}
@@ -189,7 +194,7 @@ export default function Messages() {
           ))}
         </ul>
       )}
-    </div>
+    </nav>
   );
 
   // ── Chat panel ───────────────────────────────────────────────────────────
@@ -209,7 +214,7 @@ export default function Messages() {
             <button
               onClick={() => navigate('/messages')}
               className="md:hidden p-1.5 -ml-1 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors"
-              aria-label="Volver"
+              aria-label={t('common.back')}
             >
               <ArrowLeft size={20} />
             </button>
@@ -230,6 +235,9 @@ export default function Messages() {
           <div
             ref={scrollContainerRef}
             onScroll={handleMessagesScroll}
+            role="log"
+            aria-live="polite"
+            aria-label={t('messages.title')}
             className="flex-1 overflow-y-auto px-4 py-4 space-y-3"
           >
             {isLoadingMsgs ? (
@@ -277,7 +285,8 @@ export default function Messages() {
             <button
               onClick={handleSend}
               disabled={isSending || !inputValue.trim()}
-              className="p-3 rounded-xl bg-orange-500 hover:bg-orange-400 disabled:opacity-40 disabled:cursor-not-allowed text-white transition-colors shrink-0"
+              aria-label={t('messages.send')}
+              className="p-3 rounded-xl bg-brand-500 hover:bg-brand-400 disabled:opacity-40 disabled:cursor-not-allowed text-white transition-colors shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
             >
               {isSending ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
             </button>

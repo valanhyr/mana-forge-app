@@ -516,6 +516,8 @@
       "sendMessage": "Enviar mensaje"
     },
     "messages": {
+      "send": "Enviar mensaje",
+      "unreadCount": "{count} mensajes sin leer",
       "title": "Mensajes",
       "noConversation": "Selecciona una conversación",
       "noConversationHint": "Elige un amigo de la lista para comenzar a chatear",
@@ -1137,6 +1139,8 @@
       "sendMessage": "Send message"
     },
     "messages": {
+      "send": "Send message",
+      "unreadCount": "{count} unread messages",
       "title": "Messages",
       "noConversation": "Select a conversation",
       "noConversationHint": "Choose a friend from the list to start chatting",

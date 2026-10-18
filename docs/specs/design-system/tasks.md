@@ -132,6 +132,22 @@ destapó tres defectos de accesibilidad en componentes que parecían correctos.
 - [x] C3.6 Superficies a tokens `bg-surface` y radio `rounded-xl`
 - [x] C3.7 `labels.json`: `closeModal`, `rateDeck`, `openDailyDeck` en es y en
 
+### Ciclo 4 — Messages, Inbox y Support
+
+`Messages.tsx` no tenía tests. Se escribieron 8 antes de tocar nada.
+
+- [x] C4.1 `MessagesAccessibility.test.tsx`: 8 tests
+- [x] C4.2 La lista de conversaciones ahora es un `nav` con etiqueta, no un
+  `div`
+- [x] C4.3 El área de mensajes es `role="log"` con `aria-live="polite"`: sin
+  esto los mensajes nuevos no se anuncian
+- [x] C4.4 El contador de no leídos tenía un número desnudo; ahora lleva
+  `aria-label` localizado
+- [x] C4.5 El botón de enviar no tenía nombre accesible (era un icono)
+- [x] C4.6 `aria-label="Volver"` hardcodeado en inglés → `t('common.back')`
+- [x] C4.7 `Support.tsx`: superficies, radios y color de marca a tokens
+- [x] C4.8 `labels.json`: `messages.send`, `messages.unreadCount` en es y en
+
 ## Evidencia del ciclo 2
 
 - `npx tsc --noEmit` → exit 0
@@ -180,8 +196,29 @@ indistinguible para un lector de pantalla. El test lo delató con
 - `npm run build` → correcto
 - `npx vitest run` → 48 ficheros, 337 tests en verde
 
+### Evidencia del ciclo 4
+
+- `npx tsc --noEmit` → exit 0
+- `npm run lint` → exit 0
+- `npm run build` → correcto
+- `npx vitest run` → 49 ficheros, 345 tests en verde
+
+### Hallazgo: layout dual por CSS
+
+`Messages.tsx` renderiza la lista de conversaciones y el panel de chat **dos
+veces**, una en un contenedor `md:hidden` y otra en un `hidden md:flex`. No es
+responsive: son dos copias del mismo árbol y CSS decide cuál se ve.
+
+Consecuencia práctica: el usuario de lector de pantalla recibe el contenido
+duplicado, y con él los botones de enviar y volver, que es lo que delató los
+tests con `Found multiple elements`. Los tests usan `getAllBy*` para tolerar la
+duplicación actual, pero el layout debería reestructurarse en una sola
+instancia. No se ha hecho aquí porque es un cambio de comportamiento y de
+diseño, no una migración.
+
 ### Lo que sigue pendiente
 
-- Migrar las 14 vistas restantes
+- Migrar las 13 vistas restantes
+- **Restructurar el layout dual de `Messages`** (dos copias del mismo árbol)
 - Primitivas de comportamiento sobre Radix: Modal, Tabs, Switch, DropdownMenu
 - `DeckBuilder.tsx`

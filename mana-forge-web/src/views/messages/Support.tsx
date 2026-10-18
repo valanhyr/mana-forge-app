@@ -54,11 +54,11 @@ export default function Support() {
     {error && <p role="alert" className="text-red-400">{error}</p>}
     <div className="grid md:grid-cols-[260px_1fr] gap-4">
       <aside className="border border-zinc-800 rounded-xl p-4 space-y-3">
-        <Link to="/messages/support" onClick={() => setContent('')} className="text-orange-500">{t('support.new')}</Link>
+        <Link to="/messages/support" onClick={() => setContent('')} className="text-brand-500">{t('support.new')}</Link>
         {!list && !error && <p>{t('common.loading')}</p>}
         {list && !list.items.length && <p className="text-sm text-zinc-500">{t('support.empty')}</p>}
         {list?.items.map(item => <Link key={item.id} to={`/messages/support/${item.id}`} onClick={() => setContent('')}
-          className={`block rounded-lg p-2 ${ticketId === item.id ? 'bg-zinc-800' : 'hover:bg-zinc-900'}`}>
+          className={`block rounded-control p-2 ${ticketId === item.id ? 'bg-zinc-800' : 'hover:bg-zinc-900'}`}>
           <p className="break-words">{item.subject}</p>
           <p className="text-xs text-zinc-500">{t(`support.status.${item.status}`)} · {new Date(item.updatedAt).toLocaleDateString(locale)}</p>
         </Link>)}
@@ -84,16 +84,16 @@ export default function Support() {
           {ticket?.status !== 'CLOSED' && <form onSubmit={submit} className="space-y-3">
             {!ticketId && <>
               <label className="block text-sm">{t('support.subject')}<input required maxLength={200} value={subject}
-                onChange={event => setSubject(event.target.value)} className="block w-full bg-zinc-900 border border-zinc-700 rounded-lg p-2 mt-1" /></label>
+                onChange={event => setSubject(event.target.value)} className="block w-full bg-surface-sunken border border-zinc-700 rounded-control p-2 mt-1" /></label>
               <label className="block text-sm">{t('support.category')}<select value={category}
-                onChange={event => setCategory(event.target.value as TicketCategory)} className="block bg-zinc-900 rounded-lg p-2 mt-1">
+                onChange={event => setCategory(event.target.value as TicketCategory)} className="block bg-surface-sunken rounded-control p-2 mt-1">
                 {(['DECK_BUILDER', 'AI_ANALYSIS', 'RULES_FORMAT', 'ACCOUNT', 'OTHER'] as const).map(value => <option key={value} value={value}>{t(`support.categories.${value}`)}</option>)}
               </select></label>
             </>}
             <label className="block text-sm">{t('support.message')}<textarea required maxLength={8000} rows={4} value={content}
-              onChange={event => setContent(event.target.value)} className="block w-full bg-zinc-900 border border-zinc-700 rounded-lg p-2 mt-1" /></label>
+              onChange={event => setContent(event.target.value)} className="block w-full bg-surface-sunken border border-zinc-700 rounded-control p-2 mt-1" /></label>
             <button disabled={sending || !content.trim() || (!ticketId && !subject.trim())}
-              className="bg-orange-500 text-white rounded-lg px-4 py-2 disabled:opacity-40">{t(sending ? 'common.saving' : ticketId ? 'support.reply' : 'support.create')}</button>
+              className="bg-brand-500 text-white rounded-control px-4 py-2 disabled:opacity-40">{t(sending ? 'common.saving' : ticketId ? 'support.reply' : 'support.create')}</button>
           </form>}
         </>}
       </div>
