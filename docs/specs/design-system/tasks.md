@@ -116,7 +116,23 @@ parte de la verificación obligatoria.
 - [x] C2.13 `usePasswordForm` con validaciones, con 12 tests
 - [x] C2.14 `Profile.tsx` consume ambos; baja de 519 a 433 líneas
 
-### Evidencia del ciclo 2
+#### Ciclo 3 — Dashboard
+
+Dashboard no tenía ningún test. Se escribieron 5 antes de tocar nada, lo que
+destapó tres defectos de accesibilidad en componentes que parecían correctos.
+
+- [x] C3.1 `Dashboard.test.tsx`: 5 tests que fijan el comportamiento actual
+- [x] C3.2 La tarjeta del mazo del día era un `div` con `onClick`: sin rol, sin
+  teclado, sin nombre accesible. Ahora es un `button`
+- [x] C3.3 Las 5 estrellas de valoración no tenían nombre accesible. Ahora
+  anuncian "Puntuar con N de 5 estrellas"
+- [x] C3.4 Las estrellas y el botón de cerrar del modal.quitaban el indicador
+  de foco con `focus:outline-none`. Ahora usan `focus-visible:ring`
+- [x] C3.5 El botón de cerrar del modal no tenía nombre: era un icono `X`
+- [x] C3.6 Superficies a tokens `bg-surface` y radio `rounded-xl`
+- [x] C3.7 `labels.json`: `closeModal`, `rateDeck`, `openDailyDeck` en es y en
+
+## Evidencia del ciclo 2
 
 - `npx tsc --noEmit` → exit 0
 - `npm run lint` → exit 0 (tras eliminar dos imports muertos en el test nuevo)
@@ -157,8 +173,15 @@ Los tres toggles compartían la etiqueta "Mostrar contraseña", lo que es
 indistinguible para un lector de pantalla. El test lo delató con
 `Found multiple elements`. La etiqueta ahora incluye el nombre del campo.
 
+### Evidencia del ciclo 3
+
+- `npx tsc --noEmit` → exit 0
+- `npm run lint` → exit 0
+- `npm run build` → correcto
+- `npx vitest run` → 48 ficheros, 337 tests en verde
+
 ### Lo que sigue pendiente
 
-- Migrar las 15 vistas restantes
+- Migrar las 14 vistas restantes
 - Primitivas de comportamiento sobre Radix: Modal, Tabs, Switch, DropdownMenu
 - `DeckBuilder.tsx`

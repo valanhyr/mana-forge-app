@@ -15,18 +15,38 @@
       "error": "No se ha podido procesar el enlace. Abre el enlace completo del correo o cambia la preferencia en tu perfil."
     },
     "support": {
-      "title": "Soporte", "friends": "Mensajes entre usuarios",
+      "title": "Soporte",
+      "friends": "Mensajes entre usuarios",
       "hint": "Escríbenos y continúa la conversación aquí. No es un chat en tiempo real.",
-      "new": "Nueva consulta", "empty": "Todavía no tienes consultas.",
-      "subject": "Asunto", "category": "Categoría", "message": "Mensaje",
-      "create": "Abrir consulta", "reply": "Enviar respuesta", "you": "Tú", "team": "Equipo Mana Forge",
-      "previous": "Anterior", "next": "Siguiente",
+      "new": "Nueva consulta",
+      "empty": "Todavía no tienes consultas.",
+      "subject": "Asunto",
+      "category": "Categoría",
+      "message": "Mensaje",
+      "create": "Abrir consulta",
+      "reply": "Enviar respuesta",
+      "you": "Tú",
+      "team": "Equipo Mana Forge",
+      "previous": "Anterior",
+      "next": "Siguiente",
       "loadError": "No se pueden cargar las consultas. Comprueba tu sesión y vuelve a entrar.",
       "sendError": "No se ha podido confirmar el envío. Comprueba la conversación antes de repetirlo.",
       "conflict": "La consulta está cerrada o ha cambiado. Recárgala antes de responder.",
       "notFound": "Esta consulta no está disponible para tu cuenta.",
-      "status": { "OPEN": "Abierta", "IN_PROGRESS": "En curso", "WAITING_USER": "Esperando tu respuesta", "RESOLVED": "Resuelta", "CLOSED": "Cerrada" },
-      "categories": { "DECK_BUILDER": "Constructor de mazos", "AI_ANALYSIS": "Análisis de IA", "RULES_FORMAT": "Reglas y formatos", "ACCOUNT": "Cuenta", "OTHER": "Otra consulta" }
+      "status": {
+        "OPEN": "Abierta",
+        "IN_PROGRESS": "En curso",
+        "WAITING_USER": "Esperando tu respuesta",
+        "RESOLVED": "Resuelta",
+        "CLOSED": "Cerrada"
+      },
+      "categories": {
+        "DECK_BUILDER": "Constructor de mazos",
+        "AI_ANALYSIS": "Análisis de IA",
+        "RULES_FORMAT": "Reglas y formatos",
+        "ACCOUNT": "Cuenta",
+        "OTHER": "Otra consulta"
+      }
     },
     "deck": {
       "editor": {
@@ -314,6 +334,9 @@
       "viewBanlist": "Ver Banlist"
     },
     "dashboard": {
+      "openDailyDeck": "Ver mazo completo",
+      "closeModal": "Cerrar",
+      "rateDeck": "Puntuar con {number} de 5 estrellas",
       "newsTitle": "Lo último en Mana Forge",
       "readAnalysis": "Leer análisis",
       "readNews": "Leer noticia",
@@ -618,18 +641,38 @@
       "error": "Unable to process this link. Open the complete email link or change the preference in your profile."
     },
     "support": {
-      "title": "Support", "friends": "Player messages",
+      "title": "Support",
+      "friends": "Player messages",
       "hint": "Contact us and continue the conversation here. This is not a live chat.",
-      "new": "New request", "empty": "You have no support requests yet.",
-      "subject": "Subject", "category": "Category", "message": "Message",
-      "create": "Open request", "reply": "Send reply", "you": "You", "team": "Mana Forge team",
-      "previous": "Previous", "next": "Next",
+      "new": "New request",
+      "empty": "You have no support requests yet.",
+      "subject": "Subject",
+      "category": "Category",
+      "message": "Message",
+      "create": "Open request",
+      "reply": "Send reply",
+      "you": "You",
+      "team": "Mana Forge team",
+      "previous": "Previous",
+      "next": "Next",
       "loadError": "Unable to load support requests. Check your session and open this page again.",
       "sendError": "Unable to confirm submission. Check the conversation before sending again.",
       "conflict": "The request is closed or changed. Reload it before replying.",
       "notFound": "This request is unavailable to your account.",
-      "status": { "OPEN": "Open", "IN_PROGRESS": "In progress", "WAITING_USER": "Waiting for your reply", "RESOLVED": "Resolved", "CLOSED": "Closed" },
-      "categories": { "DECK_BUILDER": "Deck builder", "AI_ANALYSIS": "AI analysis", "RULES_FORMAT": "Rules and formats", "ACCOUNT": "Account", "OTHER": "Other request" }
+      "status": {
+        "OPEN": "Open",
+        "IN_PROGRESS": "In progress",
+        "WAITING_USER": "Waiting for your reply",
+        "RESOLVED": "Resolved",
+        "CLOSED": "Closed"
+      },
+      "categories": {
+        "DECK_BUILDER": "Deck builder",
+        "AI_ANALYSIS": "AI analysis",
+        "RULES_FORMAT": "Rules and formats",
+        "ACCOUNT": "Account",
+        "OTHER": "Other request"
+      }
     },
     "deck": {
       "editor": {
@@ -912,6 +955,9 @@
       "viewBanlist": "View Banlist"
     },
     "dashboard": {
+      "openDailyDeck": "View full deck",
+      "closeModal": "Close",
+      "rateDeck": "Rate {number} of 5 stars",
       "newsTitle": "Latest News",
       "readNews": "Read news",
       "readAnalysis": "Read analysis",

@@ -262,9 +262,11 @@ const Dashboard = () => {
     }
 
     return (
-      <div
+      <button
+        type="button"
         onClick={() => setIsModalOpen(true)}
-        className="group relative block overflow-hidden rounded-2xl shadow-lg cursor-pointer"
+        aria-label={t('dashboard.openDailyDeck')}
+        className="group relative block w-full text-left overflow-hidden rounded-2xl shadow-lg cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
       >
         <div className="absolute inset-0 z-0">
           <img
@@ -330,7 +332,7 @@ const Dashboard = () => {
             </p>
           </div>
         </div>
-      </div>
+      </button>
     );
   };
 
@@ -519,7 +521,7 @@ const Dashboard = () => {
               </div>
             </Link>
           ) : (
-            <div className="flex items-center justify-center h-80 rounded-2xl bg-zinc-900 border border-zinc-800">
+            <div className="flex items-center justify-center h-80 rounded-xl bg-surface border border-zinc-800">
               <p className="text-zinc-500 text-sm">{t('dashboard.noFeaturedDeck')}</p>
             </div>
           )}
@@ -573,7 +575,7 @@ const Dashboard = () => {
               - md:max-w-4xl: En tablet es bastante ancho
               - lg:max-w-6xl: En desktop es muy ancho (aprox 70-80% dependiendo de la resolución)
           */}
-          <div className="relative w-full md:max-w-4xl lg:max-w-6xl bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl flex flex-col max-h-[90vh]">
+          <div className="relative w-full md:max-w-4xl lg:max-w-6xl bg-surface border border-zinc-800 rounded-xl shadow-2xl flex flex-col max-h-[90vh]">
             {/* Header */}
             <div className="flex items-center justify-between p-6 border-b border-zinc-800 shrink-0">
               <div>
@@ -599,7 +601,8 @@ const Dashboard = () => {
                           disabled={ratingLoading}
                           onMouseEnter={() => setHoveredStar(star)}
                           onClick={(e) => handleRateDeck(e, star)}
-                          className="p-1 focus:outline-none transition-transform hover:scale-125 disabled:opacity-50"
+                          aria-label={t('dashboard.rateDeck', { number: star })}
+                          className="p-1 rounded-lg transition-transform hover:scale-125 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                         >
                           <Star
                             size={20}
@@ -635,7 +638,8 @@ const Dashboard = () => {
               </div>
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="p-2 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-lg transition-colors"
+                aria-label={t('dashboard.closeModal')}
+                className="p-2 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
               >
                 <X size={24} />
               </button>
@@ -749,7 +753,7 @@ const Dashboard = () => {
                         className="w-full rounded-2xl shadow-2xl animate-in fade-in zoom-in duration-300"
                       />
                     ) : (
-                      <div className="w-full aspect-[2.5/3.5] rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-700">
+                      <div className="w-full aspect-[2.5/3.5] rounded-xl bg-surface border border-zinc-800 flex items-center justify-center text-zinc-700">
                         <Sparkles size={48} className="opacity-20" />
                       </div>
                     )}
