@@ -110,13 +110,38 @@ parte de la verificación obligatoria.
   cambiar su intención
 - [x] C2.11 `labels.json`: `showPassword` y `hidePassword` en es y en
 
-## Evidencia del ciclo 2
+### Bloque 3 — Hooks
+
+- [x] C2.12 `useUsernameAvailability` con debounce, con 11 tests
+- [x] C2.13 `usePasswordForm` con validaciones, con 12 tests
+- [x] C2.14 `Profile.tsx` consume ambos; baja de 519 a 433 líneas
+
+### Evidencia del ciclo 2
 
 - `npx tsc --noEmit` → exit 0
 - `npm run lint` → exit 0 (tras eliminar dos imports muertos en el test nuevo)
 - `npm run build` → correcto
-- `npx vitest run` → 45 ficheros, 309 tests en verde
-- `Profile.tsx`: 687 → 519 líneas
+- `npx vitest run` → 47 ficheros, 332 tests en verde
+- `Profile.tsx`: 687 → 433 líneas
+
+### Lint: setState en efecto
+
+`npm run lint` activó `react-hooks/set-state-in-effect` sobre
+`useUsernameAvailability`, y con razón: el hook guardaba `idle`, `empty` y
+`checking` en estado, cuando los tres se derivan de las entradas. La corrección
+fue derivarlos durante el render y guardar en estado solo el resultado de la
+comprobación, descartándolo si ya no corresponde al valor tecleado.
+
+El primer intento de esa corrección tenía un fallo propio: derivar `idle` por
+defecto impedía que `setStatus` forzara un estado tras un guardado fallido, y
+un test lo detectó. La versión final guarda el valor comprobado junto al
+resultado para que ambos casos convivan.
+
+### Test de debounce y aislamiento
+
+`isUsernameAvailable` called 1 times but got 4 times. No era un fallo del hook:
+los `vi.spyOn` de tests anteriores se acumulaban. Añadido `vi.restoreAllMocks()`
+en `beforeEach`; el test pasa aislado y en suite.
 
 ### Rompimiento de tests y su corrección
 
@@ -134,8 +159,6 @@ indistinguible para un lector de pantalla. El test lo delató con
 
 ### Lo que sigue pendiente
 
-- Extraer la lógica de la vista a hooks (`useUsernameAvailability`,
-  `usePasswordForm`). Las 519 líneas restantes son casi toda lógica, no marcado.
 - Migrar las 15 vistas restantes
 - Primitivas de comportamiento sobre Radix: Modal, Tabs, Switch, DropdownMenu
 - `DeckBuilder.tsx`

@@ -26,6 +26,8 @@ import Textarea from '../../components/ui/Textarea';
 import Card, { CardTitle } from '../../components/ui/Card';
 import PasswordField from '../../components/ui/PasswordField';
 import AvatarPickerModal from '../../components/ui/AvatarPickerModal';
+import { useUsernameAvailability } from '../../hooks/useUsernameAvailability';
+import { usePasswordForm } from '../../hooks/usePasswordForm';
 
 type TabId = 'personalInfo' | 'preferences';
 
@@ -33,6 +35,8 @@ const TABS: { id: TabId; labelKey: string; icon: typeof User }[] = [
   { id: 'personalInfo', labelKey: 'profile.personalInfo', icon: User },
   { id: 'preferences', labelKey: 'profile.preferences', icon: Settings },
 ];
+
+const PASSWORD_FIELDS = ['currentPassword', 'newPassword', 'confirmPassword'] as const;
 
 const Profile = () => {
   const { t } = useTranslation();
@@ -65,27 +69,23 @@ const Profile = () => {
   const { quota } = useAnalysisQuota();
 
   const [username, setUsername] = useState('');
-  const [usernameStatus, setUsernameStatus] = useState<
-    'idle' | 'checking' | 'available' | 'taken' | 'empty' | 'error'
-  >('idle');
-
   const [biography, setBiography] = useState('');
   const [selectedAvatar, setSelectedAvatar] = useState(DEFAULT_AVATAR);
   const [draftAvatar, setDraftAvatar] = useState(DEFAULT_AVATAR);
   const [isAvatarModalOpen, setIsAvatarModalOpen] = useState(false);
   const [profileLoading, setProfileLoading] = useState(false);
 
-  // Password change state
-  const [showPasswordForm, setShowPasswordForm] = useState(false);
-  const [currentPassword, setCurrentPassword] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [showCurrent, setShowCurrent] = useState(false);
-  const [showNew, setShowNew] = useState(false);
-  const [showConfirm, setShowConfirm] = useState(false);
-  const [passwordLoading, setPasswordLoading] = useState(false);
-  const [passwordError, setPasswordError] = useState('');
-  const [passwordSuccess, setPasswordSuccess] = useState(false);
+  const availability = useUsernameAvailability(username, user?.username ?? '');
+  const {
+    status: usernameStatus,
+    isBlocked: isUsernameBlocked,
+    isChecking: isUsernameChecking,
+    setStatus: setUsernameStatus,
+    changed: usernameChanged,
+    trimmed: trimmedUsername,
+  } = availability;
+
+  const password = usePasswordForm(t);
 
   useEffect(() => {
     if (!user) return;
@@ -95,40 +95,7 @@ const Profile = () => {
     setSelectedAvatar(user.avatar || DEFAULT_AVATAR);
     setDraftAvatar(user.avatar || DEFAULT_AVATAR);
     setUsernameStatus('idle');
-  }, [user]);
-
-  const trimmedUsername = username.trim();
-  const usernameChanged = !!user && trimmedUsername !== (user.username ?? '');
-
-  // Verificación en vivo contra la API, con debounce para no saturar el backend
-  useEffect(() => {
-    if (!user) return;
-
-    if (!usernameChanged) {
-      setUsernameStatus('idle');
-      return;
-    }
-    if (!trimmedUsername) {
-      setUsernameStatus('empty');
-      return;
-    }
-
-    let cancelled = false;
-    setUsernameStatus('checking');
-    const timer = setTimeout(async () => {
-      try {
-        const available = await AuthService.isUsernameAvailable(trimmedUsername);
-        if (!cancelled) setUsernameStatus(available ? 'available' : 'taken');
-      } catch {
-        if (!cancelled) setUsernameStatus('error');
-      }
-    }, 400);
-
-    return () => {
-      cancelled = true;
-      clearTimeout(timer);
-    };
-  }, [trimmedUsername, usernameChanged, user]);
+  }, [user, setUsernameStatus]);
 
   const avatarUrl = useMemo(() => getAvatarUrl(selectedAvatar), [selectedAvatar]);
 
@@ -153,10 +120,6 @@ const Profile = () => {
       biography.trim() !== (user.biography ?? '') ||
       selectedAvatar !== (user.avatar || DEFAULT_AVATAR));
 
-  const isUsernameBlocked =
-    usernameChanged &&
-    (usernameStatus === 'taken' || usernameStatus === 'empty' || usernameStatus === 'error');
-
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user || !hasProfileChanges) return;
@@ -165,7 +128,7 @@ const Profile = () => {
       showToast(t('profile.usernameEmpty'), 'error');
       return;
     }
-    if (isUsernameBlocked || usernameStatus === 'checking') return;
+    if (isUsernameBlocked || isUsernameChecking) return;
 
     setProfileLoading(true);
     try {
@@ -192,43 +155,9 @@ const Profile = () => {
     }
   };
 
-  const handleChangePassword = async (e: React.FormEvent) => {
+  const handleChangePassword = (e: React.FormEvent) => {
     e.preventDefault();
-    if (newPassword !== confirmPassword) {
-      setPasswordError(t('profile.passwordMismatch'));
-      return;
-    }
-    if (newPassword.trim().length === 0 || newPassword.length < 6) {
-      setPasswordError(t('auth.error.passwordMinLength'));
-      return;
-    }
-    if (newPassword === currentPassword) {
-      setPasswordError(t('profile.passwordRejected'));
-      return;
-    }
-    setPasswordError('');
-    setPasswordLoading(true);
-    try {
-      await AuthService.changePassword(currentPassword, newPassword);
-      setPasswordSuccess(true);
-      setCurrentPassword('');
-      setNewPassword('');
-      setConfirmPassword('');
-      setTimeout(() => {
-        setPasswordSuccess(false);
-        setShowPasswordForm(false);
-      }, 2000);
-    } catch (err: unknown) {
-      setPasswordError(
-        (err as Error).message === 'wrongPassword'
-          ? t('profile.passwordWrong')
-          : (err as Error).message === 'passwordRejected'
-            ? t('profile.passwordRejected')
-            : t('auth.error.credentials')
-      );
-    } finally {
-      setPasswordLoading(false);
-    }
+    void password.submit(password.values);
   };
 
   const saveNewsletter = async (subscribed: boolean) => {
@@ -380,7 +309,7 @@ const Profile = () => {
                       type="submit"
                       loading={profileLoading}
                       disabled={
-                        !hasProfileChanges || isUsernameBlocked || usernameStatus === 'checking'
+                        !hasProfileChanges || isUsernameBlocked || isUsernameChecking
                       }
                     >
                       {profileLoading ? t('common.saving') : t('profile.editProfileButton')}
@@ -395,48 +324,35 @@ const Profile = () => {
                 </CardTitle>
                 <div className="space-y-4">
                   <button
-                    onClick={() => {
-                      setShowPasswordForm(!showPasswordForm);
-                      setPasswordError('');
-                      setPasswordSuccess(false);
-                    }}
+                    onClick={() => (password.isOpen ? password.close() : password.open())}
                     className="text-sm text-indigo-400 hover:text-indigo-300 font-medium transition-colors"
                   >
                     {t('profile.changePassword')}
                   </button>
 
-                  {showPasswordForm && (
+                  {password.isOpen && (
                     <form onSubmit={handleChangePassword} className="space-y-4 pt-2" noValidate>
-{(
-                        [
-                          ['currentPassword', currentPassword, showCurrent, setShowCurrent],
-                          ['newPassword', newPassword, showNew, setShowNew],
-                          ['confirmPassword', confirmPassword, showConfirm, setShowConfirm],
-                        ] as const
-                      ).map(([field, value, visible, setVisible]) => (
+                      {PASSWORD_FIELDS.map((field) => (
                         <PasswordField
                           key={field}
                           id={`profile-${field}`}
                           label={t(`profile.${field}`)}
-                          value={value}
-                          visible={visible}
-                          disabled={passwordLoading}
-                          onVisibleChange={() => setVisible(!visible)}
+                          value={password.values[field]}
+                          visible={password.visible[field]}
+                          disabled={password.loading}
+                          onVisibleChange={() => password.toggleVisibility(field)}
                           toggleLabel={`${t(
-                            visible ? 'profile.hidePassword' : 'profile.showPassword'
+                            password.visible[field]
+                              ? 'profile.hidePassword'
+                              : 'profile.showPassword'
                           )}: ${t(`profile.${field}`)}`}
-                          onChange={(next) => {
-                            if (field === 'currentPassword') setCurrentPassword(next);
-                            else if (field === 'newPassword') setNewPassword(next);
-                            else setConfirmPassword(next);
-                            setPasswordError('');
-                          }}
+                          onChange={(next) => password.setValue(field, next)}
                         />
                       ))}
 
                       <div role="status" aria-live="polite">
-                        {passwordError && <p className="text-red-400 text-sm">{passwordError}</p>}
-                        {passwordSuccess && (
+                        {password.error && <p className="text-red-400 text-sm">{password.error}</p>}
+                        {password.success && (
                           <p className="text-green-400 text-sm flex items-center gap-1">
                             <CheckCircle size={14} /> {t('profile.passwordChanged')}
                           </p>
@@ -444,17 +360,10 @@ const Profile = () => {
                       </div>
 
                       <div className="flex gap-3 pt-2">
-                        <Button type="submit" size="sm" loading={passwordLoading}>
+                        <Button type="submit" size="sm" loading={password.loading}>
                           {t('profile.editProfileButton')}
                         </Button>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => {
-                            setShowPasswordForm(false);
-                            setPasswordError('');
-                          }}
-                        >
+                        <Button size="sm" variant="ghost" onClick={password.close}>
                           {t('common.cancel')}
                         </Button>
                       </div>
