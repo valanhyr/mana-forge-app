@@ -214,6 +214,8 @@
       "passwordWrong": "La contraseña actual es incorrecta",
       "security": "Seguridad",
       "deleteAccount": "Eliminar Cuenta",
+      "showPassword": "Mostrar contraseña",
+      "hidePassword": "Ocultar contraseña",
       "loadingProfile": "Cargando perfil..."
     },
     "deckBuilder": {
@@ -814,6 +816,8 @@
       "passwordWrong": "Current password is incorrect",
       "security": "Security",
       "deleteAccount": "Delete Account",
+      "showPassword": "Show password",
+      "hidePassword": "Hide password",
       "loadingProfile": "Loading profile..."
     },
     "deckBuilder": {

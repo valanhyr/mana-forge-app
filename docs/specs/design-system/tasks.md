@@ -86,15 +86,56 @@ con un `Save` sin importar que el build sí detectó (`TS2304`). El check de tip
 no cubre todo lo que ve Vite. Anotado en `DESIGN.md` para que el build forme
 parte de la verificación obligatoria.
 
-## Work items fuera de este ciclo
+## Ciclo 2 — Accesibilidad y deuda de Profile
 
-Anotados en `spec.md`, no implementados:
+### Bloque 1 — Accesibilidad
 
-- roles ARIA de tablist en la navegación de Profile
-- `aria-label` en los toggles de contraseña
-- `aria-live` en error y éxito de contraseña
-- `peer-focus:outline-none` del switch de newsletter (WCAG 2.4.7)
-- `AvatarPickerModal` y los otros modales bespoke
-- migración de las 15 vistas restantes
-- primitivas de comportamiento sobre Radix
+- [x] C2.1 Semántica ARIA de tablist en la navegación lateral, con navegación
+  por flechas y `roving tabindex`
+- [x] C2.2 `tabpanel` etiquetado por su tab activo
+- [x] C2.3 `aria-label` localizado en los tres toggles de contraseña, cada uno
+  nombrando el campo que controla
+- [x] C2.4 Región `role="status"` con `aria-live="polite"` para error y éxito de
+  contraseña
+- [x] C2.5 Foco visible de teclado en el switch de newsletter (WCAG 2.4.7)
+- [x] C2.6 `role="switch"` con `aria-checked` explícito
+- [x] C2.7 13 tests en `ProfileAccessibility.test.tsx`
+
+### Bloque 2 — Deuda
+
+- [x] C2.8 `PasswordField` promovido a `components/ui/` con 6 tests
+- [x] C2.9 `AvatarPickerModal` extraído a `components/ui/`, con Escape, bloqueo
+  de scroll del body y `role="dialog"`
+- [x] C2.10 `ProfilePreferences.test.tsx` actualizado a los nuevos roles, sin
+  cambiar su intención
+- [x] C2.11 `labels.json`: `showPassword` y `hidePassword` en es y en
+
+## Evidencia del ciclo 2
+
+- `npx tsc --noEmit` → exit 0
+- `npm run lint` → exit 0 (tras eliminar dos imports muertos en el test nuevo)
+- `npm run build` → correcto
+- `npx vitest run` → 45 ficheros, 309 tests en verde
+- `Profile.tsx`: 687 → 519 líneas
+
+### Rompimiento de tests y su corrección
+
+Cambiar `button` a `tab` y `checkbox` a `switch` dejó en rojo
+`ProfilePreferences.test.tsx`. Se actualizaron los selectores manteniendo la
+intención de cada aserción: el test sigue verificando que un fallo de red no se
+reporta como guardado, y ahora comprueba `aria-checked` en lugar de
+`toBeChecked()`, que no aplica a un elemento con rol `switch`.
+
+### Hallazgo durante el trabajo
+
+Los tres toggles compartían la etiqueta "Mostrar contraseña", lo que es
+indistinguible para un lector de pantalla. El test lo delató con
+`Found multiple elements`. La etiqueta ahora incluye el nombre del campo.
+
+### Lo que sigue pendiente
+
+- Extraer la lógica de la vista a hooks (`useUsernameAvailability`,
+  `usePasswordForm`). Las 519 líneas restantes son casi toda lógica, no marcado.
+- Migrar las 15 vistas restantes
+- Primitivas de comportamiento sobre Radix: Modal, Tabs, Switch, DropdownMenu
 - `DeckBuilder.tsx`

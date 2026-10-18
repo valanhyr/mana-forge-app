@@ -9,31 +9,57 @@ import {
   Globe,
   Bell,
   CheckCircle,
-  EyeOff,
-  Eye,
-  X,
 } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useUser } from '../../services/UserContext';
 import { useTranslation } from '../../hooks/useTranslation';
 import { useLanguage } from '../../services/LanguageContext';
 import { useToast } from '../../services/ToastContext';
 import { AuthService } from '../../services/AuthService';
 import SEO from '../../components/ui/SEO';
-import { AVATAR_OPTIONS, DEFAULT_AVATAR, getAvatarUrl } from '../../core/utils/avatar';
+import { DEFAULT_AVATAR, getAvatarUrl } from '../../core/utils/avatar';
 import { useAnalysisQuota } from '../../hooks/useAnalysisQuota';
 import AnalysisQuotaSummary from '../../components/ui/AnalysisQuotaSummary';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
 import Textarea from '../../components/ui/Textarea';
 import Card, { CardTitle } from '../../components/ui/Card';
+import PasswordField from '../../components/ui/PasswordField';
+import AvatarPickerModal from '../../components/ui/AvatarPickerModal';
+
+type TabId = 'personalInfo' | 'preferences';
+
+const TABS: { id: TabId; labelKey: string; icon: typeof User }[] = [
+  { id: 'personalInfo', labelKey: 'profile.personalInfo', icon: User },
+  { id: 'preferences', labelKey: 'profile.preferences', icon: Settings },
+];
 
 const Profile = () => {
   const { t } = useTranslation();
   const { locale, setLocale } = useLanguage();
   const { user, logout, updateUser } = useUser();
   const { showToast } = useToast();
-  const [activeTab, setActiveTab] = useState<'personalInfo' | 'preferences'>('personalInfo');
+  const [activeTab, setActiveTab] = useState<TabId>('personalInfo');
+  const tabRefs = useRef<Record<TabId, HTMLButtonElement | null>>({
+    personalInfo: null,
+    preferences: null,
+  });
+
+  // Navegación de tabs por teclado, como espera el patrón ARIA de tablist.
+  const handleTabKeyDown = (event: React.KeyboardEvent, current: TabId) => {
+    const offset =
+      event.key === 'ArrowDown' || event.key === 'ArrowRight'
+        ? 1
+        : event.key === 'ArrowUp' || event.key === 'ArrowLeft'
+          ? -1
+          : 0;
+    if (offset === 0) return;
+    event.preventDefault();
+    const index = TABS.findIndex((tab) => tab.id === current);
+    const next = TABS[(index + offset + TABS.length) % TABS.length];
+    setActiveTab(next.id);
+    tabRefs.current[next.id]?.focus();
+  };
   const newsletter = user?.newsletterSubscribed === true;
   const [newsletterSaving, setNewsletterSaving] = useState(false);
   const { quota } = useAnalysisQuota();
@@ -254,26 +280,31 @@ const Profile = () => {
 
           <Card className="p-2">
             <nav className="space-y-1">
-              <button
-                onClick={() => setActiveTab('personalInfo')}
-                className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl transition-colors shadow-sm ${
-                  activeTab === 'personalInfo'
-                    ? 'text-white bg-zinc-800'
-                    : 'text-zinc-400 hover:text-white hover:bg-zinc-800/50'
-                }`}
-              >
-                <User size={18} /> {t('profile.personalInfo')}
-              </button>
-              <button
-                onClick={() => setActiveTab('preferences')}
-                className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl transition-colors shadow-sm ${
-                  activeTab === 'preferences'
-                    ? 'text-white bg-zinc-800'
-                    : 'text-zinc-400 hover:text-white hover:bg-zinc-800/50'
-                }`}
-              >
-                <Settings size={18} /> {t('profile.preferences')}
-              </button>
+              <div role="tablist" aria-orientation="vertical" className="space-y-1">
+                {TABS.map((tab) => (
+                  <button
+                    key={tab.id}
+                    id={`profile-tab-${tab.id}`}
+                    role="tab"
+                    type="button"
+                    aria-selected={activeTab === tab.id}
+                    aria-controls="profile-tabpanel"
+                    tabIndex={activeTab === tab.id ? 0 : -1}
+                    ref={(el) => {
+                      tabRefs.current[tab.id] = el;
+                    }}
+                    onClick={() => setActiveTab(tab.id)}
+                    onKeyDown={(e) => handleTabKeyDown(e, tab.id)}
+                    className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl transition-colors shadow-sm ${
+                      activeTab === tab.id
+                        ? 'text-white bg-zinc-800'
+                        : 'text-zinc-400 hover:text-white hover:bg-zinc-800/50'
+                    }`}
+                  >
+                    <tab.icon size={18} /> {t(tab.labelKey)}
+                  </button>
+                ))}
+              </div>
               <button
                 onClick={() => void logout()}
                 className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-xl transition-colors"
@@ -284,7 +315,12 @@ const Profile = () => {
           </Card>
         </div>
 
-        <div className="lg:col-span-2 space-y-6">
+        <div
+          className="lg:col-span-2 space-y-6"
+          role="tabpanel"
+          id="profile-tabpanel"
+          aria-labelledby={`profile-tab-${activeTab}`}
+        >
           {activeTab === 'personalInfo' && (
             <>
               <Card className="p-8">
@@ -386,6 +422,9 @@ const Profile = () => {
                           visible={visible}
                           disabled={passwordLoading}
                           onVisibleChange={() => setVisible(!visible)}
+                          toggleLabel={`${t(
+                            visible ? 'profile.hidePassword' : 'profile.showPassword'
+                          )}: ${t(`profile.${field}`)}`}
                           onChange={(next) => {
                             if (field === 'currentPassword') setCurrentPassword(next);
                             else if (field === 'newPassword') setNewPassword(next);
@@ -395,12 +434,14 @@ const Profile = () => {
                         />
                       ))}
 
-                      {passwordError && <p className="text-red-400 text-sm">{passwordError}</p>}
-                      {passwordSuccess && (
-                        <p className="text-green-400 text-sm flex items-center gap-1">
-                          <CheckCircle size={14} /> {t('profile.passwordChanged')}
-                        </p>
-                      )}
+                      <div role="status" aria-live="polite">
+                        {passwordError && <p className="text-red-400 text-sm">{passwordError}</p>}
+                        {passwordSuccess && (
+                          <p className="text-green-400 text-sm flex items-center gap-1">
+                            <CheckCircle size={14} /> {t('profile.passwordChanged')}
+                          </p>
+                        )}
+                      </div>
 
                       <div className="flex gap-3 pt-2">
                         <Button type="submit" size="sm" loading={passwordLoading}>
@@ -488,13 +529,15 @@ const Profile = () => {
                   <label className="relative inline-flex items-center cursor-pointer">
                     <input
                       type="checkbox"
+                      role="switch"
+                      aria-checked={newsletter}
                       checked={newsletter}
                       onChange={(e) => void saveNewsletter(e.target.checked)}
                       disabled={newsletterSaving}
                       aria-label={t('profile.newsletter')}
                       className="sr-only peer"
                     />
-                    <div className="w-11 h-6 bg-zinc-700 peer-focus:outline-none rounded-full peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-500"></div>
+                    <div className="w-11 h-6 bg-zinc-700 rounded-full peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-500 peer-focus-visible:ring-2 peer-focus-visible:ring-brand-500 peer-focus-visible:ring-offset-2 peer-focus-visible:ring-offset-zinc-900"></div>
                   </label>
                 </div>
                 <section className="border-t border-zinc-800 pt-4">
@@ -515,166 +558,6 @@ const Profile = () => {
         onApply={applyAvatarSelection}
         t={t}
       />
-    </div>
-  );
-};
-
-interface AvatarPickerModalProps {
-  isOpen: boolean;
-  selectedAvatar: string;
-  onSelect: (avatar: string) => void;
-  onClose: () => void;
-  onApply: () => void;
-  t: (key: string, params?: Record<string, string | number>) => string;
-}
-
-interface PasswordFieldProps {
-  id: string;
-  label: string;
-  value: string;
-  visible: boolean;
-  disabled?: boolean;
-  onVisibleChange: () => void;
-  onChange: (value: string) => void;
-}
-
-/**
- * Campo de contraseña con el interruptor de visibilidad. Antes estaba
- * copiado tres veces con tres estados booleanos distintos.
- */
-function PasswordField({
-  id,
-  label,
-  value,
-  visible,
-  disabled,
-  onVisibleChange,
-  onChange,
-}: PasswordFieldProps) {
-  return (
-    <div className="space-y-1">
-      <label htmlFor={id} className="block text-sm font-medium text-zinc-400">
-        {label}
-      </label>
-      <div className="relative">
-        <input
-          id={id}
-          type={visible ? 'text' : 'password'}
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          disabled={disabled}
-          className="w-full bg-surface-sunken border border-zinc-800 rounded-control py-2.5 px-4 pr-10 text-white transition-all disabled:opacity-50 focus:outline-none focus:ring-1 focus:border-indigo-500 focus:ring-indigo-500"
-        />
-        <button
-          type="button"
-          onClick={onVisibleChange}
-          aria-label={visible ? 'Hide password' : 'Show password'}
-          className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300"
-        >
-          {visible ? <EyeOff size={16} /> : <Eye size={16} />}
-        </button>
-      </div>
-    </div>
-  );
-}
-
-const AvatarPickerModal = ({
-  isOpen,
-  selectedAvatar,
-  onSelect,
-  onClose,
-  onApply,
-  t,
-}: AvatarPickerModalProps) => {
-  if (!isOpen) return null;
-
-  return (
-    <div
-      className="fixed inset-0 z-[220] bg-black/70 backdrop-blur-sm sm:flex sm:items-center sm:justify-center sm:p-4"
-      onClick={onClose}
-    >
-      <div
-        className="h-full w-full bg-zinc-900 sm:h-auto sm:max-h-[90vh] sm:max-w-4xl sm:rounded-2xl sm:border sm:border-zinc-800 sm:shadow-2xl overflow-hidden flex flex-col"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="flex items-center justify-between px-4 py-4 border-b border-zinc-800 sm:px-6">
-          <div>
-            <h3 className="text-lg font-bold text-white">{t('profile.avatarModalTitle')}</h3>
-            <p className="text-sm text-zinc-400 mt-1">{t('profile.avatarDescription')}</p>
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="text-zinc-400 hover:text-white transition-colors p-2 hover:bg-zinc-800 rounded-lg"
-            aria-label={t('common.cancel')}
-          >
-            <X size={20} />
-          </button>
-        </div>
-
-        <div className="px-4 py-4 sm:px-6 border-b border-zinc-800">
-          <div className="flex items-center gap-4 rounded-2xl bg-zinc-950 border border-zinc-800 p-4">
-            <div className="w-20 h-20 rounded-full overflow-hidden border-2 border-orange-500/40 shadow-inner shrink-0">
-              <img
-                src={getAvatarUrl(selectedAvatar)}
-                alt={t('profile.avatarSelected')}
-                className="w-full h-full object-cover"
-              />
-            </div>
-            <div>
-              <p className="text-sm font-semibold text-white">{t('profile.avatarSelected')}</p>
-              <p className="text-xs text-zinc-500 mt-1">{selectedAvatar}</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="flex-1 overflow-y-auto px-4 py-4 sm:px-6">
-          <div className="grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-6 gap-3">
-            {AVATAR_OPTIONS.map((avatar, index) => {
-              const isSelected = avatar === selectedAvatar;
-              return (
-                <button
-                  key={avatar}
-                  type="button"
-                  onClick={() => onSelect(avatar)}
-                  className={`relative rounded-2xl overflow-hidden border-2 transition-all ${
-                    isSelected
-                      ? 'border-orange-500 ring-2 ring-orange-500/30'
-                      : 'border-zinc-800 hover:border-zinc-600'
-                  }`}
-                  aria-label={t('profile.avatarOptionAlt', {
-                    number: index + 1,
-                  })}
-                  aria-pressed={isSelected}
-                >
-                  <img
-                    src={getAvatarUrl(avatar)}
-                    alt={t('profile.avatarOptionAlt', {
-                      number: index + 1,
-                    })}
-                    className="w-full aspect-square object-cover"
-                    loading="lazy"
-                  />
-                  {isSelected && (
-                    <span className="absolute inset-0 bg-black/20 flex items-center justify-center">
-                      <span className="bg-orange-500 text-white text-xs font-bold rounded-full px-2 py-1">
-                        {t('profile.selected')}
-                      </span>
-                    </span>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        <div className="border-t border-zinc-800 px-4 py-4 sm:px-6 flex flex-col-reverse sm:flex-row sm:justify-end gap-3">
-          <Button variant="ghost" onClick={onClose}>
-            {t('common.cancel')}
-          </Button>
-          <Button onClick={onApply}>{t('profile.applyAvatar')}</Button>
-        </div>
-      </div>
     </div>
   );
 };

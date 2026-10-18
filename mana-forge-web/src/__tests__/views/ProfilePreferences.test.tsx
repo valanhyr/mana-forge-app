@@ -19,13 +19,13 @@ describe('Persisted profile preferences', () => {
   const open = async () => {
     const user = userEvent.setup();
     render(<LanguageProvider><ToastProvider><MemoryRouter><Profile /></MemoryRouter></ToastProvider></LanguageProvider>);
-    await user.click(screen.getByRole('button', { name: /preferencias/i }));
+    await user.click(screen.getByRole('tab', { name: /preferencias/i }));
     return user;
   };
   it('does not assume consent and saves it through the API', async () => {
     const save = vi.spyOn(AuthService, 'setNewsletterPreference').mockResolvedValue({ subscribed: true });
     const user = await open();
-    const checkbox = screen.getByRole('checkbox'); expect(checkbox).not.toBeChecked();
+    const checkbox = screen.getByRole('switch'); expect(checkbox).toHaveAttribute('aria-checked', 'false');
     await user.click(checkbox);
     await waitFor(() => expect(save).toHaveBeenCalledWith(true));
     expect(account.updateUser).toHaveBeenCalledWith(expect.objectContaining({ newsletterSubscribed: true }));
@@ -33,8 +33,8 @@ describe('Persisted profile preferences', () => {
   });
   it('does not claim that a failed preference was saved', async () => {
     vi.spyOn(AuthService, 'setNewsletterPreference').mockRejectedValue(new Error('Unavailable'));
-    const user = await open(); await user.click(screen.getByRole('checkbox'));
-    await waitFor(() => expect(screen.getByRole('checkbox')).toBeEnabled());
-    expect(screen.getByRole('checkbox')).not.toBeChecked(); expect(account.updateUser).not.toHaveBeenCalled();
+    const user = await open(); await user.click(screen.getByRole('switch'));
+    await waitFor(() => expect(screen.getByRole('switch')).toBeEnabled());
+    expect(screen.getByRole('switch')).toHaveAttribute('aria-checked', 'false'); expect(account.updateUser).not.toHaveBeenCalled();
   });
 });

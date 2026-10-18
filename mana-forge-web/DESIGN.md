@@ -35,17 +35,38 @@ Usa estas en vistas nuevas. No reimplementes el marcado.
 import Button from '../components/ui/Button';
 import Input from '../components/ui/Input';
 import Textarea from '../components/ui/Textarea';
+import PasswordField from '../components/ui/PasswordField';
 import Card, { CardHeader, CardTitle } from '../components/ui/Card';
 
 <Button variant="primary|secondary|ghost|destructive" size="sm|md" loading>
 <Input label="..." error="..." hint="..." icon={<User size={18} />} />
 <Textarea label="..." error="..." hint="..." />
+<PasswordField id label value visible toggleLabel onVisibleChange onChange />
 <Card className="p-6"><CardTitle icon={<User size={20} />}>Título</CardTitle></Card>
 ```
 
 `Input` y `Textarea` exigen `label` y generan el `id`/`htmlFor` solos: no se
 pueden usar sin etiqueta accesible. `Button` es `type="button"` por defecto, así
 que dentro de un `<form>` hay que pasar `type="submit"` explícitamente.
+`PasswordField` recibe `toggleLabel` ya localizado, y el nombre del interruptor
+debe incluir el nombre del campo: tres "Mostrar contraseña" idénticos son
+indistinguibles para un lector de pantalla.
+
+## Accesibilidad
+
+Es criterio de aceptación, no un extra:
+
+- Cada control tiene nombre accesible. Los interruptores de tipo icono llevan
+  `aria-label` y, si hay varios iguales, el nombre del campo que afectan.
+- Los mensajes de error y de éxito van en una región `role="status"`
+  con `aria-live="polite"`.
+- Un toggle debe tener foco visible de teclado (`peer-focus-visible:ring-*`).
+  Nunca uses `peer-focus:outline-none` sin reemplazarlo.
+- Si un conjunto de botones son en realidad pestañas: `role="tablist"`,
+  `role="tab"` con `aria-selected` y `aria-controls`, `role="tabpanel"` con
+  `aria-labelledby`, y navegación con flechas.
+- Cambiar un rol ARIA rompe los tests existentes que lo buscaban por el rol
+  anterior. Actualízalos y comprueba que mantienen su intención.
 
 ## Qué queda por migrar
 
@@ -55,11 +76,14 @@ trabajo pendiente lista lo que ya está decidido para un ciclo posterior.
 
 En concreto, no reimplementes:
 
-- **Modales**: ya existe `components/ui/Modal.tsx`, aunque le faltan Escape,
+- **Modales**: existe `components/ui/Modal.tsx`, pero aún le faltan Escape,
   bloqueo de scroll del `body` y `role="dialog"`. Está anotado para arreglar.
-  `AvatarPickerModal` en `Profile.tsx` es un caso conocido.
-- **Tabs**: falta la semántica ARIA de `tablist`.
-- **Switches**: el foco visible de teclado está mal (WCAG 2.4.7).
+  `components/ui/AvatarPickerModal.tsx` ya hace las tres cosas y puede servir
+  de referencia, aunque es específico del perfil.
+- **Tabs**: la semántica ARIA de `tablist` está resuelta solo en Profile, no
+  como primitiva.
+- **Switches**: el foco visible de teclado ya está corregido en Profile, pero
+  tampoco es primitiva.
 
 ## Reglas
 
