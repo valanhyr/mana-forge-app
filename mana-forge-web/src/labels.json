@@ -479,6 +479,7 @@
       "goBack": "Volver atrás"
     },
     "friends": {
+      "pendingRequests": "{count} solicitudes pendientes",
       "title": "Amigos",
       "subtitle": "Gestiona tus amigos y solicitudes de amistad",
       "explorerSubtitle": "Descubre las mejores estrategias de la comunidad",
@@ -1102,6 +1103,7 @@
       "goBack": "Go back"
     },
     "friends": {
+      "pendingRequests": "{count} pending requests",
       "title": "Friends",
       "subtitle": "Manage your friends and friend requests",
       "explorerSubtitle": "Discover the best strategies from the community",

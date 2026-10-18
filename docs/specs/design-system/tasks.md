@@ -161,6 +161,17 @@ placeholder, lo que oculta exactamente el defecto que había.
 - [x] C5.3 Verificado que el honeypot `#contact-website` sigue fuera del árbol
   de accesibilidad y del orden de tabulación
 
+### Ciclo 6 — Friends
+
+Solo existía `FriendService.test.ts`, ningún test de la vista.
+
+- [x] C6.1 `FriendsAccessibility.test.tsx`: 5 tests
+- [x] C6.2 El selector de amigos/requests es un `tablist` real con `aria-selected`,
+  `aria-controls`, `aria-labelledby` y navegación por flechas
+- [x] C6.3 El contador de solicitudes pendientes lleva etiqueta localizada
+- [x] C6.4 La búsqueda tiene etiqueta `sr-only` asociada
+- [x] C6.5 Superficies a tokens `bg-surface` y `rounded-xl`
+
 ## Evidencia del ciclo 2
 
 - `npx tsc --noEmit` → exit 0
@@ -253,9 +264,26 @@ Los tests existentes de Login usaban `getByPlaceholderText`. Un input sin
 esos tests no podían detectar la falta de etiqueta. Los nuevos usan
 `getByLabelText`, que sí la exige.
 
+### Evidencia del ciclo 6
+
+- `npx tsc --noEmit` → exit 0
+- `npm run lint` → exit 0
+- `npm run build` → correcto
+- `npx vitest run` → 52 ficheros, 359 tests en verde
+
+### TSC verde y build roto
+
+Al añadir el `tabpanel` en `Friends.tsx`, `npx tsc --noEmit` devolvió 0 y
+`vitest` falló con un error de sintaxis JSX que `tsc` no vio. El build de Vite
+señaló el punto exacto. `tsc` y el parseo de JSX de esbuild no coinciden en
+todos los casos; el build sigue siendo la verificación que manda.
+
+Al añadir el div del tabpanel quedó un cierre imbalanceado y hubo dos intentos
+fallidos de arreglarlo antes de contar los `<div>` abiertos y cerrados.
+
 ### Lo que sigue pendiente
 
-- Migrar las 11 vistas restantes
+- Migrar las 10 vistas restantes
 - **Restructurar el layout dual de `Messages`** (dos copias del mismo árbol)
 - Primitivas de comportamiento sobre Radix: Modal, Tabs, Switch, DropdownMenu
 - `DeckBuilder.tsx`

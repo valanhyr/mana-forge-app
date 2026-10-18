@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Users, UserPlus, UserMinus, Check, X, Search, Clock, UserCheck, Rss } from 'lucide-react';
 import {
   FriendService,
@@ -15,11 +15,32 @@ import { getAvatarUrl } from '../../core/utils/avatar';
 
 type Tab = 'friends' | 'requests';
 
+const TABS: Tab[] = ['friends', 'requests'];
+
 export default function Friends() {
   const { t } = useTranslation();
   const { showToast } = useToast();
 
   const [activeTab, setActiveTab] = useState<Tab>('friends');
+  const tabRefs = useRef<Record<Tab, HTMLButtonElement | null>>({
+    friends: null,
+    requests: null,
+  });
+
+  const handleTabKeyDown = (event: React.KeyboardEvent, current: Tab) => {
+    const offset =
+      event.key === 'ArrowRight' || event.key === 'ArrowDown'
+        ? 1
+        : event.key === 'ArrowLeft' || event.key === 'ArrowUp'
+          ? -1
+          : 0;
+    if (offset === 0) return;
+    event.preventDefault();
+    const index = TABS.indexOf(current);
+    const next = TABS[(index + offset + TABS.length) % TABS.length];
+    setActiveTab(next);
+    tabRefs.current[next]?.focus();
+  };
   const [friends, setFriends] = useState<FriendUser[]>([]);
   const [received, setReceived] = useState<ReceivedRequest[]>([]);
   const [sent, setSent] = useState<SentRequest[]>([]);
@@ -168,10 +189,14 @@ export default function Friends() {
         </div>
 
         {/* Search */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-4 mb-6">
+        <div className="bg-surface border border-zinc-800 rounded-xl p-4 mb-6">
           <div className="relative">
+            <label htmlFor="friends-search" className="sr-only">
+              {t('friends.searchPlaceholder')}
+            </label>
             <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
             <input
+              id="friends-search"
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -254,19 +279,37 @@ export default function Friends() {
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-1 bg-zinc-900 border border-zinc-800 rounded-xl p-1 mb-6">
-          {(['friends', 'requests'] as Tab[]).map((tab) => (
+        <div
+          role="tablist"
+          className="flex gap-1 bg-surface border border-zinc-800 rounded-xl p-1 mb-6"
+        >
+          {TABS.map((tab) => (
             <button
               key={tab}
+              id={`friends-tab-${tab}`}
+              role="tab"
+              type="button"
+              aria-selected={activeTab === tab}
+              aria-controls="friends-tabpanel"
+              tabIndex={activeTab === tab ? 0 : -1}
+              ref={(el) => {
+                tabRefs.current[tab] = el;
+              }}
               onClick={() => setActiveTab(tab)}
+              onKeyDown={(e) => handleTabKeyDown(e, tab)}
               className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-2 ${
-                activeTab === tab ? 'bg-orange-600 text-white' : 'text-zinc-400 hover:text-white'
+                activeTab === tab
+                  ? 'bg-brand-600 text-white'
+                  : 'text-zinc-400 hover:text-white'
               }`}
             >
               {tab === 'friends' ? <Users size={16} /> : <UserPlus size={16} />}
               {t(`friends.tab.${tab}`)}
               {tab === 'requests' && received.length > 0 && (
-                <span className="bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                <span
+                  aria-label={t('friends.pendingRequests', { count: received.length })}
+                  className="bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center"
+                >
                   {received.length}
                 </span>
               )}
@@ -275,6 +318,11 @@ export default function Friends() {
         </div>
 
         {/* Content */}
+        <div
+          role="tabpanel"
+          id="friends-tabpanel"
+          aria-labelledby={`friends-tab-${activeTab}`}
+        >
         {isLoading ? (
           <div className="flex justify-center py-16">
             <ForgeSpinner />
@@ -299,6 +347,7 @@ export default function Friends() {
             t={t}
           />
         )}
+        </div>
       </div>
     </div>
   );
