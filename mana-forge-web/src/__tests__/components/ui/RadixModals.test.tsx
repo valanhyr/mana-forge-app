@@ -37,6 +37,13 @@ describe('FeedbackModal (Radix)', () => {
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
+  it('los campos del formulario tienen etiqueta asociada', () => {
+    render(<FeedbackModal isOpen onClose={vi.fn()} />);
+    expect(screen.getByLabelText('feedback.summaryLabel')).toBeInTheDocument();
+    expect(screen.getByLabelText('feedback.descriptionLabel')).toBeInTheDocument();
+    expect(screen.getByLabelText('feedback.emailLabel')).toBeInTheDocument();
+    expect(screen.getByRole('group', { name: 'feedback.categoryLabel' })).toBeInTheDocument();
+  });
   it('no renderiza nada si está cerrado', () => {
     render(<FeedbackModal isOpen={false} onClose={vi.fn()} />);
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();

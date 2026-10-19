@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
 import { X, Loader2, CheckCircle2 } from 'lucide-react';
 import { useTranslation } from '../../hooks/useTranslation';
@@ -16,6 +16,11 @@ interface Props {
 const FeedbackModal = ({ isOpen, onClose }: Props) => {
   const { t } = useTranslation();
   const { user } = useUser();
+  const uid = useId();
+  const categoryLabelId = `${uid}-category`;
+  const summaryId = `${uid}-summary`;
+  const descriptionId = `${uid}-description`;
+  const emailId = `${uid}-email`;
 
   const [category, setCategory] = useState<Category | null>(null);
   const [anonymous, setAnonymous] = useState(false);
@@ -101,14 +106,19 @@ const FeedbackModal = ({ isOpen, onClose }: Props) => {
             <form onSubmit={handleSubmit} className="p-5 space-y-4">
               {/* Category chips */}
               <div>
-                <p className="text-sm font-medium text-zinc-400 mb-2">
+                <p id={categoryLabelId} className="text-sm font-medium text-zinc-400 mb-2">
                   {t('feedback.categoryLabel')}
                 </p>
-                <div className="flex flex-wrap gap-2">
+                <div
+                  role="group"
+                  aria-labelledby={categoryLabelId}
+                  className="flex flex-wrap gap-2"
+                >
                   {CATEGORIES.map((cat) => (
                     <button
                       key={cat}
                       type="button"
+                      aria-pressed={category === cat}
                       onClick={() => {
                         setCategory(cat);
                         setError('');
@@ -130,11 +140,12 @@ const FeedbackModal = ({ isOpen, onClose }: Props) => {
 
               {/* Summary */}
               <div>
-                <label className="block text-sm font-medium text-zinc-400 mb-1">
+                <label htmlFor={summaryId} className="block text-sm font-medium text-zinc-400 mb-1">
                   {t('feedback.summaryLabel')}
                 </label>
                 <div className="relative">
                   <input
+                    id={summaryId}
                     type="text"
                     maxLength={100}
                     value={summary}
@@ -153,10 +164,14 @@ const FeedbackModal = ({ isOpen, onClose }: Props) => {
 
               {/* Description */}
               <div>
-                <label className="block text-sm font-medium text-zinc-400 mb-1">
+                <label
+                  htmlFor={descriptionId}
+                  className="block text-sm font-medium text-zinc-400 mb-1"
+                >
                   {t('feedback.descriptionLabel')}
                 </label>
                 <textarea
+                  id={descriptionId}
                   rows={3}
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
@@ -179,10 +194,11 @@ const FeedbackModal = ({ isOpen, onClose }: Props) => {
               {/* Email field (visible if not anonymous) */}
               {!anonymous && (
                 <div>
-                  <label className="block text-sm font-medium text-zinc-400 mb-1">
+                  <label htmlFor={emailId} className="block text-sm font-medium text-zinc-400 mb-1">
                     {t('feedback.emailLabel')}
                   </label>
                   <input
+                    id={emailId}
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
