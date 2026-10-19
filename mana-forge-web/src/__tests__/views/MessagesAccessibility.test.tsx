@@ -105,4 +105,17 @@ describe('Messages accessibility', () => {
     await waitFor(() => expect(screen.getAllByRole('button', { name: /amiga/i })[0]).toBeInTheDocument());
     expect(screen.getAllByRole('navigation').length).toBeGreaterThan(0);
   });
+
+  it('does not duplicate the message input and send button', async () => {
+    renderAt('/messages/f1');
+    await waitFor(() => expect(screen.getAllByRole('textbox')).toHaveLength(1));
+    expect(screen.getAllByRole('textbox')).toHaveLength(1);
+    expect(screen.getAllByRole('button', { name: /enviar/i })).toHaveLength(1);
+  });
+
+  it('does not duplicate the navigation region', async () => {
+    renderAt('/messages');
+    await waitFor(() => expect(screen.getAllByRole('navigation')).toHaveLength(1));
+    expect(screen.getAllByRole('navigation')).toHaveLength(1);
+  });
 });

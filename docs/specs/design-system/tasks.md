@@ -417,3 +417,29 @@ DeckBuilder es un componente muy grande (1890 líneas) con muchas dependencias. 
 fs.writeFileSync(p, c, 'utf8');
 console.log('Escrito. Longitud:', c.length);
 
+
+
+### Ciclo 15 — Messages: eliminar layout dual (accesibilidad)
+
+Messages.tsx renderizaba el árbol completo dos veces: una vez en un contenedor
+md:hidden (móvil) y otra en hidden md:flex (desktop). Un lector de pantalla
+recibía todo duplicado: dos botones de enviar, dos inputs de texto, dos listas
+de conversaciones.
+
+- [x] C15.1 Messages.tsx: un solo árbol DOM, nav y tabpanel renderizados una
+  sola vez, clases responsivas para mostrar/ocultar según el breakpoint
+- [x] C15.2 MessagesAccessibility.test.tsx: 2 tests nuevos que verifican que
+  no hay elementos duplicados (un solo textarea, un solo botón de enviar, un
+  solo nav)
+
+## Evidencia del ciclo 15
+
+- npx tsc --noEmit → exit 0
+- npm run lint → exit 0
+- npm run build → correcto
+- npx vitest run → 60 ficheros, 401 tests en verde
+
+### Lo que sigue pendiente
+
+- Migrar DeckBuilder completamente (tokens, accesibilidad, tests más completos)
+- Primitivas de comportamiento sobre Radix: Modal, Tabs, Switch, DropdownMenu

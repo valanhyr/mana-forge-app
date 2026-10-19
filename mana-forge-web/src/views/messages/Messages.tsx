@@ -297,25 +297,24 @@ export default function Messages() {
   );
 
   // ── Layout ───────────────────────────────────────────────────────────────
-  // Mobile: show either list or chat (full screen)
-  // Desktop (md+): side-by-side
+  // Single DOM tree for accessibility: one nav list + one chat panel,
+  // shown/hidden responsively instead of duplicating the entire tree.
+  // Mobile: one at a time (list OR chat). Desktop: side by side.
   return (
-    <>
-      {/* ── MOBILE layout ── */}
-      <div className="md:hidden h-[calc(100dvh-64px)] flex flex-col">
-        {friendId ? ChatPanel : ConversationList}
-      </div>
-
-      {/* ── DESKTOP layout ── */}
-      <div className="hidden md:flex max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 h-[calc(100vh-120px)] flex-col">
-        <h1 className="text-2xl font-bold text-white mb-6">{t('messages.title')}</h1>
-        <div className="flex flex-1 gap-4 overflow-hidden rounded-2xl border border-zinc-800">
-          {/* Sidebar */}
-          <div className="w-72 shrink-0 overflow-hidden">{ConversationList}</div>
-          {/* Chat */}
-          <div className="flex-1 overflow-hidden">{ChatPanel}</div>
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col min-h-[calc(100dvh-64px)] lg:h-[calc(100vh-120px)]">
+      <h1 className="text-2xl font-bold text-white mb-6">{t('messages.title')}</h1>
+      <div className="flex-1 flex gap-4 overflow-hidden rounded-2xl border border-zinc-800">
+        {/* Sidebar: conversation list */}
+        <div
+          className={`w-full md:w-72 shrink-0 overflow-hidden md:flex-none ${friendId ? 'hidden' : ''}`}
+        >
+          {ConversationList}
+        </div>
+        {/* Main: chat panel */}
+        <div className={`flex-1 overflow-hidden ${!friendId ? 'hidden' : ''}`}>
+          {ChatPanel}
         </div>
       </div>
-    </>
+    </div>
   );
 }
