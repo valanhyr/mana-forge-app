@@ -89,7 +89,10 @@
       "confirmDelete": "¿Estás seguro de que quieres borrar este mazo?",
       "gameChangerTooltip": "Carta considerada Game Changer",
       "accept": "Aceptar",
-      "ok": "OK"
+      "ok": "OK",
+      "likeDeck": "Me gusta",
+      "unlikeDeck": "Deja de gustar",
+      "close": "Cerrar"
     },
     "articles": {
       "writtenBy": "Escrito por",
@@ -443,7 +446,11 @@
         "Other": "Otro",
         "All": "Todas",
         "Unknown": "Otro"
-      }
+      },
+      "loading": "Cargando mazo…",
+      "notFoundTitle": "Mazo no encontrado",
+      "notFoundDescription": "Lo sentimos, no pudimos encontrar el mazo \"{deckName}\".",
+      "previewCard": "Vista previa de la carta"
     },
     "notFound": {
       "title": "Página no encontrada",
@@ -696,7 +703,10 @@
       "cloning": "Cloning...",
       "confirmDelete": "Are you sure you want to delete this deck?",
       "accept": "Accept",
-      "ok": "OK"
+      "ok": "OK",
+      "likeDeck": "Like",
+      "unlikeDeck": "Unlike",
+      "close": "Close"
     },
     "articles": {
       "writtenBy": "Written by",
@@ -1046,7 +1056,11 @@
         "Other": "Other",
         "All": "All",
         "Unknown": "Other"
-      }
+      },
+      "loading": "Loading deck…",
+      "notFoundTitle": "Deck not found",
+      "notFoundDescription": "Sorry, we couldn't find the deck '{deckName}'.",
+      "previewCard": "Preview card"
     },
     "notFound": {
       "title": "Page not found",

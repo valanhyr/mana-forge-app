@@ -362,3 +362,27 @@ corrigieron defectos de accesibilidad.
 - **Restructurar el layout dual de `Messages`** (dos copias del mismo árbol)
 - Primitivas de comportamiento sobre Radix: Modal, Tabs, Switch, DropdownMenu
 - `DeckBuilder.tsx`
+
+### Ciclo 12 — DeckViewer: accesibilidad y tests
+
+DeckViewer.tsx (883 líneas) no tenía tests. Se escribieron 9 antes de tocar nada.
+
+- [x] C12.1 DeckViewer.test.tsx: 9 tests (loader, título/formato/propietario, cartas del mazo, sideboard, like, clonar, copiar, estado 404, imágenes con alt)
+- [x] C12.2 Loader con role="status" y aria-label localizado (deckViewer.loading)
+- [x] C12.3 Nav de no-encontrado con aria-label localizado (deckViewer.notFoundTitle)
+- [x] C12.4 Botones de like, clonar, copiar, cerrar modal con aria-label localizado
+- [x] C12.5 labels.json: deckViewer.loading, deckViewer.notFoundTitle, deckViewer.notFoundDescription, deckViewer.previewCard, common.likeDeck, common.unlikeDeck, common.close en es y en
+
+## Evidencia del ciclo 12
+
+- npx tsc --noEmit → exit 0
+- npm run lint → exit 0
+- npm run build → correcto
+- npx vitest run → 59 ficheros, 397 tests en verde
+
+### Lo que sigue pendiente
+
+- Migrar las 5 vistas restantes (FormatDetail ya hecho, DeckBuilder)
+- Restructurar el layout dual de Messages (dos copias del mismo árbol)
+- Primitivas de comportamiento sobre Radix: Modal, Tabs, Switch, DropdownMenu
+- DeckBuilder.tsx

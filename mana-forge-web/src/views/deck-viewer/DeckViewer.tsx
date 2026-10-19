@@ -127,7 +127,7 @@ const DeckViewer = () => {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center min-h-[50vh]">
+      <div role="status" aria-label={t('deckViewer.loading')} className="flex justify-center items-center min-h-[50vh]">
         <Loader2 className="animate-spin text-orange-500" size={48} />
       </div>
     );
@@ -136,7 +136,7 @@ const DeckViewer = () => {
   if (!deck) {
     return (
       <div className="max-w-4xl mx-auto mt-12 text-center px-4">
-        <h2 className="text-3xl font-bold text-white mb-4">{t('deckViewer.notFound')}</h2>
+        <h2 className="text-3xl font-bold text-white mb-4">{t('deckViewer.notFoundTitle')}</h2>
         <Link
           to="/"
           className="inline-flex items-center gap-2 text-orange-500 hover:text-orange-400 transition-colors"
