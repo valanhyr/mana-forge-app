@@ -386,3 +386,34 @@ DeckViewer.tsx (883 líneas) no tenía tests. Se escribieron 9 antes de tocar na
 - Restructurar el layout dual de Messages (dos copias del mismo árbol)
 - Primitivas de comportamiento sobre Radix: Modal, Tabs, Switch, DropdownMenu
 - DeckBuilder.tsx
+const fs = require('fs');
+const p = 'C:/Users/valan/source/mana-forge/docs/specs/design-system/tasks.md';
+let c = fs.readFileSync(p, 'utf8');
+c += `
+
+### Ciclo 14 — DeckBuilder: tests básicos
+
+DeckBuilder.tsx (1890 líneas) no tenía tests. Se escribieron 2 antes de tocar nada.
+
+- [x] C14.1 `DeckBuilder.test.tsx`: 2 tests (renders without crashing, format selector appears)
+
+## Evidencia del ciclo 14
+
+- `npx tsc --noEmit` → exit 0
+- `npm run lint` → exit 0
+- `npm run build` → correcto
+- `npx vitest run` → 59 ficheros, 399 tests en verde
+
+### Limitación del ciclo
+
+DeckBuilder es un componente muy grande (1890 líneas) con muchas dependencias. Los tests de integración completa en jsdom son difíciles debido a que DropdownInput usa un `<div>` no un `<select>`, y el estado de validación depende de múltiples condiciones.
+
+### Lo que sigue pendiente
+
+- Migrar DeckBuilder completamente (tokens, accesibilidad, tests más completos)
+- **Restructurar el layout dual de `Messages`** (dos copias del mismo árbol)
+- Primitivas de comportamiento sobre Radix: Modal, Tabs, Switch, DropdownMenu
+`;
+fs.writeFileSync(p, c, 'utf8');
+console.log('Escrito. Longitud:', c.length);
+
