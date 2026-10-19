@@ -39,7 +39,7 @@ const ArticleDetail = () => {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center min-h-[50vh]">
+      <div role="status" aria-label={t('articles.loading')} className="flex justify-center items-center min-h-[50vh]">
         <Loader2 className="animate-spin text-orange-500" size={48} />
       </div>
     );
@@ -47,7 +47,7 @@ const ArticleDetail = () => {
 
   if (!article) {
     return (
-      <div className="max-w-4xl mx-auto mt-12 text-center px-4">
+      <nav aria-label={t('articles.backToHome')} className="max-w-4xl mx-auto mt-12 text-center px-4">
         <h2 className="text-3xl font-bold text-white mb-4">{t('articles.notFoundTitle')}</h2>
         <p className="text-zinc-400 mb-8">{t('articles.notFoundDescription')}</p>
         <Link
@@ -56,7 +56,7 @@ const ArticleDetail = () => {
         >
           <ArrowLeft size={20} /> {t('articles.backToHome')}
         </Link>
-      </div>
+      </nav>
     );
   }
 
@@ -92,7 +92,7 @@ const ArticleDetail = () => {
 
       {/* Content */}
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 -mt-8 relative z-10">
-        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-8 shadow-xl">
+        <div className="bg-surface border border-zinc-800 rounded-2xl p-8 shadow-xl">
           <div className="flex items-center gap-3 mb-8 pb-8 border-b border-zinc-800">
             <div className="w-10 h-10 rounded-full bg-zinc-800 flex items-center justify-center text-zinc-400 border border-zinc-700">
               <User size={20} />
