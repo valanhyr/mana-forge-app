@@ -450,3 +450,5 @@ de conversaciones.
 - Tests: Modal.test.tsx y RadixPrimitives.test.tsx (Tabs, Switch, DropdownMenu).
 - Nota: tsc --noEmit no revisa el proyecto (usa referencias); usar tsc -b o npm run build.
 - Pendiente: migrar modales a medida (AvatarPickerModal, etc.) al Modal de Radix y ampliar DeckBuilder.
+
+- Ciclo 16 (cont.): AvatarPickerModal, FeedbackModal, WhatsNewModal y BetaWelcomeModal migrados a Radix Dialog; ImagePickerModal ajustado al nuevo Modal. BetaWelcomeModal es obligatorio (Escape y clic fuera bloqueados). Tests de caracterizacion en RadixModals.test.tsx (escritos tras la migracion, no red-first).

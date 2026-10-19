@@ -48,7 +48,7 @@ const ImagePickerModal: React.FC<Props> = ({ isOpen, onClose, cardId, oracleId, 
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={t('deck.editor.chooseImage') || 'Choose image'} maxWidth="max-w-none" fullScreenMobile={true} className="w-[90vw] h-[90vh] max-w-none">
+    <Modal isOpen={isOpen} onClose={onClose} title={t('deck.editor.chooseImage') || 'Choose image'} maxWidth="max-w-none" fullScreenMobile={true} className="sm:w-[90vw]! sm:h-[90vh]!">
       <div className="p-6">
         {loading && <div className="text-sm text-zinc-400">{t('common.loading') || 'Loading...'}</div>}
         {!loading && prints.length === 0 && (
