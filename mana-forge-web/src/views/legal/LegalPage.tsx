@@ -33,7 +33,7 @@ const LegalPageView = () => {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center min-h-[50vh]">
+      <div role="status" aria-label={t('legal.loading')} className="flex justify-center items-center min-h-[50vh]">
         <Loader2 className="animate-spin text-orange-500" size={48} />
       </div>
     );
@@ -59,7 +59,7 @@ const LegalPageView = () => {
   return (
     <div className="min-h-screen pb-16">
       {/* Header */}
-      <div className="bg-zinc-900 border-b border-zinc-800">
+      <div className="bg-surface border-b border-zinc-800">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
           <Link
             to="/"
@@ -91,7 +91,7 @@ const LegalPageView = () => {
 
       {/* Table of contents */}
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 mt-10">
-        <nav className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 mb-10">
+        <nav aria-label={t('legal.tableOfContents')} className="bg-surface border border-zinc-800 rounded-xl p-6 mb-10">
           <p className="text-xs font-semibold uppercase tracking-widest text-zinc-500 mb-4">
             {t('legal.tableOfContents')}
           </p>
