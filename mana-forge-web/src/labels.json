@@ -332,7 +332,8 @@
       "maxCopies": "Máx. Copias",
       "bannedCards": "Cartas Prohibidas",
       "bannedCardsDescription": "Consulta la lista oficial de cartas prohibidas y restringidas para {formatTitle}.",
-      "viewBanlist": "Ver Banlist"
+      "viewBanlist": "Ver Banlist",
+      "loading": "Cargando formato…"
     },
     "dashboard": {
       "openDailyDeck": "Ver mazo completo",
@@ -934,7 +935,8 @@
       "maxCopies": "Max Copies",
       "bannedCards": "Banned Cards",
       "bannedCardsDescription": "Check the official banned and restricted list for {formatTitle}.",
-      "viewBanlist": "View Banlist"
+      "viewBanlist": "View Banlist",
+      "loading": "Loading format…"
     },
     "dashboard": {
       "openDailyDeck": "View full deck",

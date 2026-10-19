@@ -137,7 +137,7 @@ const FormatDetail = () => {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center min-h-[50vh]">
+      <div role="status" aria-label={t('formatDetail.loading')} className="flex justify-center items-center min-h-[50vh]">
         <ForgeSpinner className="text-orange-500" size={128} />
       </div>
     );
@@ -243,7 +243,7 @@ const FormatDetail = () => {
           <div className="lg:col-span-2 space-y-8">
             {/* Description */}
             {data.description && (
-              <div className="bg-zinc-900/80 backdrop-blur-md border border-zinc-800 rounded-2xl p-8 shadow-xl">
+              <div className="bg-surface/80 backdrop-blur-md border border-zinc-800 rounded-2xl p-8 shadow-xl">
                 <div className="flex items-center gap-3 mb-4">
                   <BookOpen className="text-orange-500" size={24} />
                   <h2 className="text-2xl font-bold text-white">
@@ -258,7 +258,7 @@ const FormatDetail = () => {
 
             {/* Rules */}
             {data.rules && (
-              <div className="bg-zinc-900/80 backdrop-blur-md border border-zinc-800 rounded-2xl p-8 shadow-xl">
+              <div className="bg-surface/80 backdrop-blur-md border border-zinc-800 rounded-2xl p-8 shadow-xl">
                 <div className="flex items-center gap-3 mb-4">
                   <Layers className="text-indigo-500" size={24} />
                   <h2 className="text-2xl font-bold text-white">
@@ -281,7 +281,7 @@ const FormatDetail = () => {
           <div className="space-y-6">
             {/* Stats / Metadata */}
             {data.metadata && (
-              <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 shadow-xl">
+              <div className="bg-surface border border-zinc-800 rounded-2xl p-6 shadow-xl">
                 <h3 className="text-lg font-bold text-white mb-4 border-b border-zinc-800 pb-2">
                   {t('formatDetail.deckStructure')}
                 </h3>
@@ -313,7 +313,7 @@ const FormatDetail = () => {
             )}
 
             {/* Banlist Link (Mock) */}
-            <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 shadow-xl">
+            <div className="bg-surface border border-zinc-800 rounded-2xl p-6 shadow-xl">
               <div className="flex items-center gap-3 mb-3">
                 <Ban className="text-red-500" size={20} />
                 <h3 className="text-lg font-bold text-white">{t('formatDetail.bannedCards')}</h3>

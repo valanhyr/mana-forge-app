@@ -337,3 +337,28 @@ corrigieron defectos de accesibilidad.
 - **Restructurar el layout dual de `Messages`** (dos copias del mismo árbol)
 - Primitivas de comportamiento sobre Radix: Modal, Tabs, Switch, DropdownMenu
 - `DeckBuilder.tsx`
+
+
+### Ciclo 11 — FormatDetail: accesibilidad y tests
+
+`FormatDetail.tsx` (437 líneas) no tenía tests. Se escribieron 5 antes de tocar nada.
+
+- [x] C11.1 `FormatDetail.test.tsx`: 5 tests (loader, título/subtítulo, descripción/reglas, botón banlist, estado 404)
+- [x] C11.2 Loader con `role="status"` y `aria-label` localizado (`formatDetail.loading`)
+- [x] C11.3 Superficies a `bg-surface` (cards de descripción, reglas, metadata, banned cards)
+- [x] C11.4 Cards de formato a `bg-surface` (reemplaza `bg-zinc-900`)
+- [x] C11.5 `labels.json`: `formatDetail.loading` en es y en
+
+## Evidencia del ciclo 11
+
+- `npx tsc --noEmit` → exit 0
+- `npm run lint` → exit 0
+- `npm run build` → correcto
+- `npx vitest run` → 58 ficheros, 388 tests en verde
+
+### Lo que sigue pendiente
+
+- Migrar las 5 vistas restantes (DeckViewer parcialmente, DeckBuilder)
+- **Restructurar el layout dual de `Messages`** (dos copias del mismo árbol)
+- Primitivas de comportamiento sobre Radix: Modal, Tabs, Switch, DropdownMenu
+- `DeckBuilder.tsx`
