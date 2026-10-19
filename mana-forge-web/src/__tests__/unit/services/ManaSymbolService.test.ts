@@ -35,6 +35,33 @@ describe('ManaSymbolService', () => {
     expect(symbols).toEqual({});
   });
 
+  it('getAll reintenta tras un fallo en lugar de quedarse con {} para siempre', async () => {
+    let call = 0;
+    server.use(
+      http.get(`${BASE}/cards/symbology`, () => {
+        call++;
+        if (call === 1) return new HttpResponse(null, { status: 500 });
+        return HttpResponse.json({ data: [{ symbol: '{R}', svg_uri: 'r.svg' }] });
+      })
+    );
+    expect(await ManaSymbolService.getAll()).toEqual({});
+    expect((await ManaSymbolService.getAll())['{R}']).toBe('r.svg');
+    expect(call).toBe(2);
+  });
+
+  it('getAll no cachea una respuesta sin símbolos', async () => {
+    let call = 0;
+    server.use(
+      http.get(`${BASE}/cards/symbology`, () => {
+        call++;
+        if (call === 1) return HttpResponse.json({ object: 'list', data: [] });
+        return HttpResponse.json({ data: [{ symbol: '{G}', svg_uri: 'g.svg' }] });
+      })
+    );
+    expect(await ManaSymbolService.getAll()).toEqual({});
+    expect((await ManaSymbolService.getAll())['{G}']).toBe('g.svg');
+  });
+
   it('getAll - llamadas concurrentes comparten la misma Promise (sin peticiones duplicadas)', async () => {
     let callCount = 0;
     server.use(
