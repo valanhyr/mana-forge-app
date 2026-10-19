@@ -281,9 +281,34 @@ todos los casos; el build sigue siendo la verificación que manda.
 Al añadir el div del tabpanel quedó un cierre imbalanceado y hubo dos intentos
 fallidos de arreglarlo antes de contar los `<div>` abiertos y cerrados.
 
+### Ciclo 7 — DeckViewer: tokens de superficie y accesibilidad
+
+`DeckViewer.tsx` (883 líneas, la vista más grande sin tests) no tenía tests.
+No se escribió suite de tests nueva; en su lugar se migró a tokens y se
+corrigieron defectos de accesibilidad.
+
+- [x] C7.1 Surfaces a `bg-surface` (reemplaza `bg-zinc-900` en header, barra de
+  ordenación/grupo/vista, toggle de precios, badge de precio total, summary y
+  barra flotante móvil)
+- [x] C7.2 Radio `rounded-xl` en summary card y barra flotante móvil
+- [x] C7.3 `focus-visible:ring-brand-500` en todos los botones (like, copiar,
+  clonar, ordenar, grupo, vista, precio, cerrar modal móvil)
+- [x] C7.4 `aria-label` en botones de icono (like, copiar, clonar, preview
+  carta, cerrar modal móvil)
+- [x] C7.5 Eliminada importación muerta de `CardTitle` e `Input`; corregido
+  `as any` preexistente en `title` del botón like
+
+## Evidencia del ciclo 7
+
+- `npx tsc --noEmit` → exit 0
+- `npm run lint` → exit 0
+- `npm run build` → correcto
+- `npx vitest run` → 52 ficheros, 359 tests en verde
+
 ### Lo que sigue pendiente
 
-- Migrar las 10 vistas restantes
+- Migrar las 9 vistas restantes (DeckViewer queda parcialmente migrada: tokens
+  y a11y, pero sin tests propios)
 - **Restructurar el layout dual de `Messages`** (dos copias del mismo árbol)
 - Primitivas de comportamiento sobre Radix: Modal, Tabs, Switch, DropdownMenu
 - `DeckBuilder.tsx`
