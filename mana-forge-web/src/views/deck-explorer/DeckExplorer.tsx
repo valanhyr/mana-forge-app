@@ -88,11 +88,15 @@ const DeckExplorer = () => {
         <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
           {/* Search Input */}
           <div className="relative group flex-1 sm:w-64">
+            <label htmlFor="deck-search-input" className="sr-only">
+              {t('deckExplorer.searchLabel')}
+            </label>
             <Search
               className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 group-focus-within:text-orange-500 transition-colors"
               size={18}
             />
             <input
+              id="deck-search-input"
               type="text"
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
               placeholder={t('common.search' as any) || 'Buscar por nombre...'}
@@ -104,11 +108,15 @@ const DeckExplorer = () => {
 
           {/* Format Selector */}
           <div className="relative group sm:w-48">
+            <label htmlFor="deck-format-select" className="sr-only">
+              {t('deckExplorer.formatLabel')}
+            </label>
             <Filter
               className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 group-focus-within:text-orange-500 transition-colors"
               size={16}
             />
             <select
+              id="deck-format-select"
               value={selectedFormat}
               onChange={(e) => setSelectedFormat(e.target.value)}
               className="w-full bg-zinc-900 border border-zinc-800 rounded-xl py-2.5 pl-10 pr-4 text-white appearance-none focus:outline-none focus:border-orange-500/50 transition-all cursor-pointer"
@@ -124,11 +132,15 @@ const DeckExplorer = () => {
 
           {/* Sort Selector */}
           <div className="relative group sm:w-48">
+            <label htmlFor="deck-sort-select" className="sr-only">
+              {t('deckExplorer.sortLabel')}
+            </label>
             <ArrowUpDown
               className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 group-focus-within:text-orange-500 transition-colors"
               size={16}
             />
             <select
+              id="deck-sort-select"
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as SortOption)}
               className="w-full bg-zinc-900 border border-zinc-800 rounded-xl py-2.5 pl-10 pr-4 text-white appearance-none focus:outline-none focus:border-orange-500/50 transition-all cursor-pointer"
@@ -142,9 +154,9 @@ const DeckExplorer = () => {
       </div>
 
       {loading ? (
-        <div className="flex flex-col items-center justify-center py-20">
+        <div role="status" aria-label={t('deckExplorer.loading')} className="flex flex-col items-center justify-center py-20">
           <Loader2 className="animate-spin text-orange-500 mb-4" size={48} />
-          <p className="text-zinc-500 animate-pulse">Buscando mazos...</p>
+          <p className="text-zinc-500 animate-pulse">{t('deckExplorer.loading')}</p>
         </div>
       ) : decks.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">

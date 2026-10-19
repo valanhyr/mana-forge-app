@@ -598,6 +598,12 @@
       "analyzeChallengeFailed": "La verificación de seguridad ha fallado. Recarga la página e inténtalo de nuevo.",
       "challengeFailedTitle": "No hemos podido cargar la verificación de seguridad.",
       "challengeFailedHint": "Puede que la clave de Turnstile no esté permitida en este dominio. En local, usa la clave de prueba de Cloudflare (1x00000000000000000000AA) en .env.development."
+    },
+    "deckExplorer": {
+      "loading": "Buscando mazos…",
+      "searchLabel": "Buscar mazos por nombre",
+      "formatLabel": "Filtrar por formato",
+      "sortLabel": "Ordenar por"
     }
   },
   "en": {
@@ -1194,6 +1200,12 @@
       "analyzeChallengeFailed": "The security check failed. Please reload the page and try again.",
       "challengeFailedTitle": "We could not load the security check.",
       "challengeFailedHint": "The Turnstile site key may not be allowed on this hostname. Locally, use Cloudflare's test key (1x00000000000000000000AA) in .env.development."
+    },
+    "deckExplorer": {
+      "loading": "Searching decks…",
+      "searchLabel": "Search decks by name",
+      "formatLabel": "Filter by format",
+      "sortLabel": "Sort by"
     }
   }
 }

@@ -312,3 +312,28 @@ corrigieron defectos de accesibilidad.
 - **Restructurar el layout dual de `Messages`** (dos copias del mismo árbol)
 - Primitivas de comportamiento sobre Radix: Modal, Tabs, Switch, DropdownMenu
 - `DeckBuilder.tsx`
+
+### Ciclo 10 — DeckExplorer: accesibilidad y tests
+
+`DeckExplorer.tsx` (177 líneas) no tenía tests. Se escribieron 6 antes de tocar nada.
+
+- [x] C10.1 `DeckExplorer.test.tsx`: 6 tests (loader, estado vacío, labels de búsqueda/formato/ordenar, tarjetas)
+- [x] C10.2 Loader con `role="status"` y `aria-label` localizado (`deckExplorer.loading`)
+- [x] C10.3 Input de búsqueda con `htmlFor` asociado a su label
+- [x] C10.4 Select de formato con `htmlFor` asociado a su label
+- [x] C10.5 Select de ordenar con `htmlFor` asociado a su label
+- [x] C10.6 `labels.json`: `deckExplorer.loading`, `deckExplorer.searchLabel`, `deckExplorer.formatLabel`, `deckExplorer.sortLabel` en es y en
+
+## Evidencia del ciclo 10
+
+- `npx tsc --noEmit` → exit 0
+- `npm run lint` → exit 0
+- `npm run build` → correcto
+- `npx vitest run` → 57 ficheros, 383 tests en verde
+
+### Lo que sigue pendiente
+
+- Migrar las 6 vistas restantes (FormatDetail, DeckViewer parcialmente, DeckBuilder)
+- **Restructurar el layout dual de `Messages`** (dos copias del mismo árbol)
+- Primitivas de comportamiento sobre Radix: Modal, Tabs, Switch, DropdownMenu
+- `DeckBuilder.tsx`
