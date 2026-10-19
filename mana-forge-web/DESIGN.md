@@ -103,3 +103,17 @@ npm run build       # tsc no detecta todo lo que ve vite
 
 `npx tsc --noEmit` dio 0 con un `Save` sin importar que el build sí detectó.
 Ejecuta el build antes de dar por buena una migración.
+### Comportamiento (Radix)
+
+```tsx
+import Modal from '../components/ui/Modal';
+import Switch from '../components/ui/Switch';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '../components/ui/Tabs';
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '../components/ui/DropdownMenu';
+
+<Modal isOpen onClose title="..." closeLabel="Cerrar" fullScreenMobile />
+<Switch aria-label="..." checked onCheckedChange={...} />
+```
+
+Foco, Escape, ARIA y teclado los gestiona Radix. `Modal` recibe `closeLabel`
+ya localizado. Los estilos de estado usan `data-[state=...]`.

@@ -1,62 +1,50 @@
-import { useEffect } from 'react';
+import type { ReactNode } from 'react';
+import * as Dialog from '@radix-ui/react-dialog';
 import { X } from 'lucide-react';
 
 interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
   title: string;
-  children: React.ReactNode;
+  children: ReactNode;
   maxWidth?: string;
   fullScreenMobile?: boolean;
   className?: string;
+  closeLabel?: string;
 }
 
-const Modal: React.FC<ModalProps> = ({
+const Modal = ({
   isOpen,
   onClose,
   title,
   children,
   maxWidth = 'max-w-lg',
   fullScreenMobile = false,
-  className = ''
-}) => {
-  useEffect(() => {
-    if (isOpen) {
-      const previous = document.body.style.overflow;
-      document.body.style.overflow = 'hidden';
-      return () => {
-        document.body.style.overflow = previous || '';
-      };
-    }
-    return;
-  }, [isOpen]);
-
-  if (!isOpen) return null;
-
-  return (
-    <div
-      className={`fixed inset-0 z-[100] flex bg-black/70 backdrop-blur-sm
-        ${fullScreenMobile ? 'p-0 items-stretch sm:p-4 sm:items-center sm:justify-center' : 'p-4 items-center justify-center'}`}
-    >
-      <div
-        className={`bg-zinc-900 border border-zinc-800 shadow-2xl w-full overflow-hidden animate-in fade-in zoom-in-95 duration-200
-          ${fullScreenMobile
-            ? `rounded-none flex flex-col h-full sm:rounded-2xl sm:h-auto ${maxWidth}`
-            : `rounded-2xl ${maxWidth}`}` + ` ${className}`}
+  className = '',
+  closeLabel = 'Close',
+}: ModalProps) => (
+  <Dialog.Root open={isOpen} onOpenChange={open => !open && onClose()}>
+    <Dialog.Portal>
+      <Dialog.Overlay className="fixed inset-0 z-[100] bg-black/70 backdrop-blur-sm" />
+      <Dialog.Content
+        aria-describedby={undefined}
+        className={`fixed z-[101] bg-zinc-900 border border-zinc-800 shadow-2xl flex flex-col p-6 ${
+          fullScreenMobile
+            ? 'inset-0 sm:inset-auto sm:left-1/2 sm:top-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-2xl sm:w-full'
+            : 'left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full rounded-2xl'
+        } ${maxWidth} ${className}`}
       >
-        <div className="flex justify-between items-center p-4 border-b border-zinc-800 bg-zinc-900/50 shrink-0">
-          <h3 className="text-lg font-bold text-white">{title}</h3>
-          <button
-            onClick={onClose}
-            className="text-zinc-400 hover:text-white transition-colors p-1 hover:bg-zinc-800 rounded-lg"
-          >
-            <X size={20} />
-          </button>
-        </div>
-        <div className={`p-6 flex-1 overflow-y-auto max-h-[80vh]`}>{children}</div>
-      </div>
-    </div>
-  );
-};
+        <Dialog.Title className="text-lg font-bold text-white pr-8">{title}</Dialog.Title>
+        <Dialog.Close
+          aria-label={closeLabel}
+          className="absolute top-4 right-4 text-zinc-400 hover:text-white transition-colors p-1 hover:bg-zinc-800 rounded-lg"
+        >
+          <X size={20} aria-hidden="true" />
+        </Dialog.Close>
+        <div className="mt-4 flex-1 overflow-y-auto max-h-[80vh]">{children}</div>
+      </Dialog.Content>
+    </Dialog.Portal>
+  </Dialog.Root>
+);
 
 export default Modal;

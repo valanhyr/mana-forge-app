@@ -443,3 +443,10 @@ de conversaciones.
 
 - Migrar DeckBuilder completamente (tokens, accesibilidad, tests más completos)
 - Primitivas de comportamiento sobre Radix: Modal, Tabs, Switch, DropdownMenu
+
+## Ciclo 16: primitivas de comportamiento sobre Radix
+
+- Modal (Radix Dialog con Portal, boton de cierre con closeLabel, fullScreenMobile), Tabs, Switch y DropdownMenu en src/components/ui/.
+- Tests: Modal.test.tsx y RadixPrimitives.test.tsx (Tabs, Switch, DropdownMenu).
+- Nota: tsc --noEmit no revisa el proyecto (usa referencias); usar tsc -b o npm run build.
+- Pendiente: migrar modales a medida (AvatarPickerModal, etc.) al Modal de Radix y ampliar DeckBuilder.
