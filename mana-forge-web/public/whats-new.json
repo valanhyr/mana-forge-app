@@ -6,8 +6,28 @@
         "es": [
           {
             "icon": "🤖",
-            "title": "Análisis de mazo con IA sin registro",
-            "description": "Pega tu lista en la portada, elige el formato y obtén el análisis completo de la IA sin crear cuenta. Incluye perfil del mazo, emparejamientos contra el meta y cambios concretos sugeridos. Puedes hacer 5 análisis al día sin registrarte, y más si inicias sesión."
+            "title": "Analiza cualquier mazo pegando su lista",
+            "description": "Desde la portada puedes pegar cualquier lista, elegir el formato y obtener el análisis completo de la IA, sin necesidad de tener el mazo guardado ni de crear cuenta. Incluye perfil del mazo, emparejamientos contra el meta y cambios concretos sugeridos. Puedes hacer 5 análisis al día sin registrarte, y más si inicias sesión."
+          },
+          {
+            "icon": "💬",
+            "title": "Soporte con tus tickets",
+            "description": "Consulta desde tu cuenta los tickets de soporte que hayas abierto y las respuestas del equipo. Solo ves tus propias conversaciones."
+          },
+          {
+            "icon": "📬",
+            "title": "Newsletter opcional",
+            "description": "Ahora puedes suscribirte a la newsletter desde tu perfil si quieres recibir novedades por correo. Es opcional, empieza desactivada y puedes darte de baja desde cualquier correo que recibas."
+          },
+          {
+            "icon": "♿",
+            "title": "Mejor accesibilidad",
+            "description": "Hemos mejorado el uso con teclado y lector de pantalla en formularios, ventanas, mensajes y otras vistas de la web."
+          },
+          {
+            "icon": "🔒",
+            "title": "Privacidad mejorada",
+            "description": "Hemos mejorado la privacidad de tu cuenta y de tus datos."
           },
           {
             "icon": "🃏",
@@ -38,8 +58,28 @@
         "en": [
           {
             "icon": "🤖",
-            "title": "AI deck analysis with no sign-up",
-            "description": "Paste your list on the homepage, pick a format and get the full AI analysis without creating an account. It includes deck profile, meta matchups and concrete suggested swaps. You get 5 analyses a day while signed out, and more once you sign in."
+            "title": "Analyze any deck by pasting its list",
+            "description": "From the homepage you can paste any list, pick a format and get the full AI analysis, without needing the deck saved or an account. It includes deck profile, meta matchups and concrete suggested swaps. You get 5 analyses a day while signed out, and more once you sign in."
+          },
+          {
+            "icon": "💬",
+            "title": "Support with your tickets",
+            "description": "See the support tickets you have opened, and the team's replies, from your account. You only see your own conversations."
+          },
+          {
+            "icon": "📬",
+            "title": "Optional newsletter",
+            "description": "You can now subscribe to the newsletter from your profile if you want news by email. It is optional, starts switched off, and you can unsubscribe from any email you receive."
+          },
+          {
+            "icon": "♿",
+            "title": "Better accessibility",
+            "description": "We have improved keyboard and screen reader support across forms, dialogs, messages and other views of the site."
+          },
+          {
+            "icon": "🔒",
+            "title": "Improved privacy",
+            "description": "We have improved the privacy of your account and your data."
           },
           {
             "icon": "🃏",

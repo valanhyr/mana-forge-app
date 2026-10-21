@@ -52,6 +52,7 @@ Versioning is per service, and Jenkins reads each one from a different file:
 | web | `mana-forge-web/package.json` → `version` | `web-v` |
 | api | `mana-forge-api/pom.xml` → `<version>` | `api-v` |
 | engine | `mana-forge-engine/version.txt` | `engine-v` |
+| frontdesk | `mana-forge-frontdesk/package.json` → `version` (and `package-lock.json`) | `frontdesk-v`; no `jenkins/Jenkinsfile.frontdesk` exists yet, so nothing tags it automatically |
 
 Each `jenkins/Jenkinsfile.*` reads that file, refuses to run if the version still contains `SNAPSHOT`, and refuses to proceed if the tag already exists. So a release is: strip `-SNAPSHOT`, commit, let the pipeline tag.
 

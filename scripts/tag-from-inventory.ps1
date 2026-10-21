@@ -39,7 +39,10 @@ $commit = (git rev-parse --verify HEAD).Trim()
 Write-Host "Tagging commit: $commit"
 
 foreach ($svc in $map.Keys) {
-    $ver = $map[$svc]
+    # Accepts {"web": {"version": "x", "date": "y"}} and the older flat {"web": "x"}.
+    $entry = $map[$svc]
+    $ver = if ($entry -is [string]) { $entry } else { $entry.version }
+    if (-not $ver) { Write-Warning "No version for $svc. Skipping."; continue }
     $tag = "$svc-$ver"
     $exists = (git rev-parse -q --verify "refs/tags/$tag" ) -ne $null
     if ($exists -and -not $Force) {
