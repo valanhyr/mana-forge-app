@@ -24,6 +24,17 @@ const localStorageMock = (() => {
 })();
 Object.defineProperty(window, 'localStorage', { value: localStorageMock, writable: true });
 
+// Mock IntersectionObserver for components that use it (DeckBuilder, etc.)
+Object.defineProperty(window, 'IntersectionObserver', {
+  writable: true,
+  configurable: true,
+  value: vi.fn().mockImplementation(function () {
+    this.observe = vi.fn();
+    this.disconnect = vi.fn();
+    this.unobserve = vi.fn();
+  }),
+});
+
 // Forzar el adaptador http de Node para que MSW intercepte las peticiones de axios
 // En jsdom, axios usa XMLHttpRequest por defecto, que MSW Node no intercepta
 axios.defaults.adapter = 'http';

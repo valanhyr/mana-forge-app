@@ -19,18 +19,24 @@ export const ManaSymbolService = {
     if (loadingPromise) return loadingPromise;
 
     loadingPromise = fetch(`${API_URL}/cards/symbology`)
-      .then((res) => res.json())
+      .then((res) => {
+        if (!res.ok) throw new Error(`Symbology request failed: ${res.status}`);
+        return res.json();
+      })
       .then((data) => {
         if (data.data && Array.isArray(data.data)) {
           data.data.forEach((s: ManaSymbol) => {
             symbolCache[s.symbol] = s.svg_uri;
           });
         }
-        isLoaded = true;
+        // Una respuesta sin símbolos no se da por buena: se reintentará en la próxima llamada.
+        isLoaded = Object.keys(symbolCache).length > 0;
+        loadingPromise = null;
         return symbolCache;
       })
       .catch((err) => {
         console.error('Error loading mana symbols:', err);
+        loadingPromise = null;
         return {};
       });
 

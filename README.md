@@ -151,6 +151,19 @@ docker compose up -d
 
 ## 🛠️ Local Development
 
+### Directus admin (local Docker)
+
+For direct access at **http://127.0.0.1:9055/admin**, use the local override:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.local-directus.yml up -d --no-deps --no-build --pull never directus
+```
+
+This preserves the database and uploads and overrides `PUBLIC_URL` only for local
+Directus. The production URL includes `/directus` for its reverse proxy; using it
+on port 9055 directly makes the admin request static assets under the wrong path.
+Keep the override in subsequent local Compose commands to retain this setting.
+
 ### Frontend
 
 ```bash

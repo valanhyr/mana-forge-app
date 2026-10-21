@@ -16,4 +16,8 @@ public class UserDto {
     private Boolean betaAccepted;
     private String pendingEmail;
     private boolean canChangeEmail;
+    private boolean newsletterSubscribed;
+    private java.time.Instant createdAt;
+    private java.time.Instant updatedAt;
+    private java.time.Instant lastLoginAt;
 }

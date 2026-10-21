@@ -34,7 +34,9 @@ public class ApiExceptionHandler {
         String code = "ERROR";
         if (message != null) {
             String lc = message.toLowerCase();
-            if (lc.contains("correo") || lc.contains("email")) {
+            if (status == HttpStatus.CONFLICT && "CONCURRENT_UPDATE".equals(message)) {
+                code = "CONCURRENT_UPDATE";
+            } else if (lc.contains("correo") || lc.contains("email")) {
                 code = "EMAIL_TAKEN";
             } else if (lc.contains("usuario") || lc.contains("username")) {
                 code = "USERNAME_TAKEN";

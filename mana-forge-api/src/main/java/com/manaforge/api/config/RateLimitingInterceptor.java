@@ -43,6 +43,7 @@ public class RateLimitingInterceptor implements HandlerInterceptor {
     private final ConcurrentHashMap<String, Bucket> loginBuckets = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, Bucket> passwordBuckets = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, Bucket> aiBuckets = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, Bucket> supportBuckets = new ConcurrentHashMap<>();
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
@@ -57,6 +58,11 @@ public class RateLimitingInterceptor implements HandlerInterceptor {
                     -> aiBuckets.computeIfAbsent(ip, k -> newBucket(AI_CAPACITY));
             default -> null;
         };
+        if (path.startsWith("/api/support/") && "POST".equals(request.getMethod())) {
+            var authentication = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+            String identity = authentication == null ? ip : authentication.getName();
+            bucket = supportBuckets.computeIfAbsent(identity, key -> newBucket(10));
+        }
 
         if (bucket != null && !bucket.tryConsume(1)) {
             response.setStatus(HttpStatus.TOO_MANY_REQUESTS.value());

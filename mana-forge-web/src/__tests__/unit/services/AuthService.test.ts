@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { http, HttpResponse } from 'msw';
 import { server } from '../../mocks/server';
 import { AuthService } from '../../../services/AuthService';
-import { mockUser } from '../../mocks/handlers';
+import { mockPublicUser, mockUser } from '../../mocks/handlers';
 
 const BASE = 'http://localhost:8080';
 
@@ -34,9 +34,10 @@ describe('AuthService', () => {
   });
 
   describe('register', () => {
-    it('resuelve con el objeto User en caso de éxito', async () => {
+    it('resuelve con un perfil público, no con el titular de una sesión', async () => {
       const user = await AuthService.register('newuser', 'new@example.com', 'pass');
-      expect(user.userId).toBe(mockUser.userId);
+      expect(user).toEqual(mockPublicUser);
+      expect(user).not.toHaveProperty('email');
     });
 
     it('envía el nombre visible al backend', async () => {
@@ -44,7 +45,7 @@ describe('AuthService', () => {
       server.use(
         http.post(`${BASE}/users`, async ({ request }) => {
           captured = (await request.json()) as Record<string, unknown>;
-          return HttpResponse.json(mockUser, { status: 201 });
+          return HttpResponse.json(mockPublicUser, { status: 201 });
         })
       );
 
@@ -66,6 +67,11 @@ describe('AuthService', () => {
   });
 
   describe('checkSession', () => {
+    it('normaliza fechas ausentes de una API anterior a null', async () => {
+      server.use(http.get(`${BASE}/users/me`, () => HttpResponse.json({ ...mockUser, createdAt: undefined, updatedAt: undefined, lastLoginAt: undefined })));
+      expect(await AuthService.checkSession()).toMatchObject({ createdAt: null, updatedAt: null, lastLoginAt: null });
+    });
+
     it('resuelve con User si la sesión es válida', async () => {
       const user = await AuthService.checkSession();
       expect(user.userId).toBe(mockUser.userId);
@@ -121,6 +127,12 @@ describe('AuthService', () => {
   });
 
   describe('updateProfile', () => {
+    it('no confunde un conflicto concurrente con un username ocupado', async () => {
+      server.use(http.patch(`${BASE}/users/me`, () =>
+        HttpResponse.json({ code: 'CONCURRENT_UPDATE' }, { status: 409 })));
+      await expect(AuthService.updateProfile({ biography: 'Bio', avatar: 'ava1.jpg' }))
+        .rejects.toMatchObject({ response: { data: { code: 'CONCURRENT_UPDATE' } } });
+    });
     it('llama PATCH /users/me y retorna el User actualizado', async () => {
       const updated = await AuthService.updateProfile({ biography: 'Bio', avatar: 'ava2.jpg' });
       expect(updated.userId).toBe(mockUser.userId);

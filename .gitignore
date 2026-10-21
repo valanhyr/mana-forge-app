@@ -11,7 +11,9 @@ __pycache__/
 **/__pycache__/
 *.pyc
 *.pyo
-mana-forge-web/coverage/
+.pytest_cache/
+**/.pytest_cache/
+**/venv/
 
 # Git worktrees (local only)
 .worktrees/
@@ -25,8 +27,16 @@ mana-forge-web/coverage/
 /mana-forge-web/node_modules/
 *.log
 /mana-forge-engine/.venv/
-/.pytest_cache/
 /mana-forge-api/target/
 /mana-forge-web/dist/
-directus.con
+/mana-forge-web/coverage/
+/mana-forge-frontdesk/dist/
 .env.development
+
+# Redirected test output (never commit build logs)
+output.txt
+coverage-output.txt
+
+# Spring Initializr scaffold
+HELP.md
+

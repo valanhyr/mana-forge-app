@@ -21,7 +21,8 @@ import DeckViewer from './views/deck-viewer/DeckViewer';
 
 import CookieConsent from './components/ui/CookieConsent';
 import WhatsNewModal from './components/ui/WhatsNewModal';
-import Messages from './views/messages/Messages';
+import Inbox from './views/messages/Inbox';
+import Unsubscribe from './views/newsletter/Unsubscribe';
 import DeckExplorer from './views/deck-explorer/DeckExplorer';
 import Contact from './views/contact/Contact';
 
@@ -44,6 +45,7 @@ function App() {
                 <Route path="/deck-viewer/:deckId" element={<DeckViewer />} />
                 <Route path="/explorer" element={<DeckExplorer />} />
                 <Route path="/contact" element={<Contact />} />
+                <Route path="newsletter/unsubscribe" element={<Unsubscribe />} />
 
                 {/* Rutas protegidas — requieren autenticación */}
                 <Route element={<ProtectedRoute />}>
@@ -52,8 +54,10 @@ function App() {
                   <Route path="deck-builder/:deckId" element={<DeckBuilder />} />
                   <Route path="profile" element={<Profile />} />
                   <Route path="friends" element={<Friends />} />
-                  <Route path="messages" element={<Messages />} />
-                  <Route path="messages/:friendId" element={<Messages />} />
+                  <Route path="messages" element={<Inbox />} />
+                  <Route path="messages/:friendId" element={<Inbox />} />
+                  <Route path="messages/support" element={<Inbox />} />
+                  <Route path="messages/support/:ticketId" element={<Inbox />} />
                 </Route>
 
                 {/* 404 */}

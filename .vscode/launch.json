@@ -1,28 +1,20 @@
 {
-    // Use IntelliSense to learn about possible attributes.
-    // Hover to view descriptions of existing attributes.
-    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    // Depurar desde el monorepo. Para el engine usa el perfil de Python o
+    // `python -m uvicorn main:app --reload` en mana-forge-engine.
     "version": "0.2.0",
     "configurations": [
         {
             "type": "java",
-            "name": "Main",
+            "name": "ManaForgeApiApplication",
             "request": "launch",
-            "mainClass": "com.manaforge.Main",
-            "projectName": ""
+            "mainClass": "com.manaforge.api.ManaForgeApiApplication",
+            "projectName": "mana-forge-api"
         },
         {
             "type": "java",
             "name": "Current File",
             "request": "launch",
             "mainClass": "${file}"
-        },
-        {
-            "type": "java",
-            "name": "ManaForgeApiApplication",
-            "request": "launch",
-            "mainClass": "com.manaforge.api.ManaForgeApiApplication",
-            "projectName": "demo"
         }
     ]
 }

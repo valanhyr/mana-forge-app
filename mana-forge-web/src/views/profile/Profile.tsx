@@ -3,57 +3,89 @@ import {
   Mail,
   Shield,
   Settings,
-  Save,
   LogOut,
   Lock,
   Pencil,
   Globe,
   Bell,
-  Loader2,
   CheckCircle,
-  EyeOff,
-  Eye,
-  X,
 } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useUser } from '../../services/UserContext';
 import { useTranslation } from '../../hooks/useTranslation';
 import { useLanguage } from '../../services/LanguageContext';
 import { useToast } from '../../services/ToastContext';
 import { AuthService } from '../../services/AuthService';
 import SEO from '../../components/ui/SEO';
-import { AVATAR_OPTIONS, DEFAULT_AVATAR, getAvatarUrl } from '../../core/utils/avatar';
+import { DEFAULT_AVATAR, getAvatarUrl } from '../../core/utils/avatar';
+import { useAnalysisQuota } from '../../hooks/useAnalysisQuota';
+import AnalysisQuotaSummary from '../../components/ui/AnalysisQuotaSummary';
+import Button from '../../components/ui/Button';
+import Input from '../../components/ui/Input';
+import Textarea from '../../components/ui/Textarea';
+import Card, { CardTitle } from '../../components/ui/Card';
+import PasswordField from '../../components/ui/PasswordField';
+import AvatarPickerModal from '../../components/ui/AvatarPickerModal';
+import { useUsernameAvailability } from '../../hooks/useUsernameAvailability';
+import { usePasswordForm } from '../../hooks/usePasswordForm';
+
+type TabId = 'personalInfo' | 'preferences';
+
+const TABS: { id: TabId; labelKey: string; icon: typeof User }[] = [
+  { id: 'personalInfo', labelKey: 'profile.personalInfo', icon: User },
+  { id: 'preferences', labelKey: 'profile.preferences', icon: Settings },
+];
+
+const PASSWORD_FIELDS = ['currentPassword', 'newPassword', 'confirmPassword'] as const;
 
 const Profile = () => {
   const { t } = useTranslation();
   const { locale, setLocale } = useLanguage();
   const { user, logout, updateUser } = useUser();
   const { showToast } = useToast();
-  const [activeTab, setActiveTab] = useState<'personalInfo' | 'preferences'>('personalInfo');
-  const [newsletter, setNewsletter] = useState(true);
+  const [activeTab, setActiveTab] = useState<TabId>('personalInfo');
+  const tabRefs = useRef<Record<TabId, HTMLButtonElement | null>>({
+    personalInfo: null,
+    preferences: null,
+  });
+
+  // Navegación de tabs por teclado, como espera el patrón ARIA de tablist.
+  const handleTabKeyDown = (event: React.KeyboardEvent, current: TabId) => {
+    const offset =
+      event.key === 'ArrowDown' || event.key === 'ArrowRight'
+        ? 1
+        : event.key === 'ArrowUp' || event.key === 'ArrowLeft'
+          ? -1
+          : 0;
+    if (offset === 0) return;
+    event.preventDefault();
+    const index = TABS.findIndex((tab) => tab.id === current);
+    const next = TABS[(index + offset + TABS.length) % TABS.length];
+    setActiveTab(next.id);
+    tabRefs.current[next.id]?.focus();
+  };
+  const newsletter = user?.newsletterSubscribed === true;
+  const [newsletterSaving, setNewsletterSaving] = useState(false);
+  const { quota } = useAnalysisQuota();
 
   const [username, setUsername] = useState('');
-  const [usernameStatus, setUsernameStatus] = useState<
-    'idle' | 'checking' | 'available' | 'taken' | 'empty' | 'error'
-  >('idle');
-
   const [biography, setBiography] = useState('');
   const [selectedAvatar, setSelectedAvatar] = useState(DEFAULT_AVATAR);
   const [draftAvatar, setDraftAvatar] = useState(DEFAULT_AVATAR);
   const [isAvatarModalOpen, setIsAvatarModalOpen] = useState(false);
   const [profileLoading, setProfileLoading] = useState(false);
 
-  // Password change state
-  const [showPasswordForm, setShowPasswordForm] = useState(false);
-  const [currentPassword, setCurrentPassword] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [showCurrent, setShowCurrent] = useState(false);
-  const [showNew, setShowNew] = useState(false);
-  const [showConfirm, setShowConfirm] = useState(false);
-  const [passwordLoading, setPasswordLoading] = useState(false);
-  const [passwordError, setPasswordError] = useState('');
-  const [passwordSuccess, setPasswordSuccess] = useState(false);
+  const availability = useUsernameAvailability(username, user?.username ?? '');
+  const {
+    status: usernameStatus,
+    isBlocked: isUsernameBlocked,
+    isChecking: isUsernameChecking,
+    setStatus: setUsernameStatus,
+    changed: usernameChanged,
+    trimmed: trimmedUsername,
+  } = availability;
+
+  const password = usePasswordForm(t);
 
   useEffect(() => {
     if (!user) return;
@@ -63,40 +95,7 @@ const Profile = () => {
     setSelectedAvatar(user.avatar || DEFAULT_AVATAR);
     setDraftAvatar(user.avatar || DEFAULT_AVATAR);
     setUsernameStatus('idle');
-  }, [user]);
-
-  const trimmedUsername = username.trim();
-  const usernameChanged = !!user && trimmedUsername !== (user.username ?? '');
-
-  // Verificación en vivo contra la API, con debounce para no saturar el backend
-  useEffect(() => {
-    if (!user) return;
-
-    if (!usernameChanged) {
-      setUsernameStatus('idle');
-      return;
-    }
-    if (!trimmedUsername) {
-      setUsernameStatus('empty');
-      return;
-    }
-
-    let cancelled = false;
-    setUsernameStatus('checking');
-    const timer = setTimeout(async () => {
-      try {
-        const available = await AuthService.isUsernameAvailable(trimmedUsername);
-        if (!cancelled) setUsernameStatus(available ? 'available' : 'taken');
-      } catch {
-        if (!cancelled) setUsernameStatus('error');
-      }
-    }, 400);
-
-    return () => {
-      cancelled = true;
-      clearTimeout(timer);
-    };
-  }, [trimmedUsername, usernameChanged, user]);
+  }, [user, setUsernameStatus]);
 
   const avatarUrl = useMemo(() => getAvatarUrl(selectedAvatar), [selectedAvatar]);
 
@@ -121,10 +120,6 @@ const Profile = () => {
       biography.trim() !== (user.biography ?? '') ||
       selectedAvatar !== (user.avatar || DEFAULT_AVATAR));
 
-  const isUsernameBlocked =
-    usernameChanged &&
-    (usernameStatus === 'taken' || usernameStatus === 'empty' || usernameStatus === 'error');
-
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user || !hasProfileChanges) return;
@@ -133,7 +128,7 @@ const Profile = () => {
       showToast(t('profile.usernameEmpty'), 'error');
       return;
     }
-    if (isUsernameBlocked || usernameStatus === 'checking') return;
+    if (isUsernameBlocked || isUsernameChecking) return;
 
     setProfileLoading(true);
     try {
@@ -160,43 +155,20 @@ const Profile = () => {
     }
   };
 
-  const handleChangePassword = async (e: React.FormEvent) => {
+  const handleChangePassword = (e: React.FormEvent) => {
     e.preventDefault();
-    if (newPassword !== confirmPassword) {
-      setPasswordError(t('profile.passwordMismatch'));
-      return;
-    }
-    if (newPassword.trim().length === 0 || newPassword.length < 6) {
-      setPasswordError(t('auth.error.passwordMinLength'));
-      return;
-    }
-    if (newPassword === currentPassword) {
-      setPasswordError(t('profile.passwordRejected'));
-      return;
-    }
-    setPasswordError('');
-    setPasswordLoading(true);
+    void password.submit(password.values);
+  };
+
+  const saveNewsletter = async (subscribed: boolean) => {
+    if (!user || newsletterSaving) return;
+    setNewsletterSaving(true);
     try {
-      await AuthService.changePassword(currentPassword, newPassword);
-      setPasswordSuccess(true);
-      setCurrentPassword('');
-      setNewPassword('');
-      setConfirmPassword('');
-      setTimeout(() => {
-        setPasswordSuccess(false);
-        setShowPasswordForm(false);
-      }, 2000);
-    } catch (err: unknown) {
-      setPasswordError(
-        (err as Error).message === 'wrongPassword'
-          ? t('profile.passwordWrong')
-          : (err as Error).message === 'passwordRejected'
-            ? t('profile.passwordRejected')
-            : t('auth.error.credentials')
-      );
-    } finally {
-      setPasswordLoading(false);
-    }
+      const result = await AuthService.setNewsletterPreference(subscribed);
+      updateUser({ ...user, newsletterSubscribed: result.subscribed });
+      showToast(t('profile.saveSuccess'), 'success');
+    } catch { showToast(t('profile.saveError'), 'error'); }
+    finally { setNewsletterSaving(false); }
   };
 
   if (!user) {
@@ -214,7 +186,7 @@ const Profile = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-1 space-y-6">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 text-center shadow-lg">
+          <Card className="p-6 text-center">
             <div className="relative w-32 h-32 mx-auto mb-4">
               <div className="w-full h-full rounded-full overflow-hidden border-4 border-zinc-800 shadow-inner">
                 <img src={avatarUrl} alt={user.username} className="w-full h-full object-cover" />
@@ -231,32 +203,37 @@ const Profile = () => {
             <h2 className="text-xl font-bold text-white">{user.username}</h2>
             <p className="text-zinc-400 text-sm">{user.email}</p>
             <div className="mt-4 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 text-indigo-400 text-xs font-medium border border-indigo-500/20">
-              <Shield size={12} /> Planeswalker
+              <Shield size={12} /> {t('profile.rankTitle')}
             </div>
-          </div>
+          </Card>
 
-          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-2 shadow-lg">
+          <Card className="p-2">
             <nav className="space-y-1">
-              <button
-                onClick={() => setActiveTab('personalInfo')}
-                className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl transition-colors shadow-sm ${
-                  activeTab === 'personalInfo'
-                    ? 'text-white bg-zinc-800'
-                    : 'text-zinc-400 hover:text-white hover:bg-zinc-800/50'
-                }`}
-              >
-                <User size={18} /> {t('profile.personalInfo')}
-              </button>
-              <button
-                onClick={() => setActiveTab('preferences')}
-                className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl transition-colors shadow-sm ${
-                  activeTab === 'preferences'
-                    ? 'text-white bg-zinc-800'
-                    : 'text-zinc-400 hover:text-white hover:bg-zinc-800/50'
-                }`}
-              >
-                <Settings size={18} /> {t('profile.preferences')}
-              </button>
+              <div role="tablist" aria-orientation="vertical" className="space-y-1">
+                {TABS.map((tab) => (
+                  <button
+                    key={tab.id}
+                    id={`profile-tab-${tab.id}`}
+                    role="tab"
+                    type="button"
+                    aria-selected={activeTab === tab.id}
+                    aria-controls="profile-tabpanel"
+                    tabIndex={activeTab === tab.id ? 0 : -1}
+                    ref={(el) => {
+                      tabRefs.current[tab.id] = el;
+                    }}
+                    onClick={() => setActiveTab(tab.id)}
+                    onKeyDown={(e) => handleTabKeyDown(e, tab.id)}
+                    className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl transition-colors shadow-sm ${
+                      activeTab === tab.id
+                        ? 'text-white bg-zinc-800'
+                        : 'text-zinc-400 hover:text-white hover:bg-zinc-800/50'
+                    }`}
+                  >
+                    <tab.icon size={18} /> {t(tab.labelKey)}
+                  </button>
+                ))}
+              </div>
               <button
                 onClick={() => void logout()}
                 className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-xl transition-colors"
@@ -264,256 +241,149 @@ const Profile = () => {
                 <LogOut size={18} /> {t('userOptions.logout')}
               </button>
             </nav>
-          </div>
+          </Card>
         </div>
 
-        <div className="lg:col-span-2 space-y-6">
+        <div
+          className="lg:col-span-2 space-y-6"
+          role="tabpanel"
+          id="profile-tabpanel"
+          aria-labelledby={`profile-tab-${activeTab}`}
+        >
           {activeTab === 'personalInfo' && (
             <>
-              <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-8 shadow-lg">
-                <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
-                  <User size={20} className="text-orange-500" /> {t('profile.editProfile')}
-                </h3>
+              <Card className="p-8">
+                <CardTitle className="mb-6" icon={<User size={20} className="text-brand-500" />}>
+                  {t('profile.editProfile')}
+                </CardTitle>
 
                 <form className="space-y-6" onSubmit={handleSaveProfile}>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium text-zinc-300">
-                        {t('profile.username')}
-                      </label>
-                      <div className="relative">
-                        <User
-                          className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500"
-                          size={18}
-                        />
-                        <input
-                          type="text"
-                          value={username}
-                          onChange={(e) => setUsername(e.target.value)}
-                          disabled={profileLoading}
-                          aria-invalid={usernameChanged && usernameStatus === 'taken'}
-                          className={`w-full bg-zinc-950 border rounded-lg py-2.5 pl-10 pr-4 text-white focus:outline-none focus:ring-1 transition-all disabled:opacity-50 ${
-                            usernameChanged && usernameStatus === 'taken'
-                              ? 'border-red-600 focus:border-red-500 focus:ring-red-500'
-                              : 'border-zinc-800 focus:border-orange-500 focus:ring-orange-500'
-                          }`}
-                        />
-                        {usernameChanged && usernameStatus !== 'idle' && (
-                          <p
-                            className={`text-xs ${
-                              usernameStatus === 'available'
-                                ? 'text-green-500'
-                                : usernameStatus === 'checking'
-                                  ? 'text-zinc-500'
-                                  : 'text-red-500'
-                            }`}
-                          >
-                            {usernameStatus === 'available'
-                              ? t('profile.usernameAvailable')
-                              : usernameStatus === 'checking'
-                                ? t('profile.usernameChecking')
-                                : usernameStatus === 'taken'
-                                  ? t('profile.usernameTaken')
-                                  : usernameStatus === 'empty'
-                                    ? t('profile.usernameEmpty')
-                                    : t('profile.usernameCheckError')}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium text-zinc-300">
-                        {t('profile.email')}
-                      </label>
-                      <div className="relative">
-                        <Mail
-                          className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500"
-                          size={18}
-                        />
-                        <input
-                          type="email"
-                          value={user.email}
-                          disabled
-                          className="w-full bg-zinc-950 border border-zinc-800 rounded-lg py-2.5 pl-10 pr-4 text-zinc-500 cursor-not-allowed"
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-zinc-300">
-                      {t('profile.biography')}
-                    </label>
-                    <textarea
-                      value={biography}
-                      onChange={(e) => setBiography(e.target.value)}
-                      rows={4}
-                      className="w-full bg-zinc-950 border border-zinc-800 rounded-lg p-4 text-white focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-all resize-none placeholder:text-zinc-600"
+                    <Input
+                      label={t('profile.username')}
+                      icon={<User size={18} />}
+                      value={username}
+                      onChange={(e) => setUsername(e.target.value)}
+                      disabled={profileLoading}
+                      error={
+                        usernameChanged && usernameStatus === 'taken'
+                          ? t('profile.usernameTaken')
+                          : usernameChanged && usernameStatus === 'empty'
+                            ? t('profile.usernameEmpty')
+                            : undefined
+                      }
+                      hint={
+                        usernameChanged && usernameStatus !== 'idle' && usernameStatus !== 'taken'
+                          ? usernameStatus === 'available'
+                            ? t('profile.usernameAvailable')
+                            : usernameStatus === 'checking'
+                              ? t('profile.usernameChecking')
+                              : usernameStatus === 'empty'
+                                ? t('profile.usernameEmpty')
+                                : usernameStatus === 'error'
+                                  ? t('profile.usernameCheckError')
+                                  : undefined
+                          : undefined
+                      }
                     />
-                    <p className="text-xs text-zinc-500">{t('profile.biographyDescription')}</p>
+
+                    <Input
+                      label={t('profile.email')}
+                      icon={<Mail size={18} />}
+                      type="email"
+                      value={user.email}
+                      disabled
+                    />
                   </div>
+
+                  <Textarea
+                    label={t('profile.biography')}
+                    hint={t('profile.biographyDescription')}
+                    value={biography}
+                    onChange={(e) => setBiography(e.target.value)}
+                    rows={4}
+                  />
 
                   <div className="pt-4 border-t border-zinc-800 flex justify-end">
-                    <button
+                    <Button
                       type="submit"
+                      loading={profileLoading}
                       disabled={
-                        !hasProfileChanges || profileLoading || isUsernameBlocked || usernameStatus === 'checking'
+                        !hasProfileChanges || isUsernameBlocked || isUsernameChecking
                       }
-                      className="flex items-center gap-2 bg-orange-600 hover:bg-orange-500 disabled:opacity-60 disabled:cursor-not-allowed text-white px-6 py-2.5 rounded-lg font-medium transition-colors shadow-lg shadow-orange-900/20"
                     >
-                      {profileLoading ? (
-                        <Loader2 size={18} className="animate-spin" />
-                      ) : (
-                        <Save size={18} />
-                      )}{' '}
                       {profileLoading ? t('common.saving') : t('profile.editProfileButton')}
-                    </button>
+                    </Button>
                   </div>
                 </form>
-              </div>
+              </Card>
 
-              <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-8 shadow-lg">
-                <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
-                  <Lock size={20} className="text-indigo-500" /> {t('profile.security')}
-                </h3>
+              <Card className="p-8">
+                <CardTitle className="mb-6" icon={<Lock size={20} className="text-indigo-500" />}>
+                  {t('profile.security')}
+                </CardTitle>
                 <div className="space-y-4">
                   <button
-                    onClick={() => {
-                      setShowPasswordForm(!showPasswordForm);
-                      setPasswordError('');
-                      setPasswordSuccess(false);
-                    }}
+                    onClick={() => (password.isOpen ? password.close() : password.open())}
                     className="text-sm text-indigo-400 hover:text-indigo-300 font-medium transition-colors"
                   >
                     {t('profile.changePassword')}
                   </button>
 
-                  {showPasswordForm && (
+                  {password.isOpen && (
                     <form onSubmit={handleChangePassword} className="space-y-4 pt-2" noValidate>
-                      <div className="space-y-1">
-                        <label className="text-sm font-medium text-zinc-400">
-                          {t('profile.currentPassword')}
-                        </label>
-                        <div className="relative">
-                          <input
-                            type={showCurrent ? 'text' : 'password'}
-                            value={currentPassword}
-                            onChange={(e) => {
-                              setCurrentPassword(e.target.value);
-                              setPasswordError('');
-                            }}
-                            disabled={passwordLoading}
-                            className="w-full bg-zinc-950 border border-zinc-800 rounded-lg py-2.5 px-4 pr-10 text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all disabled:opacity-50"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => setShowCurrent(!showCurrent)}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300"
-                          >
-                            {showCurrent ? <EyeOff size={16} /> : <Eye size={16} />}
-                          </button>
-                        </div>
-                      </div>
+                      {PASSWORD_FIELDS.map((field) => (
+                        <PasswordField
+                          key={field}
+                          id={`profile-${field}`}
+                          label={t(`profile.${field}`)}
+                          value={password.values[field]}
+                          visible={password.visible[field]}
+                          disabled={password.loading}
+                          onVisibleChange={() => password.toggleVisibility(field)}
+                          toggleLabel={`${t(
+                            password.visible[field]
+                              ? 'profile.hidePassword'
+                              : 'profile.showPassword'
+                          )}: ${t(`profile.${field}`)}`}
+                          onChange={(next) => password.setValue(field, next)}
+                        />
+                      ))}
 
-                      <div className="space-y-1">
-                        <label className="text-sm font-medium text-zinc-400">
-                          {t('profile.newPassword')}
-                        </label>
-                        <div className="relative">
-                          <input
-                            type={showNew ? 'text' : 'password'}
-                            value={newPassword}
-                            onChange={(e) => {
-                              setNewPassword(e.target.value);
-                              setPasswordError('');
-                            }}
-                            disabled={passwordLoading}
-                            className="w-full bg-zinc-950 border border-zinc-800 rounded-lg py-2.5 px-4 pr-10 text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all disabled:opacity-50"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => setShowNew(!showNew)}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300"
-                          >
-                            {showNew ? <EyeOff size={16} /> : <Eye size={16} />}
-                          </button>
-                        </div>
+                      <div role="status" aria-live="polite">
+                        {password.error && <p className="text-red-400 text-sm">{password.error}</p>}
+                        {password.success && (
+                          <p className="text-green-400 text-sm flex items-center gap-1">
+                            <CheckCircle size={14} /> {t('profile.passwordChanged')}
+                          </p>
+                        )}
                       </div>
-
-                      <div className="space-y-1">
-                        <label className="text-sm font-medium text-zinc-400">
-                          {t('profile.confirmPassword')}
-                        </label>
-                        <div className="relative">
-                          <input
-                            type={showConfirm ? 'text' : 'password'}
-                            value={confirmPassword}
-                            onChange={(e) => {
-                              setConfirmPassword(e.target.value);
-                              setPasswordError('');
-                            }}
-                            disabled={passwordLoading}
-                            className="w-full bg-zinc-950 border border-zinc-800 rounded-lg py-2.5 px-4 pr-10 text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all disabled:opacity-50"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => setShowConfirm(!showConfirm)}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300"
-                          >
-                            {showConfirm ? <EyeOff size={16} /> : <Eye size={16} />}
-                          </button>
-                        </div>
-                      </div>
-
-                      {passwordError && <p className="text-red-400 text-sm">{passwordError}</p>}
-                      {passwordSuccess && (
-                        <p className="text-green-400 text-sm flex items-center gap-1">
-                          <CheckCircle size={14} /> {t('profile.passwordChanged')}
-                        </p>
-                      )}
 
                       <div className="flex gap-3 pt-2">
-                        <button
-                          type="submit"
-                          disabled={passwordLoading}
-                          className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-60 disabled:cursor-not-allowed text-white px-5 py-2 rounded-lg text-sm font-medium transition-colors"
-                        >
-                          {passwordLoading ? (
-                            <Loader2 size={14} className="animate-spin" />
-                          ) : (
-                            <Save size={14} />
-                          )}
+                        <Button type="submit" size="sm" loading={password.loading}>
                           {t('profile.editProfileButton')}
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setShowPasswordForm(false);
-                            setPasswordError('');
-                          }}
-                          className="px-5 py-2 rounded-lg text-sm font-medium text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors"
-                        >
+                        </Button>
+                        <Button size="sm" variant="ghost" onClick={password.close}>
                           {t('common.cancel')}
-                        </button>
+                        </Button>
                       </div>
                     </form>
                   )}
 
                   <div className="h-px bg-zinc-800"></div>
-                  <button className="text-sm text-red-400 hover:text-red-300 font-medium transition-colors">
+                  <Button variant="destructive" size="sm">
                     {t('profile.deleteAccount')}
-                  </button>
+                  </Button>
                 </div>
-              </div>
+              </Card>
             </>
           )}
 
           {activeTab === 'preferences' && (
-            <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-8 shadow-lg">
-              <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
-                <Settings size={20} className="text-orange-500" /> {t('profile.preferencesTitle')}
-              </h3>
+            <Card className="p-8">
+              <CardTitle className="mb-6" icon={<Settings size={20} className="text-brand-500" />}>
+                {t('profile.preferencesTitle')}
+              </CardTitle>
 
               <div className="space-y-8">
                 <div className="space-y-4">
@@ -568,15 +438,23 @@ const Profile = () => {
                   <label className="relative inline-flex items-center cursor-pointer">
                     <input
                       type="checkbox"
+                      role="switch"
+                      aria-checked={newsletter}
                       checked={newsletter}
-                      onChange={(e) => setNewsletter(e.target.checked)}
+                      onChange={(e) => void saveNewsletter(e.target.checked)}
+                      disabled={newsletterSaving}
+                      aria-label={t('profile.newsletter')}
                       className="sr-only peer"
                     />
-                    <div className="w-11 h-6 bg-zinc-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-500"></div>
+                    <div className="w-11 h-6 bg-zinc-700 rounded-full peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-500 peer-focus-visible:ring-2 peer-focus-visible:ring-brand-500 peer-focus-visible:ring-offset-2 peer-focus-visible:ring-offset-zinc-900"></div>
                   </label>
                 </div>
+                <section className="border-t border-zinc-800 pt-4">
+                  <h4 className="font-medium text-white mb-2">{t('usage.title')}</h4>
+                  <AnalysisQuotaSummary quota={quota} />
+                </section>
               </div>
-            </div>
+            </Card>
           )}
         </div>
       </div>
@@ -589,127 +467,6 @@ const Profile = () => {
         onApply={applyAvatarSelection}
         t={t}
       />
-    </div>
-  );
-};
-
-interface AvatarPickerModalProps {
-  isOpen: boolean;
-  selectedAvatar: string;
-  onSelect: (avatar: string) => void;
-  onClose: () => void;
-  onApply: () => void;
-  t: (key: string, params?: Record<string, string | number>) => string;
-}
-
-const AvatarPickerModal = ({
-  isOpen,
-  selectedAvatar,
-  onSelect,
-  onClose,
-  onApply,
-  t,
-}: AvatarPickerModalProps) => {
-  if (!isOpen) return null;
-
-  return (
-    <div
-      className="fixed inset-0 z-[220] bg-black/70 backdrop-blur-sm sm:flex sm:items-center sm:justify-center sm:p-4"
-      onClick={onClose}
-    >
-      <div
-        className="h-full w-full bg-zinc-900 sm:h-auto sm:max-h-[90vh] sm:max-w-4xl sm:rounded-2xl sm:border sm:border-zinc-800 sm:shadow-2xl overflow-hidden flex flex-col"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="flex items-center justify-between px-4 py-4 border-b border-zinc-800 sm:px-6">
-          <div>
-            <h3 className="text-lg font-bold text-white">{t('profile.avatarModalTitle')}</h3>
-            <p className="text-sm text-zinc-400 mt-1">{t('profile.avatarDescription')}</p>
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="text-zinc-400 hover:text-white transition-colors p-2 hover:bg-zinc-800 rounded-lg"
-            aria-label={t('common.cancel')}
-          >
-            <X size={20} />
-          </button>
-        </div>
-
-        <div className="px-4 py-4 sm:px-6 border-b border-zinc-800">
-          <div className="flex items-center gap-4 rounded-2xl bg-zinc-950 border border-zinc-800 p-4">
-            <div className="w-20 h-20 rounded-full overflow-hidden border-2 border-orange-500/40 shadow-inner shrink-0">
-              <img
-                src={getAvatarUrl(selectedAvatar)}
-                alt={t('profile.avatarSelected')}
-                className="w-full h-full object-cover"
-              />
-            </div>
-            <div>
-              <p className="text-sm font-semibold text-white">{t('profile.avatarSelected')}</p>
-              <p className="text-xs text-zinc-500 mt-1">{selectedAvatar}</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="flex-1 overflow-y-auto px-4 py-4 sm:px-6">
-          <div className="grid grid-cols-3 xs:grid-cols-4 sm:grid-cols-5 lg:grid-cols-6 gap-3">
-            {AVATAR_OPTIONS.map((avatar, index) => {
-              const isSelected = avatar === selectedAvatar;
-              return (
-                <button
-                  key={avatar}
-                  type="button"
-                  onClick={() => onSelect(avatar)}
-                  className={`relative rounded-2xl overflow-hidden border-2 transition-all ${
-                    isSelected
-                      ? 'border-orange-500 ring-2 ring-orange-500/30'
-                      : 'border-zinc-800 hover:border-zinc-600'
-                  }`}
-                  aria-label={t('profile.avatarOptionAlt', {
-                    number: index + 1,
-                  })}
-                  aria-pressed={isSelected}
-                >
-                  <img
-                    src={getAvatarUrl(avatar)}
-                    alt={t('profile.avatarOptionAlt', {
-                      number: index + 1,
-                    })}
-                    className="w-full aspect-square object-cover"
-                    loading="lazy"
-                  />
-                  {isSelected && (
-                    <span className="absolute inset-0 bg-black/20 flex items-center justify-center">
-                      <span className="bg-orange-500 text-white text-xs font-bold rounded-full px-2 py-1">
-                        {t('profile.selected')}
-                      </span>
-                    </span>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        <div className="border-t border-zinc-800 px-4 py-4 sm:px-6 flex flex-col-reverse sm:flex-row sm:justify-end gap-3">
-          <button
-            type="button"
-            onClick={onClose}
-            className="px-5 py-3 rounded-xl text-sm font-medium text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors"
-          >
-            {t('common.cancel')}
-          </button>
-          <button
-            type="button"
-            onClick={onApply}
-            className="flex items-center justify-center gap-2 bg-orange-600 hover:bg-orange-500 text-white px-5 py-3 rounded-xl text-sm font-medium transition-colors"
-          >
-            <Save size={16} />
-            {t('profile.applyAvatar')}
-          </button>
-        </div>
-      </div>
     </div>
   );
 };

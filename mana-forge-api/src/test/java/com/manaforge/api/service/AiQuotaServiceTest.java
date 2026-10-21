@@ -25,6 +25,20 @@ class AiQuotaServiceTest {
     private StringRedisTemplate redis;
     private AiQuotaService service;
 
+    @Test
+    void authenticatedResetDoesNotResetOtherUsersAnonymousQuotaOrResultCache() {
+        when(redis.opsForValue()).thenThrow(new RedisConnectionFailureException("redis down"));
+        service.consume("u1", true);
+        service.consume("u2", true);
+        service.consume("u1", false);
+        service.putCached("result-key", Map.of("summary", "cached"));
+        service.resetAuthenticatedQuota("u1");
+        assertThat(service.check("u1", true).remaining()).isEqualTo(25);
+        assertThat(service.check("u2", true).remaining()).isEqualTo(24);
+        assertThat(service.check("u1", false).remaining()).isEqualTo(4);
+        assertThat(service.getCached("result-key")).containsEntry("summary", "cached");
+    }
+
     private static Map<String, Object> deck(String format, String locale, Object... cards) {
         Map<String, Object> payload = new HashMap<>();
         payload.put("format_name", format);

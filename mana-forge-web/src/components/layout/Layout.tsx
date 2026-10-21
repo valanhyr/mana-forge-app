@@ -151,7 +151,7 @@ const Layout = () => {
               className="flex items-center gap-1.5 px-2.5 py-1 bg-orange-600/20 hover:bg-orange-600/40 text-orange-400 rounded-lg text-xs font-medium transition-all"
             >
               <MessageSquarePlus size={13} />
-              <span className="hidden xs:block">{t('beta.feedbackButton')}</span>
+              <span className="hidden sm:block">{t('beta.feedbackButton')}</span>
             </button>
             <button
               onClick={() => {

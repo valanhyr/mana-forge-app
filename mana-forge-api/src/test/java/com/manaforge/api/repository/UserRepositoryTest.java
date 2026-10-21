@@ -21,6 +21,19 @@ class UserRepositoryTest {
     @Autowired
     private UserRepository userRepository;
 
+    @Test
+    void lastLoginPartialUpdatePreservesModerationAndPassword() {
+        User user = createUser("login-user", "login@example.com", "token");
+        user.setStatus(User.AccountStatus.BANNED);
+        userRepository.save(user);
+        java.time.Instant timestamp = java.time.Instant.parse("2026-10-08T10:00:00Z");
+        userRepository.updateLastLoginAt(user.getId(), timestamp);
+        User loaded = userRepository.findById(user.getId()).orElseThrow();
+        assertThat(loaded.getLastLoginAt()).isEqualTo(timestamp);
+        assertThat(loaded.getStatus()).isEqualTo(User.AccountStatus.BANNED);
+        assertThat(loaded.getPassword()).isEqualTo("hash");
+    }
+
     @BeforeEach
     void setUp() {
         userRepository.deleteAll();

@@ -37,7 +37,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
-@org.springframework.test.context.TestPropertySource(properties = {"spring.redis.host=localhost","spring.redis.port=6380"})
+@org.springframework.test.context.TestPropertySource(properties = {"spring.redis.host=localhost","spring.redis.port=6380",
+        "frontdesk.operator-ids=fd-operator"})
 class DeckFlowIntegrationTest {
 
     @Autowired
@@ -51,6 +52,47 @@ class DeckFlowIntegrationTest {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private EmailEncryptionService emailEncryptionService;
+
+    @Test
+    void frontdeskTicketNoteModerationAndExistingSessionEnforcement() throws Exception {
+        var operator = new com.manaforge.api.model.mongo.User();
+        operator.setId("fd-operator");
+        operator.setUsername("fd-operator");
+        operator.setEmail(emailEncryptionService.encrypt("operator@example.com"));
+        operator.setValidated(true);
+        userRepository.save(operator);
+        var customer = new com.manaforge.api.model.mongo.User();
+        customer.setId("fd-customer");
+        customer.setUsername("fd-customer");
+        customer.setEmail(emailEncryptionService.encrypt("customer@example.com"));
+        customer.setValidated(true);
+        userRepository.save(customer);
+
+        var created = mockMvc.perform(post("/api/frontdesk/tickets").with(user("fd-operator")).with(csrf())
+                .contentType(MediaType.APPLICATION_JSON).content("""
+                        {"userEmail":"customer@example.com","userName":"Customer","subject":"Help",
+                        "category":"ACCOUNT","priority":"MEDIUM","initialMessage":"Initial support message"}
+                        """))
+                .andExpect(status().isCreated()).andReturn();
+        String ticketId = objectMapper.readTree(created.getResponse().getContentAsString()).path("id").asText();
+        mockMvc.perform(post("/api/frontdesk/tickets/" + ticketId + "/messages").with(user("fd-operator")).with(csrf())
+                .contentType(MediaType.APPLICATION_JSON).content("{\"content\":\"Private note\",\"isInternalNote\":true}"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.messages[1].isInternalNote").value(true));
+        mockMvc.perform(get("/api/frontdesk/tickets/" + ticketId).with(user("fd-customer")))
+                .andExpect(status().isForbidden());
+        mockMvc.perform(patch("/api/frontdesk/users/fd-customer/status").with(user("fd-operator")).with(csrf())
+                .contentType(MediaType.APPLICATION_JSON).content("{\"status\":\"BANNED\"}"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.status").value("BANNED"));
+        mockMvc.perform(post("/api/decks").with(user("fd-customer"))
+                .contentType(MediaType.APPLICATION_JSON).content("{}"))
+                .andExpect(status().isForbidden());
+        mockMvc.perform(get("/api/frontdesk/audit").with(user("fd-operator"))
+                .param("targetUserId", "fd-customer"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.items[0].action").value("USER_STATUS_UPDATE"));
+    }
 
     @MockitoBean
     private ScryfallService scryfallService;

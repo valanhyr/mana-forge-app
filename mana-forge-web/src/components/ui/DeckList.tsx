@@ -14,7 +14,7 @@ import {
   Euro,
   Camera,
 } from 'lucide-react';
-import { ManaSymbolService } from '../../services/ManaSymbolService';
+import ManaCost from './ManaCost';
 import { useTranslation } from '../../hooks/useTranslation';
 
 type SortMode = 'cmc' | 'alpha';
@@ -54,31 +54,6 @@ interface DeckListProps {
   externalShowPrices?: boolean;
 }
 
-const ManaCost = ({ cost, symbols }: { cost?: string; symbols: Record<string, string> }) => {
-  if (!cost) return null;
-  const symbolsList = cost.match(/\{([^}]+)\}/g) || [];
-  return (
-    <div className="flex gap-0.5 items-center">
-      {symbolsList.map((sym, idx) => {
-        const svgUri = symbols[sym];
-        return svgUri ? (
-          <img
-            key={idx}
-            src={svgUri}
-            alt={sym}
-            className="w-3.5 h-3.5 rounded-full"
-            loading="lazy"
-          />
-        ) : (
-          <span key={idx} className="text-xs text-zinc-500 font-mono">
-            {sym}
-          </span>
-        );
-      })}
-    </div>
-  );
-};
-
 const TYPE_ORDER = [
   'Planeswalker',
   'Creature',
@@ -113,7 +88,6 @@ const DeckList: React.FC<DeckListProps> = ({
   const [hoveredCard, setHoveredCard] = useState<DeckCard | null>(null);
   const [activeCard, setActiveCard] = useState<DeckCard | null>(null);
   const [menuPos, setMenuPos] = useState({ top: 0, left: 0 });
-  const [manaSymbols, setManaSymbols] = useState<Record<string, string>>({});
   const [sortMode, setSortMode] = useState<SortMode>('cmc');
   const [sortDir, setSortDir] = useState<SortDir>('asc');
   const [groupMode, setGroupMode] = useState<GroupMode>('type');
@@ -136,10 +110,6 @@ const DeckList: React.FC<DeckListProps> = ({
       document.removeEventListener('mousedown', handleClickOutside);
       window.removeEventListener('scroll', handleScroll, true);
     };
-  }, []);
-
-  useEffect(() => {
-    ManaSymbolService.getAll().then(setManaSymbols);
   }, []);
 
   // Set initial hovered card when cards load
@@ -236,7 +206,7 @@ const DeckList: React.FC<DeckListProps> = ({
           </span>
         )}
         <div className="w-20 flex justify-end">
-          <ManaCost cost={card.manaCost} symbols={manaSymbols} />
+          <ManaCost cost={card.manaCost ?? ''} />
         </div>
         <div className="relative">
           <button
@@ -343,7 +313,7 @@ const DeckList: React.FC<DeckListProps> = ({
               <p className="text-zinc-400 text-xs mt-0.5">{hoveredCard.type}</p>
               {hoveredCard.manaCost && (
                 <div className="flex justify-center mt-1">
-                  <ManaCost cost={hoveredCard.manaCost} symbols={manaSymbols} />
+                  <ManaCost cost={hoveredCard.manaCost} />
                 </div>
               )}
             </div>

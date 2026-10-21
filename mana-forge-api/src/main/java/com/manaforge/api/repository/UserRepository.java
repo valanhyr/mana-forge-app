@@ -8,9 +8,10 @@ import org.springframework.stereotype.Repository;
 import com.manaforge.api.model.mongo.User;
 
 @Repository
-public interface UserRepository extends MongoRepository<User, String> {
+public interface UserRepository extends MongoRepository<User, String>, UserUpdates {
     
     Optional<User> findByUsername(String username);
     Optional<User> findByEmail(String email);
     Optional<User> findByVerificationToken(String verificationToken);
+
 }

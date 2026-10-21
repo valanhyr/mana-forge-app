@@ -93,7 +93,8 @@ public class ScryfallService {
         }
     }
 
-    @Cacheable(value = "scryfall_symbology")
+    @Cacheable(value = "scryfall_symbology",
+            unless = "#result == null || #result['data'] == null || #result['data'].isEmpty()")
     public Map<String, Object> getSymbology() {
         try {
             throttle();

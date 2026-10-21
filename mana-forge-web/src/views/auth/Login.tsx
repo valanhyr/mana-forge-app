@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useId } from 'react';
 import { useUser } from '../../services/UserContext';
 import { useTranslation } from '../../hooks/useTranslation';
 import { API_URL } from '../../services/api';
@@ -27,6 +27,12 @@ const AuthModal = ({ isOpen = true, onClose }: AuthModalProps) => {
   const [registrationDone, setRegistrationDone] = useState(false);
   const [registeredEmail, setRegisteredEmail] = useState('');
   const [betaAccepted, setBetaAccepted] = useState(false);
+  const fieldIds = {
+    username: useId(),
+    displayName: useId(),
+    email: useId(),
+    password: useId(),
+  };
 
   useEffect(() => {
     if (searchParams.get('verified') === 'true') {
@@ -167,10 +173,11 @@ const AuthModal = ({ isOpen = true, onClose }: AuthModalProps) => {
           </h2>
           <form className="space-y-4" onSubmit={handleSubmit} noValidate>
             <div>
-              <label className="block text-sm font-medium text-zinc-500 mb-2">
+              <label htmlFor={fieldIds.username} className="block text-sm font-medium text-zinc-500 mb-2">
                 {t('auth.username')}
               </label>
               <input
+                id={fieldIds.username}
                 type="text"
                 className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-orange-500/50 transition-all disabled:opacity-50"
                 placeholder={t('auth.usernamePlaceholder')}
@@ -185,10 +192,11 @@ const AuthModal = ({ isOpen = true, onClose }: AuthModalProps) => {
 
             {!isLogin && (
               <div>
-                <label className="block text-sm font-medium text-zinc-500 mb-2">
+                <label htmlFor={fieldIds.displayName} className="block text-sm font-medium text-zinc-500 mb-2">
                   {t('auth.displayName')}
                 </label>
                 <input
+                  id={fieldIds.displayName}
                   type="text"
                   className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-orange-500/50 transition-all disabled:opacity-50"
                   placeholder={t('auth.displayNamePlaceholder')}
@@ -204,10 +212,11 @@ const AuthModal = ({ isOpen = true, onClose }: AuthModalProps) => {
 
             {!isLogin && (
               <div>
-                <label className="block text-sm font-medium text-zinc-500 mb-2">
+                <label htmlFor={fieldIds.email} className="block text-sm font-medium text-zinc-500 mb-2">
                   {t('auth.email')}
                 </label>
                 <input
+                  id={fieldIds.email}
                   type="email"
                   className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-orange-500/50 transition-all disabled:opacity-50"
                   placeholder={t('auth.emailPlaceholder')}
@@ -222,10 +231,11 @@ const AuthModal = ({ isOpen = true, onClose }: AuthModalProps) => {
             )}
 
             <div>
-              <label className="block text-sm font-medium text-zinc-500 mb-2">
+              <label htmlFor={fieldIds.password} className="block text-sm font-medium text-zinc-500 mb-2">
                 {t('auth.password')}
               </label>
               <input
+                id={fieldIds.password}
                 type="password"
                 className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-orange-500/50 transition-all disabled:opacity-50"
                 placeholder={t('auth.passwordPlaceholder')}

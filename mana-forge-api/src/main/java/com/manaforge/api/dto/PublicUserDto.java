@@ -12,4 +12,9 @@ public class PublicUserDto {
     private String username;
     private String biography;
     private String avatar;
+
+    public static PublicUserDto from(com.manaforge.api.model.mongo.User user) {
+        return builder().userId(user.getId()).name(user.getName()).username(user.getUsername())
+                .biography(user.getBiography()).avatar(user.getAvatar()).build();
+    }
 }

@@ -1,6 +1,6 @@
 package com.manaforge.api.controller;
 
-import com.manaforge.api.dto.UserDto;
+import com.manaforge.api.dto.PublicUserDto;
 import com.manaforge.api.model.mongo.Message;
 import com.manaforge.api.model.mongo.User;
 import com.manaforge.api.repository.MessageRepository;
@@ -108,9 +108,7 @@ public class MessageController {
                     .filter(m -> m.getReceiverId().equals(myId) && m.getReadAt() == null)
                     .count();
             // 1 query por peer para obtener info del usuario (sólo los peers que tienen mensajes)
-            UserDto friend = userRepository.findById(peerId).map(u -> UserDto.builder()
-                    .userId(u.getId()).name(u.getName()).username(u.getUsername())
-                    .email(emailEncryptionService.decrypt(u.getEmail())).biography(u.getBiography()).avatar(u.getAvatar()).build()).orElse(null);
+            PublicUserDto friend = userRepository.findById(peerId).map(PublicUserDto::from).orElse(null);
 
             if (friend == null) return null;
 

@@ -10,7 +10,7 @@
 # - Do not expose Directus admin ports to the public network in production unless required.
 
 services:
-  # FRONTEND: Servido por Nginx (Puerto 80 y 443 para Cloudflare Full SSL)
+  # FRONTEND: Nginx interno sirve React; el Nginx del host gestiona HTTPS.
   web:
     image: ${WEB_IMAGE:-ghcr.io/valanhyr/mana-forge-web:latest}
     build:
@@ -34,8 +34,34 @@ services:
       timeout: 5s
       retries: 5
       start_period: 20s
-    # web served by host nginx in production; no host ports published here
+    # Host nginx proxies to 127.0.0.1:5173; no public frontend port is published.
     restart: always
+    networks:
+      - mana-forge-network
+
+  # Internal backoffice: opt-in and session-protected; live API adapters by default.
+  # Explicitly start with: docker compose up -d --build frontdesk
+  frontdesk:
+    profiles: ["frontdesk"]
+    image: ${FRONTDESK_IMAGE:-ghcr.io/valanhyr/mana-forge-frontdesk:latest}
+    build:
+      context: ./mana-forge-frontdesk
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: ${FRONTDESK_API_URL:-/api}
+        VITE_USE_MOCKS: ${FRONTDESK_USE_MOCKS:-false}
+    ports:
+      - "127.0.0.1:${FRONTDESK_PORT:-5174}:80"
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1/healthz"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+    restart: unless-stopped
     networks:
       - mana-forge-network
 
@@ -84,6 +110,11 @@ services:
       - AI_QUOTA_ANONYMOUS_DAILY=${AI_QUOTA_ANONYMOUS_DAILY:-5}
       - AI_QUOTA_AUTHENTICATED_DAILY=${AI_QUOTA_AUTHENTICATED_DAILY:-25}
       - AI_CACHE_TTL_HOURS=${AI_CACHE_TTL_HOURS:-24}
+      # Backoffice is closed unless authenticated user IDs are explicitly allowlisted.
+      - FRONTDESK_OPERATOR_IDS=${FRONTDESK_OPERATOR_IDS:-}
+      - FRONTDESK_URL=${FRONTDESK_URL:-}
+      - FRONTDESK_CONTACT_TICKETS_ENABLED=${FRONTDESK_CONTACT_TICKETS_ENABLED:-true}
+      - FRONTDESK_EMAIL_TEMPLATE_COLLECTION=${FRONTDESK_EMAIL_TEMPLATE_COLLECTION:-email_templates}
     depends_on:
       engine:
         condition: service_healthy
@@ -234,18 +265,6 @@ services:
       - "8088:8080"
     networks:
       - mana-forge-network
-
-  nginx:
-    image: nginx:stable
-    container_name: mana-forge-nginx
-    ports:
-      - "80:80"
-    volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf:ro
-    depends_on:
-      - web
-      - api
-    restart: unless-stopped
 
 networks:
   mana-forge-network:

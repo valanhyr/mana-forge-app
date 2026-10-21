@@ -1,5 +1,6 @@
-import { type User } from '../core/models/User';
+import { normalizeUser, type PublicUser, type User } from '../core/models/User';
 import { api, API_URL } from './api';
+import { csrfHeaders } from './csrf';
 
 interface UpdateProfilePayload {
   biography: string;
@@ -7,12 +8,16 @@ interface UpdateProfilePayload {
   username?: string;
 }
 
-interface PublicUser {
-  userId: string;
-  username: string;
-}
-
 export const AuthService = {
+  setNewsletterPreference: async (subscribed: boolean): Promise<{ subscribed: boolean }> => {
+    const headers = await csrfHeaders('/newsletter/csrf');
+    const { data } = await api.patch<{ subscribed: boolean }>('/newsletter/preference', { subscribed }, { headers });
+    return data;
+  },
+
+  unsubscribeNewsletter: async (token: string): Promise<void> => {
+    await api.post('/newsletter/unsubscribe', { token });
+  },
   login: async (username: string, password: string): Promise<User> => {
     const response = await fetch(`${API_URL}/users/login`, {
       method: 'POST',
@@ -33,10 +38,10 @@ export const AuthService = {
       throw new Error('Error en las credenciales');
     }
 
-    return response.json();
+    return normalizeUser(await response.json());
   },
 
-  register: async (username: string, email: string, password: string, name?: string): Promise<User> => {
+  register: async (username: string, email: string, password: string, name?: string): Promise<PublicUser> => {
     const response = await fetch(`${API_URL}/users`, {
       method: 'POST',
       headers: {
@@ -84,7 +89,7 @@ export const AuthService = {
   checkSession: async (): Promise<User | null> => {
     try {
       const response = await api.get<User>('/users/me');
-      return response.data;
+      return normalizeUser(response.data);
     } catch {
       return null;
     }
@@ -114,10 +119,10 @@ export const AuthService = {
   updateProfile: async (payload: UpdateProfilePayload): Promise<User> => {
     try {
       const response = await api.patch<User>('/users/me', payload);
-      return response.data;
+      return normalizeUser(response.data);
     } catch (err: unknown) {
-      const status = (err as { response?: { status?: number } })?.response?.status;
-      if (status === 409) {
+      const response = (err as { response?: { status?: number; data?: { code?: string } } })?.response;
+      if (response?.status === 409 && response.data?.code !== 'CONCURRENT_UPDATE') {
         throw new Error('USERNAME_TAKEN');
       }
       throw err;

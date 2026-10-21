@@ -109,7 +109,7 @@ describe('DeckAnalyzerSection (homepage AI trial)', () => {
   it('shows how many analyses are left before submitting anything', async () => {
     renderSection();
     await waitFor(() =>
-      expect(screen.getByText(/te quedan 3 análisis/i)).toBeInTheDocument()
+      expect(screen.getByText(/te quedan 3 de 5 análisis/i)).toBeInTheDocument()
     );
   });
 

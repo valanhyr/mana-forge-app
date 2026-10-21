@@ -125,7 +125,7 @@ EXPOSE 80
                   │
 ┌─────────────────▼───────────────────────┐
 │            Services                     │
-│  StrapiService, ScryfallService,        │
+│  DirectusService, ScryfallService,      │
 │  PremodernService, AiService            │
 └─────────────────┬───────────────────────┘
                   │
@@ -144,10 +144,10 @@ EXPOSE 80
 - **FormatController**: Listado y detalles de formatos
 - **UserController**: Gestión de usuarios
 - **ArticleController**: Artículos del CMS
-- **ContentController**: Contenido Strapi (footer, heros, sections)
+- **ContentController**: Contenido Directus (footer, heros, sections)
 
 #### 2. Services
-- **StrapiService**: Cliente HTTP para Strapi CMS (cacheable)
+- **DirectusService**: Cliente HTTP para el CMS Directus (cacheable)
 - **ScryfallService**: Cliente para Scryfall API (cacheable)
 - **PremodernService**: Lógica específica de Premodern (banlist)
 - **AiService**: Proxy a mana-forge-engine (sugerencias IA)
@@ -487,6 +487,39 @@ User → Frontend → Backend → Couchbase (hit/miss)
 - CORS configurado explícitamente: `http://localhost:5173` (dev) + `FRONTEND_URL` (prod). Nunca `allowedOriginPatterns("*")` con `allowCredentials=true`.
 - Las cookies de sesión tienen `HttpOnly`, `Secure`, `SameSite=Lax` configurados en `application.yaml`.
 - Cache invalidation endpoints (`DELETE /api/*/cache`) requieren autenticación — no son accesibles de forma anónima.
+
+### Contratos y fechas de cuentas
+
+- Las cuentas viven en `users` de MongoDB, no en Directus. El registro usa un DTO
+  permitido; nunca deserializa campos internos de persistencia desde el cliente.
+- Las proyecciones públicas/sociales, incluidas solicitudes y conversaciones,
+  excluyen email, fechas y capacidades privadas. Perfil propio y Frontdesk son
+  contratos diferentes; conservar email en el backoffice no autoriza compartirlo
+  con otros usuarios de la web.
+- `createdAt` es el alta inmutable, `updatedAt` la modificación efectiva del documento
+  (también login), y `lastLoginAt` el último login aceptado, no la última visita.
+  No hay `lastSeenAt`. Fechas históricas desconocidas siguen nulas; ObjectId no es
+  prueba de alta y una lectura no rellena documentos.
+- Las escrituras de usuario existentes usan updates acotados, fechas monotónicas
+  y condiciones para contraseña/token/email/consentimiento obsoletos, no reemplazos
+  completos de una lectura anterior. Esto evita restaurar un baneo o consentimiento
+  durante otra edición, pero no introduce transacciones entre documentos ni con SMTP.
+- No se aplican índices únicos ni migraciones automáticamente. La unicidad de
+  username/email necesita comprobar los índices reales y sus duplicados, no basta
+  con un `find` previo. Detalles y diagnóstico preparado, aún sin acceso a la base
+  real: `docs/user-data-contracts.md`; especificación: `docs/specs/user-data-contracts/`.
+
+### Backoffice Frontdesk
+- `/api/frontdesk/**` es privado, incluso sus lecturas: su regla de autorización precede al `GET /api/**` público. Una lista de IDs Mongo en `FRONTDESK_OPERATOR_IDS` concede acceso solo a cuentas verificadas y activas; vacía deniega todo acceso. No se aceptan roles de operador desde el registro público.
+- Las mutaciones del backoffice requieren el token de `GET /api/frontdesk/csrf` en `X-CSRF-TOKEN`, además de la sesión. El resto de endpoints mantiene su comportamiento anterior. `FRONTDESK_URL` añade únicamente el origen CORS exacto del backoffice.
+- Los tickets y notas están en Mongo, con conversación embebida y control optimista para no perder mensajes concurrentes. Los emails de contacto y destinatarios se cifran con `EmailEncryptionService`, conservando su esquema determinista existente.
+- Las plantillas operativas se leen de Directus **sin caché**: despublicar una plantilla debe surtir efecto inmediatamente, no esperar el TTL del contenido editorial. Los envíos individuales son texto plano y registran intención/resultado; no hay envío masivo ni garantía exactamente-una-vez.
+- Los contactos aceptados crean tickets después de superar los controles anti-spam. `FRONTDESK_CONTACT_TICKETS_ENABLED=false` permite desactivar esta persistencia si se necesita desplegarla por separado.
+- La vista de usuario usa la cuota **diaria** existente de Redis, no una cuota mensual ficticia. Suspensión/baneo se comprueban en login y en las peticiones API de sesiones ya abiertas. Contratos, campos de Directus y limitaciones: `docs/frontdesk-api.md`.
+- Frontdesk usa adaptadores HTTP por defecto y comprueba la sesión antes de cargar datos privados. Los mocks requieren opt-in explícito; 401/403 desmontan las vistas y limpian la caché. Las listas son paginadas y la conversación se carga por separado. Para Google en otro subdominio se reutiliza el origen de API del callback principal (build `FRONTDESK_API_URL`), sin ampliar el dominio de las cookies; detalles en `mana-forge-frontdesk/README.md`.
+- La bandeja de soporte del usuario exige sesión activa/verificada, propiedad por ID y `customerVisible=true`; contactos anónimos y tickets antiguos no se publican por coincidencia de email. Solo se serializan mensajes públicos; notas internas y asignaciones permanecen en Frontdesk. Las nuevas escrituras de soporte y preferencias de newsletter requieren CSRF sin cambiar los endpoints públicos existentes.
+- El origen del ticket se registra solo en nuevas creaciones (`SUPPORT_WEB`, `CONTACT_FORM`, `FRONTDESK`); ausente/nulo/no reconocido se presenta como `UNKNOWN` sin inferencias ni backfill. Frontdesk recibe visibilidad explícita y canales calculados: web exige propietario por ID activo/verificado y flag verdadero; correo indica solo contacto válido del ticket, no autenticidad ni entrega. Respuestas públicas sin acceso web se rechazan con 409 `WEB_CHANNEL_UNAVAILABLE` antes de mutar; las notas privadas siguen separadas. El compositor de correo contextual reutiliza el envío operativo con destinatario fijo y `ticketId`, sin copiar notas, guardar respuesta web ni cambiar estado. No hay cronología/recepción integrada ni nuevas garantías SMTP en fase 1. Diseño y evidencia: `docs/specs/support-communication-channels/`.
+- Newsletter requiere consentimiento explícito persistido (por defecto falso, incluso para cuentas antiguas), fecha y token de baja cifrado/hash. El enlace usa un fragmento y confirmación POST para evitar filtrar el token en logs y evitar bajas por prefetch. Las campañas tienen hasta 100 IDs seleccionados, deduplicación por UUID y comprobación de elegibilidad antes de cada SMTP. Se guarda intención e historial; el executor de un trabajador/cola 10 **no es durable**: un reinicio exige reconciliar, nunca reenviar automáticamente. Las plantillas `BROADCAST` no pasan por el canal operativo. Ver contratos y limitaciones en `docs/frontdesk-api.md`.
 
 ### Seguridad del Motor IA
 - El motor FastAPI **no tiene autenticación propia** — depende de no estar expuesto públicamente.

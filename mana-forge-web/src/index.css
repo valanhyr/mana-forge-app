@@ -1,5 +1,36 @@
 @import 'tailwindcss';
 
+/*
+ * Design tokens — ver docs/specs/design-system/spec.md
+ *
+ * Tailwind 4 lee los tokens de este bloque. El antiguo tailwind.config.js
+ * estaba en formato v3 y nunca fue leído por el build; sus colores `mana.*`
+ * no se aplicaban y no tenían ningún uso en el código.
+ */
+@theme {
+  /* Escala de radio: tres decisiones, no seis.
+     lg  inputs y botones
+     xl  cards y modales
+     full  pills y avatares */
+  --radius-control: 0.5rem;
+  --radius-surface: 0.75rem;
+
+  /* Colores de marca. Solo el foco usa el naranja; el indigo queda como
+     acento semántico de seguridad y nunca como color de foco. */
+  --color-brand-50: #fff7ed;
+  --color-brand-100: #ffedd5;
+  --color-brand-200: #fed7aa;
+  --color-brand-400: #fb923c;
+  --color-brand-500: #f97316;
+  --color-brand-600: #ea580c;
+  --color-brand-700: #c2410c;
+
+  /* Superficies sobre fondo zinc-950 */
+  --color-surface: #18181b; /* zinc-900 */
+  --color-surface-raised: #27272a; /* zinc-800 */
+  --color-surface-sunken: #09090b; /* zinc-950 */
+}
+
 /* Tus estilos personalizados abajo */
 body {
   @apply bg-zinc-950 text-zinc-100 min-h-screen;

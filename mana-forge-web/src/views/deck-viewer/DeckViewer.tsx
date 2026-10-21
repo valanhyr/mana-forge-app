@@ -24,6 +24,8 @@ import ManaCurve from '../../components/ui/ManaCurve';
 import DeckProfileChart from '../../components/ui/DeckProfileChart';
 
 import SEO from '../../components/ui/SEO';
+import Button from '../../components/ui/Button';
+import Card from '../../components/ui/Card';
 import { useLanguage } from '../../services/LanguageContext';
 import { useTranslation } from '../../hooks/useTranslation';
 
@@ -125,7 +127,7 @@ const DeckViewer = () => {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center min-h-[50vh]">
+      <div role="status" aria-label={t('deckViewer.loading')} className="flex justify-center items-center min-h-[50vh]">
         <Loader2 className="animate-spin text-orange-500" size={48} />
       </div>
     );
@@ -134,7 +136,7 @@ const DeckViewer = () => {
   if (!deck) {
     return (
       <div className="max-w-4xl mx-auto mt-12 text-center px-4">
-        <h2 className="text-3xl font-bold text-white mb-4">{t('deckViewer.notFound')}</h2>
+        <h2 className="text-3xl font-bold text-white mb-4">{t('deckViewer.notFoundTitle')}</h2>
         <Link
           to="/"
           className="inline-flex items-center gap-2 text-orange-500 hover:text-orange-400 transition-colors"
@@ -254,7 +256,7 @@ const DeckViewer = () => {
         }}
       />
       {/* Header */}
-      <div className="bg-zinc-900 border-b border-zinc-800">
+      <div className="bg-surface border-b border-zinc-800">
         <div className="max-w-6xl xl:max-w-7xl 2xl:max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <Link
             to="/"
@@ -279,15 +281,15 @@ const DeckViewer = () => {
                 <button
                   onClick={handleLikeToggle}
                   disabled={!isAuthenticated || liking}
-                  className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold transition-all ${
+                  className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${
                     deck.likedByMe
                       ? 'bg-orange-500/20 text-orange-500 border border-orange-500/30'
                       : isAuthenticated
                         ? 'bg-zinc-800 text-zinc-400 border border-zinc-700 hover:border-zinc-500 hover:text-zinc-300'
                         : 'bg-zinc-800/50 text-zinc-600 border border-zinc-800 cursor-not-allowed'
                   }`}
-                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                  title={!isAuthenticated ? t('common.loginToLike' as any) || 'Inicia sesión para dar like' : ''}
+                  aria-label={deck.likedByMe ? t('common.unlikeDeck') : t('common.likeDeck')}
+                  title={!isAuthenticated ? t('common.loginToLike') || 'Inicia sesión para dar like' : ''}
                 >
                   <ThumbsUp size={14} className={deck.likedByMe ? 'fill-orange-500' : ''} />
                   {deck.likesCount || 0}
@@ -310,7 +312,8 @@ const DeckViewer = () => {
 
                 <button
                   onClick={handleCopyList}
-                  className="flex items-center gap-1.5 px-3 py-1 bg-zinc-800 border border-zinc-700 rounded-full text-xs font-bold text-zinc-400 hover:border-zinc-500 hover:text-white transition-all shrink-0"
+                  aria-label={copied ? t('common.copied') : t('common.copy')}
+                  className="flex items-center gap-1.5 px-3 py-1 bg-zinc-800 border border-zinc-700 rounded-full text-xs font-bold text-zinc-400 hover:border-zinc-500 hover:text-white transition-all shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                 >
                   {copied ? <Check size={14} className="text-green-500" /> : <Copy size={14} />}
                   {copied ? t('common.copied') : t('common.copy')}
@@ -320,7 +323,8 @@ const DeckViewer = () => {
                   <button
                     onClick={handleCloneDeck}
                     disabled={cloning}
-                    className="flex items-center gap-1.5 px-3 py-1 bg-zinc-800 border border-zinc-700 rounded-full text-xs font-bold text-zinc-400 hover:border-zinc-500 hover:text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
+                    aria-label={cloning ? t('common.cloning') : t('common.clone')}
+                    className="flex items-center gap-1.5 px-3 py-1 bg-zinc-800 border border-zinc-700 rounded-full text-xs font-bold text-zinc-400 hover:border-zinc-500 hover:text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                   >
                     {cloning ? <Loader2 size={14} className="animate-spin" /> : <Files size={14} />}
                     {cloning ? t('common.cloning') : t('common.clone')}
@@ -374,13 +378,13 @@ const DeckViewer = () => {
           >
             {/* Sort/Group bar */}
             <div className="flex items-center gap-3 flex-wrap">
-              <div className="flex items-center gap-1 p-1 bg-zinc-900 border border-zinc-800 rounded-lg">
+              <div className="flex items-center gap-1 p-1 bg-surface border border-zinc-800 rounded-lg">
                 <span className="text-zinc-600 text-xs px-2">{t('deckViewer.group')}</span>
                 {GROUP_OPTIONS.map((opt) => (
                   <button
                     key={opt.value}
                     onClick={() => setGroupMode(opt.value)}
-                    className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
+                    className={`px-3 py-1 rounded-md text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${
                       groupMode === opt.value
                         ? 'bg-orange-500 text-white'
                         : 'text-zinc-400 hover:text-white hover:bg-zinc-800'
@@ -390,13 +394,13 @@ const DeckViewer = () => {
                   </button>
                 ))}
               </div>
-              <div className="flex items-center gap-1 p-1 bg-zinc-900 border border-zinc-800 rounded-lg">
+              <div className="flex items-center gap-1 p-1 bg-surface border border-zinc-800 rounded-lg">
                 <span className="text-zinc-600 text-xs px-2">{t('deckViewer.sort')}</span>
                 {SORT_OPTIONS.map((opt) => (
                   <button
                     key={opt.value}
                     onClick={() => setSortMode(opt.value)}
-                    className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
+                    className={`px-3 py-1 rounded-md text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${
                       sortMode === opt.value
                         ? 'bg-orange-500 text-white'
                         : 'text-zinc-400 hover:text-white hover:bg-zinc-800'
@@ -408,7 +412,7 @@ const DeckViewer = () => {
                 <div className="w-px h-4 bg-zinc-700 mx-1" />
                 <button
                   onClick={() => setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'))}
-                  className="p-1 rounded-md text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors"
+                  className="p-1 rounded-md text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                   title={sortDir === 'asc' ? t('deckViewer.sortAsc') : t('deckViewer.sortDesc')}
                 >
                   {sortDir === 'asc' ? <ArrowUp size={13} /> : <ArrowDown size={13} />}
@@ -416,10 +420,10 @@ const DeckViewer = () => {
               </div>
 
               {/* View Mode */}
-              <div className="flex items-center gap-1 p-1 bg-zinc-900 border border-zinc-800 rounded-lg ml-auto sm:ml-0">
+              <div className="flex items-center gap-1 p-1 bg-surface border border-zinc-800 rounded-lg ml-auto sm:ml-0">
                 <button
                   onClick={() => setViewMode('list')}
-                  className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
+                  className={`px-3 py-1 rounded-md text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${
                     viewMode === 'list'
                       ? 'bg-orange-500 text-white'
                       : 'text-zinc-400 hover:text-white hover:bg-zinc-800'
@@ -429,7 +433,7 @@ const DeckViewer = () => {
                 </button>
                 <button
                   onClick={() => setViewMode('spoiler')}
-                  className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
+                  className={`px-3 py-1 rounded-md text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${
                     viewMode === 'spoiler'
                       ? 'bg-orange-500 text-white'
                       : 'text-zinc-400 hover:text-white hover:bg-zinc-800'
@@ -442,10 +446,10 @@ const DeckViewer = () => {
               {/* Price toggle */}
               <button
                 onClick={() => setShowPrices((p) => !p)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-medium transition-colors ${
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${
                   showPrices
                     ? 'bg-green-500/20 text-green-400 border-green-500/40'
-                    : 'bg-zinc-900 text-zinc-400 border-zinc-800 hover:text-white hover:border-zinc-600'
+                    : 'bg-surface text-zinc-400 border-zinc-800 hover:text-white hover:border-zinc-600'
                 }`}
                 title={showPrices ? t('deckViewer.hidePrices') : t('deckViewer.showPrices')}
               >
@@ -455,7 +459,7 @@ const DeckViewer = () => {
 
               {/* Total price badge (visible when prices shown) */}
               {showPrices && totalPrice > 0 && (
-                <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-900 border border-zinc-800 text-xs">
+                <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface border border-zinc-800 text-xs">
                   <Euro size={13} className="text-green-400" />
                   <span className="text-zinc-400">{t('deckViewer.totalPrice')}:</span>
                   <span className="text-green-400 font-bold">{totalPrice.toFixed(2)} €</span>
@@ -497,15 +501,17 @@ const DeckViewer = () => {
                                 className="flex justify-between items-center px-3 py-1.5 rounded-lg hover:bg-zinc-800 transition-colors cursor-default group"
                               >
                                 <span className="text-zinc-300 group-hover:text-white text-sm transition-colors flex items-center gap-1">
-                                  <button
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
                                     onClick={(e) => {
                                       e.stopPropagation();
                                       setPreviewCard(card);
                                     }}
-                                    className="p-0.5 text-zinc-500 hover:text-orange-500 transition-colors shrink-0"
+                                    aria-label={t('deckViewer.previewCard')}
                                   >
                                     <Camera size={14} />
-                                  </button>
+                                  </Button>
                                   {card.name ?? card.scryfallId}
                                   {card.isGameChanger && (
                                     <span
@@ -555,15 +561,17 @@ const DeckViewer = () => {
                           className="flex justify-between items-center px-3 py-1.5 rounded-lg hover:bg-zinc-800 transition-colors cursor-default group"
                         >
                           <span className="text-zinc-300 group-hover:text-white text-sm transition-colors flex items-center gap-1">
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setPreviewCard(card);
-                              }}
-                              className="p-0.5 text-zinc-500 hover:text-orange-500 transition-colors shrink-0"
-                            >
-                              <Camera size={14} />
-                            </button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setPreviewCard(card);
+                                }}
+                                aria-label={t('deckViewer.previewCard')}
+                              >
+                                <Camera size={14} />
+                              </Button>
                             {card.name ?? card.scryfallId}
                             {card.isGameChanger && (
                               <span
@@ -613,15 +621,17 @@ const DeckViewer = () => {
                           className="flex justify-between items-center px-3 py-1.5 rounded-lg hover:bg-zinc-800 transition-colors cursor-default group"
                         >
                           <span className="text-zinc-300 group-hover:text-white text-sm transition-colors flex items-center gap-1">
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setPreviewCard(card);
-                              }}
-                              className="p-0.5 text-zinc-500 hover:text-orange-500 transition-colors shrink-0"
-                            >
-                              <Camera size={14} />
-                            </button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setPreviewCard(card);
+                                }}
+                                aria-label={t('deckViewer.previewCard')}
+                              >
+                                <Camera size={14} />
+                              </Button>
                             {card.name ?? card.scryfallId}
                           </span>
                           <span className="flex items-center gap-1 ml-2 shrink-0">
@@ -761,7 +771,7 @@ const DeckViewer = () => {
               <div className="flex-1">
                 <ManaCurve cards={deck.mainDeck} className="h-full" />
               </div>
-              <div className="sm:w-48 bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+              <Card className="sm:w-48 p-4">
                 <p className="text-xs font-semibold uppercase tracking-widest text-zinc-500 mb-3">
                   {t('deckViewer.summary')}
                 </p>
@@ -783,7 +793,7 @@ const DeckViewer = () => {
                     <span className="text-orange-500 font-mono font-bold">{mainTotal}</span>
                   </li>
                 </ul>
-              </div>
+              </Card>
             </div>
 
             {/* Deck Profile radar */}
@@ -798,7 +808,7 @@ const DeckViewer = () => {
         className={
           isFloating
             ? 'fixed bottom-0 left-0 right-0 z-40 bg-zinc-950/95 backdrop-blur-sm border-t border-zinc-800/80'
-            : 'mt-4 mx-4 sm:mx-6 lg:mx-8 rounded-2xl border border-zinc-800 bg-zinc-900'
+            : 'mt-4 mx-4 sm:mx-6 lg:mx-8 rounded-xl border border-zinc-800 bg-surface'
         }
       >
         <div className="flex items-center gap-4 max-w-6xl xl:max-w-7xl 2xl:max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
@@ -834,7 +844,7 @@ const DeckViewer = () => {
           )}
           <button
             onClick={() => setShowPrices((v) => !v)}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${showPrices ? 'bg-green-500/20 text-green-400 border border-green-500/30' : 'bg-zinc-800 text-zinc-400 hover:text-white border border-zinc-700'}`}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${showPrices ? 'bg-green-500/20 text-green-400 border border-green-500/30' : 'bg-zinc-800 text-zinc-400 hover:text-white border border-zinc-700'}`}
           >
             <Euro size={13} />
             {showPrices ? t('deckViewer.hidePrices') : t('deckViewer.showPrices')}
@@ -854,7 +864,8 @@ const DeckViewer = () => {
           >
             <button
               onClick={() => setPreviewCard(null)}
-              className="self-end p-1.5 rounded-full bg-zinc-800 text-zinc-400 hover:text-white mb-1"
+              className="self-end p-1.5 rounded-full bg-zinc-800 text-zinc-400 hover:text-white mb-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+              aria-label={t('common.close')}
             >
               <XIcon size={18} />
             </button>
