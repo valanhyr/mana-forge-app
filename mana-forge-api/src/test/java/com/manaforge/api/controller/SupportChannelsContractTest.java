@@ -48,7 +48,8 @@ class SupportChannelsContractTest {
                 .thenAnswer(call -> new PageResult<>(List.of(service.view(ticket)), 0, 25, 1));
         mvc = MockMvcBuilders.standaloneSetup(
                 new FrontdeskController(access, queries, service, mock(FrontdeskUserService.class),
-                        mock(DirectusEmailTemplateService.class), emails, mock(NewsletterService.class), mock(NewsletterCampaignService.class)),
+                        mock(DirectusEmailTemplateService.class), emails, mock(NewsletterService.class), mock(NewsletterCampaignService.class),
+                        mock(AnnouncementService.class), mock(AnnouncementCampaignService.class)),
                 new SupportController(accountAccess, service))
                 .setControllerAdvice(new FrontdeskExceptionHandler(), new com.manaforge.api.config.ApiExceptionHandler()).build();
     }

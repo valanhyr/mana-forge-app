@@ -19,6 +19,7 @@ let customer: User360;
 let sentEmails: number;
 let emailFailure: boolean;
 let newsletterCampaign: NewsletterCampaign | null;
+let announcementCampaign: NewsletterCampaign | null;
 
 beforeEach(() => {
   localStorage.clear();
@@ -26,6 +27,7 @@ beforeEach(() => {
   sentEmails = 0;
   emailFailure = false;
   newsletterCampaign = null;
+  announcementCampaign = null;
   ticket = { id: 'real-ticket', userId: 'real-user', userName: 'Actual Customer', userEmail: 'customer@example.com',
     origin: 'SUPPORT_WEB', customerVisible: true, availableChannels: ['WEB', 'EMAIL'], webUnavailableReason: null,
     subject: 'Actual backend support ticket', category: 'ACCOUNT', priority: 'HIGH', status: 'OPEN',
@@ -78,6 +80,13 @@ beforeEach(() => {
     }
     if (path === '/api/frontdesk/newsletter/campaigns') return json({ items: newsletterCampaign ? [newsletterCampaign] : [], page: 0, size: 25, total: newsletterCampaign ? 1 : 0 });
     if (path.startsWith('/api/frontdesk/newsletter/campaigns/')) return newsletterCampaign ? json(newsletterCampaign) : json({}, 404);
+    if (path === '/api/frontdesk/announcements/recipients') return json({ items: [{ id: 'user-1', username: 'Unsubscribed customer', email: 'customer@example.com', tier: 'FREE' }], page: 0, size: Number(url.searchParams.get('size')), total: 1 });
+    if (path === '/api/frontdesk/announcements' && init?.method === 'POST') {
+      announcementCampaign = { id: body.campaignId, state: 'COMPLETED', total: body.recipientIds.length, sent: body.recipientIds.length, failed: 0, skipped: 0 };
+      return json(announcementCampaign, 202);
+    }
+    if (path === '/api/frontdesk/announcements') return json({ items: announcementCampaign ? [announcementCampaign] : [], page: 0, size: 25, total: announcementCampaign ? 1 : 0 });
+    if (path.startsWith('/api/frontdesk/announcements/')) return announcementCampaign ? json(announcementCampaign) : json({}, 404);
     return json({ message: `Unexpected fixture request: ${path}` }, 404);
   });
   vi.stubGlobal('fetch', fetchMock);
@@ -259,6 +268,28 @@ describe('Live Frontdesk integration', () => {
     expect(write[1]!.headers).toMatchObject({ 'X-CSRF-TOKEN': 'actual-csrf' });
     expect(JSON.parse(write[1]!.body as string)).toMatchObject({ recipientIds: ['subscriber-1'], subject: 'Mana Forge news', body: 'New deck tools' });
     expect(screen.getByLabelText('Subject')).toBeDisabled();
+    expect(sentEmails).toBe(0);
+  });
+
+  it('sends a service announcement to selected users without newsletter consent, never via newsletter endpoints', async () => {
+    authenticated = true;
+    render(<App />);
+    fireEvent.click(await screen.findByRole('button', { name: /email outreach/i }));
+    fireEvent.click(screen.getByRole('button', { name: 'Service announcement' }));
+    expect(screen.getByText(/not a newsletter/i)).toBeInTheDocument();
+    fireEvent.click(await screen.findByRole('checkbox', { name: /Unsubscribed customer/ }));
+    fireEvent.change(screen.getByLabelText('Subject'), { target: { value: 'Maintenance' } });
+    fireEvent.change(screen.getByLabelText('Message'), { target: { value: 'Tonight at 22:00' } });
+    fireEvent.click(screen.getByRole('button', { name: /Review recipients/ }));
+    expect(announcementCampaign).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'Send announcement' }));
+    await waitFor(() => expect(announcementCampaign).not.toBeNull());
+    const write = fetchMock.mock.calls.find(([url, init]) => String(url).endsWith('/frontdesk/announcements') && init?.method === 'POST')!;
+    expect(write[1]!.headers).toMatchObject({ 'X-CSRF-TOKEN': 'actual-csrf' });
+    expect(JSON.parse(write[1]!.body as string)).toMatchObject({ recipientIds: ['user-1'], subject: 'Maintenance', body: 'Tonight at 22:00' });
+    expect(screen.getByLabelText('Subject')).toBeDisabled();
+    expect(newsletterCampaign).toBeNull();
+    expect(fetchMock.mock.calls.some(([url]) => String(url).includes('/newsletter/'))).toBe(false);
     expect(sentEmails).toBe(0);
   });
 

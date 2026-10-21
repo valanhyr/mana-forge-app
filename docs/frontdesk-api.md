@@ -345,6 +345,24 @@ eso expondría las plantillas al acceso anónimo. No incluir el token en el fron
 Esta API no crea campos ni plantillas en tu instancia de Directus. Las plantillas se
 consultan sin caché para que archivar/despublicar una plantilla tenga efecto inmediato.
 
+## Comunicados de servicio
+
+No son newsletter: no consultan el consentimiento, no llevan enlace de baja y no deben
+contener promoción. Solo operadores, con CSRF en las escrituras.
+
+| Ruta | Uso |
+|---|---|
+| `GET /api/frontdesk/announcements/recipients?query&tier&page&size` | Cuentas verificadas y activas (no suspendidas ni baneadas), con o sin newsletter. |
+| `POST /api/frontdesk/announcements` (`202`) | `campaignId` (UUID), `recipientIds` (1–100), `subject`, `body`, `templateId` opcional. |
+| `GET /api/frontdesk/announcements/{id}` y `GET /api/frontdesk/announcements` | Estado y contadores `total`, `sent`, `failed`, `skipped`. |
+
+Las plantillas de Directus de este canal usan `category = ANNOUNCEMENT`. El servidor rechaza
+esa categoría en el envío operativo y en newsletter, y rechaza `BROADCAST` y las demás
+categorías en comunicados. El cuerpo lleva un pie de aviso de servicio en es/en. La
+elegibilidad se vuelve a comprobar antes de cada correo; un destinatario que deja de serlo se
+cuenta como `skipped`. Un fallo de SMTP se cuenta como `failed` y no se reintenta. El ejecutor
+no es durable y comparte el worker de newsletter: tras un reinicio hay que reconciliar a mano.
+
 ## Verificación local
 
 Desde `mana-forge-api`, en PowerShell:

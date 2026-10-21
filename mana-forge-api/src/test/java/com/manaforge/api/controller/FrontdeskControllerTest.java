@@ -40,6 +40,8 @@ class FrontdeskControllerTest {
     @MockitoBean FrontdeskEmailService emails;
     @MockitoBean NewsletterService newsletter;
     @MockitoBean NewsletterCampaignService campaigns;
+    @MockitoBean AnnouncementService announcementRecipients;
+    @MockitoBean AnnouncementCampaignService announcements;
     private User operator;
 
     @BeforeEach
@@ -54,12 +56,62 @@ class FrontdeskControllerTest {
     @Test
     void allBackofficeReadsArePrivate() throws Exception {
         for (String path : List.of("/me", "/csrf", "/users", "/users/u1", "/tickets", "/tickets/t1",
-                "/audit", "/email-templates", "/emails", "/newsletter/subscribers", "/newsletter/campaigns", "/newsletter/campaigns/c1")) {
+                "/audit", "/email-templates", "/emails", "/newsletter/subscribers", "/newsletter/campaigns", "/newsletter/campaigns/c1",
+                "/announcements/recipients", "/announcements", "/announcements/c1")) {
             mvc.perform(get("/api/frontdesk" + path)).andExpect(status().isUnauthorized());
             mvc.perform(get("/api/frontdesk" + path).with(user("ordinary").roles("OPERATOR")))
                     .andExpect(status().isForbidden());
         }
-        verifyNoInteractions(queries, tickets, users, templates, emails, newsletter, campaigns);
+        verifyNoInteractions(queries, tickets, users, templates, emails, newsletter, campaigns, announcementRecipients, announcements);
+    }
+
+    @Test
+    void announcementWritesRequireAnOperatorAndCsrf() throws Exception {
+        String body = "{\"campaignId\":\"d011e05b-f0aa-4af8-bacb-aa06347844e2\",\"recipientIds\":[\"u1\"],\"subject\":\"Notice\",\"body\":\"Body\"}";
+        mvc.perform(post("/api/frontdesk/announcements").contentType(MediaType.APPLICATION_JSON).content(body))
+                .andExpect(status().isForbidden());
+        mvc.perform(post("/api/frontdesk/announcements").with(user("operator"))
+                .contentType(MediaType.APPLICATION_JSON).content(body)).andExpect(status().isForbidden());
+        mvc.perform(post("/api/frontdesk/announcements").with(user("ordinary")).with(csrf())
+                .contentType(MediaType.APPLICATION_JSON).content(body)).andExpect(status().isForbidden());
+        verifyNoInteractions(announcements);
+    }
+
+    @Test
+    void announcementRecipientsAndCampaignsAreForwardedWithTheAuthenticatedOperator() throws Exception {
+        when(announcementRecipients.recipients("ali", User.Tier.PRO, 1, 10))
+                .thenReturn(new PageResult<>(List.of(new AnnouncementService.Recipient("u1", "alice", "alice@example.com", User.Tier.PRO)), 1, 10, 11));
+        mvc.perform(get("/api/frontdesk/announcements/recipients").with(user("operator"))
+                .param("query", "ali").param("tier", "PRO").param("page", "1").param("size", "10"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.items[0].email").value("alice@example.com"))
+                .andExpect(jsonPath("$.total").value(11));
+        var campaign = new com.manaforge.api.dto.AnnouncementDtos.Campaign("d011e05b-f0aa-4af8-bacb-aa06347844e2",
+                com.manaforge.api.model.mongo.AnnouncementCampaign.State.RUNNING, 1, 0, 0, 0);
+        when(announcements.start(any(), any())).thenReturn(campaign);
+        mvc.perform(post("/api/frontdesk/announcements").with(user("operator")).with(csrf())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"campaignId\":\"d011e05b-f0aa-4af8-bacb-aa06347844e2\",\"recipientIds\":[\"u1\"],\"subject\":\"Notice\",\"body\":\"Body\",\"operatorId\":\"forged\"}"))
+                .andExpect(status().isAccepted()).andExpect(jsonPath("$.state").value("RUNNING"));
+        verify(announcements).start(argThat(request -> request.recipientIds().equals(List.of("u1"))), same(operator));
+        mvc.perform(get("/api/frontdesk/announcements/c1").with(user("operator"))).andExpect(status().isOk());
+        verify(announcements).get("c1");
+        mvc.perform(get("/api/frontdesk/announcements").with(user("operator")).param("page", "2").param("size", "5"))
+                .andExpect(status().isOk());
+        verify(announcements).list(2, 5);
+    }
+
+    @Test
+    void announcementRequestsAreValidatedBeforeTheService() throws Exception {
+        String ids = "[\"" + String.join("\",\"", java.util.Collections.nCopies(101, "u")) + "\"]";
+        for (String body : List.of(
+                "{\"campaignId\":\"not-a-uuid\",\"recipientIds\":[\"u1\"],\"subject\":\"S\",\"body\":\"B\"}",
+                "{\"campaignId\":\"d011e05b-f0aa-4af8-bacb-aa06347844e2\",\"recipientIds\":[],\"subject\":\"S\",\"body\":\"B\"}",
+                "{\"campaignId\":\"d011e05b-f0aa-4af8-bacb-aa06347844e2\",\"recipientIds\":" + ids + ",\"subject\":\"S\",\"body\":\"B\"}",
+                "{\"campaignId\":\"d011e05b-f0aa-4af8-bacb-aa06347844e2\",\"recipientIds\":[\"u1\"],\"subject\":\" \",\"body\":\"B\"}")) {
+            mvc.perform(post("/api/frontdesk/announcements").with(user("operator")).with(csrf())
+                    .contentType(MediaType.APPLICATION_JSON).content(body)).andExpect(status().isBadRequest());
+        }
+        verifyNoInteractions(announcements);
     }
 
     @Test

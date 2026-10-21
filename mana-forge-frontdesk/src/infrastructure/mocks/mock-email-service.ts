@@ -1,7 +1,7 @@
 import { IEmailService } from '../../core/ports/email-service.port';
 import { EmailDelivery, EmailTemplate, SendEmailPayload, SendBroadcastPayload, interpolateTemplate } from '../../core/domain/email';
 import { PageRequest, pageOf } from '../../core/domain/page';
-import { NewsletterSubscriber, NewsletterPayload, NewsletterCampaign } from '../../core/domain/email';
+import { NewsletterSubscriber, NewsletterPayload, NewsletterCampaign, AnnouncementRecipient, AnnouncementPayload, AnnouncementCampaign } from '../../core/domain/email';
 import { seedTemplates } from './seeds/seed-templates';
 
 export class MockEmailService implements IEmailService {
@@ -13,6 +13,10 @@ export class MockEmailService implements IEmailService {
   async sendNewsletter(_payload: NewsletterPayload): Promise<NewsletterCampaign> { throw new Error('Live newsletters are unavailable in demo mode'); }
   async getCampaign(_id: string): Promise<NewsletterCampaign> { throw new Error('Live newsletters are unavailable in demo mode'); }
   async listCampaigns(pagination: PageRequest) { return pageOf<NewsletterCampaign>([], pagination); }
+  async listAnnouncementRecipients(_query: string, _tier: string, pagination: PageRequest) { return pageOf<AnnouncementRecipient>([], pagination); }
+  async sendAnnouncement(_payload: AnnouncementPayload): Promise<AnnouncementCampaign> { throw new Error('Live announcements are unavailable in demo mode'); }
+  async getAnnouncement(_id: string): Promise<AnnouncementCampaign> { throw new Error('Live announcements are unavailable in demo mode'); }
+  async listAnnouncements(pagination: PageRequest) { return pageOf<AnnouncementCampaign>([], pagination); }
 
   private getTemplates(): EmailTemplate[] {
     try {

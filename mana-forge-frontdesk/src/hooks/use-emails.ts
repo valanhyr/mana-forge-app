@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { container } from '../infrastructure/container';
-import { SendEmailPayload, SendBroadcastPayload, NewsletterPayload } from '../core/domain/email';
+import { SendEmailPayload, SendBroadcastPayload, NewsletterPayload, AnnouncementPayload } from '../core/domain/email';
 
 export const EMAIL_QUERY_KEYS = {
   all: ['emails'] as const,
@@ -55,6 +55,32 @@ export function useNewsletterCampaigns(page: number, enabled: boolean) {
 export function useNewsletterCampaign(id: string | null) {
   return useQuery({ queryKey: ['emails', 'campaign', id], enabled: Boolean(id), retry: false,
     queryFn: () => container.emailService.getCampaign(id!),
+    refetchInterval: query => query.state.data?.state === 'COMPLETED' || query.state.data?.state === 'FAILED' ? false : 2000 });
+}
+
+export function useAnnouncementRecipients(query: string, tier: string, page: number, enabled: boolean) {
+  return useQuery({ queryKey: ['emails', 'announcement-recipients', query, tier, page], enabled,
+    queryFn: () => container.emailService.listAnnouncementRecipients(query, tier, { page, size: 25 }) });
+}
+
+export function useStartAnnouncement() {
+  const client = useQueryClient();
+  return useMutation({ retry: false,
+    mutationFn: (payload: AnnouncementPayload) => container.emailService.sendAnnouncement(payload),
+    onSettled: () => {
+      client.invalidateQueries({ queryKey: ['emails', 'deliveries'] });
+      client.invalidateQueries({ queryKey: ['emails', 'announcements'] });
+    } });
+}
+
+export function useAnnouncements(page: number, enabled: boolean) {
+  return useQuery({ queryKey: ['emails', 'announcements', page], enabled, refetchInterval: 10000,
+    queryFn: () => container.emailService.listAnnouncements({ page, size: 25 }) });
+}
+
+export function useAnnouncement(id: string | null) {
+  return useQuery({ queryKey: ['emails', 'announcement', id], enabled: Boolean(id), retry: false,
+    queryFn: () => container.emailService.getAnnouncement(id!),
     refetchInterval: query => query.state.data?.state === 'COMPLETED' || query.state.data?.state === 'FAILED' ? false : 2000 });
 }
 

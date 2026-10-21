@@ -69,6 +69,26 @@ describe('HTTP adapters', () => {
     expect(fetchMock.mock.calls[2][1]!.headers).toMatchObject({ 'X-CSRF-TOKEN': 'csrf' });
   });
 
+  it('queries every eligible user and sends announcements to their own endpoints with CSRF', async () => {
+    const email = new ServiceContainer({ useMocks: false }).emailService;
+    fetchMock.mockResolvedValueOnce(json({ items: [{ id: 'u1' }], page: 0, size: 25, total: 1 }))
+      .mockResolvedValueOnce(json(proof)).mockResolvedValueOnce(json({ id: 'a1', state: 'RUNNING', total: 1 }))
+      .mockResolvedValueOnce(json({ id: 'a1', state: 'COMPLETED', total: 1 }))
+      .mockResolvedValueOnce(json({ items: [], page: 0, size: 25, total: 0 }));
+    await email.listAnnouncementRecipients('customer', 'FREE', { page: 0, size: 25 });
+    expect(fetchMock.mock.calls[0][0]).toContain('/announcements/recipients?query=customer&tier=FREE');
+    const payload = { campaignId: 'a1', recipientIds: ['u1'], subject: 'Notice', body: 'Body' };
+    await email.sendAnnouncement(payload);
+    expect(String(fetchMock.mock.calls[2][0])).toContain('/frontdesk/announcements');
+    expect(String(fetchMock.mock.calls[2][0])).not.toContain('newsletter');
+    expect(JSON.parse(fetchMock.mock.calls[2][1]!.body as string)).toEqual(payload);
+    expect(fetchMock.mock.calls[2][1]!.headers).toMatchObject({ 'X-CSRF-TOKEN': 'csrf' });
+    await email.getAnnouncement('a1');
+    expect(String(fetchMock.mock.calls[3][0])).toContain('/frontdesk/announcements/a1');
+    await email.listAnnouncements({ page: 0, size: 25 });
+    expect(String(fetchMock.mock.calls[4][0])).toContain('/frontdesk/announcements?');
+  });
+
   it('exposes SMTP attempt metadata but not the recipient ciphertext', async () => {
     fetchMock.mockResolvedValue(json({ items: [{ id: 'd1', recipientName: 'Customer', recipientEmail: 'CIPHERTEXT',
       subject: 'Support', status: 'FAILED', createdAt: '2026-10-08', sentAt: null, messageId: null }], page: 0, size: 25, total: 1 }));

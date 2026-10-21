@@ -6,6 +6,7 @@ import { Pagination } from '../components/ui/Pagination';
 import { container } from '../infrastructure/container';
 import { useTranslation } from '../hooks/use-translation';
 import { NewsletterComposer } from '../components/emails/NewsletterComposer';
+import { AnnouncementPanel } from '../components/emails/AnnouncementPanel';
 
 export function EmailOutreachView() {
   const { t } = useTranslation();
@@ -15,7 +16,7 @@ export function EmailOutreachView() {
   const [page, setPage] = useState(0);
   const history = useEmailDeliveries(page);
   const [success, setSuccess] = useState(false);
-  const [tab, setTab] = useState<'direct' | 'newsletter'>('direct');
+  const [tab, setTab] = useState<'direct' | 'newsletter' | 'announcement'>('direct');
   const [query, setQuery] = useState('');
   const [tier, setTier] = useState('');
   const [subscriberPage, setSubscriberPage] = useState(0);
@@ -43,6 +44,7 @@ export function EmailOutreachView() {
     {!container.useMocks && <nav className="flex gap-4 text-sm">
       <button className={tab === 'direct' ? 'text-indigo-400' : 'text-slate-400'} onClick={() => setTab('direct')}>{t('operationalEmails')}</button>
       <button className={tab === 'newsletter' ? 'text-purple-400' : 'text-slate-400'} onClick={() => setTab('newsletter')}>{t('newsletterTitle')}</button>
+      <button className={tab === 'announcement' ? 'text-amber-400' : 'text-slate-400'} onClick={() => setTab('announcement')}>{t('announcementTitle')}</button>
     </nav>}
     <ErrorNotice error={templates.error} onRetry={() => void templates.refetch()} />
     <ErrorNotice error={send.error || broadcast.error} />
@@ -55,6 +57,7 @@ export function EmailOutreachView() {
         onSend={async payload => { setSuccess(false); await send.mutateAsync(payload); setSuccess(true); setPage(0); }}
         onSendBroadcast={container.useMocks ? async payload => { await broadcast.mutateAsync(payload); } : undefined} />
     </>)}
+    {tab === 'announcement' && <AnnouncementPanel templates={(templates.data || []).filter(template => template.category === 'ANNOUNCEMENT')} />}
     {tab === 'newsletter' && <section className="bg-slate-900 border border-slate-800 rounded-lg p-4 space-y-4">
       <h2 className="font-semibold">{t('newsletterTitle')}</h2>
       <p className="text-xs text-slate-400">{t('newsletterConsent')}</p>

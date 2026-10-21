@@ -39,6 +39,10 @@ export interface NewsletterSubscriber { id: string; username: string; email: str
 export interface NewsletterPayload { campaignId: string; recipientIds: string[]; subject: string; body: string; templateId?: string }
 export interface NewsletterCampaign { id: string; state: 'RUNNING' | 'COMPLETED' | 'FAILED'; total: number; sent: number; failed: number; skipped: number }
 
+export type AnnouncementRecipient = NewsletterSubscriber;
+export type AnnouncementPayload = NewsletterPayload;
+export type AnnouncementCampaign = NewsletterCampaign;
+
 export function interpolateTemplate(text: string, variables: Record<string, string>): string {
   return text.replace(/\{\{([a-zA-Z0-9_.-]+)\}\}/g, (match, key) => {
     return Object.prototype.hasOwnProperty.call(variables, key) ? variables[key] : match;

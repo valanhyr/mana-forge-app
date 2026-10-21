@@ -116,6 +116,45 @@ class FrontdeskEmailServiceTest {
     }
 
     @Test
+    void announcementHasNoUnsubscribeHeaderAndKeepsCampaignTracking() throws Exception {
+        service.sendAnnouncement(request("Notice", "Body", null), operator, "c1");
+        assertThat(message.getHeader("List-Unsubscribe", null)).isNull();
+        verify(deliveries, atLeastOnce()).save(argThat(delivery -> "c1".equals(delivery.getCampaignId())));
+        verify(sender).send(any(MimeMessage.class));
+    }
+
+    @Test
+    void announcementChannelAcceptsOnlyAnnouncementTemplates() {
+        when(templates.get("news")).thenReturn(new EmailTemplate("news", "News", "BROADCAST", "News", "Body", java.util.List.of()));
+        when(templates.get("support")).thenReturn(new EmailTemplate("support", "Help", "SUPPORT", "Help", "Body", java.util.List.of()));
+        for (String id : java.util.List.of("news", "support")) {
+            assertThatThrownBy(() -> service.sendAnnouncement(new SendEmail("user@example.com", "Customer", "Notice", "Body", id, null), operator, "c1"))
+                    .isInstanceOf(ResponseStatusException.class);
+        }
+        verifyNoInteractions(sender, deliveries);
+    }
+
+    @Test
+    void announcementTemplateIsAcceptedByTheAnnouncementChannelOnly() {
+        when(templates.get("notice")).thenReturn(new EmailTemplate("notice", "Notice", "ANNOUNCEMENT", "Notice", "Body", java.util.List.of()));
+        var request = new SendEmail("user@example.com", "Customer", "Notice", "Body", "notice", null);
+        assertThat(service.sendAnnouncement(request, operator, "c1").success()).isTrue();
+        assertThatThrownBy(() -> service.send(request, operator)).isInstanceOf(ResponseStatusException.class);
+        assertThatThrownBy(() -> service.sendNewsletter(request, operator, "https://example.com/u#t", "c2"))
+                .isInstanceOf(ResponseStatusException.class);
+        verify(sender, times(1)).send(any(MimeMessage.class));
+    }
+
+    @Test
+    void announcementRejectsHeaderInjectionAndUnresolvedMacros() {
+        assertThatThrownBy(() -> service.sendAnnouncement(request("Notice\r\nBcc: victim@example.com", "Body", null), operator, "c1"))
+                .isInstanceOf(ResponseStatusException.class);
+        assertThatThrownBy(() -> service.sendAnnouncement(request("Notice", "Hi {{user.name}}", null), operator, "c1"))
+                .isInstanceOf(ResponseStatusException.class);
+        verifyNoInteractions(sender, deliveries);
+    }
+
+    @Test
     void operationalChannelCannotBypassNewsletterConsentWithABroadcastTemplate() {
         when(templates.get("news")).thenReturn(new EmailTemplate("news", "News", "BROADCAST", "News", "Body", java.util.List.of()));
         assertThatThrownBy(() -> service.send(new SendEmail("user@example.com", "Customer", "News", "Body", "news", null), operator))

@@ -39,15 +39,21 @@ public class FrontdeskEmailService {
         this.from = from;
     }
 
+    private enum Channel { OPERATIONAL, NEWSLETTER, ANNOUNCEMENT }
+
     public EmailResult send(SendEmail request, User operator) {
-        return send(request, operator, null, null);
+        return send(request, operator, Channel.OPERATIONAL, null, null);
     }
 
     public EmailResult sendNewsletter(SendEmail request, User operator, String unsubscribeUrl, String campaignId) {
-        return send(request, operator, unsubscribeUrl, campaignId);
+        return send(request, operator, Channel.NEWSLETTER, unsubscribeUrl, campaignId);
     }
 
-    private EmailResult send(SendEmail request, User operator, String unsubscribeUrl, String campaignId) {
+    public EmailResult sendAnnouncement(SendEmail request, User operator, String campaignId) {
+        return send(request, operator, Channel.ANNOUNCEMENT, null, campaignId);
+    }
+
+    private EmailResult send(SendEmail request, User operator, Channel channel, String unsubscribeUrl, String campaignId) {
         if (request.subject().contains("\r") || request.subject().contains("\n")) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid email subject");
         }
@@ -61,8 +67,14 @@ public class FrontdeskEmailService {
         }
         if (request.templateId() != null) {
             var template = templates.get(request.templateId());
-            if ("BROADCAST".equals(template.category()) != (unsubscribeUrl != null)) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Use the newsletter channel for newsletter templates");
+            String category = template.category();
+            boolean allowed = switch (channel) {
+                case NEWSLETTER -> "BROADCAST".equals(category);
+                case ANNOUNCEMENT -> "ANNOUNCEMENT".equals(category);
+                case OPERATIONAL -> !"BROADCAST".equals(category) && !"ANNOUNCEMENT".equals(category);
+            };
+            if (!allowed) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Template category does not match the sending channel");
             }
         }
 

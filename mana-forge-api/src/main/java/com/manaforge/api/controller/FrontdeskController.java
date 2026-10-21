@@ -29,6 +29,8 @@ public class FrontdeskController {
     private final FrontdeskEmailService emails;
     private final NewsletterService newsletter;
     private final NewsletterCampaignService campaigns;
+    private final AnnouncementService announcementRecipients;
+    private final AnnouncementCampaignService announcements;
 
     @GetMapping("/csrf")
     public Map<String, String> csrf(CsrfToken token) {
@@ -143,4 +145,25 @@ public class FrontdeskController {
     @GetMapping("/newsletter/campaigns")
     public PageResult<com.manaforge.api.dto.NewsletterDtos.Campaign> campaigns(@RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "25") int size) { return campaigns.list(page, size); }
+
+    @GetMapping("/announcements/recipients")
+    public PageResult<AnnouncementService.Recipient> announcementRecipients(@RequestParam(required = false) String query,
+            @RequestParam(required = false) User.Tier tier, @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "25") int size) {
+        return announcementRecipients.recipients(query, tier, page, size);
+    }
+
+    @PostMapping("/announcements")
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    public com.manaforge.api.dto.AnnouncementDtos.Campaign sendAnnouncement(
+            @Valid @RequestBody com.manaforge.api.dto.AnnouncementDtos.Send request, Authentication authentication) {
+        return announcements.start(request, access.requireOperator(authentication));
+    }
+
+    @GetMapping("/announcements/{id}")
+    public com.manaforge.api.dto.AnnouncementDtos.Campaign announcement(@PathVariable String id) { return announcements.get(id); }
+
+    @GetMapping("/announcements")
+    public PageResult<com.manaforge.api.dto.AnnouncementDtos.Campaign> announcements(@RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "25") int size) { return announcements.list(page, size); }
 }

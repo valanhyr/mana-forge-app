@@ -10,7 +10,7 @@ import { IAuditRepository, AuditFilters } from '../../core/ports/audit-repositor
 import { IEmailService } from '../../core/ports/email-service.port';
 import { IAuthService } from '../../core/ports/auth-service.port';
 import { ApiClient, ApiError } from './api-client';
-import { NewsletterSubscriber, NewsletterPayload, NewsletterCampaign } from '../../core/domain/email';
+import { NewsletterSubscriber, NewsletterPayload, NewsletterCampaign, AnnouncementRecipient, AnnouncementPayload, AnnouncementCampaign } from '../../core/domain/email';
 
 const idPath = (id: string) => encodeURIComponent(id);
 
@@ -89,6 +89,18 @@ export class HttpEmailService implements IEmailService {
   }
   listCampaigns(pagination: PageRequest) {
     return this.client.page<NewsletterCampaign>('/frontdesk/newsletter/campaigns', { ...pagination });
+  }
+  listAnnouncementRecipients(query: string, tier: string, pagination: PageRequest) {
+    return this.client.page<AnnouncementRecipient>('/frontdesk/announcements/recipients', { query, tier, ...pagination });
+  }
+  sendAnnouncement(payload: AnnouncementPayload) {
+    return this.client.request<AnnouncementCampaign>('/frontdesk/announcements', { method: 'POST', body: payload });
+  }
+  getAnnouncement(id: string) {
+    return this.client.request<AnnouncementCampaign>(`/frontdesk/announcements/${idPath(id)}`);
+  }
+  listAnnouncements(pagination: PageRequest) {
+    return this.client.page<AnnouncementCampaign>('/frontdesk/announcements', { ...pagination });
   }
   listTemplates() { return this.client.request<EmailTemplate[]>('/frontdesk/email-templates'); }
   async listDeliveries(pagination: PageRequest): Promise<PageResult<EmailDelivery>> {
