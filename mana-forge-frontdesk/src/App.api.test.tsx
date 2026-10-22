@@ -233,7 +233,10 @@ describe('Live Frontdesk integration', () => {
     await waitFor(() => expect(customer.stats.aiQueriesToday).toBe(0));
     await waitFor(() => expect(screen.getByRole('button', { name: 'Next' })).toBeEnabled());
     fireEvent.click(screen.getByRole('button', { name: 'Next' }));
-    await waitFor(() => expect(fetchMock.mock.calls.some(([url]) => String(url).includes('/frontdesk/users?page=1'))).toBe(true));
+    await waitFor(() => expect(fetchMock.mock.calls.some(([url]) => {
+      const parsed = new URL(String(url), 'https://frontdesk.test');
+      return parsed.pathname.endsWith('/frontdesk/users') && parsed.searchParams.get('page') === '1';
+    })).toBe(true));
   });
 
   it('uses Directus templates, disables broadcasts and does not retry a failed SMTP send', async () => {

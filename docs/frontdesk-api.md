@@ -62,7 +62,7 @@ Todos los siguientes requieren acceso de operador. Los listados paginados devuel
 | POST | `/tickets/{id}/messages` | Añadir respuesta web si el cliente tiene acceso, o nota interna; no envía correo automáticamente. |
 | PATCH | `/tickets/{id}/status` | Cambiar estado. |
 | PATCH | `/tickets/{id}/assignee` | Asignar un operador activo/verificado de la lista. |
-| GET | `/users?query=&page=&size=` | Buscar por nombre, username, ID o email exacto. |
+| GET | `/users?query=&page=&size=&sort=&dir=&tier=&status=&quota=` | Directorio paginado; admite orden y filtros del conjunto completo. |
 | GET | `/users/{id}` | Perfil 360 con estadísticas y cinco mazos recientes. |
 | PATCH | `/users/{id}/status` | Activar, suspender o banear; no permite autobloqueo. |
 | POST | `/users/{id}/ai-quota/reset` | Reiniciar únicamente la cuota autenticada de hoy en Redis. |
@@ -75,6 +75,19 @@ Todos los siguientes requieren acceso de operador. Los listados paginados devuel
 | POST | `/newsletter/campaigns` | Crear una campaña, respuesta 202 con estado; no implica entrega. |
 | GET | `/newsletter/campaigns/{id}` | Estado y contadores de intentos, fallos y omitidos. |
 | GET | `/newsletter/campaigns?page=&size=` | Historial recuperable después de recargar la interfaz. |
+
+`GET /users` ordena y filtra en el servidor. Sin `sort` conserva `username asc`,
+que es lo que siguen usando el Omnibox y el dashboard. `sort` acepta `openTickets`,
+`aiUsageToday`, `totalDecks`, `username`, `createdAt` y `lastLoginAt`; `dir` acepta
+`asc`/`desc` y vale `desc` cuando se envía un `sort` sin dirección. `tier` filtra
+`FREE`/`PRO`/`PATREON`, `status` filtra por estado efectivo
+(`ACTIVE`/`SUSPENDED`/`BANNED`, incluida la regla legacy de `active`) y
+`quota=exhausted` deja solo la cuota autenticada de hoy agotada. Un valor
+desconocido responde 400 `{code, error}` con `INVALID_SORT`,
+`INVALID_SORT_DIRECTION`, `INVALID_TIER`, `INVALID_STATUS` o
+`INVALID_QUOTA_FILTER`. Si el orden exige ranking en memoria y el conjunto
+filtrado supera 20.000 usuarios, responde 400 `USER_SET_TOO_LARGE` en lugar de
+truncar resultados.
 
 No hay endpoints de edición/borrado de auditoría. El servidor deriva el actor de la
 sesión; no acepta eventos arbitrarios del cliente. Las búsquedas por nombre usan texto

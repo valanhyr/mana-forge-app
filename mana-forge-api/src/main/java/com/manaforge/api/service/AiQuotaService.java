@@ -10,6 +10,10 @@ import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.HexFormat;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -49,6 +53,8 @@ public class AiQuotaService {
 
     private static final String QUOTA_KEY_PREFIX = "manaforge:ai:quota:";
     private static final String CACHE_KEY_PREFIX = "manaforge:ai:cache:";
+    /** Keeps a directory page from issuing one Redis command per user. */
+    private static final int QUOTA_BATCH_SIZE = 500;
 
     private final StringRedisTemplate redis;
     private final int anonymousDailyLimit;
@@ -138,6 +144,42 @@ public class AiQuotaService {
         return authenticated ? authenticatedDailyLimit : anonymousDailyLimit;
     }
 
+    /**
+     * Reads today's authenticated quota for many users with a bounded number of
+     * Redis round trips. Used by the Frontdesk directory so listing 25 users does
+     * not become 25 GETs. Falls back to the same in-memory counters as {@link #check}.
+     */
+    public Map<String, QuotaResult> checkAuthenticated(Collection<String> userIds) {
+        if (userIds == null || userIds.isEmpty()) return Map.of();
+        List<String> ids = new ArrayList<>(new LinkedHashSet<>(userIds));
+        int limit = limitFor(true);
+        if (!quotaEnabled || limit <= 0) {
+            Map<String, QuotaResult> unlimited = new HashMap<>();
+            ids.forEach(id -> unlimited.put(id, new QuotaResult(true, -1, -1, null)));
+            return unlimited;
+        }
+
+        Instant resetsAt = nextReset();
+        Map<String, QuotaResult> results = new HashMap<>();
+        for (int start = 0; start < ids.size(); start += QUOTA_BATCH_SIZE) {
+            List<String> chunk = ids.subList(start, Math.min(start + QUOTA_BATCH_SIZE, ids.size()));
+            List<String> keys = chunk.stream().map(id -> quotaKey(id, true)).toList();
+            List<String> values = redisOps(
+                    () -> redis.opsForValue().multiGet(keys),
+                    () -> keys.stream().map(key -> {
+                        AtomicInteger count = fallbackQuota.get(key);
+                        return count == null ? null : String.valueOf(count.get());
+                    }).toList());
+            for (int index = 0; index < chunk.size(); index++) {
+                String raw = values == null || index >= values.size() ? null : values.get(index);
+                int used = parseCount(raw);
+                int remaining = Math.max(0, limit - used);
+                results.put(chunk.get(index), new QuotaResult(remaining > 0, limit, remaining, resetsAt));
+            }
+        }
+        return results;
+    }
+
     /** Backoffice reset affects today's authenticated counter only, never the result cache. */
     public void resetAuthenticatedQuota(String userId) {
         String key = quotaKey(userId, true);
@@ -148,16 +190,17 @@ public class AiQuotaService {
 
     private Integer readCount(String key) {
         return redisOps(
-                () -> {
-                    String raw = redis.opsForValue().get(key);
-                    if (raw == null) return 0;
-                    try {
-                        return Integer.valueOf(raw);
-                    } catch (NumberFormatException e) {
-                        return 0;
-                    }
-                },
+                () -> parseCount(redis.opsForValue().get(key)),
                 () -> fallbackQuota.getOrDefault(key, new AtomicInteger()).get());
+    }
+
+    private static int parseCount(String raw) {
+        if (raw == null) return 0;
+        try {
+            return Integer.parseInt(raw);
+        } catch (NumberFormatException e) {
+            return 0;
+        }
     }
 
     // ── Result cache ───────────────────────────────────────────────────────
