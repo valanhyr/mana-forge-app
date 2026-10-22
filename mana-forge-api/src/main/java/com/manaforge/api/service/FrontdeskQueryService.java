@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 import com.manaforge.api.dto.FrontdeskDtos.*;
+import com.manaforge.api.dto.FrontdeskUserQuery;
 import com.manaforge.api.model.mongo.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
@@ -50,18 +51,12 @@ public class FrontdeskQueryService {
     }
 
     public PageResult<UserView> users(String search, int page, int size) {
+        return users(FrontdeskUserQuery.defaults(search), page, size);
+    }
+
+    public PageResult<UserView> users(FrontdeskUserQuery filters, int page, int size) {
         validatePagination(page, size);
-        Query query = new Query();
-        if (search != null && !search.isBlank()) {
-            Pattern pattern = searchPattern(search);
-            query.addCriteria(new Criteria().orOperator(Criteria.where("username").regex(pattern),
-                    Criteria.where("name").regex(pattern), Criteria.where("_id").is(search),
-                    Criteria.where("email").is(encryption.encrypt(search.trim()))));
-        }
-        long total = mongo.count(query, User.class);
-        query.with(Sort.by(Sort.Direction.ASC, "username", "_id"));
-        paginate(query, page, size);
-        return new PageResult<>(mongo.find(query, User.class).stream().map(users::view).toList(), page, size, total);
+        return users.list(filters, page, size);
     }
 
     public PageResult<AuditEvent> audit(String userId, AuditEvent.Action action, int page, int size) {

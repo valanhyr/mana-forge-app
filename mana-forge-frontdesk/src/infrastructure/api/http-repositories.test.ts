@@ -15,7 +15,7 @@ describe('HTTP adapters', () => {
     const services = new ServiceContainer({ useMocks: false });
     fetchMock.mockResolvedValue(json({ items: [], page: 0, size: 25, total: 0 }));
     expect(services.ticketRepo).toBeInstanceOf(HttpTicketRepository);
-    expect((await services.userRepo.searchPage('', { page: 0, size: 25 })).items).toEqual([]);
+    expect((await services.userRepo.searchPage({ query: '' }, { page: 0, size: 25 })).items).toEqual([]);
     expect(localStorage.length).toBe(0);
   });
 
@@ -37,6 +37,34 @@ describe('HTTP adapters', () => {
     await services.ticketRepo.assignOperator('t1', 'op1', 'Forged name');
     expect(JSON.parse(fetchMock.mock.calls[1][1]!.body as string)).toEqual({ content: 'Private note', isInternalNote: true });
     expect(JSON.parse(fetchMock.mock.calls[3][1]!.body as string)).toEqual({ operatorId: 'op1' });
+  });
+
+  it('sends directory ordering and filters, omitting empty values', async () => {
+    const users = new ServiceContainer({ useMocks: false }).userRepo;
+    fetchMock.mockResolvedValueOnce(json({ items: [], page: 1, size: 25, total: 0 }));
+    await users.searchPage({
+      query: 'urza', sort: 'openTickets', dir: 'desc', tier: 'PRO', status: 'ACTIVE', quota: 'exhausted',
+    }, { page: 1, size: 25 });
+    const url = String(fetchMock.mock.calls[0][0]);
+    expect(url).toContain('/frontdesk/users?');
+    expect(url).toContain('query=urza');
+    expect(url).toContain('sort=openTickets');
+    expect(url).toContain('dir=desc');
+    expect(url).toContain('tier=PRO');
+    expect(url).toContain('status=ACTIVE');
+    expect(url).toContain('quota=exhausted');
+    expect(url).toContain('page=1');
+    expect(url).not.toContain('undefined');
+  });
+
+  it('does not send directory filters the operator did not choose', async () => {
+    const users = new ServiceContainer({ useMocks: false }).userRepo;
+    fetchMock.mockResolvedValueOnce(json({ items: [], page: 0, size: 25, total: 0 }));
+    await users.searchPage({ query: '', sort: 'username', dir: 'asc' }, { page: 0, size: 25 });
+    const url = String(fetchMock.mock.calls[0][0]);
+    expect(url).not.toContain('tier=');
+    expect(url).not.toContain('status=');
+    expect(url).not.toContain('quota=');
   });
 
   it('preserves daily quota, unknown dates and unknown historical statistics', async () => {

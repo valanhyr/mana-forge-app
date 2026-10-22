@@ -1,6 +1,7 @@
 package com.manaforge.api.controller;
 
 import com.manaforge.api.dto.FrontdeskDtos.*;
+import com.manaforge.api.dto.FrontdeskUserQuery;
 import com.manaforge.api.model.mongo.AuditEvent;
 import com.manaforge.api.model.mongo.EmailDelivery;
 import com.manaforge.api.model.mongo.SupportTicket;
@@ -78,8 +79,11 @@ public class FrontdeskController {
 
     @GetMapping("/users")
     public PageResult<UserView> users(@RequestParam(required = false) String query,
-            @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "25") int size) {
-        return queries.users(query, page, size);
+            @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "25") int size,
+            @RequestParam(required = false) String sort, @RequestParam(required = false) String dir,
+            @RequestParam(required = false) String tier, @RequestParam(required = false) String status,
+            @RequestParam(required = false) String quota) {
+        return queries.users(FrontdeskUserQuery.parse(query, sort, dir, tier, status, quota), page, size);
     }
 
     @GetMapping("/users/{id}")

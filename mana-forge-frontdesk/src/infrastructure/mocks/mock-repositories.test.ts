@@ -207,6 +207,41 @@ describe('Mock Repositories', () => {
       const userReloaded = await repo2.getById(user.id);
       expect(userReloaded?.stats.aiQueriesThisMonth).toBe(0);
     });
+
+    it('should order the whole directory by open tickets with a stable tie-break', async () => {
+      const userRepo = new MockUserRepository();
+      const page = await userRepo.searchPage(
+        { query: '', sort: 'openTickets', dir: 'desc' }, { page: 0, size: 10 });
+      expect(page.items.map((user) => user.id)).toEqual(['user-urza', 'user-mishra', 'user-teferi', 'user-karn']);
+      expect(page.total).toBe(4);
+    });
+
+    it('should order by today AI usage', async () => {
+      const userRepo = new MockUserRepository();
+      const page = await userRepo.searchPage(
+        { query: '', sort: 'aiUsageToday', dir: 'desc' }, { page: 0, size: 10 });
+      expect(page.items.map((user) => user.id)).toEqual(['user-teferi', 'user-urza', 'user-mishra', 'user-karn']);
+    });
+
+    it('should filter by tier, status and exhausted quota', async () => {
+      const userRepo = new MockUserRepository();
+      const pro = await userRepo.searchPage({ query: '', tier: 'PRO' }, { page: 0, size: 10 });
+      expect(pro.items.map((user) => user.id)).toEqual(['user-karn', 'user-urza']);
+
+      const exhausted = await userRepo.searchPage({ query: '', quota: 'exhausted' }, { page: 0, size: 10 });
+      expect(exhausted.items.map((user) => user.id)).toEqual(['user-mishra']);
+      expect(exhausted.total).toBe(1);
+
+      await userRepo.updateStatus('user-urza', 'SUSPENDED');
+      const suspended = await userRepo.searchPage({ query: '', status: 'SUSPENDED' }, { page: 0, size: 10 });
+      expect(suspended.items.map((user) => user.id)).toEqual(['user-urza']);
+    });
+
+    it('should keep the legacy alphabetical order when no sort is requested', async () => {
+      const userRepo = new MockUserRepository();
+      const page = await userRepo.searchPage({ query: '' }, { page: 0, size: 10 });
+      expect(page.items.map((user) => user.username)).toEqual(['Karn', 'Mishra', 'Teferi Akosa', 'Urza']);
+    });
   });
 
   describe('MockEmailService', () => {

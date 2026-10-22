@@ -1,4 +1,18 @@
 export type UserTier = 'FREE' | 'PRO' | 'PATREON';
+export type UserStatus = 'ACTIVE' | 'SUSPENDED' | 'BANNED';
+export type UserSort = 'openTickets' | 'aiUsageToday' | 'totalDecks' | 'username' | 'createdAt' | 'lastLoginAt';
+export type UserSortDir = 'asc' | 'desc';
+export type UserQuotaFilter = 'exhausted';
+
+/** Directory filters; the API keeps its alphabetical default when `sort` is omitted. */
+export interface UserListFilters {
+  query: string;
+  sort?: UserSort;
+  dir?: UserSortDir;
+  tier?: UserTier;
+  status?: UserStatus;
+  quota?: UserQuotaFilter;
+}
 
 export interface UserSummaryDeck {
   id: string;

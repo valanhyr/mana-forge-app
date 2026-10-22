@@ -2,12 +2,19 @@ package com.manaforge.api.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyCollection;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.IntStream;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -130,6 +137,60 @@ class AiQuotaServiceTest {
         AiQuotaService.QuotaResult result = disabled.check("1.2.3.4", false);
         assertThat(result.allowed()).isTrue();
         assertThat(result.limited()).isFalse();
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    @DisplayName("batch quota reads every authenticated counter in one round trip")
+    void batchQuota_readsCountersInOneCall() {
+        var ops = org.mockito.Mockito.mock(org.springframework.data.redis.core.ValueOperations.class);
+        when(redis.opsForValue()).thenReturn(ops);
+        when(ops.multiGet(anyCollection())).thenReturn(java.util.Arrays.asList("3", null));
+
+        Map<String, AiQuotaService.QuotaResult> states = service.checkAuthenticated(List.of("u1", "u2"));
+
+        assertThat(states.get("u1").remaining()).isEqualTo(22);
+        assertThat(states.get("u2").remaining()).isEqualTo(25);
+        verify(ops).multiGet(org.mockito.ArgumentMatchers.<Collection<String>>argThat(keys -> keys.size() == 2));
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    @DisplayName("batch quota chunks large user sets instead of sending one huge command")
+    void batchQuota_chunksLargeUserSets() {
+        var ops = org.mockito.Mockito.mock(org.springframework.data.redis.core.ValueOperations.class);
+        when(redis.opsForValue()).thenReturn(ops);
+        when(ops.multiGet(anyCollection()))
+                .thenReturn(Collections.nCopies(500, "0"), Collections.nCopies(100, "0"));
+
+        List<String> ids = IntStream.range(0, 600).mapToObj(index -> "u" + index).toList();
+        Map<String, AiQuotaService.QuotaResult> states = service.checkAuthenticated(ids);
+
+        assertThat(states).hasSize(600);
+        assertThat(states.get("u599").remaining()).isEqualTo(25);
+        verify(ops, times(2)).multiGet(anyCollection());
+    }
+
+    @Test
+    @DisplayName("batch quota falls back to the in-memory counters when Redis is down")
+    void batchQuota_fallsBackToMemory() {
+        when(redis.opsForValue()).thenThrow(new RedisConnectionFailureException("redis down"));
+        service.consume("u1", true);
+
+        Map<String, AiQuotaService.QuotaResult> states = service.checkAuthenticated(List.of("u1", "u2"));
+
+        assertThat(states.get("u1").remaining()).isEqualTo(24);
+        assertThat(states.get("u2").remaining()).isEqualTo(25);
+    }
+
+    @Test
+    @DisplayName("batch quota respects the unlimited mode")
+    void batchQuota_unlimitedMode() {
+        AiQuotaService disabled = new AiQuotaService(redis, 5, 25, false, 24);
+        Map<String, AiQuotaService.QuotaResult> states = disabled.checkAuthenticated(List.of("u1"));
+
+        assertThat(states.get("u1").limited()).isFalse();
+        assertThat(states.get("u1").allowed()).isTrue();
     }
 
     @Test

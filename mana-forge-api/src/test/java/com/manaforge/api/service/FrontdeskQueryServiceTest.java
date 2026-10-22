@@ -21,7 +21,7 @@ class FrontdeskQueryServiceTest {
 
     @Test
     void paginationIsBoundedBeforeDatabaseAccess() {
-        assertThatThrownBy(() -> service.users(null, -1, 25)).isInstanceOf(ResponseStatusException.class);
+        assertThatThrownBy(() -> service.users((String) null, -1, 25)).isInstanceOf(ResponseStatusException.class);
         assertThatThrownBy(() -> service.tickets(null, null, null, null, 0, 101)).isInstanceOf(ResponseStatusException.class);
         assertThatThrownBy(() -> service.audit(null, null, 0, 0)).isInstanceOf(ResponseStatusException.class);
         verifyNoInteractions(mongo);
@@ -43,17 +43,14 @@ class FrontdeskQueryServiceTest {
     }
 
     @Test
-    void searchUsesQuotedLiteralAndEncryptedEmailEquality() {
-        when(encryption.encrypt(".*")).thenReturn("encrypted-search");
-        when(mongo.find(any(Query.class), eq(User.class))).thenReturn(List.of());
-        service.users(".*", 0, 25);
-        ArgumentCaptor<Query> captor = ArgumentCaptor.forClass(Query.class);
-        verify(mongo).find(captor.capture(), eq(User.class));
-        @SuppressWarnings("unchecked")
-        var clauses = (List<org.bson.Document>) captor.getValue().getQueryObject().get("$or");
-        Pattern pattern = (Pattern) clauses.getFirst().get("username");
-        assertThat(pattern.matcher("ordinary").find()).isFalse();
-        assertThat(pattern.matcher("literal .* username").find()).isTrue();
-        assertThat(clauses.getLast()).containsEntry("email", "encrypted-search");
+    void userListDelegatesValidatedFiltersToTheUserDirectory() {
+        var filters = com.manaforge.api.dto.FrontdeskUserQuery.parse(
+                null, "openTickets", "desc", "PRO", "ACTIVE", null);
+        when(users.list(filters, 0, 25)).thenReturn(new com.manaforge.api.dto.FrontdeskDtos.PageResult<>(List.of(), 0, 25, 0));
+
+        var result = service.users(filters, 0, 25);
+
+        assertThat(result.total()).isZero();
+        verify(users).list(filters, 0, 25);
     }
 }

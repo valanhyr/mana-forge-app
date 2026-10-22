@@ -1,5 +1,5 @@
 import { Ticket, normalizeTicket } from '../../core/domain/ticket';
-import { User360, normalizeUser360 } from '../../core/domain/user';
+import { User360, normalizeUser360, UserListFilters } from '../../core/domain/user';
 import { AuditEntry } from '../../core/domain/audit';
 import { EmailDelivery, EmailTemplate, SendBroadcastPayload, SendEmailPayload } from '../../core/domain/email';
 import { PageRequest, PageResult } from '../../core/domain/page';
@@ -46,11 +46,14 @@ export class HttpTicketRepository implements ITicketRepository {
 
 export class HttpUserRepository implements IUserRepository {
   constructor(private readonly client: ApiClient) {}
-  async searchPage(query: string, pagination: PageRequest) {
-    const page = await this.client.page<User360>('/frontdesk/users', { query, ...pagination });
+  async searchPage(filters: UserListFilters, pagination: PageRequest) {
+    const page = await this.client.page<User360>('/frontdesk/users', {
+      query: filters.query, sort: filters.sort, dir: filters.dir,
+      tier: filters.tier, status: filters.status, quota: filters.quota, ...pagination,
+    });
     return { ...page, items: page.items.map(normalizeUser360) };
   }
-  async search(query: string) { return (await this.searchPage(query, { page: 0, size: 25 })).items; }
+  async search(query: string) { return (await this.searchPage({ query }, { page: 0, size: 25 })).items; }
   async getById(id: string) {
     const user = await this.client.nullable<User360>(`/frontdesk/users/${idPath(id)}`);
     return user ? normalizeUser360(user) : null;

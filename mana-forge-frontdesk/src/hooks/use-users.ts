@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { container } from '../infrastructure/container';
+import { UserListFilters } from '../core/domain/user';
 
 export const USER_QUERY_KEYS = {
   all: ['users'] as const,
@@ -14,9 +15,26 @@ export function useUserSearch(query: string) {
   });
 }
 
-export function useUsersPage(query: string, page: number, size = 25, enabled = true) {
-  return useQuery({ queryKey: ['users', 'page', query, page, size],
-    queryFn: () => container.userRepo.searchPage(query, { page, size }), enabled });
+export function useUsersPage(filters: UserListFilters, page: number, size = 25, enabled = true) {
+  return useQuery({
+    queryKey: [
+      ...USER_QUERY_KEYS.all, 'page', filters.query,
+      filters.sort ?? null, filters.dir ?? null, filters.tier ?? null,
+      filters.status ?? null, filters.quota ?? null, page, size,
+    ],
+    queryFn: () => container.userRepo.searchPage(filters, { page, size }),
+    enabled,
+  });
+}
+
+/** Counts the whole directory, not just the loaded page. */
+export function useExhaustedQuotaCount() {
+  return useQuery({
+    queryKey: [...USER_QUERY_KEYS.all, 'quota-exhausted', 'total'],
+    queryFn: async () => (await container.userRepo.searchPage(
+      { query: '', quota: 'exhausted' }, { page: 0, size: 1 },
+    )).total,
+  });
 }
 
 export function useUser(id: string) {

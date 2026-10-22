@@ -1,6 +1,6 @@
 import React from 'react';
 import { User360 } from '../../core/domain/user';
-import { Mail, Layers, ShieldCheck, ShieldAlert, Cpu } from 'lucide-react';
+import { Mail, Layers, ShieldCheck, ShieldAlert, ShieldX, Cpu } from 'lucide-react';
 import { useTranslation } from '../../hooks/use-translation';
 
 interface UserCardProps {
@@ -11,6 +11,9 @@ interface UserCardProps {
 
 export const UserCard: React.FC<UserCardProps> = ({ user, isSelected = false, onSelect }) => {
   const { t } = useTranslation();
+  const usedAi = user.stats.aiQuotaPeriod === 'DAILY'
+    ? user.stats.aiQueriesToday
+    : user.stats.aiQueriesThisMonth;
   const getTierColor = (tier: string) => {
     switch (tier) {
       case 'PATREON':
@@ -42,6 +45,9 @@ export const UserCard: React.FC<UserCardProps> = ({ user, isSelected = false, on
               {user.status === 'BANNED' && (
                 <ShieldAlert className="w-3.5 h-3.5 text-rose-400" />
               )}
+              {user.status === 'SUSPENDED' && (
+                <ShieldX className="w-3.5 h-3.5 text-amber-400" />
+              )}
               {user.status === 'ACTIVE' && (
                 <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
               )}
@@ -64,22 +70,25 @@ export const UserCard: React.FC<UserCardProps> = ({ user, isSelected = false, on
 
       <div className="grid grid-cols-3 gap-2 text-center pt-2.5 border-t border-slate-800/60">
         <div>
-          <div className="text-[10px] text-slate-500">Decks</div>
+          <div className="text-[10px] text-slate-500">{t('decks')}</div>
           <div className="text-xs font-semibold text-slate-200 flex items-center justify-center gap-1">
             <Layers className="w-3 h-3 text-slate-500" />
             {user.stats.totalDecks}
           </div>
         </div>
         <div>
-          <div className="text-[10px] text-slate-500">AI Usage</div>
+          <div className="text-[10px] text-slate-500">{t('aiUsage')}</div>
           <div className="text-xs font-semibold text-slate-200 flex items-center justify-center gap-1">
             <Cpu className="w-3 h-3 text-slate-500" />
-            {(user.stats.aiQuotaPeriod === 'DAILY' ? user.stats.aiQueriesToday : user.stats.aiQueriesThisMonth) ?? t('unknown')}
+            {usedAi ?? t('unknown')}
+            {usedAi != null && user.stats.aiQuotaLimit
+              ? <span className="text-[10px] font-normal text-slate-500">/{user.stats.aiQuotaLimit}</span>
+              : null}
           </div>
         </div>
         <div>
-          <div className="text-[10px] text-slate-500">Open Tickets</div>
-          <div className="text-xs font-semibold text-slate-200">
+          <div className="text-[10px] text-slate-500">{t('openTickets')}</div>
+          <div className={`text-xs font-semibold ${user.openTicketsCount > 0 ? 'text-amber-400' : 'text-slate-200'}`}>
             {user.openTicketsCount}
           </div>
         </div>

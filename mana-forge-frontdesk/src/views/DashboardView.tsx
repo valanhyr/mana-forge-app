@@ -1,7 +1,7 @@
 import React from 'react';
 import { useTicketsPage, useTicketSummary } from '../hooks/use-tickets';
 import { useAuditLog } from '../hooks/use-audit';
-import { useUsersPage } from '../hooks/use-users';
+import { useUsersPage, useExhaustedQuotaCount } from '../hooks/use-users';
 import { useOperator } from '../hooks/use-operator';
 import { useTranslation } from '../hooks/use-translation';
 import { ErrorNotice } from '../components/ui/ErrorNotice';
@@ -30,25 +30,19 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   const { t } = useTranslation();
   const operator = useOperator();
   const ticketPage = useTicketsPage({}, 0);
-  const userPage = useUsersPage('', 0);
+  const userPage = useUsersPage({ query: '' }, 0);
+  const exhaustedQuota = useExhaustedQuotaCount();
   const summary = useTicketSummary();
   const tickets = ticketPage.data?.items || [];
-  const users = userPage.data?.items || [];
   const { data: recentAudit = [] } = useAuditLog({ limit: 5 });
 
   const urgentTickets = tickets.filter(
     (t) => (t.priority === 'URGENT' || t.priority === 'HIGH') && t.status !== 'RESOLVED' && t.status !== 'CLOSED'
   );
-  const quotaExceededUsers = users.filter(
-    (u) => {
-      const used = u.stats.aiQuotaPeriod === 'DAILY' ? u.stats.aiQueriesToday : u.stats.aiQueriesThisMonth;
-      return used != null && u.stats.aiQuotaLimit != null && u.stats.aiQuotaLimit > 0 && used >= u.stats.aiQuotaLimit;
-    }
-  );
 
   return (
     <div className="space-y-6 overflow-y-auto h-[calc(100vh-7rem)] pb-8 pr-1">
-      <ErrorNotice error={ticketPage.error || userPage.error || summary.error} />
+      <ErrorNotice error={ticketPage.error || userPage.error || exhaustedQuota.error || summary.error} />
       {/* Welcome Banner */}
       <div className="bg-gradient-to-r from-indigo-900/50 via-slate-900 to-slate-900 border border-indigo-800/40 rounded-2xl p-6 shadow-xl relative overflow-hidden">
         <div className="relative z-10">
@@ -99,8 +93,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <span className="text-xs font-medium">Quotas Exhausted</span>
             <Cpu className="w-4 h-4 text-amber-400" />
           </div>
-          <div className="text-2xl font-bold text-amber-400">{quotaExceededUsers.length}</div>
-          <div className="text-[11px] text-slate-500 mt-1">{t('loadedQuota')} ({users.length})</div>
+          <div className="text-2xl font-bold text-amber-400">{exhaustedQuota.data ?? '—'}</div>
+          <div className="text-[11px] text-slate-500 mt-1">{t('quotaExhaustedTotal')}</div>
         </div>
 
         <div
