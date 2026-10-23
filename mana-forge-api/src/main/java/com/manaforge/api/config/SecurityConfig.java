@@ -66,7 +66,7 @@ public class SecurityConfig {
                 })
                  .requestMatchers(HttpMethod.POST, "/api/newsletter/unsubscribe").permitAll()
                  .requestMatchers("/api/support", "/api/support/**", "/api/newsletter/csrf", "/api/newsletter/preference").authenticated()
-                 .requestMatchers(HttpMethod.POST, "/api/users", "/api/users/login", "/api/decks/analyze", "/api/decks/scores", "/api/decks/random", "/api/contact", "/api/cards/*/images").permitAll()
+                 .requestMatchers(HttpMethod.POST, "/api/users", "/api/users/login", "/api/decks/analyze", "/api/decks/scores", "/api/decks/random", "/api/contact", "/api/feedback", "/api/cards/*/images").permitAll()
                 .requestMatchers("/actuator/health").permitAll()
                 // GET /api/** covers /api/decks/analyze/quota: the homepage reads the
                 // remaining AI allowance before the user submits anything, so the
