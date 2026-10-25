@@ -7,6 +7,7 @@ import { EnrollmentStart } from '../core/ports/auth-service.port';
 import { OperatorContext } from '../hooks/use-operator';
 import { useTranslation } from '../hooks/use-translation';
 import { ErrorNotice } from '../components/ui/ErrorNotice';
+import { QrCode } from '../components/ui/QrCode';
 
 type Step = 'credentials' | 'totp' | 'recovery' | 'enroll' | 'codes';
 
@@ -186,6 +187,7 @@ export function SessionGate({ children }: { children: ReactNode }) {
         {step === 'enroll' && enrollment && <form className="space-y-3" onSubmit={submitCode}>
           <h2 className="font-semibold">{t('enrollTitle')}</h2>
           <p>{t('enrollIntro')}</p>
+          <QrCode value={enrollment.otpauthUri} label={t('enrollQr')} />
           <p className="text-xs text-slate-400">{t('enrollSecret')}</p>
           <p className="font-mono text-lg tracking-wider break-all select-all">{grouped}</p>
           {enrollment.otpauthUri.startsWith('otpauth://') && <a className="underline block" href={enrollment.otpauthUri}>{t('enrollOpen')}</a>}

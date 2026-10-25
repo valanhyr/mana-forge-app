@@ -15,6 +15,7 @@ const json = (data: unknown, status = 200) => new Response(JSON.stringify(data),
 const fetchMock = vi.fn<typeof fetch>();
 let authenticated: boolean;
 let enrolled: boolean;
+let enrollUri: string;
 const operatorBody = { id: 'real-op', name: 'Actual Operator', role: 'OPERATOR' };
 let ticket: Ticket;
 let customer: User360;
@@ -27,6 +28,7 @@ beforeEach(() => {
   localStorage.clear();
   authenticated = false;
   enrolled = true;
+  enrollUri = 'otpauth://totp/Frontdesk:op?secret=JBSWY3DPEHPK3PXP';
   sentEmails = 0;
   emailFailure = false;
   newsletterCampaign = null;
@@ -55,7 +57,7 @@ beforeEach(() => {
       if (body.challenge === 'challenge-1' && body.code === 'AAAA-BBBB-CCCC-DDDD') { authenticated = true; return json(operatorBody); }
       return json({}, 401);
     }
-    if (path === '/api/frontdesk/auth/enroll/start') return json({ secret: 'JBSWY3DPEHPK3PXP', otpauthUri: 'otpauth://totp/Frontdesk:op?secret=JBSWY3DPEHPK3PXP' });
+    if (path === '/api/frontdesk/auth/enroll/start') return json({ secret: 'JBSWY3DPEHPK3PXP', otpauthUri: enrollUri });
     if (path === '/api/frontdesk/auth/enroll/confirm') {
       if (body.code !== '123456') return json({}, 401);
       authenticated = true;
@@ -434,6 +436,26 @@ describe('Operator sign-in', () => {
     expect(screen.queryByText('AAAA-BBBB-CCCC-DDDD')).not.toBeInTheDocument();
   });
 
+  it('draws the enrolment QR locally from the otpauth link, next to the manual key', async () => {
+    enrolled = false;
+    const { container } = render(<App />);
+    await passwordStep();
+    const qr = await screen.findByRole('img', { name: 'Setup QR code' });
+    expect(qr.querySelector('svg')).not.toBeNull();
+    expect(container.querySelector('img')).toBeNull();
+    expect(screen.getByText('JBSW Y3DP EHPK 3PXP')).toBeInTheDocument();
+    expect(fetchMock.mock.calls.every(([url]) => String(url).startsWith('/api/'))).toBe(true);
+  });
+
+  it('never draws a QR for something which is not an authenticator link', async () => {
+    enrolled = false;
+    enrollUri = 'javascript:alert(1)';
+    render(<App />);
+    await passwordStep();
+    await screen.findByText('JBSW Y3DP EHPK 3PXP');
+    expect(screen.queryByRole('img', { name: 'Setup QR code' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Open in authenticator app' })).not.toBeInTheDocument();
+  });
   it('keeps recovery codes and secrets out of browser storage', async () => {
     enrolled = false;
     render(<App />);

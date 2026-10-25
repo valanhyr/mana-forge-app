@@ -34,7 +34,7 @@ credenciales de MongoDB, Directus ni SMTP en ficheros `VITE_*` o en el frontend.
   autenticación, usa uno de los códigos de recuperación (cada uno sirve una vez). No hay
   Google ni login de clientes. La contraseña y los códigos nunca se guardan en el
   navegador y se borran del formulario tras cada intento.
-- **Primer acceso:** si el operador aún no tiene TOTP, Frontdesk muestra la clave de
+- **Primer acceso:** si el operador aún no tiene TOTP, Frontdesk muestra un código QR, la clave de
   configuración (también como enlace `otpauth://`) para añadirla a la aplicación de
   autenticación, y pide el primer código. Tras confirmarlo muestra **una sola vez** los 10
   códigos de recuperación; hay que guardarlos antes de continuar. Haz este paso justo

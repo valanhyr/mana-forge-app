@@ -50,7 +50,7 @@ viven en su propia clase/contexto.
 
 | Comando (en `mana-forge-frontdesk`) | Resultado |
 |---|---|
-| `npx vitest run` | 20 archivos, 122 tests, todos pasan (antes 108) |
+| `npx vitest run` | 20 archivos, 124 tests, todos pasan (antes 108; 122 antes del QR) |
 | `npx tsc --noEmit` | sin errores |
 | `npm run build` | correcto |
 | `npm run lint` | no existe el script en este paquete; no ejecutado |
@@ -59,9 +59,8 @@ No hay prueba manual en navegador contra la API real: el flujo completo (login, 
 enrolamiento) solo está validado con la API simulada en `App.api.test.tsx` y, en el lado
 servidor, con `OperatorLoginFlowIntegrationTest`. Falta probarlos juntos en un entorno real.
 
-Limitación conocida: el enrolamiento muestra la clave de configuración y un enlace
-`otpauth://`, **sin código QR** (no se añadió ninguna dependencia). Las aplicaciones de
-autenticación aceptan la clave manual.
+Código QR: el enrolamiento lo dibuja en el navegador (`qrcode.react` 4.2.0, ISC, SVG, sin\ndependencias propias) a partir del `otpauthUri`, sin enviar el secreto a ningún servicio\nexterno, y solo si empieza por `otpauth://`. Sigue mostrando la clave manual y el enlace.\nRojo: el test del QR falló por ausencia del componente; verde: 124 tests, `tsc` y\n`npm run build` correctos. `npm audit` avisa de 3 vulnerabilidades preexistentes en\nherramientas de desarrollo (`vitest`, `undici`), no en la dependencia nueva.
+
 ## ⚠ Desplegar fases 2 y 3 juntas
 
 La API nueva ya no acepta `/api/users/login` ni Google en `/api/frontdesk/**`, y el frontend
