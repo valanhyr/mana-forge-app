@@ -131,9 +131,7 @@ Rutas relativas a `mana-forge-api/src/main/java/com/manaforge/api/` y
    El plan propone token opaco propio.
 2. **Clave de cifrado del secreto TOTP**: reutilizar `EMAIL_ENCRYPTION_KEY` o variable nueva.
 3. **Librería TOTP**: dependencia nueva vs implementación RFC 6238 con JDK.
-4. **Cookie cross-site**: Frontdesk está en otro subdominio con `SameSite=None`. Si se
-   sirve bajo el mismo sitio (`*.mana-forge.com`) se puede usar `SameSite=Strict`.
-   Confirmar la topología real de despliegue.
+4. **Cookie y origen (resuelta):** web, API y Frontdesk comparten origen `mana-forge.com` (`/api`, `/frontdesk`, `/directus`). La cookie de operador es `SameSite=Strict` y `Path=/api/frontdesk`; no hace falta CORS para Frontdesk. Riesgo asumido: un XSS en la web pública podría usar la sesión del operador desde el mismo origen; se mitiga con CSP estricta y reautenticación TOTP para acciones de alto impacto (fase 4).
 
 ## Aprobación
 

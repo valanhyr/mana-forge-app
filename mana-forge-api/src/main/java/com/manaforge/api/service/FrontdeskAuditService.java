@@ -1,5 +1,7 @@
 package com.manaforge.api.service;
 
+import com.manaforge.api.frontdesk.OperatorPrincipal;
+
 import java.time.Instant;
 import java.util.Map;
 import com.manaforge.api.model.mongo.AuditEvent;
@@ -13,9 +15,9 @@ import org.springframework.stereotype.Service;
 public class FrontdeskAuditService {
     private final AuditEventRepository repository;
 
-    public AuditEvent record(User operator, String targetId, String targetName, AuditEvent.Action action,
+    public AuditEvent record(OperatorPrincipal operator, String targetId, String targetName, AuditEvent.Action action,
                              String details, Map<String, Object> metadata) {
-        return record(new AuditEvent.Actor(operator.getId(), operator.getUsername(), "OPERATOR"),
+        return record(new AuditEvent.Actor(operator.id(), operator.name(), "OPERATOR"),
                 targetId, targetName, action, details, metadata);
     }
 

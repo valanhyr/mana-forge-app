@@ -29,6 +29,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class CustomerSupportControllerTest {
     @Autowired MockMvc mvc;
     @MockitoBean UserRepository users;
+    @MockitoBean com.manaforge.api.frontdesk.FrontdeskOperatorRepository operators;
     @MockitoBean SupportTicketRepository tickets;
     @MockitoBean EmailEncryptionService encryption;
     @MockitoBean FrontdeskAuditService audit;

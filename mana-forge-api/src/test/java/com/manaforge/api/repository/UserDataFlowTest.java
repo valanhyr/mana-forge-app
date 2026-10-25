@@ -1,5 +1,7 @@
 package com.manaforge.api.repository;
 
+import com.manaforge.api.frontdesk.OperatorPrincipal;
+
 import com.manaforge.api.controller.UserController;
 import com.manaforge.api.controller.FriendController;
 import com.manaforge.api.config.ApiExceptionHandler;
@@ -194,7 +196,7 @@ class UserDataFlowTest {
         when(quota.check(anyString(), eq(true))).thenReturn(new com.manaforge.api.service.AiQuotaService.QuotaResult(true, 25, 25, Instant.now()));
         var service = new com.manaforge.api.service.FrontdeskUserService(users, mock(SupportTicketRepository.class),
                 mongo, encryption, quota, mock(com.manaforge.api.service.FrontdeskAuditService.class));
-        User operator = new User(); operator.setId("operator");
+        OperatorPrincipal operator = new OperatorPrincipal("operator", "operator@example.com");
         var result = service.updateStatus(user.getId(), User.AccountStatus.BANNED, operator);
         assertThat(raw().getDate("updatedAt")).isNotNull();
         assertThat(result.updatedAt()).isEqualTo(raw().getDate("updatedAt").toInstant());

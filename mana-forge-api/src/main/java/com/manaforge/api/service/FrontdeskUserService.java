@@ -1,5 +1,7 @@
 package com.manaforge.api.service;
 
+import com.manaforge.api.frontdesk.OperatorPrincipal;
+
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -77,8 +79,8 @@ public class FrontdeskUserService {
         return rankedPage(filters, page, size);
     }
 
-    public UserView updateStatus(String id, User.AccountStatus status, User operator) {
-        if (id.equals(operator.getId()) && status != User.AccountStatus.ACTIVE) {
+    public UserView updateStatus(String id, User.AccountStatus status, OperatorPrincipal operator) {
+        if (id.equals(operator.id()) && status != User.AccountStatus.ACTIVE) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Operators cannot disable their own account");
         }
         User user = requireUser(id);
@@ -90,7 +92,7 @@ public class FrontdeskUserService {
         return view(saved);
     }
 
-    public UserView resetQuota(String id, User operator) {
+    public UserView resetQuota(String id, OperatorPrincipal operator) {
         User user = requireUser(id);
         quota.resetAuthenticatedQuota(id);
         audit.record(operator, id, user.getUsername(), AuditEvent.Action.AI_QUOTA_RESET,

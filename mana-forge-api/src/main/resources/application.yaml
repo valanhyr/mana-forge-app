@@ -167,15 +167,18 @@ directus:
   url: ${DIRECTUS_URL:http://directus_app:8080}
   token: ${DIRECTUS_API_TOKEN:${DIRECTUS_TOKEN:}}
 
-# Internal backoffice: no operator access until immutable user IDs are allowlisted.
+# Internal backoffice: operators live in the frontdesk_operators collection; no access without FRONTDESK_TOTP_KEY.
 frontdesk:
-  operator-ids: ${FRONTDESK_OPERATOR_IDS:}
   url: ${FRONTDESK_URL:}
   contact-tickets-enabled: ${FRONTDESK_CONTACT_TICKETS_ENABLED:true}
   email-template-collection: ${FRONTDESK_EMAIL_TEMPLATE_COLLECTION:email_templates}
   # Base64 256-bit key for TOTP secrets. Empty keeps operator login disabled (fails closed).
   totp:
     key: ${FRONTDESK_TOTP_KEY:}
+  session:
+    idle-minutes: ${FRONTDESK_SESSION_IDLE_MINUTES:30}
+    max-hours: ${FRONTDESK_SESSION_MAX_HOURS:8}
+    cookie-secure: ${FRONTDESK_COOKIE_SECURE:true}
   auth:
     max-attempts: ${FRONTDESK_LOGIN_MAX_ATTEMPTS:5}
     lock-minutes: ${FRONTDESK_LOCK_MINUTES:15}

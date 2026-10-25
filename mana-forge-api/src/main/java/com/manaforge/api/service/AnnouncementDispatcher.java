@@ -1,6 +1,7 @@
 package com.manaforge.api.service;
 
 import com.manaforge.api.dto.FrontdeskDtos.SendEmail;
+import com.manaforge.api.frontdesk.OperatorPrincipal;
 import com.manaforge.api.model.mongo.AnnouncementCampaign;
 import com.manaforge.api.model.mongo.User;
 import com.manaforge.api.repository.AnnouncementCampaignRepository;
@@ -23,11 +24,11 @@ public class AnnouncementDispatcher {
 
     // Shares the single-worker executor: SMTP stays serialized across newsletters and announcements.
     @Async("newsletterExecutor")
-    public void dispatch(AnnouncementCampaign campaign, User operator) {
+    public void dispatch(AnnouncementCampaign campaign, OperatorPrincipal operator) {
         try {
             for (String id : campaign.getRecipientIds()) {
-                User currentOperator = users.findById(operator.getId()).orElse(null);
-                if (!access.isOperator(currentOperator)) throw new IllegalStateException("Operator access revoked");
+                OperatorPrincipal currentOperator = access.activeOperator(operator.id())
+                        .orElseThrow(() -> new IllegalStateException("Operator access revoked"));
                 User recipient = users.findById(id).orElse(null);
                 if (!AnnouncementService.eligible(recipient)) {
                     campaign.setSkipped(campaign.getSkipped() + 1);

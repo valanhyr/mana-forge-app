@@ -1,7 +1,7 @@
 package com.manaforge.api.config;
 
 import com.manaforge.api.model.mongo.User;
-import com.manaforge.api.service.FrontdeskAccessService;
+import com.manaforge.api.service.AccountAccessService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.ObjectProvider;
@@ -23,7 +23,7 @@ public class WebConfig implements WebMvcConfigurer {
     private RateLimitingInterceptor rateLimitingInterceptor;
 
     @Autowired
-    private ObjectProvider<FrontdeskAccessService> accountAccess;
+    private ObjectProvider<AccountAccessService> accountAccess;
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {

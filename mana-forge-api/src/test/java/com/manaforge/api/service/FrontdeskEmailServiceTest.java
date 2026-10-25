@@ -1,5 +1,7 @@
 package com.manaforge.api.service;
 
+import com.manaforge.api.frontdesk.OperatorPrincipal;
+
 import java.util.Properties;
 import com.manaforge.api.dto.FrontdeskDtos.*;
 import com.manaforge.api.model.mongo.*;
@@ -24,14 +26,12 @@ class FrontdeskEmailServiceTest {
     private final DirectusEmailTemplateService templates = mock(DirectusEmailTemplateService.class);
     private final FrontdeskEmailService service = new FrontdeskEmailService(sender, deliveries, encryption, audit,
             tickets, templates, "support@example.com");
-    private User operator;
+    private OperatorPrincipal operator;
     private MimeMessage message;
 
     @BeforeEach
     void setUp() {
-        operator = new User();
-        operator.setId("op1");
-        operator.setUsername("operator");
+        operator = new OperatorPrincipal("op1", "operator");
         message = new MimeMessage(Session.getInstance(new Properties()));
         when(sender.createMimeMessage()).thenReturn(message);
         when(encryption.encrypt("user@example.com")).thenReturn("encrypted");

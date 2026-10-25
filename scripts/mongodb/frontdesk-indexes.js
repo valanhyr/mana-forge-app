@@ -18,3 +18,4 @@ db.newsletter_campaigns.createIndex({ createdAt: -1, _id: -1 }, { name: "newslet
 db.email_deliveries.createIndex({ campaignId: 1, createdAt: -1 }, { name: "newsletter_campaign_deliveries" });
 db.frontdesk_operators.createIndex({ email: 1 }, { name: "frontdesk_operators_email", unique: true });
 db.frontdesk_login_challenges.createIndex({ expiresAt: 1 }, { name: "frontdesk_login_challenges_ttl", expireAfterSeconds: 0 });
+db.frontdesk_operator_sessions.createIndex({ expiresAt: 1 }, { name: "frontdesk_operator_sessions_ttl", expireAfterSeconds: 0 });
