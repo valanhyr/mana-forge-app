@@ -1,5 +1,6 @@
 package com.manaforge.api.service;
 
+import com.manaforge.api.frontdesk.OperatorPrincipal;
 import com.manaforge.api.model.mongo.AnnouncementCampaign;
 import com.manaforge.api.model.mongo.User;
 import com.manaforge.api.repository.AnnouncementCampaignRepository;
@@ -18,7 +19,7 @@ class AnnouncementDispatcherTest {
     private final FrontdeskEmailService emails = mock(FrontdeskEmailService.class);
     private final EmailEncryptionService encryption = mock(EmailEncryptionService.class);
     private final AnnouncementDispatcher dispatcher = new AnnouncementDispatcher(campaigns, users, access, emails, encryption);
-    private final User operator = new User();
+    private final OperatorPrincipal operator = new OperatorPrincipal("op", "op@example.com");
 
     private AnnouncementCampaign campaign(String... ids) {
         AnnouncementCampaign campaign = new AnnouncementCampaign(); campaign.setId("c1"); campaign.setSubject("Notice");
@@ -34,8 +35,7 @@ class AnnouncementDispatcherTest {
     }
 
     private void operatorAllowed() {
-        operator.setId("op");
-        when(users.findById("op")).thenReturn(Optional.of(operator)); when(access.isOperator(operator)).thenReturn(true);
+        when(access.activeOperator("op")).thenReturn(Optional.of(operator));
     }
 
     @Test void sendsToEligibleUsersWithoutConsentWithServiceNoticeFooter() {
@@ -66,8 +66,7 @@ class AnnouncementDispatcherTest {
     }
 
     @Test void revokedOperatorStopsTheCampaignWithoutSending() {
-        operator.setId("op");
-        when(users.findById("op")).thenReturn(Optional.of(operator)); when(access.isOperator(operator)).thenReturn(false);
+        when(access.activeOperator("op")).thenReturn(Optional.empty());
         recipient("u1");
         var campaign = campaign("u1");
         dispatcher.dispatch(campaign, operator);

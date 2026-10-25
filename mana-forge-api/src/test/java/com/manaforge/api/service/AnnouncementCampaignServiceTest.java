@@ -1,5 +1,7 @@
 package com.manaforge.api.service;
 
+import com.manaforge.api.frontdesk.OperatorPrincipal;
+
 import com.manaforge.api.dto.AnnouncementDtos;
 import com.manaforge.api.dto.FrontdeskDtos.EmailTemplate;
 import com.manaforge.api.model.mongo.AnnouncementCampaign;
@@ -20,10 +22,10 @@ class AnnouncementCampaignServiceTest {
     private final AnnouncementCampaignService service = new AnnouncementCampaignService(campaigns, dispatcher, templates);
     private final AnnouncementDtos.Send request = new AnnouncementDtos.Send("d011e05b-f0aa-4af8-bacb-aa06347844e2", List.of("u1", "u1"), "Notice", "Body", null);
 
-    private User operator() { User operator = new User(); operator.setId("op"); return operator; }
+    private OperatorPrincipal operator() { return new OperatorPrincipal("op", "op@example.com"); }
 
     @Test void persistedCampaignIdPreventsDuplicateDispatch() {
-        User operator = operator();
+        OperatorPrincipal operator = operator();
         var result = service.start(request, operator);
         var captor = org.mockito.ArgumentCaptor.forClass(AnnouncementCampaign.class);
         verify(campaigns).insert(captor.capture());

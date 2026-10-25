@@ -1,5 +1,7 @@
 package com.manaforge.api.service;
 
+import com.manaforge.api.frontdesk.OperatorPrincipal;
+
 import com.manaforge.api.dto.NewsletterDtos;
 import com.manaforge.api.model.mongo.NewsletterCampaign;
 import com.manaforge.api.model.mongo.User;
@@ -20,7 +22,7 @@ class NewsletterCampaignServiceTest {
     private final NewsletterDtos.Send request = new NewsletterDtos.Send("d011e05b-f0aa-4af8-bacb-aa06347844e2", List.of("u1", "u1"), "News", "Body", null);
 
     @Test void persistedCampaignIdPreventsDuplicateDispatch() {
-        User operator = new User(); operator.setId("op");
+        OperatorPrincipal operator = new OperatorPrincipal("op", "op@example.com");
         var result = service.start(request, operator);
         var captor = org.mockito.ArgumentCaptor.forClass(NewsletterCampaign.class);
         verify(campaigns).insert(captor.capture());
@@ -33,7 +35,7 @@ class NewsletterCampaignServiceTest {
     }
 
     @Test void invalidSubjectsAndMacrosCannotCreateACampaign() {
-        User operator = new User(); operator.setId("op");
+        OperatorPrincipal operator = new OperatorPrincipal("op", "op@example.com");
         for (var invalid : List.of(new NewsletterDtos.Send(request.campaignId(), List.of("u1"), "News\r\nBcc: victim", "Body", null),
                 new NewsletterDtos.Send(request.campaignId(), List.of("u1"), "News", "Hi {{user.name}}", null))) {
             assertThatThrownBy(() -> service.start(invalid, operator)).isInstanceOf(ResponseStatusException.class);
@@ -42,7 +44,7 @@ class NewsletterCampaignServiceTest {
     }
 
     @Test void fullExecutorQueueRecordsFailureWithoutRetryingDispatch() {
-        User operator = new User(); operator.setId("op");
+        OperatorPrincipal operator = new OperatorPrincipal("op", "op@example.com");
         doThrow(new org.springframework.core.task.TaskRejectedException("Full")).when(dispatcher).dispatch(any(), any());
         assertThatThrownBy(() -> service.start(request, operator)).isInstanceOf(ResponseStatusException.class);
         verify(campaigns).save(argThat(campaign -> campaign.getState() == NewsletterCampaign.State.FAILED));

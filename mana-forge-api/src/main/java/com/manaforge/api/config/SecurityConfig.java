@@ -6,7 +6,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.security.authorization.AuthorizationDecision;
+import com.manaforge.api.frontdesk.OperatorCsrfTokenRepository;
+import com.manaforge.api.frontdesk.OperatorSessionFilter;
+import com.manaforge.api.frontdesk.OperatorSessionService;
 import com.manaforge.api.service.FrontdeskAccessService;
+import org.springframework.core.annotation.Order;
+import org.springframework.security.web.access.intercept.AuthorizationFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -46,24 +51,56 @@ public class SecurityConfig {
     @Autowired
     private ObjectProvider<FrontdeskAccessService> frontdeskAccess;
 
+    @Autowired
+    private ObjectProvider<OperatorSessionService> operatorSessions;
+
+    /**
+     * Backoffice chain: stateless, authenticated only by the operator cookie, with its own CSRF token.
+     * Public logins, Google and the shared servlet session can never authenticate here, and
+     * operator sessions are never visible to the public chain below.
+     */
     @Bean
+    @Order(1)
+    public SecurityFilterChain frontdeskSecurityFilterChain(HttpSecurity http) throws Exception {
+        String[] preAuth = {"/api/frontdesk/auth/login", "/api/frontdesk/auth/totp", "/api/frontdesk/auth/recovery",
+                "/api/frontdesk/auth/enroll/start", "/api/frontdesk/auth/enroll/confirm"};
+        http
+            .securityMatcher("/api/frontdesk", "/api/frontdesk/**")
+            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+            .csrf(csrf -> csrf
+                    .csrfTokenRepository(new OperatorCsrfTokenRepository())
+                    .ignoringRequestMatchers(preAuth))
+            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers(HttpMethod.POST, preAuth).permitAll()
+                .anyRequest().access((authentication, context) -> {
+                    FrontdeskAccessService access = frontdeskAccess.getIfAvailable();
+                    return new AuthorizationDecision(access != null && access.isOperator(authentication.get()));
+                })
+            )
+            .exceptionHandling(e -> e
+                    .authenticationEntryPoint(securityAuthEntryPoint != null ? securityAuthEntryPoint : new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
+            );
+        OperatorSessionService sessions = operatorSessions.getIfAvailable();
+        if (sessions != null) {
+            http.addFilterBefore(new OperatorSessionFilter(sessions), AuthorizationFilter.class);
+        }
+        return http.build();
+    }
+
+    @Bean
+    @Order(2)
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-             // Preserve existing public API behaviour; backoffice, support and consent writes require CSRF.
+             // Preserve existing public API behaviour; support and consent writes require CSRF.
             .csrf(csrf -> csrf.requireCsrfProtectionMatcher(new AndRequestMatcher(
                     CsrfFilter.DEFAULT_CSRF_MATCHER,
-                     new OrRequestMatcher(PathPatternRequestMatcher.withDefaults().matcher("/api/frontdesk/**"),
-                             PathPatternRequestMatcher.withDefaults().matcher("/api/support/**"),
+                     new OrRequestMatcher(PathPatternRequestMatcher.withDefaults().matcher("/api/support/**"),
                              PathPatternRequestMatcher.withDefaults().matcher("/api/newsletter/preference")))))
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
             .securityContext(context -> context.requireExplicitSave(false))
             .authorizeHttpRequests(auth -> auth
-                // Must precede the public GET /api/** rule, including for audit/email reads.
-                .requestMatchers("/api/frontdesk", "/api/frontdesk/**").access((authentication, context) -> {
-                    FrontdeskAccessService access = frontdeskAccess.getIfAvailable();
-                    return new AuthorizationDecision(access != null && access.isOperator(authentication.get()));
-                })
                  .requestMatchers(HttpMethod.POST, "/api/newsletter/unsubscribe").permitAll()
                  .requestMatchers("/api/support", "/api/support/**", "/api/newsletter/csrf", "/api/newsletter/preference").authenticated()
                  .requestMatchers(HttpMethod.POST, "/api/users", "/api/users/login", "/api/decks/analyze", "/api/decks/scores", "/api/decks/random", "/api/contact", "/api/feedback", "/api/cards/*/images").permitAll()

@@ -8,7 +8,7 @@ import { ITicketRepository, TicketFilters } from '../../core/ports/ticket-reposi
 import { IUserRepository } from '../../core/ports/user-repository.port';
 import { IAuditRepository, AuditFilters } from '../../core/ports/audit-repository.port';
 import { IEmailService } from '../../core/ports/email-service.port';
-import { IAuthService } from '../../core/ports/auth-service.port';
+import { EnrollmentResult, EnrollmentStart, IAuthService, LoginStep } from '../../core/ports/auth-service.port';
 import { ApiClient, ApiError } from './api-client';
 import { NewsletterSubscriber, NewsletterPayload, NewsletterCampaign, AnnouncementRecipient, AnnouncementPayload, AnnouncementCampaign } from '../../core/domain/email';
 
@@ -129,25 +129,51 @@ export class HttpEmailService implements IEmailService {
 
 export class HttpAuthService implements IAuthService {
   constructor(private readonly client: ApiClient) {}
-  async currentOperator() {
-    const operator = await this.client.request<Operator>('/frontdesk/me');
+  private operatorFrom(value: unknown): Operator {
+    const operator = value as Operator | null;
     if (!operator || typeof operator.id !== 'string' || !operator.id || typeof operator.name !== 'string' || operator.role !== 'OPERATOR') {
       throw new ApiError(0, 'Invalid operator response', 'INVALID_RESPONSE');
     }
-    return operator;
+    return { id: operator.id, name: operator.name, role: operator.role };
   }
-  async signIn(username: string, password: string) {
-    await this.client.request('/users/login', { method: 'POST', body: { username, password }, csrf: false });
-    return this.currentOperator();
+  async currentOperator() {
+    return this.operatorFrom(await this.client.request<Operator>('/frontdesk/me'));
+  }
+  async signIn(email: string, password: string): Promise<LoginStep> {
+    const step = await this.client.request<LoginStep>('/frontdesk/auth/login', { method: 'POST', body: { email, password }, csrf: false });
+    if (!step || (step.status !== 'TOTP_REQUIRED' && step.status !== 'ENROLLMENT_REQUIRED') || typeof step.challenge !== 'string' || !step.challenge) {
+      throw new ApiError(0, 'Invalid login response', 'INVALID_RESPONSE');
+    }
+    return { status: step.status, challenge: step.challenge };
+  }
+  async verifyTotp(challenge: string, code: string) {
+    return this.operatorFrom(await this.client.request('/frontdesk/auth/totp', { method: 'POST', body: { challenge, code }, csrf: false }));
+  }
+  async verifyRecovery(challenge: string, code: string) {
+    return this.operatorFrom(await this.client.request('/frontdesk/auth/recovery', { method: 'POST', body: { challenge, code }, csrf: false }));
+  }
+  async startEnrollment(challenge: string): Promise<EnrollmentStart> {
+    const start = await this.client.request<EnrollmentStart>('/frontdesk/auth/enroll/start', { method: 'POST', body: { challenge }, csrf: false });
+    if (!start || typeof start.secret !== 'string' || !start.secret || typeof start.otpauthUri !== 'string') {
+      throw new ApiError(0, 'Invalid enrolment response', 'INVALID_RESPONSE');
+    }
+    return { secret: start.secret, otpauthUri: start.otpauthUri };
+  }
+  async confirmEnrollment(challenge: string, code: string): Promise<EnrollmentResult> {
+    const result = await this.client.request<Operator & { recoveryCodes?: unknown }>('/frontdesk/auth/enroll/confirm', { method: 'POST', body: { challenge, code }, csrf: false });
+    const codes = result?.recoveryCodes;
+    if (!Array.isArray(codes) || codes.length === 0 || !codes.every(item => typeof item === 'string' && item)) {
+      throw new ApiError(0, 'Invalid enrolment response', 'INVALID_RESPONSE');
+    }
+    return { operator: this.operatorFrom(result), recoveryCodes: codes as string[] };
   }
   async signOut() {
-    try { await this.client.request('/users/logout', { method: 'POST', csrf: false }); }
+    try { await this.client.request('/frontdesk/auth/logout', { method: 'POST' }); }
     catch (error) {
       // A session which has already expired is locally signed out too; network failures are not success.
       if (!(error instanceof ApiError) || error.status !== 401) throw error;
     }
     this.client.endSession();
   }
-  googleLoginUrl() { return `${this.client.baseUrl}/oauth2/authorization/google`; }
   onAccessFailure(listener: (status: number) => void) { return this.client.onAccessFailure(listener); }
 }

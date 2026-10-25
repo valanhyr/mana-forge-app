@@ -1,5 +1,7 @@
 package com.manaforge.api.service;
 
+import com.manaforge.api.frontdesk.OperatorPrincipal;
+
 import java.util.Optional;
 import java.util.List;
 import java.util.Map;
@@ -25,13 +27,11 @@ class SupportTicketServiceTest {
     private final FrontdeskAuditService audit = mock(FrontdeskAuditService.class);
     private final FrontdeskAccessService access = mock(FrontdeskAccessService.class);
     private final SupportTicketService service = new SupportTicketService(tickets, users, encryption, audit, access);
-    private User operator;
+    private OperatorPrincipal operator;
 
     @BeforeEach
     void setUp() {
-        operator = new User();
-        operator.setId("op1");
-        operator.setUsername("operator");
+        operator = new OperatorPrincipal("op1", "operator");
         when(encryption.encrypt("contact@example.com")).thenReturn("encrypted");
         when(encryption.decrypt("encrypted")).thenReturn("contact@example.com");
         when(tickets.save(any())).thenAnswer(invocation -> {
@@ -87,9 +87,7 @@ class SupportTicketServiceTest {
 
     @Test
     void assignmentUsesValidatedOperatorName() {
-        User assignee = new User();
-        assignee.setId("op2");
-        assignee.setUsername("real-operator");
+        OperatorPrincipal assignee = new OperatorPrincipal("op2", "real-operator");
         when(access.operatorById("op2")).thenReturn(assignee);
         SupportTicket ticket = new SupportTicket();
         ticket.setUserEmail("encrypted");

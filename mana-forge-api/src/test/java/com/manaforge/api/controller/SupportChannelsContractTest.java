@@ -1,5 +1,7 @@
 package com.manaforge.api.controller;
 
+import com.manaforge.api.frontdesk.OperatorPrincipal;
+
 import com.manaforge.api.dto.FrontdeskDtos.*;
 import com.manaforge.api.model.mongo.*;
 import com.manaforge.api.repository.*;
@@ -35,7 +37,7 @@ class SupportChannelsContractTest {
         owner.setUsername("Customer"); owner.setEmail("encrypted");
         when(users.findById("u1")).thenReturn(Optional.of(owner));
         when(accountAccess.requireAccount(any())).thenReturn(owner);
-        User operator = new User(); operator.setId("op1"); operator.setUsername("Operator");
+        OperatorPrincipal operator = new OperatorPrincipal("op1", "Operator");
         when(access.requireOperator(any())).thenReturn(operator);
         when(encryption.decrypt("encrypted")).thenReturn("contact@example.com");
         ticket = new SupportTicket(); ticket.setId("t1"); ticket.setUserId("u1"); ticket.setUserEmail("encrypted");

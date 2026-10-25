@@ -1,5 +1,6 @@
 package com.manaforge.api.service;
 
+import com.manaforge.api.frontdesk.OperatorPrincipal;
 import com.manaforge.api.model.mongo.NewsletterCampaign;
 import com.manaforge.api.model.mongo.User;
 import com.manaforge.api.repository.NewsletterCampaignRepository;
@@ -20,8 +21,8 @@ class NewsletterDispatcherTest {
         var emails = mock(FrontdeskEmailService.class);
         var encryption = mock(EmailEncryptionService.class);
         var dispatcher = new NewsletterDispatcher(campaigns, users, newsletter, access, emails, encryption);
-        User operator = new User(); operator.setId("op");
-        when(users.findById("op")).thenReturn(Optional.of(operator)); when(access.isOperator(operator)).thenReturn(true);
+        OperatorPrincipal operator = new OperatorPrincipal("op", "op@example.com");
+        when(access.activeOperator("op")).thenReturn(Optional.of(operator));
         User allowed = new User(); allowed.setId("u1"); allowed.setUsername("customer"); allowed.setEmail("encrypted");
         allowed.setValidated(true); allowed.setNewsletterSubscribed(true); allowed.setNewsletterTokenEncrypted("token");
         when(users.findById("u1")).thenReturn(Optional.of(allowed));

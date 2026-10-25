@@ -29,12 +29,19 @@ credenciales de MongoDB, Directus ni SMTP en ficheros `VITE_*` o en el frontend.
 ## Acceso y datos reales
 
 - Frontdesk comprueba `/api/frontdesk/me` antes de montar vistas o consultar datos privados.
-- Para cuentas locales: introducir username y contraseña. Se usa `/api/users/login`,
-  después se valida que la sesión tenga permiso de operador. La contraseña no se guarda
-  en localStorage y se borra del formulario tras el intento.
-- Para Google: el enlace abre el flujo existente en otra pestaña; tras completarlo,
-  volver a Frontdesk y pulsar **Check session / Comprobar sesión**.
-- Las llamadas incluyen cookies de sesión y `Accept-Language` (locale `app_locale`).
+- Acceso: **email y contraseña** del operador (colección `frontdesk_operators`, no una
+  cuenta de la web) y después el **código TOTP** de 6 dígitos. Si pierdes la aplicación de
+  autenticación, usa uno de los códigos de recuperación (cada uno sirve una vez). No hay
+  Google ni login de clientes. La contraseña y los códigos nunca se guardan en el
+  navegador y se borran del formulario tras cada intento.
+- **Primer acceso:** si el operador aún no tiene TOTP, Frontdesk muestra un código QR, la clave de
+  configuración (también como enlace `otpauth://`) para añadirla a la aplicación de
+  autenticación, y pide el primer código. Tras confirmarlo muestra **una sola vez** los 10
+  códigos de recuperación; hay que guardarlos antes de continuar. Haz este paso justo
+  después del despliegue: hasta entonces, quien conozca la contraseña podría enrolar su
+  propio TOTP.
+- Todos los fallos muestran el mismo mensaje genérico; tras 5 seguidos la cuenta se bloquea
+  15 minutos. La sesión caduca a los 30 minutos de inactividad o a las 8 horas.- Las llamadas incluyen cookies de sesión y `Accept-Language` (locale `app_locale`).
   Antes de cada mutación se obtiene un token CSRF y se envía en `X-CSRF-TOKEN`.
 - Si la sesión caduca o se revoca acceso, las vistas se desmontan y se vacía la caché
   privada. Los errores 401/403, de red o de servidor no se convierten en resultados mock.
@@ -56,14 +63,10 @@ credenciales de MongoDB, Directus ni SMTP en ficheros `VITE_*` o en el frontend.
   No se reintentan ni reanudan envíos automáticamente; `RUNNING` tras un reinicio exige
   reconciliación. La auditoría se genera en el servidor, no en el navegador.
 
-**Google en producción con subdominios:** el callback actual de Google pertenece a la
-aplicación principal y su cookie es de ese host. Para reutilizarla desde, por ejemplo,
-`https://frontdesk.mana-forge.com`, apuntar `VITE_API_URL` a `https://mana-forge.com/api`
-(o al origen real de tu API principal), no al proxy relativo de otro host. La API debe
-tener ese origen de Frontdesk en `FRONTDESK_URL` para CORS. Usar HTTPS y subdominios del
-mismo sitio evita depender de cookies de terceros. No se altera el callback existente
-ni se amplía el dominio de la cookie de toda la aplicación.
-
+**Producción:** web, API y Frontdesk comparten origen (`https://mana-forge.com`, con
+`/api` y `/frontdesk`), así que la cookie de operador (`SameSite=Strict`,
+`Path=/api/frontdesk`) funciona sin CORS ni cookies de terceros. Compilar con
+`FRONTDESK_API_URL=/api`.
 ## Docker Compose
 
 Desde la raíz del monorepo, con la API y sus dependencias configuradas:
@@ -95,13 +98,12 @@ Para Docker, el `.env` **raíz** proporciona los argumentos públicos de build:
 FRONTDESK_API_URL=/api
 FRONTDESK_USE_MOCKS=false
 FRONTDESK_URL=http://localhost:5174
-FRONTDESK_OPERATOR_IDS=ID_DE_TU_CUENTA_VERIFICADA
+FRONTDESK_TOTP_KEY=CLAVE_BASE64_DE_32_BYTES
 ```
 
-Para una cuenta Google y un dominio separado, cambiar `FRONTDESK_API_URL` al origen
-de la API principal como se explica arriba. Las variables `FRONTDESK_API_URL` y
+Las variables `FRONTDESK_API_URL` y
 `FRONTDESK_USE_MOCKS` se compilan en el bundle: sus cambios requieren **reconstruir**
-Frontdesk. `FRONTDESK_URL` y `FRONTDESK_OPERATOR_IDS` pertenecen a la API: sus cambios
+Frontdesk. `FRONTDESK_URL` y `FRONTDESK_TOTP_KEY` pertenecen a la API: sus cambios
 requieren recrear ese contenedor.
 
 Con la API ya arrancada y después de actualizar también su código:

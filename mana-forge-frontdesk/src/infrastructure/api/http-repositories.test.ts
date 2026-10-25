@@ -134,13 +134,76 @@ describe('HTTP adapters', () => {
     expect(JSON.parse(fetchMock.mock.calls[2][1]!.body as string)).toEqual({ variables: { 'user.name': 'Customer' } });
   });
 
-  it('requires a verified operator response after login, not just a successful user login', async () => {
+  it('signs in with email and password without CSRF and returns the challenge, never a session', async () => {
     const auth = new HttpAuthService(new ApiClient());
-    fetchMock.mockResolvedValueOnce(json({ userId: 'regular-user' })).mockResolvedValueOnce(json({}, 403));
-    await expect(auth.signIn('regular-user', 'password')).rejects.toMatchObject({ status: 403 });
-    expect(fetchMock.mock.calls[1][0]).toBe('/api/frontdesk/me');
+    fetchMock.mockResolvedValueOnce(json({ status: 'TOTP_REQUIRED', challenge: 'c1' }));
+    await expect(auth.signIn('op@example.com', 'secret')).resolves.toEqual({ status: 'TOTP_REQUIRED', challenge: 'c1' });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(fetchMock.mock.calls[0][0]).toBe('/api/frontdesk/auth/login');
+    expect(JSON.parse(fetchMock.mock.calls[0][1]!.body as string)).toEqual({ email: 'op@example.com', password: 'secret' });
+    expect(fetchMock.mock.calls.some(([url]) => String(url).includes('/users/login'))).toBe(false);
   });
 
+  it('rejects login responses which are not a known second-factor step', async () => {
+    const auth = new HttpAuthService(new ApiClient());
+    for (const bad of [{}, { status: 'AUTHENTICATED', challenge: 'c1' }, { status: 'TOTP_REQUIRED' }, { status: 'TOTP_REQUIRED', challenge: '' }]) {
+      fetchMock.mockResolvedValueOnce(json(bad));
+      await expect(auth.signIn('op@example.com', 'secret')).rejects.toMatchObject({ code: 'INVALID_RESPONSE' });
+    }
+  });
+
+  it('completes the second factor with a code or a recovery code and trusts only a valid operator body', async () => {
+    const auth = new HttpAuthService(new ApiClient());
+    fetchMock.mockResolvedValueOnce(json({ id: 'op-1', name: 'op@example.com', role: 'OPERATOR' }));
+    await expect(auth.verifyTotp('c1', '123456')).resolves.toEqual({ id: 'op-1', name: 'op@example.com', role: 'OPERATOR' });
+    expect(fetchMock.mock.calls[0][0]).toBe('/api/frontdesk/auth/totp');
+    expect(JSON.parse(fetchMock.mock.calls[0][1]!.body as string)).toEqual({ challenge: 'c1', code: '123456' });
+    fetchMock.mockResolvedValueOnce(json({ id: 'op-1', name: 'op@example.com', role: 'OPERATOR' }));
+    await auth.verifyRecovery('c1', 'AAAA-BBBB-CCCC-DDDD');
+    expect(fetchMock.mock.calls[1][0]).toBe('/api/frontdesk/auth/recovery');
+    fetchMock.mockResolvedValueOnce(json({ id: 'op-1', name: 'x', role: 'ADMIN' }));
+    await expect(auth.verifyTotp('c1', '123456')).rejects.toMatchObject({ code: 'INVALID_RESPONSE' });
+  });
+
+  it('enrols a second factor and returns the recovery codes only at confirmation', async () => {
+    const auth = new HttpAuthService(new ApiClient());
+    fetchMock.mockResolvedValueOnce(json({ secret: 'JBSWY3DPEHPK3PXP', otpauthUri: 'otpauth://totp/x' }));
+    await expect(auth.startEnrollment('c1')).resolves.toEqual({ secret: 'JBSWY3DPEHPK3PXP', otpauthUri: 'otpauth://totp/x' });
+    expect(fetchMock.mock.calls[0][0]).toBe('/api/frontdesk/auth/enroll/start');
+    fetchMock.mockResolvedValueOnce(json({ id: 'op-1', name: 'op@example.com', role: 'OPERATOR', recoveryCodes: ['AAAA-BBBB-CCCC-DDDD'] }));
+    await expect(auth.confirmEnrollment('c1', '123456')).resolves.toEqual({
+      operator: { id: 'op-1', name: 'op@example.com', role: 'OPERATOR' }, recoveryCodes: ['AAAA-BBBB-CCCC-DDDD'] });
+    expect(fetchMock.mock.calls[1][0]).toBe('/api/frontdesk/auth/enroll/confirm');
+    fetchMock.mockResolvedValueOnce(json({ id: 'op-1', name: 'op@example.com', role: 'OPERATOR' }));
+    await expect(auth.confirmEnrollment('c1', '123456')).rejects.toMatchObject({ code: 'INVALID_RESPONSE' });
+  });
+
+  it('does not report a wrong password or code as an expired session', async () => {
+    const client = new ApiClient();
+    const ended = vi.fn();
+    client.onAccessFailure(ended);
+    const auth = new HttpAuthService(client);
+    fetchMock.mockImplementation(async () => json({}, 401));
+    await expect(auth.signIn('op@example.com', 'wrong')).rejects.toMatchObject({ status: 401 });
+    await expect(auth.verifyTotp('c1', '000000')).rejects.toMatchObject({ status: 401 });
+    expect(ended).not.toHaveBeenCalled();
+  });
+
+  it('has no Google or legacy user login any more', () => {
+    const auth = new HttpAuthService(new ApiClient()) as unknown as Record<string, unknown>;
+    expect(auth.googleLoginUrl).toBeUndefined();
+  });
+
+  it('signs out of the operator session with a CSRF proof', async () => {
+    const client = new ApiClient();
+    const ended = vi.fn();
+    client.onAccessFailure(ended);
+    fetchMock.mockResolvedValueOnce(json(proof)).mockResolvedValueOnce(new Response(null, { status: 204 }));
+    await new HttpAuthService(client).signOut();
+    expect(fetchMock.mock.calls[1][0]).toBe('/api/frontdesk/auth/logout');
+    expect((fetchMock.mock.calls[1][1]!.headers as Record<string, string>)['X-CSRF-TOKEN']).toBe(proof.token);
+    expect(ended).toHaveBeenCalledWith(401);
+  });
   it('clears local session state if logout finds an already expired session', async () => {
     const client = new ApiClient();
     const ended = vi.fn();

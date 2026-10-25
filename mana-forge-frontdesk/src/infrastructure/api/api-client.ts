@@ -61,7 +61,8 @@ export class ApiClient {
       try { data = JSON.parse(text); } catch { /* HTML/error pages are not trusted API messages. */ }
     }
     if (!response.ok) {
-      if ((response.status === 401 || response.status === 403) && path.startsWith('/frontdesk/') && path !== '/frontdesk/me') {
+      if ((response.status === 401 || response.status === 403) && path.startsWith('/frontdesk/') && path !== '/frontdesk/me'
+        && !path.startsWith('/frontdesk/auth/')) {
         this.accessListeners.forEach(listener => listener(response.status));
       }
       const error = data && typeof data === 'object' ? data as Record<string, unknown> : {};

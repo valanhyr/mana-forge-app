@@ -1,5 +1,7 @@
 package com.manaforge.api.service;
 
+import com.manaforge.api.frontdesk.OperatorPrincipal;
+
 import java.time.Instant;
 import java.util.Map;
 import com.manaforge.api.dto.FrontdeskDtos.*;
@@ -41,19 +43,19 @@ public class FrontdeskEmailService {
 
     private enum Channel { OPERATIONAL, NEWSLETTER, ANNOUNCEMENT }
 
-    public EmailResult send(SendEmail request, User operator) {
+    public EmailResult send(SendEmail request, OperatorPrincipal operator) {
         return send(request, operator, Channel.OPERATIONAL, null, null);
     }
 
-    public EmailResult sendNewsletter(SendEmail request, User operator, String unsubscribeUrl, String campaignId) {
+    public EmailResult sendNewsletter(SendEmail request, OperatorPrincipal operator, String unsubscribeUrl, String campaignId) {
         return send(request, operator, Channel.NEWSLETTER, unsubscribeUrl, campaignId);
     }
 
-    public EmailResult sendAnnouncement(SendEmail request, User operator, String campaignId) {
+    public EmailResult sendAnnouncement(SendEmail request, OperatorPrincipal operator, String campaignId) {
         return send(request, operator, Channel.ANNOUNCEMENT, null, campaignId);
     }
 
-    private EmailResult send(SendEmail request, User operator, Channel channel, String unsubscribeUrl, String campaignId) {
+    private EmailResult send(SendEmail request, OperatorPrincipal operator, Channel channel, String unsubscribeUrl, String campaignId) {
         if (request.subject().contains("\r") || request.subject().contains("\n")) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid email subject");
         }
@@ -85,7 +87,7 @@ public class FrontdeskEmailService {
         delivery.setTemplateId(request.templateId());
         delivery.setTicketId(request.ticketId());
         delivery.setCampaignId(campaignId);
-        delivery.setOperatorId(operator.getId());
+        delivery.setOperatorId(operator.id());
         delivery.setCreatedAt(Instant.now());
         delivery = deliveries.save(delivery); // Persist intent before contacting SMTP.
 
@@ -113,7 +115,7 @@ public class FrontdeskEmailService {
         return new EmailResult(true, delivery.getMessageId(), delivery.getId());
     }
 
-    private void record(User operator, SupportTicket ticket, EmailDelivery delivery, AuditEvent.Action action) {
+    private void record(OperatorPrincipal operator, SupportTicket ticket, EmailDelivery delivery, AuditEvent.Action action) {
         audit.record(operator, ticket == null ? null : ticket.getUserId(),
                 ticket == null ? null : ticket.getUserName(), action,
                 action == AuditEvent.Action.EMAIL_SENT ? "SMTP accepted email" : "SMTP send failed",

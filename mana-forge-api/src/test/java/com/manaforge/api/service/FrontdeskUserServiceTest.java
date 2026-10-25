@@ -1,5 +1,7 @@
 package com.manaforge.api.service;
 
+import com.manaforge.api.frontdesk.OperatorPrincipal;
+
 import java.time.Instant;
 import java.util.Date;
 import java.util.List;
@@ -36,7 +38,7 @@ class FrontdeskUserServiceTest {
     private final FrontdeskAuditService audit = mock(FrontdeskAuditService.class);
     private final FrontdeskUserService service = new FrontdeskUserService(users, tickets, mongo, encryption, quota, audit);
     private User user;
-    private User operator;
+    private OperatorPrincipal operator;
 
     @BeforeEach
     void setUp() {
@@ -44,8 +46,7 @@ class FrontdeskUserServiceTest {
         user.setId("u1");
         user.setUsername("customer");
         user.setEmail("encrypted");
-        operator = new User();
-        operator.setId("op1");
+        operator = new OperatorPrincipal("op1", "op1@example.com");
         when(users.findById("u1")).thenReturn(Optional.of(user));
         when(encryption.decrypt("encrypted")).thenReturn("user@example.com");
         when(encryption.encrypt(anyString())).thenAnswer(call -> "enc:" + call.getArgument(0));

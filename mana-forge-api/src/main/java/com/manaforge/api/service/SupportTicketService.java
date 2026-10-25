@@ -1,5 +1,7 @@
 package com.manaforge.api.service;
 
+import com.manaforge.api.frontdesk.OperatorPrincipal;
+
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
@@ -80,13 +82,13 @@ public class SupportTicketService {
         } catch (AddressException ignored) { return false; }
     }
 
-    public TicketView create(CreateTicket request, User operator) {
+    public TicketView create(CreateTicket request, OperatorPrincipal operator) {
         User customer = request.userId() == null || request.userId().isBlank() ? null
                 : users.findById(request.userId()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
         SupportTicket ticket = newTicket(customer == null ? null : customer.getId(),
                 customer == null ? encryption.encrypt(request.userEmail()) : customer.getEmail(),
                 customer == null ? request.userName() : customer.getUsername(), request.subject(), request.initialMessage(),
-                SupportTicket.Sender.OPERATOR, operator.getId(), operator.getUsername());
+                SupportTicket.Sender.OPERATOR, operator.id(), operator.name());
         ticket.setCategory(request.category());
         ticket.setPriority(request.priority());
         ticket.setMetadata(request.metadata());
@@ -126,7 +128,7 @@ public class SupportTicketService {
         return ticket;
     }
 
-    public TicketView addMessage(String id, AddMessage request, User operator) {
+    public TicketView addMessage(String id, AddMessage request, OperatorPrincipal operator) {
         SupportTicket ticket = requireTicket(id);
         if (!request.isInternalNote()) {
             User owner = ticket.isCustomerVisible() && ticket.getUserId() != null && !ticket.getUserId().isBlank()
@@ -138,7 +140,7 @@ public class SupportTicketService {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Ticket message limit reached");
         }
         ticket.getMessages().add(new SupportTicket.Message(UUID.randomUUID().toString(), SupportTicket.Sender.OPERATOR,
-                operator.getId(), operator.getUsername(), request.content(), Instant.now(), request.isInternalNote()));
+                operator.id(), operator.name(), request.content(), Instant.now(), request.isInternalNote()));
         ticket.setUpdatedAt(Instant.now());
         if (!request.isInternalNote() && ticket.getStatus() != SupportTicket.Status.CLOSED
                 && ticket.getStatus() != SupportTicket.Status.RESOLVED) ticket.setStatus(SupportTicket.Status.WAITING_USER);
@@ -148,7 +150,7 @@ public class SupportTicketService {
         return view(ticket);
     }
 
-    public TicketView updateStatus(String id, SupportTicket.Status status, User operator) {
+    public TicketView updateStatus(String id, SupportTicket.Status status, OperatorPrincipal operator) {
         SupportTicket ticket = requireTicket(id);
         SupportTicket.Status previous = ticket.getStatus();
         ticket.setStatus(status);
@@ -158,18 +160,18 @@ public class SupportTicketService {
         return view(ticket);
     }
 
-    public TicketView assign(String id, String operatorId, User actor) {
-        User operator = access.operatorById(operatorId);
+    public TicketView assign(String id, String operatorId, OperatorPrincipal actor) {
+        OperatorPrincipal operator = access.operatorById(operatorId);
         SupportTicket ticket = requireTicket(id);
-        ticket.setAssignedOperatorId(operator.getId());
-        ticket.setAssignedOperatorName(operator.getUsername());
+        ticket.setAssignedOperatorId(operator.id());
+        ticket.setAssignedOperatorName(operator.name());
         ticket.setUpdatedAt(Instant.now());
         ticket = tickets.save(ticket);
-        record(actor, ticket, AuditEvent.Action.TICKET_ASSIGNED, "Assigned to " + operator.getUsername());
+        record(actor, ticket, AuditEvent.Action.TICKET_ASSIGNED, "Assigned to " + operator.name());
         return view(ticket);
     }
 
-    private void record(User operator, SupportTicket ticket, AuditEvent.Action action, String details) {
+    private void record(OperatorPrincipal operator, SupportTicket ticket, AuditEvent.Action action, String details) {
         audit.record(operator, ticket.getUserId(), ticket.getUserName(), action, details,
                 Map.of("ticketId", ticket.getId()));
     }

@@ -1,63 +1,54 @@
 package com.manaforge.api.service;
 
-import java.util.Arrays;
+import java.time.Instant;
 import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-import com.manaforge.api.model.mongo.User;
-import com.manaforge.api.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Value;
+import com.manaforge.api.frontdesk.FrontdeskOperator;
+import com.manaforge.api.frontdesk.FrontdeskOperatorRepository;
+import com.manaforge.api.frontdesk.OperatorAuthenticationToken;
+import com.manaforge.api.frontdesk.OperatorPrincipal;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-/** Operators are explicitly allowlisted by immutable Mongo IDs, never by client-supplied roles. */
+/**
+ * Operators come only from the dedicated {@code frontdesk_operators} collection and are recognised
+ * only through {@link OperatorAuthenticationToken}. Public users and client-supplied roles never qualify.
+ */
 @Service
 public class FrontdeskAccessService {
-    private final UserRepository users;
-    private final EmailEncryptionService encryption;
-    private final Set<String> operatorIds;
+    private final FrontdeskOperatorRepository operators;
 
-    public FrontdeskAccessService(UserRepository users, EmailEncryptionService encryption,
-                                 @Value("${frontdesk.operator-ids:}") String operatorIds) {
-        this.users = users;
-        this.encryption = encryption;
-        this.operatorIds = Arrays.stream(operatorIds.split(","))
-                .map(String::trim).filter(id -> !id.isEmpty()).collect(Collectors.toUnmodifiableSet());
+    public FrontdeskAccessService(FrontdeskOperatorRepository operators) {
+        this.operators = operators;
     }
 
-    public Optional<User> resolve(Authentication authentication) {
-        if (authentication == null || !authentication.isAuthenticated()
-                || authentication instanceof AnonymousAuthenticationToken) return Optional.empty();
-        if (authentication.getPrincipal() instanceof OAuth2User oauth) {
-            String email = oauth.getAttribute("email");
-            return email == null ? Optional.empty() : users.findByEmail(encryption.encrypt(email));
+    public Optional<OperatorPrincipal> resolve(Authentication authentication) {
+        if (authentication instanceof OperatorAuthenticationToken token && token.isAuthenticated()) {
+            return Optional.of(token.getPrincipal());
         }
-        return users.findByUsername(authentication.getName());
+        return Optional.empty();
     }
 
-    public boolean isOperator(User user) {
-        return user != null && user.getId() != null && operatorIds.contains(user.getId())
-                && user.effectiveStatus() == User.AccountStatus.ACTIVE
-                && Boolean.TRUE.equals(user.getValidated());
+    /** The operator must still exist, be enabled and not be locked: checked on every use, not only at login. */
+    public Optional<OperatorPrincipal> activeOperator(String id) {
+        if (id == null) return Optional.empty();
+        return operators.findById(id)
+                .filter(operator -> operator.getStatus() == FrontdeskOperator.Status.ACTIVE && !operator.isLocked(Instant.now()))
+                .map(operator -> new OperatorPrincipal(operator.getId(), operator.getEmail()));
     }
 
     public boolean isOperator(Authentication authentication) {
-        return resolve(authentication).map(this::isOperator).orElse(false);
+        return resolve(authentication).flatMap(principal -> activeOperator(principal.id())).isPresent();
     }
 
-    public User requireOperator(Authentication authentication) {
-        User user = resolve(authentication).orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED));
-        if (!isOperator(user)) throw new ResponseStatusException(HttpStatus.FORBIDDEN);
-        return user;
+    public OperatorPrincipal requireOperator(Authentication authentication) {
+        OperatorPrincipal principal = resolve(authentication).orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED));
+        return activeOperator(principal.id()).orElseThrow(() -> new ResponseStatusException(HttpStatus.FORBIDDEN));
     }
 
-    public User operatorById(String id) {
-        User user = users.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
-        if (!isOperator(user)) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid operator");
-        return user;
+    public OperatorPrincipal operatorById(String id) {
+        if (id == null || operators.findById(id).isEmpty()) throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        return activeOperator(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid operator"));
     }
 }

@@ -1,5 +1,7 @@
 package com.manaforge.api.service;
 
+import com.manaforge.api.frontdesk.OperatorPrincipal;
+
 import com.manaforge.api.dto.AnnouncementDtos;
 import com.manaforge.api.dto.FrontdeskDtos.PageResult;
 import com.manaforge.api.model.mongo.AnnouncementCampaign;
@@ -23,7 +25,7 @@ public class AnnouncementCampaignService {
     private final AnnouncementDispatcher dispatcher;
     private final DirectusEmailTemplateService templates;
 
-    public AnnouncementDtos.Campaign start(AnnouncementDtos.Send request, User operator) {
+    public AnnouncementDtos.Campaign start(AnnouncementDtos.Send request, OperatorPrincipal operator) {
         if (request.subject().contains("\n") || request.subject().contains("\r")
                 || (request.subject() + request.body()).matches("(?s).*\\{\\{[a-zA-Z0-9_.-]+}}.*")) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid subject or unresolved macros");
@@ -35,7 +37,7 @@ public class AnnouncementCampaignService {
         if (existing.isPresent()) return replay(existing.get(), request, operator);
         AnnouncementCampaign campaign = new AnnouncementCampaign();
         campaign.setId(request.campaignId());
-        campaign.setOperatorId(operator.getId());
+        campaign.setOperatorId(operator.id());
         campaign.setRecipientIds(new LinkedHashSet<>(request.recipientIds()).stream().toList());
         campaign.setSubject(request.subject());
         campaign.setBody(request.body());
@@ -52,8 +54,8 @@ public class AnnouncementCampaignService {
         return AnnouncementDtos.view(campaign);
     }
 
-    private AnnouncementDtos.Campaign replay(AnnouncementCampaign campaign, AnnouncementDtos.Send request, User operator) {
-        if (!Objects.equals(campaign.getOperatorId(), operator.getId())
+    private AnnouncementDtos.Campaign replay(AnnouncementCampaign campaign, AnnouncementDtos.Send request, OperatorPrincipal operator) {
+        if (!Objects.equals(campaign.getOperatorId(), operator.id())
                 || !Objects.equals(campaign.getSubject(), request.subject()) || !Objects.equals(campaign.getBody(), request.body())
                 || !Objects.equals(campaign.getTemplateId(), request.templateId())
                 || !new LinkedHashSet<>(campaign.getRecipientIds()).equals(new LinkedHashSet<>(request.recipientIds()))) {

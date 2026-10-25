@@ -2,9 +2,10 @@
 
 ## Alcance
 
-La API vive en `mana-forge-api`, bajo `/api/frontdesk`. Usa las sesiones existentes
-(login local o Google), MongoDB para los datos operativos y Directus para las plantillas.
-No utiliza JWT ni requiere una base de datos adicional.
+La API vive en `mana-forge-api`, bajo `/api/frontdesk`. Los operadores no son usuarios de
+la web: viven en la colección `frontdesk_operators` y entran con contraseña más TOTP
+(sin login local de clientes ni Google). Usa MongoDB para los datos operativos y Directus
+para las plantillas. No utiliza JWT ni requiere una base de datos adicional.
 
 `mana-forge-frontdesk` utiliza adaptadores HTTP por defecto, con sesión, CSRF,
 paginación y cuota diaria. Los mocks son un opt-in (`VITE_USE_MOCKS=true`), sin fallback
@@ -16,8 +17,11 @@ con ID idempotente. No existe un endpoint que simule éxito para campañas.
 
 | Variable | Valor por defecto | Uso |
 |---|---|---|
-| `FRONTDESK_OPERATOR_IDS` | vacío | IDs de `users` autorizados, separados por comas. Vacío deniega todo acceso. |
-| `FRONTDESK_URL` | vacío | Origen CORS exacto del backoffice, por ejemplo `http://localhost:5174`. |
+| `FRONTDESK_TOTP_KEY` | vacío | Clave Base64 de 32 bytes que cifra los secretos TOTP (AES-GCM). **Vacía deshabilita el acceso de operador por completo.** Perderla obliga a volver a enrolar el TOTP. |
+| `FRONTDESK_SESSION_IDLE_MINUTES` / `FRONTDESK_SESSION_MAX_HOURS` | `30` / `8` | Caducidad de la sesión de operador por inactividad y absoluta. |
+| `FRONTDESK_LOGIN_MAX_ATTEMPTS` / `FRONTDESK_LOCK_MINUTES` | `5` / `15` | Fallos consecutivos que bloquean la cuenta y duración del bloqueo. |
+| `FRONTDESK_COOKIE_SECURE` | `true` | Atributo `Secure` de la cookie de operador. Solo desactivar en desarrollo sin HTTPS. |
+| `FRONTDESK_URL` | vacío | Origen CORS adicional (solo desarrollo, p. ej. `http://localhost:5174`). Web, API y Frontdesk comparten origen en producción, así que no hace falta. |
 | `FRONTDESK_CONTACT_TICKETS_ENABLED` | `true` | Guardar los contactos aceptados como tickets antes de enviar sus correos. |
 | `FRONTDESK_EMAIL_TEMPLATE_COLLECTION` | `email_templates` | Nombre de la colección de Directus. |
 
@@ -29,24 +33,42 @@ subdominios: `mana-forge-frontdesk/README.md`.
 
 Se reutilizan `MONGODB_URI`, `EMAIL_ENCRYPTION_KEY`, SMTP, Redis y la configuración de
 Directus (`DIRECTUS_URL`, `DIRECTUS_API_TOKEN`, con `DIRECTUS_TOKEN` como alternativa).
-Los operadores deben ser cuentas verificadas y activas. La lista usa IDs persistentes,
-no nombres, emails ni roles suministrados por el navegador. No hay un endpoint para
-autoconcederse permisos. Los nuevos registros ignoran ID, tier, estado y fechas enviados
-por el cliente.
+Un operador es un documento de `frontdesk_operators`, no una cuenta de `users`: tiene
+email (minúsculas, único), `passwordHash` BCrypt, secreto TOTP cifrado, códigos de
+recuperación hasheados y `status` (`ACTIVE`/`DISABLED`). No hay registro ni endpoint para
+crearse o concederse permisos: el alta es manual (3T o mongosh). Una cuenta de cliente
+nunca es operador, aunque su nombre o ID coincidan.
 
 ### Sesión y CSRF
 
-1. Autenticarse mediante el login existente. Las llamadas HTTP deben incluir credenciales.
+Los pasos previos al login no exigen sesión ni CSRF; todos devuelven `401` vacío ante
+cualquier fallo (contraseña, código, cuenta inexistente, deshabilitada o bloqueada) y
+`Cache-Control: no-store`. Las llamadas HTTP deben incluir credenciales.
+
+| Método | Ruta relativa a `/api/frontdesk/auth` | Cuerpo | Respuesta |
+|---|---|---|---|
+| `POST` | `/login` | `{ email, password }` | `200 { status: "TOTP_REQUIRED" \| "ENROLLMENT_REQUIRED", challenge }`. No crea sesión. |
+| `POST` | `/totp` | `{ challenge, code }` | `200 { id, name, role }` + cookie de sesión. |
+| `POST` | `/recovery` | `{ challenge, code }` | Igual que `/totp`; el código de recuperación se invalida. |
+| `POST` | `/enroll/start` | `{ challenge }` | `200 { secret, otpauthUri }`. Solo si el TOTP no está activo. |
+| `POST` | `/enroll/confirm` | `{ challenge, code }` | `200 { id, name, role, recoveryCodes }` + cookie. Los 10 códigos se muestran **solo aquí**. |
+| `POST` | `/logout` | — | `200` y cookie borrada. Requiere sesión y `X-CSRF-TOKEN`. |
+
+El `challenge` es un token de un solo uso que caduca a los 5 minutos y solo se guarda
+hasheado. Tras 5 fallos consecutivos la cuenta se bloquea 15 minutos.
+
+1. Autenticarse con `/login` y `/totp` (o `/recovery`). La respuesta fija la cookie
+   `MF_OPERATOR`: `HttpOnly`, `Secure`, `SameSite=Strict`, `Path=/api/frontdesk`. Solo su
+   hash se guarda en `frontdesk_operator_sessions`.
 2. Consultar `GET /api/frontdesk/me` para comprobar acceso.
-3. Consultar `GET /api/frontdesk/csrf`. Devuelve `{ "headerName": "X-CSRF-TOKEN", "token": "…" }`.
+3. Consultar `GET /api/frontdesk/csrf`. Devuelve `{ "headerName": "X-CSRF-TOKEN", "token": "." }`.
+   El token deriva de la cookie de operador: no sirve con otra sesión.
 4. Enviar ese token en la cabecera indicada para todos los `POST` y `PATCH` del backoffice.
-   Obtener un token nuevo después de iniciar otra sesión.
 
-La regla privada se evalúa antes del `GET /api/**` público. Las cuentas suspendidas o
-baneadas no pueden iniciar sesión; sus sesiones existentes tampoco pueden usar `/api/**`
-excepto para cerrar sesión. La suspensión no puede impedir que alguien use endpoints
-públicos después de cerrar sesión: el visitante vuelve a ser anónimo.
-
+La sesión caduca a los 30 minutos de inactividad o a las 8 horas. El operador se vuelve a
+leer en cada petición: deshabilitarlo o bloquearlo cierra su sesión de inmediato. La
+cadena de seguridad de `/api/frontdesk/**` no usa sesión servlet ni acepta el login de
+clientes, y la cookie de operador no autentica ningún otro endpoint de la API.
 ## Endpoints
 
 Todos los siguientes requieren acceso de operador. Los listados paginados devuelven

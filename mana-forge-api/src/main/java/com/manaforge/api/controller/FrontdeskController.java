@@ -2,6 +2,7 @@ package com.manaforge.api.controller;
 
 import com.manaforge.api.dto.FrontdeskDtos.*;
 import com.manaforge.api.dto.FrontdeskUserQuery;
+import com.manaforge.api.frontdesk.OperatorPrincipal;
 import com.manaforge.api.model.mongo.AuditEvent;
 import com.manaforge.api.model.mongo.EmailDelivery;
 import com.manaforge.api.model.mongo.SupportTicket;
@@ -40,8 +41,8 @@ public class FrontdeskController {
 
     @GetMapping("/me")
     public Map<String, String> me(Authentication authentication) {
-        User operator = access.requireOperator(authentication);
-        return Map.of("id", operator.getId(), "name", operator.getUsername(), "role", "OPERATOR");
+        OperatorPrincipal operator = access.requireOperator(authentication);
+        return Map.of("id", operator.id(), "name", operator.name(), "role", "OPERATOR");
     }
 
     @GetMapping("/tickets")

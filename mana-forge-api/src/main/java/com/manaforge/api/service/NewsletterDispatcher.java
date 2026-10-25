@@ -1,6 +1,7 @@
 package com.manaforge.api.service;
 
 import com.manaforge.api.dto.FrontdeskDtos.SendEmail;
+import com.manaforge.api.frontdesk.OperatorPrincipal;
 import com.manaforge.api.model.mongo.NewsletterCampaign;
 import com.manaforge.api.model.mongo.User;
 import com.manaforge.api.repository.NewsletterCampaignRepository;
@@ -21,12 +22,12 @@ public class NewsletterDispatcher {
     private final EmailEncryptionService encryption;
 
     @Async("newsletterExecutor")
-    public void dispatch(NewsletterCampaign campaign, User operator) {
+    public void dispatch(NewsletterCampaign campaign, OperatorPrincipal operator) {
         try {
             for (String id : campaign.getRecipientIds()) {
                 // Reload both permissions and consent, including withdrawals after selection.
-                User currentOperator = users.findById(operator.getId()).orElse(null);
-                if (!access.isOperator(currentOperator)) throw new IllegalStateException("Operator access revoked");
+                OperatorPrincipal currentOperator = access.activeOperator(operator.id())
+                        .orElseThrow(() -> new IllegalStateException("Operator access revoked"));
                 User recipient = users.findById(id).orElse(null);
                 if (!NewsletterService.eligible(recipient)) {
                     campaign.setSkipped(campaign.getSkipped() + 1);
