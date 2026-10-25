@@ -2,8 +2,8 @@
 
 Estado: **in-progress**. Fases 1 y 2 (backend) implementadas y verificadas con pruebas\nautomáticas. Fase 3 (frontend) y fase 4 pendientes.
 
-Aprobación: «ok, adelante» tras presentar spec y plan (fase 1) y «ok» a empezar la fase 2\ntras resolver las decisiones 1, 4 y 5 (sesión propia en Mongo; origen único `mana-forge.com`;\nfases 2 y 3 se despliegan juntas). Alcance ejecutado: **fases 1 y 2**.
-La fase 3 (frontend) y la 4 siguen sin ejecutar.
+Aprobación: «ok, adelante» tras presentar spec y plan (fase 1) y «ok» a empezar la fase 2\ntras resolver las decisiones 1, 4 y 5 (sesión propia en Mongo; origen único `mana-forge.com`;\nfases 2 y 3 se despliegan juntas). Alcance ejecutado: **fases 1, 2 y 3** (a la 3 le precedió «ok» tras la advertencia de despliegue conjunto).
+La fase 4 sigue sin ejecutar.
 
 | Tarea | Criterio | Estado | Evidencia |
 |---|---|---|---|
@@ -15,11 +15,11 @@ La fase 3 (frontend) y la 4 siguen sin ejecutar.
 | T-06 Sesión propia, filtro y logout | AC-07 | Hecho | `OperatorSessionServiceTest` 10 tests (inactividad 30 min, límite absoluto 8 h, revocación al deshabilitar/bloquear/borrar operador, hash en reposo); `OperatorSessionFilterTest` 4; `OperatorAuthControllerTest` 8 (cookie `HttpOnly`/`Secure`/`SameSite=Strict`/`Path=/api/frontdesk`, logout). Tests escritos antes que el código, pero el rojo de este grupo no se ejecutó de forma aislada salvo `OperatorAuthControllerTest` (no compilaba) y `OperatorSessionServiceTest`. |
 | T-07 Cadena de seguridad separada y CSRF | AC-01, AC-08 | Hecho | Cadena `@Order(1)` sin sesión servlet; CSRF derivado de la cookie. `FrontdeskOperatorChainTest` 6 y `OperatorCsrfTokenRepositoryTest` 5. Rojo real: el test de CSRF destapó que `CsrfAuthenticationStrategy` sustituye el token tras autenticar; `generateToken` devuelve ahora el derivado. |
 | T-08 `OperatorPrincipal` en servicios consumidores | AC-11 | Hecho | Tickets, emails, usuarios, newsletter, anuncios, despachadores y auditoría migrados; los despachadores revalidan `activeOperator` antes de cada envío. `FrontdeskAccessService` es solo de operadores y la resolución de cuenta pública pasó a `AccountAccessService` (que rechaza tokens de operador). Tests existentes actualizados a `OperatorPrincipal`; `DeckFlowIntegrationTest` usa la colección nueva. |
-| T-09 Frontend | AC-12 | Pendiente | — |
+| T-09 Frontend | AC-12 | Hecho | `SessionGate` como máquina de pasos (credenciales, TOTP, recuperación, enrolamiento, códigos); sin Google ni `/users/login`. Rojo: 7 tests de adaptador fallaron por métodos inexistentes y 23 de `App.api.test.tsx` por el flujo antiguo; verde: 122 tests (108 antes), `npx tsc --noEmit` y `npm run build` sin errores. Los códigos de recuperación y secretos no se guardan en el navegador y la app no se monta hasta confirmarlos guardados. |
 | T-10 Turnstile, rate limit por IP | AC-06, AC-09 | Pendiente | — |
 | T-11 Auditoría y redacción de logs | AC-10 | Pendiente | — |
-| T-12 Script de alta y reset; retirar `FRONTDESK_OPERATOR_IDS` | AC-01 | Parcial | `FRONTDESK_OPERATOR_IDS` retirada del código y de `application.yaml`. El script de alta/reset sigue pendiente (el operador actual se creó a mano en 3T). |
-| T-13 Documentación | todos | Parcial | `ARCHITECTURE.md` (sección Backoffice Frontdesk) actualizado. Faltan `docs/frontdesk-api.md` y los README. |
+| T-12 Script de alta y reset; retirar `FRONTDESK_OPERATOR_IDS` | AC-01 | Parcial | `FRONTDESK_OPERATOR_IDS` retirada del código, de `application.yaml` y de `docker-compose.yml` (ahora pasa `FRONTDESK_TOTP_KEY` y `FRONTDESK_COOKIE_SECURE`). El script de alta/reset sigue pendiente (el operador actual se creó a mano en 3T). |
+| T-13 Documentación | todos | Hecho | `ARCHITECTURE.md`, `docs/frontdesk-api.md` (variables, endpoints de auth, sesión, CSRF) y `mana-forge-frontdesk/README.md`. |
 
 ## Validación ejecutada (fase 1)
 
@@ -46,11 +46,27 @@ operador no pueda resolverse nunca como cliente. `with(csrf())` de spring-securi
 sustituye el repositorio CSRF del contexto compartido, por lo que los tests del CSRF derivado
 viven en su propia clase/contexto.
 
-## ⚠ No desplegar la fase 2 sola
+## Validación ejecutada (fase 3)
 
-El frontend actual (`mana-forge-frontdesk`) sigue haciendo login contra `/api/users/login` y
-Google, que **ya no autentican `/api/frontdesk/**`**. Con solo la API nueva, Frontdesk queda
-inaccesible. Fases 2 y 3 deben salir juntas, con `FRONTDESK_TOTP_KEY` definida y el
+| Comando (en `mana-forge-frontdesk`) | Resultado |
+|---|---|
+| `npx vitest run` | 20 archivos, 122 tests, todos pasan (antes 108) |
+| `npx tsc --noEmit` | sin errores |
+| `npm run build` | correcto |
+| `npm run lint` | no existe el script en este paquete; no ejecutado |
+
+No hay prueba manual en navegador contra la API real: el flujo completo (login, TOTP,
+enrolamiento) solo está validado con la API simulada en `App.api.test.tsx` y, en el lado
+servidor, con `OperatorLoginFlowIntegrationTest`. Falta probarlos juntos en un entorno real.
+
+Limitación conocida: el enrolamiento muestra la clave de configuración y un enlace
+`otpauth://`, **sin código QR** (no se añadió ninguna dependencia). Las aplicaciones de
+autenticación aceptan la clave manual.
+## ⚠ Desplegar fases 2 y 3 juntas
+
+La API nueva ya no acepta `/api/users/login` ni Google en `/api/frontdesk/**`, y el frontend
+nuevo ya no los usa. Si se despliega solo uno de los dos, Frontdesk queda inaccesible. Deben
+salir juntos, con `FRONTDESK_TOTP_KEY` definida y el
 TOTP del operador enrolado en el primer acceso. Rescate si falla: restablecer el documento
 del operador en `frontdesk_operators` con 3T.
 

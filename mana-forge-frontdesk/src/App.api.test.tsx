@@ -14,6 +14,8 @@ import App from './App';
 const json = (data: unknown, status = 200) => new Response(JSON.stringify(data), { status });
 const fetchMock = vi.fn<typeof fetch>();
 let authenticated: boolean;
+let enrolled: boolean;
+const operatorBody = { id: 'real-op', name: 'Actual Operator', role: 'OPERATOR' };
 let ticket: Ticket;
 let customer: User360;
 let sentEmails: number;
@@ -24,6 +26,7 @@ let announcementCampaign: NewsletterCampaign | null;
 beforeEach(() => {
   localStorage.clear();
   authenticated = false;
+  enrolled = true;
   sentEmails = 0;
   emailFailure = false;
   newsletterCampaign = null;
@@ -41,8 +44,24 @@ beforeEach(() => {
     const url = new URL(String(input), 'http://frontdesk.test');
     const path = url.pathname;
     const body = init?.body ? JSON.parse(init.body as string) : {};
-    if (path === '/api/users/login') { authenticated = true; return json({ userId: 'real-op' }); }
-    if (path === '/api/users/logout') { authenticated = false; return new Response(null, { status: 204 }); }
+    if (path === '/api/frontdesk/auth/login') {
+      return body.password === 'right-password' ? json({ status: enrolled ? 'TOTP_REQUIRED' : 'ENROLLMENT_REQUIRED', challenge: 'challenge-1' }) : json({}, 401);
+    }
+    if (path === '/api/frontdesk/auth/totp') {
+      if (body.challenge === 'challenge-1' && body.code === '123456') { authenticated = true; return json(operatorBody); }
+      return json({}, 401);
+    }
+    if (path === '/api/frontdesk/auth/recovery') {
+      if (body.challenge === 'challenge-1' && body.code === 'AAAA-BBBB-CCCC-DDDD') { authenticated = true; return json(operatorBody); }
+      return json({}, 401);
+    }
+    if (path === '/api/frontdesk/auth/enroll/start') return json({ secret: 'JBSWY3DPEHPK3PXP', otpauthUri: 'otpauth://totp/Frontdesk:op?secret=JBSWY3DPEHPK3PXP' });
+    if (path === '/api/frontdesk/auth/enroll/confirm') {
+      if (body.code !== '123456') return json({}, 401);
+      authenticated = true;
+      return json({ ...operatorBody, recoveryCodes: ['AAAA-BBBB-CCCC-DDDD', 'EEEE-FFFF-GGGG-HHHH'] });
+    }
+    if (path === '/api/frontdesk/auth/logout') { authenticated = false; return new Response(null, { status: 204 }); }
     if (!authenticated) return json({ error: 'Unauthorized' }, 401);
     if (path === '/api/frontdesk/me') return json({ id: 'real-op', name: 'Actual Operator', role: 'OPERATOR' });
     if (path === '/api/frontdesk/csrf') return json({ headerName: 'X-CSRF-TOKEN', token: 'actual-csrf' });
@@ -94,10 +113,16 @@ beforeEach(() => {
 
 afterEach(() => vi.unstubAllGlobals());
 
-async function signIn() {
-  fireEvent.change(await screen.findByLabelText('Username'), { target: { value: 'actual-user' } });
-  fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'temporary-password' } });
+async function passwordStep(password = 'right-password') {
+  fireEvent.change(await screen.findByLabelText('Email'), { target: { value: 'op@example.com' } });
+  fireEvent.change(screen.getByLabelText('Password'), { target: { value: password } });
   fireEvent.click(screen.getByRole('button', { name: 'Sign in' }));
+}
+
+async function signIn() {
+  await passwordStep();
+  fireEvent.change(await screen.findByLabelText('Authentication code'), { target: { value: '123456' } });
+  fireEvent.click(screen.getByRole('button', { name: 'Verify' }));
   await screen.findByRole('button', { name: /^tickets/i });
 }
 
@@ -176,7 +201,7 @@ describe('Live Frontdesk integration', () => {
     await screen.findByLabelText(/recipient email/i);
     authenticated = false;
     fireEvent.click(screen.getByRole('button', { name: /dispatch email/i }));
-    await screen.findByLabelText('Username');
+    await screen.findByLabelText('Email');
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     expect(screen.queryByDisplayValue('customer@example.com')).not.toBeInTheDocument();
   });
@@ -203,7 +228,7 @@ describe('Live Frontdesk integration', () => {
   });
   it('gates private queries, signs in, loads full ticket detail and writes a note with CSRF', async () => {
     render(<App />);
-    await screen.findByLabelText('Username');
+    await screen.findByLabelText('Email');
     expect(fetchMock.mock.calls).toHaveLength(1);
     expect(fetchMock.mock.calls[0][0]).toBe('/api/frontdesk/me');
     await signIn();
@@ -302,7 +327,7 @@ describe('Live Frontdesk integration', () => {
     await screen.findByRole('button', { name: /^tickets/i });
     authenticated = false;
     await act(async () => { fireEvent.click(screen.getByRole('button', { name: /users 360/i })); });
-    await screen.findByLabelText('Username');
+    await screen.findByLabelText('Email');
     expect(screen.queryByText('Actual Customer')).not.toBeInTheDocument();
     expect(screen.queryByText(/Jace Beleren/)).not.toBeInTheDocument();
     expect(localStorage.length).toBe(0);
@@ -320,7 +345,7 @@ describe('Live Frontdesk integration', () => {
     authenticated = true;
     render(<App />);
     fireEvent.click(await screen.findByRole('button', { name: 'Sign out' }));
-    await screen.findByLabelText('Username');
+    await screen.findByLabelText('Email');
     expect(screen.queryByText('Actual Operator')).not.toBeInTheDocument();
     expect(authenticated).toBe(false);
     expect(localStorage.length).toBe(0);
@@ -344,5 +369,96 @@ describe('Live Frontdesk integration', () => {
     await screen.findByText(/Operator access required/);
     expect(screen.queryByRole('button', { name: /^tickets/i })).not.toBeInTheDocument();
     expect(screen.queryByText('Actual Operator')).not.toBeInTheDocument();
+  });
+});
+
+describe('Operator sign-in', () => {
+  it('asks for the second factor after the password and only then opens the app', async () => {
+    render(<App />);
+    await passwordStep();
+    expect(await screen.findByLabelText('Authentication code')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /^tickets/i })).not.toBeInTheDocument();
+    expect(fetchMock.mock.calls.some(([url]) => String(url).includes('/users/login'))).toBe(false);
+    fireEvent.change(screen.getByLabelText('Authentication code'), { target: { value: '123456' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Verify' }));
+    await screen.findByRole('button', { name: /^tickets/i });
+  });
+
+  it('shows one generic failure for a wrong password or a wrong code and never says the session expired', async () => {
+    render(<App />);
+    await passwordStep('wrong-password');
+    expect(await screen.findByRole('alert')).toHaveTextContent('Sign-in failed');
+    expect(screen.queryByText(/Your session ended/)).not.toBeInTheDocument();
+    expect(screen.getByLabelText('Password')).toHaveValue('');
+
+    await passwordStep();
+    fireEvent.change(await screen.findByLabelText('Authentication code'), { target: { value: '000000' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Verify' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent('Sign-in failed');
+    expect(screen.queryByText(/Your session ended/)).not.toBeInTheDocument();
+    expect(screen.getByLabelText('Authentication code')).toHaveValue('');
+    expect(screen.queryByRole('button', { name: /^tickets/i })).not.toBeInTheDocument();
+  });
+
+  it('accepts a recovery code instead of the authenticator code', async () => {
+    render(<App />);
+    await passwordStep();
+    fireEvent.click(await screen.findByRole('button', { name: 'Use a recovery code' }));
+    fireEvent.change(await screen.findByLabelText('Recovery code'), { target: { value: 'AAAA-BBBB-CCCC-DDDD' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Verify' }));
+    await screen.findByRole('button', { name: /^tickets/i });
+  });
+
+  it('can go back from the second factor without keeping the challenge', async () => {
+    render(<App />);
+    await passwordStep();
+    await screen.findByLabelText('Authentication code');
+    fireEvent.click(screen.getByRole('button', { name: 'Back' }));
+    expect(await screen.findByLabelText('Email')).toBeInTheDocument();
+    expect(screen.queryByLabelText('Authentication code')).not.toBeInTheDocument();
+  });
+
+  it('enrols the authenticator and holds the app back until the recovery codes are acknowledged', async () => {
+    enrolled = false;
+    render(<App />);
+    await passwordStep();
+    expect(await screen.findByText('JBSW Y3DP EHPK 3PXP')).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText('Authentication code'), { target: { value: '123456' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Confirm and continue' }));
+
+    expect(await screen.findByText('AAAA-BBBB-CCCC-DDDD')).toBeInTheDocument();
+    expect(screen.getByText('EEEE-FFFF-GGGG-HHHH')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /^tickets/i })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'I have saved them' }));
+    await screen.findByRole('button', { name: /^tickets/i });
+    expect(screen.queryByText('AAAA-BBBB-CCCC-DDDD')).not.toBeInTheDocument();
+  });
+
+  it('keeps recovery codes and secrets out of browser storage', async () => {
+    enrolled = false;
+    render(<App />);
+    await passwordStep();
+    fireEvent.change(await screen.findByLabelText('Authentication code'), { target: { value: '123456' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Confirm and continue' }));
+    await screen.findByText('AAAA-BBBB-CCCC-DDDD');
+    expect(localStorage.length).toBe(0);
+    expect(sessionStorage.length).toBe(0);
+  });
+
+  it('offers neither Google nor a username login', async () => {
+    render(<App />);
+    await screen.findByLabelText('Email');
+    expect(screen.queryByText(/Google/i)).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('Username')).not.toBeInTheDocument();
+  });
+
+  it('signs out through the operator endpoint and returns to the password step', async () => {
+    authenticated = true;
+    render(<App />);
+    await screen.findByRole('button', { name: /^tickets/i });
+    fireEvent.click(screen.getByRole('button', { name: /sign out/i }));
+    expect(await screen.findByLabelText('Email')).toBeInTheDocument();
+    expect(fetchMock.mock.calls.some(([url]) => String(url) === '/api/frontdesk/auth/logout')).toBe(true);
+    expect(fetchMock.mock.calls.some(([url]) => String(url).includes('/users/logout'))).toBe(false);
   });
 });
