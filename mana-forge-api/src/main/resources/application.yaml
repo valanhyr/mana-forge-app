@@ -173,6 +173,12 @@ frontdesk:
   url: ${FRONTDESK_URL:}
   contact-tickets-enabled: ${FRONTDESK_CONTACT_TICKETS_ENABLED:true}
   email-template-collection: ${FRONTDESK_EMAIL_TEMPLATE_COLLECTION:email_templates}
+  # Base64 256-bit key for TOTP secrets. Empty keeps operator login disabled (fails closed).
+  totp:
+    key: ${FRONTDESK_TOTP_KEY:}
+  auth:
+    max-attempts: ${FRONTDESK_LOGIN_MAX_ATTEMPTS:5}
+    lock-minutes: ${FRONTDESK_LOCK_MINUTES:15}
 
 # LOGGING: Nivel de detalle
 logging:

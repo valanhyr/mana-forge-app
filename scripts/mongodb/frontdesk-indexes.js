@@ -16,3 +16,5 @@ db.users.createIndex({ newsletterSubscribed: 1, validated: 1, username: 1, _id: 
 db.users.createIndex({ newsletterTokenHash: 1 }, { name: "newsletter_unsubscribe_token", unique: true, partialFilterExpression: { newsletterTokenHash: { $type: "string" } } });
 db.newsletter_campaigns.createIndex({ createdAt: -1, _id: -1 }, { name: "newsletter_campaigns_recent" });
 db.email_deliveries.createIndex({ campaignId: 1, createdAt: -1 }, { name: "newsletter_campaign_deliveries" });
+db.frontdesk_operators.createIndex({ email: 1 }, { name: "frontdesk_operators_email", unique: true });
+db.frontdesk_login_challenges.createIndex({ expiresAt: 1 }, { name: "frontdesk_login_challenges_ttl", expireAfterSeconds: 0 });
