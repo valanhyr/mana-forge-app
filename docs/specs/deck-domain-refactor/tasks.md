@@ -33,3 +33,19 @@ con las anotaciones del DTO; no se ejecutó un POST real contra Spring.
 - Mazos ya guardados como públicos por el bug no se migran (requiere autorización aparte).
 - No se hizo F1 ni más allá.
 
+---
+
+# Tareas F1 (DRAFT, sin aprobar; no ejecutar)
+
+| Hecho | ID | Tarea | AC | Depende de |
+|---|---|---|---|---|
+| [ ] | T-06 | Aprobación explícita de spec y plan F1 + respuestas a decisiones pendientes | todos | - |
+| [ ] | T-07 | Tests de caracterización de sort/group/validación/payload | AC-06, AC-07, AC-11 | T-06 |
+| [ ] | T-08 | `DeckCard` a `core/models/Deck.ts` | AC-12 | T-07 |
+| [ ] | T-09 | Unificar `TYPE_ORDER`/`sortCards`/`groupByType` | AC-08 | T-07 |
+| [ ] | T-10 | `scryfallToDeckCard` (rojo `isGameChanger`) | AC-09 | T-08 |
+| [ ] | T-11 | `validateDeck` + `countByBoard` | AC-07 | T-08 |
+| [ ] | T-12 | `toSavePayload` + `toAnalysisPayload` | AC-11 | T-08 |
+| [ ] | T-13 | `computeManaCurve` (rojo exclusión de tierras) | AC-10 | T-09 |
+| [ ] | T-14 | Cobertura y validación final | AC-12, AC-13 | T-13 |
+
