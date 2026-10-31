@@ -694,7 +694,7 @@ const DeckViewer = () => {
                     </h2>
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 font-mono">
                       {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-                      {sortCards((deck as any).maybeboard, sortMode, sortDir).map((card, i) => (
+                      {sortCards<DeckCardEntry>((deck as any).maybeboard, sortMode, sortDir).map((card, i) => (
                         <div key={i} className="group relative">
                           {card.imageUris?.normal ? (
                             <img

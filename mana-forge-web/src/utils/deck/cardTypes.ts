@@ -1,4 +1,4 @@
-export const TYPE_ORDER = [
+export const TYPE_ORDER: string[] = [
   'Commander',
   'Planeswalker',
   'Creature',
@@ -9,7 +9,7 @@ export const TYPE_ORDER = [
   'Artifact',
   'Land',
   'Other',
-] as const;
+];
 
 export type SortMode = 'cmc' | 'alpha';
 export type SortDir = 'asc' | 'desc';

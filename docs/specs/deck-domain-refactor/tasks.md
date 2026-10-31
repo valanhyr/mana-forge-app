@@ -70,3 +70,34 @@ unitario (`revalidateCards`), pero no test de componente. Las desviaciones 1 y 2
 tests unitarios (`isGameChanger`, tierras fuera de la curva). `oracleId` no se rellena al añadir
 cartas (sin cambio de payload). Pendiente fuera de F1: F2 (trocear `DeckBuilder`, aún 1.537 líneas).
 
+---
+
+# Tareas F2 (aprobada por el usuario el 2026-10-31: "ok")
+
+Alcance acordado en el plan de origen: trocear `DeckBuilder.tsx` en hooks y componentes de
+composición, sin cambios de comportamiento ni de textos. Los tests de F0 y `utils/deck` son la red.
+
+| Hecho | ID | Tarea | AC |
+|---|---|---|---|
+| [x] | T-15 | Operaciones puras de la lista de cartas (`addCards`, `updateQuantity`, `moveCard`, `removeCard`, `setChosenImage`) con tests de caracterización | AC-14 |
+| [x] | T-16 | Hooks: `useDeckCards`, `useDeckLoader`, `useDeckImport`, `useDeckAnalysis`, `useDeckSave` | AC-14 |
+| [x] | T-17 | Componentes: `ConfigPanel`, `ViewToolbar`, `CardGrid` (spoiler main/side), `MaybeboardList`, `AnalysisModal`, `ImportModal`, `FloatingTotalsBar` | AC-15 |
+| [x] | T-18 | `DeckBuilder.tsx` < ~300 líneas, solo composición; tests, `tsc` y lint en verde | AC-16 |
+
+Criterios F2: AC-14 las operaciones de lista conservan su salida actual; AC-15 el bloque spoiler
+main/side y la barra flotante se desduplican sin cambiar el DOM observable; AC-16 `DeckBuilder.tsx`
+queda < ~300 líneas y la suite completa sigue en verde.
+
+## Evidencia F2 (2026-10-31, Windows)
+
+| Comprobación | Resultado |
+|---|---|
+| `npx vitest run` completo (web) | 74 archivos, 486 tests, todos pasan; `DeckBuilderBehavior.test.tsx` ampliado con test de bug #5 (revalidación al cambiar de formato) |
+| `npx tsc -p tsconfig.app.json --noEmit` | sin errores |
+| `npx eslint .` | sin salida de error |
+| `npx vite build` | OK |
+| `DeckBuilder.tsx` | 1.537 -> 298 líneas, solo composición |
+
+**Corrección de la evidencia F1:** `npx tsc --noEmit` no comprueba nada en este repo (`tsconfig.json` tiene `files: []` y solo referencias). La verificación real es `npx tsc -p tsconfig.app.json --noEmit` (o `tsc -b`, que usa `npm run build`). La afirmación F1 de "sin errores" con `tsc --noEmit` no era válida; con el comando correcto, F1 solo dejaba errores de tipo en `DeckViewer.tsx`, que F2 corrigió.
+
+Notas F2: los tests de `cardOps` y `deckView` se escribieron junto al código y se ejecutaron en verde; no se observó rojo previo por separado. `useDeckLoader` ahora entrega nombre, formato, cartas y puntuaciones de una vez tras hidratar las cartas (antes el nombre y formato se fijaban al llegar el mazo); el overlay de carga cubre el intervalo. Se eliminó la rama muerta del maybeboard (sin cambio observable). `AnalysisModal` usa `?.map` sobre `strengths`, `weaknesses` y `matchups` (opcionales en `DeckAnalysisResult`). El resto de la UI se conserva.

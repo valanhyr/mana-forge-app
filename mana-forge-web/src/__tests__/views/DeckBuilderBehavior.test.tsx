@@ -149,6 +149,25 @@ describe('DeckBuilder: importación, guardado y validación', () => {
     ]);
   });
 
+  it('revalidates imported cards when the format changes', async () => {
+    vi.mocked(CardService.batchSearch).mockResolvedValue({
+      'Old Card': { ...mountain, id: 'old', name: 'Old Card', legalities: { premodern: 'legal', commander: 'not_legal' } },
+    });
+    renderBuilder();
+    fireEvent.change(screen.getByPlaceholderText('Ej: Goblin Aggro'), {
+      target: { value: 'EDH' },
+    });
+    await selectFormat('Premodern');
+    await importList('1 Old Card');
+    await waitFor(() => expect(screen.queryByText('Importar Cartas')).not.toBeInTheDocument());
+    expect(screen.queryByText(/cartas no permitidas/i)).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByText('Premodern'));
+    fireEvent.click(await screen.findByText('Commander'));
+
+    expect(await screen.findByText(/cartas no permitidas/i)).toBeInTheDocument();
+  });
+
   it('commander format asks for 100 cards and a commander', async () => {
     renderBuilder();
     fireEvent.change(screen.getByPlaceholderText('Ej: Goblin Aggro'), {
