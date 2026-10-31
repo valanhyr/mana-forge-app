@@ -1,6 +1,6 @@
 # Spec: la IA debe ver al comandante (bug #3)
 
-- Estado: `draft`. **No aprobada.** Sin código de producción hasta aprobación explícita.
+- Estado: `in-progress`. Aprobada por el usuario el 2026-10-31 ("ok") con las decisiones propuestas.
 - Origen: bug #3 de `C:\Users\valan\.opencode\plan\deck-domain-refactor-plan.md`.
 
 ## Problema
@@ -58,4 +58,4 @@ ahí).
 
 ## Aprobación
 
-Pendiente.
+Aprobada el 2026-10-31. No cubre despliegue ni consumo de cuota de IA.

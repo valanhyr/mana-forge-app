@@ -62,7 +62,11 @@ export const toAnalysisPayload = (input: {
   locale: string;
   archetypes: string[];
 }) => ({
-  main_deck: toEntries(input.cards.filter((c) => c.board === 'main' || !c.board)),
+  // The engine expects the commander inside main_deck, listed first.
+  main_deck: toEntries([
+    ...input.cards.filter((c) => c.board === 'commander'),
+    ...input.cards.filter((c) => c.board === 'main' || !c.board),
+  ]),
   sideboard: toEntries(input.cards.filter((c) => c.board === 'side')),
   maybeboard: toEntries(input.cards.filter((c) => c.board === 'maybe')),
   format_name: input.format.name.en || input.format.scryfallKey,

@@ -92,9 +92,10 @@ describe('toAnalysisPayload', () => {
     card({ name: 'C', board: 'commander' }),
   ];
 
-  it('splits boards and drops commander from the main deck', () => {
+  it('puts the commander first in the main deck and keeps the other boards apart', () => {
     const p = toAnalysisPayload({ cards, format, locale: 'es', archetypes: [] });
     expect(p.main_deck).toEqual([
+      { name: 'C', quantity: 1 },
       { name: 'A', quantity: 4 },
       { name: 'B', quantity: 2 },
     ]);
@@ -103,6 +104,29 @@ describe('toAnalysisPayload', () => {
     expect(p.format_name).toBe('Premodern');
     expect(p.locale).toBe('es');
     expect(p.meta_archetypes).toBeUndefined();
+  });
+
+  it('is unchanged when the deck has no commander', () => {
+    const p = toAnalysisPayload({
+      cards: cards.filter((c) => c.board !== 'commander'),
+      format,
+      locale: 'en',
+      archetypes: [],
+    });
+    expect(p.main_deck).toEqual([
+      { name: 'A', quantity: 4 },
+      { name: 'B', quantity: 2 },
+    ]);
+  });
+
+  it('keeps several commanders (partners) ahead of the main deck', () => {
+    const p = toAnalysisPayload({
+      cards: [...cards, card({ name: 'C2', board: 'commander' })],
+      format,
+      locale: 'en',
+      archetypes: [],
+    });
+    expect(p.main_deck.map((c) => c.name)).toEqual(['C', 'C2', 'A', 'B']);
   });
 
   it('passes archetypes only when present and falls back to the scryfall key', () => {
