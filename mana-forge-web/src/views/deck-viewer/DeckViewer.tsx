@@ -28,61 +28,14 @@ import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
 import { useLanguage } from '../../services/LanguageContext';
 import { useTranslation } from '../../hooks/useTranslation';
+import { TYPE_ORDER, groupByType, sortCards, type SortDir, type SortMode } from '../../utils/deck/cardTypes';
 
 type GroupMode = 'type' | 'none';
-type SortMode = 'cmc' | 'alpha';
-type SortDir = 'asc' | 'desc';
 
-const sortCards = (cards: DeckCardEntry[], mode: SortMode, dir: SortDir) => {
-  const mul = dir === 'asc' ? 1 : -1;
-  const sorted = [...cards];
-  if (mode === 'alpha')
-    return sorted.sort((a, b) => mul * (a.name ?? '').localeCompare(b.name ?? ''));
-  return sorted.sort((a, b) => mul * ((a.cmc ?? 0) - (b.cmc ?? 0)));
-};
-
-const groupByType = (cards: DeckCardEntry[]) => {
-  const groups: Record<string, DeckCardEntry[]> = {};
-  for (const card of cards) {
-    // Check for commander
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    if ((card as any).category === 'commander') {
-      if (!groups['Commander']) groups['Commander'] = [];
-      groups['Commander'].push(card);
-      continue;
-    }
-
-    const typeLine = card.typeLine || '';
-    const mainType = typeLine.split('—')[0];
-
-    let type = 'Other';
-    if (mainType.includes('Creature')) type = 'Creature';
-    else if (mainType.includes('Planeswalker')) type = 'Planeswalker';
-    else if (mainType.includes('Battle')) type = 'Battle';
-    else if (mainType.includes('Instant')) type = 'Instant';
-    else if (mainType.includes('Sorcery')) type = 'Sorcery';
-    else if (mainType.includes('Enchantment')) type = 'Enchantment';
-    else if (mainType.includes('Artifact')) type = 'Artifact';
-    else if (mainType.includes('Land')) type = 'Land';
-
-    if (!groups[type]) groups[type] = [];
-    groups[type].push(card);
-  }
-  return groups;
-};
-
-const TYPE_ORDER = [
-  'Commander',
-  'Planeswalker',
-  'Creature',
-  'Battle',
-  'Instant',
-  'Sorcery',
-  'Enchantment',
-  'Artifact',
-  'Land',
-  'Other',
-];
+const readTypeInfo = (card: DeckCardEntry) => ({
+  typeLine: card.typeLine,
+  isCommander: (card as { category?: string }).category === 'commander',
+});
 
 const DeckViewer = () => {
   const { deckId } = useParams<{ deckId: string }>();
@@ -147,7 +100,7 @@ const DeckViewer = () => {
     );
   }
 
-  const typeGroups = groupByType(deck.mainDeck);
+  const typeGroups = groupByType(deck.mainDeck, readTypeInfo);
   const mainGroups: Record<string, DeckCardEntry[]> =
     groupMode === 'type'
       ? Object.fromEntries(

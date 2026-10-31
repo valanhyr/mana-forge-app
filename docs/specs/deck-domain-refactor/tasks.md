@@ -35,17 +35,38 @@ con las anotaciones del DTO; no se ejecutó un POST real contra Spring.
 
 ---
 
-# Tareas F1 (DRAFT, sin aprobar; no ejecutar)
+# Tareas F1 (aprobada por el usuario el 2026-10-31)
+
+Decisiones: (1) `DeckList` queda fuera de la unificación de `TYPE_ORDER` (aconsejado); (2) adaptador
+en el visor (`readTypeInfo`), `DeckCardEntry` se mantiene; (3) bug #5 corregido como desviación 3
+(`revalidateCards` al cambiar de formato).
 
 | Hecho | ID | Tarea | AC | Depende de |
 |---|---|---|---|---|
-| [ ] | T-06 | Aprobación explícita de spec y plan F1 + respuestas a decisiones pendientes | todos | - |
-| [ ] | T-07 | Tests de caracterización de sort/group/validación/payload | AC-06, AC-07, AC-11 | T-06 |
-| [ ] | T-08 | `DeckCard` a `core/models/Deck.ts` | AC-12 | T-07 |
-| [ ] | T-09 | Unificar `TYPE_ORDER`/`sortCards`/`groupByType` | AC-08 | T-07 |
-| [ ] | T-10 | `scryfallToDeckCard` (rojo `isGameChanger`) | AC-09 | T-08 |
-| [ ] | T-11 | `validateDeck` + `countByBoard` | AC-07 | T-08 |
-| [ ] | T-12 | `toSavePayload` + `toAnalysisPayload` | AC-11 | T-08 |
-| [ ] | T-13 | `computeManaCurve` (rojo exclusión de tierras) | AC-10 | T-09 |
-| [ ] | T-14 | Cobertura y validación final | AC-12, AC-13 | T-13 |
+| [x] | T-06 | Aprobación explícita de spec y plan F1 + decisiones | todos | - |
+| [x] | T-07 | Tests de caracterización de sort/group/validación/payload | AC-06, AC-07, AC-11 | T-06 |
+| [x] | T-08 | `DeckCard` a `core/models/Deck.ts` (`DeckList` lo reexporta) | AC-12 | T-07 |
+| [x] | T-09 | Unificar `TYPE_ORDER`/`sortCards`/`groupByType` (builder y visor) | AC-08 | T-07 |
+| [x] | T-10 | `scryfallToDeckCard` en los 4 caminos (`isGameChanger` ya en todos) | AC-09 | T-08 |
+| [x] | T-11 | `validateDeck` + `countByBoard` | AC-07 | T-08 |
+| [x] | T-12 | `toSavePayload` + `toAnalysisPayload` | AC-11 | T-08 |
+| [x] | T-13 | `computeManaCurve` (excluye tierras; usado por `ManaCurve` y `DeckStats`) | AC-10 | T-09 |
+| [x] | T-14 | Cobertura y validación final | AC-12, AC-13 | T-13 |
+
+## Evidencia F1 (2026-10-31, Windows)
+
+| Comprobación | Resultado |
+|---|---|
+| Rojo: `npx vitest run src/__tests__/unit/utils/deck` antes de implementar | 5 archivos fallan con `Failed to resolve import ".../utils/deck/<módulo>"` |
+| Un test de caracterización fallaba por mi suposición (copias en maybeboard) | Corregido el test para reflejar el código original: las copias cuentan todos los tableros |
+| Verde: mismo comando tras implementar | 68 tests pasan |
+| Cobertura `src/utils/deck/**` | 100% líneas, 95% ramas |
+| `npx vitest run` completo (web) | 70 archivos, 466 tests, todos pasan, incluido `DeckBuilderBehavior.test.tsx` sin modificar |
+| `npx tsc --noEmit`, `npx eslint` sobre archivos tocados | sin salida de error |
+
+Notas: los tests de `utils/deck` se escribieron antes que el código pero no se ejecutaron contra
+el código original embebido; son de caracterización por lectura. La desviación 3 (bug #5) tiene test
+unitario (`revalidateCards`), pero no test de componente. Las desviaciones 1 y 2 están cubiertas por
+tests unitarios (`isGameChanger`, tierras fuera de la curva). `oracleId` no se rellena al añadir
+cartas (sin cambio de payload). Pendiente fuera de F1: F2 (trocear `DeckBuilder`, aún 1.537 líneas).
 

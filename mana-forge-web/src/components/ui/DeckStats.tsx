@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
-import { type DeckCard } from './DeckList';
+import { type DeckCard } from '../../core/models/Deck';
+import { computeManaCurve } from '../../utils/deck/manaCurve';
 import { useTranslation } from '../../hooks/useTranslation';
 
 interface DeckStatsProps {
@@ -33,19 +34,10 @@ const DeckStats: React.FC<DeckStatsProps> = ({ cards }) => {
 
     // Mana curve — non-lands only
     const spells = mainCards.filter((c) => !c.type?.toLowerCase().includes('land'));
-    const curve = new Array(8).fill(0);
-    let totalCmc = 0;
-    let totalSpellQty = 0;
-
-    spells.forEach((c) => {
-      const idx = Math.min(Math.floor(c.cmc ?? 0), 7);
-      curve[idx] += c.quantity;
-      totalCmc += (c.cmc ?? 0) * c.quantity;
-      totalSpellQty += c.quantity;
-    });
-
-    const avgCmc = totalSpellQty > 0 ? totalCmc / totalSpellQty : 0;
-    const maxCurve = Math.max(...curve, 1);
+    const { curve, avgCmc, totalSpells: totalSpellQty, maxCount: maxCurve } = computeManaCurve(
+      mainCards,
+      7
+    );
 
     // Type distribution
     const typeGroups: Record<string, number> = {

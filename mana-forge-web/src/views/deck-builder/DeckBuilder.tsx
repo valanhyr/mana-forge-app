@@ -2,7 +2,8 @@ import { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import DropdownInput from '../../components/ui/DropdownInput';
 import SearchInput from '../../components/ui/SearchInput';
-import DeckList, { type DeckCard } from '../../components/ui/DeckList';
+import DeckList from '../../components/ui/DeckList';
+import { type DeckCard } from '../../core/models/Deck';
 import DeckStats from '../../components/ui/DeckStats';
 import { useToast } from '../../services/ToastContext';
 import {
@@ -34,62 +35,29 @@ import DeckProfileChart from '../../components/ui/DeckProfileChart';
 import { useUser } from '../../services/UserContext';
 import { useTranslation } from '../../hooks/useTranslation';
 import SEO from '../../components/ui/SEO';
-import { findInBatch, safeNested, safeNumber, safeString } from '../../utils/scryfallHelpers';
+import { findInBatch } from '../../utils/scryfallHelpers';
 import { parseDecklist, sanitizeDecklistText } from '../../utils/decklistParser';
+import {
+  TYPE_ORDER,
+  groupByType,
+  sortCards,
+  type SortDir,
+  type SortMode,
+} from '../../utils/deck/cardTypes';
+import { scryfallToDeckCard, revalidateCards } from '../../utils/deck/scryfallToDeckCard';
+import { validateDeck, isCommanderFormat as isCommanderFormatKey } from '../../utils/deck/validateDeck';
+import { toSavePayload, toAnalysisPayload } from '../../utils/deck/payloads';
 
-// Extendemos DeckCard localmente para incluir la imagen hasta que se actualice la definición base
+// Extendemos DeckCard localmente para incluir la imagen
 type DeckCardWithImage = DeckCard & { image: string };
 
 type ViewMode = 'list' | 'spoiler';
 type GroupMode = 'type' | 'none';
-type SortMode = 'cmc' | 'alpha';
-type SortDir = 'asc' | 'desc';
 
-const sortCards = (cards: DeckCardWithImage[], mode: SortMode, dir: SortDir) => {
-  const mul = dir === 'asc' ? 1 : -1;
-  const sorted = [...cards];
-  if (mode === 'alpha')
-    return sorted.sort((a, b) => mul * (a.name ?? '').localeCompare(b.name ?? ''));
-  return sorted.sort((a, b) => mul * ((a.cmc ?? 0) - (b.cmc ?? 0)));
-};
-
-const groupByType = (cards: DeckCardWithImage[]) => {
-  const groups: Record<string, DeckCardWithImage[]> = {};
-  for (const card of cards) {
-    if (card.board === 'commander') {
-      if (!groups['Commander']) groups['Commander'] = [];
-      groups['Commander'].push(card);
-      continue;
-    }
-
-    let type = 'Other';
-    if (card.type?.includes('Creature')) type = 'Creature';
-    else if (card.type?.includes('Planeswalker')) type = 'Planeswalker';
-    else if (card.type?.includes('Battle')) type = 'Battle';
-    else if (card.type?.includes('Instant')) type = 'Instant';
-    else if (card.type?.includes('Sorcery')) type = 'Sorcery';
-    else if (card.type?.includes('Enchantment')) type = 'Enchantment';
-    else if (card.type?.includes('Artifact')) type = 'Artifact';
-    else if (card.type?.includes('Land')) type = 'Land';
-
-    if (!groups[type]) groups[type] = [];
-    groups[type].push(card);
-  }
-  return groups;
-};
-
-const TYPE_ORDER = [
-  'Commander',
-  'Planeswalker',
-  'Creature',
-  'Battle',
-  'Instant',
-  'Sorcery',
-  'Enchantment',
-  'Artifact',
-  'Land',
-  'Other',
-];
+const readTypeInfo = (card: DeckCardWithImage) => ({
+  typeLine: card.type,
+  isCommander: card.board === 'commander',
+});
 
 // Small helpers to safely extract fields from unknown-shaped Scryfall responses
 // Shared with the homepage analysis section, see utils/scryfallHelpers.ts.
@@ -218,42 +186,20 @@ const DeckBuilder = () => {
 
             if (!cardData) throw new Error('Card data not found');
 
-            let isValid = true;
-            if (format) {
-              const formatKey = format.scryfallKey;
-              const legal = safeNested(cardData, ['legalities', formatKey]);
-              isValid = legal === 'legal' || legal === 'restricted';
-            }
-
             const boardVal = (entry.board as string) || 'main';
             type BoardType = 'main' | 'side' | 'commander' | 'maybe';
             const boardTyped = (['main', 'side', 'commander', 'maybe'] as const).includes(boardVal as BoardType)
               ? (boardVal as BoardType)
               : 'main';
 
-            const imageUrl = ((entry as Record<string, unknown>).chosenImageUrl as string | undefined)
-              || (safeNested(cardData, ['image_uris', 'normal']) as string | undefined)
-              || (safeNested(cardData, ['card_faces', '0', 'image_uris', 'normal']) as string | undefined)
-              || '';
-
-            return {
-              id: safeString(cardData, 'id'),
-              name: safeString(cardData, 'name'),
-              quantity: (entry.quantity as number) || 1,
-              manaCost: safeString(cardData, 'mana_cost'),
-              cmc: safeNumber(cardData, 'cmc'),
-              type: (safeString(cardData, 'type_line')?.split('—')[0]?.trim()) || 'Unknown',
-              price: parseFloat((safeNested(cardData, ['prices', 'eur']) as string) || '0'),
-              inCollection: false,
-              isValid: isValid,
+            return scryfallToDeckCard(cardData, {
+              formatKey: format?.scryfallKey,
               board: boardTyped,
-              isGameChanger: (safeNested(cardData, ['games_changer']) === true) || (safeNested(cardData, ['game_changer']) === true),
-              image: imageUrl,
-              // preserve chosen fields from deck entry
-              chosenPrintId: ((entry as Record<string, unknown>).chosenPrintId as string) || undefined,
-              // keep oracleId if present
-              oracleId: ((entry as Record<string, unknown>).oracleId as string) || undefined,
-            } as DeckCardWithImage;
+              quantity: (entry.quantity as number) || 1,
+              imageUrl: (entry.chosenImageUrl as string | undefined) || undefined,
+              chosenPrintId: (entry.chosenPrintId as string) || undefined,
+              oracleId: (entry.oracleId as string) || undefined,
+            }) as DeckCardWithImage;
             } catch (err) {
             console.error(`Error cargando carta ${((entry as Record<string, unknown>).scryfallId as string) || 'unknown'}:`, err);
             return null; // Retornamos null para filtrar después
@@ -291,13 +237,10 @@ const DeckBuilder = () => {
     // Guardamos el objeto formato completo para tener las restricciones disponibles
     const format = formats.find((f) => f.id === formatId) || null;
     setSelectedFormat(format);
+    setDeckCards((cards) => revalidateCards(cards, format?.scryfallKey));
   };
 
-  const isCommanderFormat = useMemo(() => {
-    if (!selectedFormat) return false;
-    const key = (selectedFormat.scryfallKey || '').toLowerCase();
-    return key === 'commander' || key === 'edh';
-  }, [selectedFormat]);
+  const isCommanderFormat = useMemo(() => isCommanderFormatKey(selectedFormat), [selectedFormat]);
 
   const formatOptions = formats.map((f) => ({
     value: f.id,
@@ -405,31 +348,13 @@ const DeckBuilder = () => {
 
     try {
       const cardData = await CardService.getCardByName(cardName);
+      if (!cardData) throw new Error(`Card not found: ${cardName}`);
 
-      // Validar legalidad si hay un formato seleccionado
-      let isValid = true;
-      if (selectedFormat) {
-        const formatKey = selectedFormat.scryfallKey;
-        // Scryfall devuelve legalities: { standard: "legal", commander: "not_legal", ... }
-        isValid =
-          cardData.legalities?.[formatKey] === 'legal' ||
-          cardData.legalities?.[formatKey] === 'restricted';
-      }
-
-      // Mapear respuesta de Scryfall a DeckCard
-      const newCard: DeckCardWithImage = {
-        id: cardData.id,
-        name: cardData.name,
+      const newCard = scryfallToDeckCard(cardData, {
+        formatKey: selectedFormat?.scryfallKey,
+        board: 'main',
         quantity: 1,
-        manaCost: cardData.mana_cost, // Nota: cartas de doble cara pueden requerir lógica extra aquí
-        cmc: cardData.cmc,
-        type: cardData.type_line?.split('—')[0]?.trim() || 'Unknown',
-        price: parseFloat(cardData.prices?.eur || '0'),
-        inCollection: false,
-        isValid: isValid,
-        board: 'main', // Por defecto al mazo principal
-        image: cardData.image_uris?.normal || cardData.card_faces?.[0]?.image_uris?.normal || '',
-      };
+      }) as DeckCardWithImage;
 
       addCardsToDeck([newCard]);
     } catch (error) {
@@ -459,33 +384,13 @@ const DeckBuilder = () => {
               continue;
             }
 
-            let isValid = true;
-            if (selectedFormat) {
-              const legal = safeNested(cardData, ['legalities', selectedFormat.scryfallKey]);
-              isValid = legal === 'legal' || legal === 'restricted';
-            }
-
-            const cardImage =
-              safeNested(cardData, ['image_uris', 'normal']) ||
-              safeNested(cardData, ['card_faces', '0', 'image_uris', 'normal']) ||
-              '';
-
-            cardsToProcess.push({
-              id: safeString(cardData, 'id'),
-              name: safeString(cardData, 'name'),
-              quantity: entry.quantity,
-              manaCost: safeString(cardData, 'mana_cost'),
-              cmc: safeNumber(cardData, 'cmc'),
-              type: (safeString(cardData, 'type_line')?.split('—')[0]?.trim()) || 'Unknown',
-              price: parseFloat((safeNested(cardData, ['prices', 'eur']) as string) || '0'),
-              inCollection: false,
-              isValid: isValid,
-              board: entry.board === 'side' ? 'side' : entry.board === 'maybe' ? 'maybe' : 'main',
-              isGameChanger:
-                (safeNested(cardData, ['games_changer']) === true) ||
-                (safeNested(cardData, ['game_changer']) === true),
-              image: cardImage as string,
-            });
+            cardsToProcess.push(
+              scryfallToDeckCard(cardData, {
+                formatKey: selectedFormat?.scryfallKey,
+                board: entry.board === 'side' ? 'side' : entry.board === 'maybe' ? 'maybe' : 'main',
+                quantity: entry.quantity,
+              }) as DeckCardWithImage
+            );
           }
     if (cardsToProcess.length > 0) {
       addCardsToDeck(cardsToProcess);
@@ -498,131 +403,24 @@ const DeckBuilder = () => {
   };
 
   // Validación del mazo en tiempo real
-  const isDeckValid = useMemo(() => {
-    if (!deckName.trim() || !selectedFormat) return false;
-
-    // Conteos por zona
-    const mainDeckCount = deckCards
-      .filter((c) => c.board === 'main' || !c.board)
-      .reduce((acc, c) => acc + c.quantity, 0);
-
-    const sideboardCount = deckCards
-      .filter((c) => c.board === 'side')
-      .reduce((acc, c) => acc + c.quantity, 0);
-
-    const commanderCount = deckCards
-      .filter((c) => c.board === 'commander')
-      .reduce((acc, c) => acc + c.quantity, 0);
-
-    void deckCards.filter((c) => c.board === 'maybe').reduce((acc, c) => acc + c.quantity, 0);
-
-    // Reglas específicas para Commander
-    if (isCommanderFormat) {
-      // Debe tener exactamente 100 cartas (Main + Commander)
-      if (mainDeckCount + commanderCount !== 100) return false;
-      // Debe tener al menos 1 comandante (y máximo 2 por Partner, aunque aquí simplificamos a >0)
-      if (commanderCount < 1) return false;
-      // No debe tener sideboard (aunque técnicamente es opcional en reglas caseras, en estricto es 0)
-      if (sideboardCount > 0) return false;
-    } else {
-      // Reglas estándar
-      // 1. Validar tamaño del Main Deck
-      if (mainDeckCount < selectedFormat.config.minMainDeck) return false;
-
-      // Validar tamaño máximo si existe
-      if (selectedFormat.config.maxMainDeck && mainDeckCount > selectedFormat.config.maxMainDeck)
-        return false;
-
-      // 2. Validar tamaño del Sideboard
-      if (sideboardCount > selectedFormat.config.maxSideboard) return false;
-    }
-
-    // 3. Validar legalidad de las cartas
-    if (deckCards.some((c) => c.isValid === false)) return false;
-
-    // 4. Validar límite de copias (excluyendo tierras básicas)
-    const cardCounts: Record<string, number> = {};
-    for (const c of deckCards) {
-      // Las tierras básicas suelen tener el tipo "Basic Land" o similar
-      if (!c.type.includes('Basic')) {
-        cardCounts[c.name] = (cardCounts[c.name] || 0) + c.quantity;
-      }
-    }
-
-    for (const count of Object.values(cardCounts)) {
-      if (count > selectedFormat.config.maxCopies) return false;
-    }
-
-    return true;
-  }, [deckName, selectedFormat, deckCards, isCommanderFormat]);
+  const validation = useMemo(
+    () => validateDeck({ name: deckName, format: selectedFormat, cards: deckCards }),
+    [deckName, selectedFormat, deckCards]
+  );
+  const isDeckValid = validation.isValid;
 
   // Razones por las que el mazo no es válido (para mostrar al usuario)
-  const deckValidationErrors = useMemo(() => {
-    const errors: string[] = [];
-    if (!deckName.trim()) {
-      errors.push(t('deckBuilder.validationNeedName'));
-      return errors;
-    }
-    if (!selectedFormat) {
-      errors.push(t('deckBuilder.validationNeedFormat'));
-      return errors;
-    }
-
-    const mainDeckCount = deckCards
-      .filter((c) => c.board === 'main' || !c.board)
-      .reduce((acc, c) => acc + c.quantity, 0);
-    const sideboardCount = deckCards
-      .filter((c) => c.board === 'side')
-      .reduce((acc, c) => acc + c.quantity, 0);
-    const commanderCount = deckCards
-      .filter((c) => c.board === 'commander')
-      .reduce((acc, c) => acc + c.quantity, 0);
-
-    if (isCommanderFormat) {
-      if (mainDeckCount + commanderCount !== 100)
-        errors.push(t('deckBuilder.validationCommander100'));
-      if (commanderCount < 1) errors.push(t('deckBuilder.validationCommanderNeeded'));
-      if (sideboardCount > 0) errors.push(t('deckBuilder.validationNoSideboardCommander'));
-    } else {
-      if (mainDeckCount < selectedFormat.config.minMainDeck)
-        errors.push(
-          t('deckBuilder.validationMinCards')
-            .replace('{min}', String(selectedFormat.config.minMainDeck))
-            .replace('{current}', String(mainDeckCount))
+  const deckValidationErrors = useMemo(
+    () =>
+      validation.errors.map((err) => {
+        const key = 'deckBuilder.validation' + err.code.charAt(0).toUpperCase() + err.code.slice(1);
+        return Object.entries(err.params ?? {}).reduce(
+          (text, [name, value]) => text.replace('{' + name + '}', String(value)),
+          t(key)
         );
-      if (selectedFormat.config.maxMainDeck && mainDeckCount > selectedFormat.config.maxMainDeck)
-        errors.push(
-          t('deckBuilder.validationMaxCards').replace(
-            '{max}',
-            String(selectedFormat.config.maxMainDeck)
-          )
-        );
-      if (sideboardCount > selectedFormat.config.maxSideboard)
-        errors.push(
-          t('deckBuilder.validationMaxSideboard').replace(
-            '{max}',
-            String(selectedFormat.config.maxSideboard)
-          )
-        );
-    }
-
-    if (deckCards.some((c) => c.isValid === false))
-      errors.push(t('deckBuilder.validationIllegalCards'));
-
-    const cardCounts: Record<string, number> = {};
-    for (const c of deckCards) {
-      if (!c.type.includes('Basic')) cardCounts[c.name] = (cardCounts[c.name] || 0) + c.quantity;
-    }
-    if (Object.values(cardCounts).some((n) => n > selectedFormat.config.maxCopies))
-      errors.push(
-        t('deckBuilder.validationMaxCopies').replace(
-          '{max}',
-          String(selectedFormat.config.maxCopies)
-        )
-      );
-
-    return errors;
-  }, [deckName, selectedFormat, deckCards, isCommanderFormat, t]);
+      }),
+    [validation, t]
+  );
 
   useEffect(() => {
     const observer = new IntersectionObserver(([entry]) => setIsFloating(!entry.isIntersecting), {
@@ -654,11 +452,13 @@ const DeckBuilder = () => {
           : deckScores ?? undefined;
 
       if (!scores) {
-        const mainDeck = deckCards
-          .filter((c) => c.board === 'main' || !c.board)
-          .map((c) => ({ name: c.name, quantity: c.quantity }));
         const scoreResult = await DeckService.getDeckScores({
-          main_deck: mainDeck,
+          main_deck: toAnalysisPayload({
+            cards: deckCards,
+            format: selectedFormat,
+            locale,
+            archetypes: [],
+          }).main_deck,
           format_name: selectedFormat.name.en || selectedFormat.scryfallKey,
           locale,
         });
@@ -666,32 +466,15 @@ const DeckBuilder = () => {
         setDeckScores(scores);
       }
 
-      const cacheBust = (url?: string | null) => {
-        if (!url) return undefined;
-        try {
-          const u = new URL(url);
-          u.searchParams.set('v', String(Date.now()));
-          return u.toString();
-        } catch {
-          // If it's not a full URL, append param safely
-          return url + (url.includes('?') ? '&' : '?') + 'v=' + Date.now();
-        }
-      };
-      const payload = {
+      const payload = toSavePayload({
         name: deckName,
-        formatId: selectedFormat.id,
+        format: selectedFormat,
         userId: user.userId,
-        isPrivate: isPrivate,
-        cards: deckCards.map((card) => ({
-        id: card.id,
-        oracleId: ((card as unknown) as Record<string, unknown>).oracleId as string | undefined,
-        quantity: card.quantity,
-        board: (card.board || 'main') as 'main' | 'side' | 'maybe',
-        chosenPrintId: ((card as unknown) as Record<string, unknown>).chosenPrintId as string | undefined,
-        chosenImageUrl: cacheBust(((card as unknown) as Record<string, unknown>).chosenImageUrl as string | undefined || (card.image || undefined)),
-        })),
-        analysisScores: scores,
-      };
+        isPrivate,
+        cards: deckCards,
+        scores,
+        cacheKey: Date.now(),
+      });
 
       if (deckId) {
         await DeckService.updateDeck(deckId, payload);
@@ -714,20 +497,12 @@ const DeckBuilder = () => {
     setIsAnalyzing(true);
 
     try {
-      const payload = {
-        main_deck: deckCards
-          .filter((c) => c.board === 'main' || !c.board)
-          .map((c) => ({ name: c.name, quantity: c.quantity })),
-        sideboard: deckCards
-          .filter((c) => c.board === 'side')
-          .map((c) => ({ name: c.name, quantity: c.quantity })),
-        maybeboard: deckCards
-          .filter((c) => c.board === 'maybe')
-          .map((c) => ({ name: c.name, quantity: c.quantity })),
-        format_name: selectedFormat.name.en || selectedFormat.scryfallKey,
-        locale: locale,
-        meta_archetypes: analysisArchetypes.length > 0 ? analysisArchetypes : undefined,
-      };
+      const payload = toAnalysisPayload({
+        cards: deckCards,
+        format: selectedFormat,
+        locale,
+        archetypes: analysisArchetypes,
+      });
 
       // La llamada ahora pasa por nuestra API de backend, que actúa como proxy
       const data = await DeckService.analyzeDeck(payload);
@@ -775,7 +550,7 @@ const DeckBuilder = () => {
     .reduce((s, c) => s + c.quantity, 0);
   const totalDeckPrice = deckCards.reduce((sum, c) => sum + (c.price ?? 0) * c.quantity, 0);
 
-  const mainTypeGroups = groupByType(mainDeckCards);
+  const mainTypeGroups = groupByType(mainDeckCards, readTypeInfo);
 
   const mainGroups: Record<string, DeckCardWithImage[]> =
     groupMode === 'type'
@@ -831,27 +606,11 @@ const DeckBuilder = () => {
   const handleAddSuggestionToBoard = async (cardName: string, board: 'main' | 'side' | 'maybe') => {
     try {
       const cardData = await CardService.getCardByName(cardName);
-      let isValid = true;
-      if (selectedFormat) {
-        const formatKey = selectedFormat.scryfallKey;
-        isValid =
-          cardData.legalities?.[formatKey] === 'legal' ||
-          cardData.legalities?.[formatKey] === 'restricted';
-      }
-      const newCard: DeckCardWithImage = {
-        id: cardData.id,
-        name: cardData.name,
-        quantity: 1,
-        manaCost: cardData.mana_cost,
-        cmc: cardData.cmc,
-        type: cardData.type_line?.split('—')[0]?.trim() || 'Unknown',
-        price: parseFloat(cardData.prices?.eur || '0'),
-        inCollection: false,
-        isValid: isValid,
+      const newCard = scryfallToDeckCard(cardData, {
+        formatKey: selectedFormat?.scryfallKey,
         board,
-        isGameChanger: cardData.games_changer === true || cardData.game_changer === true,
-        image: cardData.image_uris?.normal || cardData.card_faces?.[0]?.image_uris?.normal || '',
-      };
+        quantity: 1,
+      }) as DeckCardWithImage;
       addCardsToDeck([newCard]);
       setIsPreviewModalOpen(false);
       showToast(`${cardData.name} → ${board}`, 'success');
