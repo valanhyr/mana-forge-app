@@ -46,12 +46,13 @@ el cálculo de `likesCount`, y el modelo Mongo.
 - AC-06: El resto de campos y sus nombres JSON son idénticos a los actuales; `DeckFlowIntegrationTest` y
   los tests del frontend (`DeckService`, `useDeckLoader`) pasan sin cambios.
 
-## Decisiones pendientes
+## Decisiones (respondidas por el usuario el 2026-10-31)
 
-1. ¿`userId` solo para el dueño (AC-02) o se elimina siempre? El frontend no lo usa hoy.
-2. ¿Una DTO con `userId` nullable, o dos DTO (propia y pública)? Recomendado: una, con
-   `@JsonInclude(NON_NULL)`.
-3. Mazos ya consultados o cacheados por terceros no se pueden retirar; no hay migración de datos.
+1. `userId` solo para el dueño (AC-02).
+2. Una sola DTO con `userId` nullable y `@JsonInclude(NON_NULL)`.
+3. Aclaración, no decisión: lo que ya se sirvió antes del cambio (copias en caché de navegador o
+   intermediarios, o lo que alguien ya guardó) no se puede recuperar. El cambio solo protege las
+   respuestas futuras. No hay migración de datos.
 
 ## Aprobación
 
