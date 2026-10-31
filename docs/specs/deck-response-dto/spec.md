@@ -1,6 +1,6 @@
 # Spec: respuesta de mazos sin datos internos (S2)
 
-- Estado: `draft`. **No aprobada.** Sin código de producción hasta aprobación explícita del usuario.
+- Estado: `in-progress`. Aprobada por el usuario el 2026-10-31 ("si"), con las decisiones 1 y 2 respondidas.
 - Origen: bug #2 de `C:\Users\valan\.opencode\plan\deck-domain-refactor-plan.md`. Cambia un contrato
   público, por eso va en spec aparte.
 

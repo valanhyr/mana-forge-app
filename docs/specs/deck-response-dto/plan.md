@@ -1,6 +1,6 @@
 # Plan: respuesta de mazos sin datos internos (S2)
 
-- Estado: `draft`. Spec: [spec](spec.md). Sin aprobar.
+- Estado: `in-progress`. Spec: [spec](spec.md). Aprobado el 2026-10-31.
 
 ## Diseño
 
