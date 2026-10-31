@@ -129,6 +129,33 @@ export interface DeckSearchResult {
   cardArtUrl?: string; // Will be populated in the view/service
 }
 
+/** Mirrors the backend `Deck.DeckCardEntry` entity as it is serialized today. */
+export interface DeckCardEntryDto {
+  scryfallId: string;
+  oracleId?: string;
+  quantity: number;
+  board?: string;
+  gameChanger?: boolean;
+  chosenPrintId?: string;
+  chosenImageUrl?: string;
+}
+
+/** Mirrors the backend `Deck` entity as it is serialized today (Jackson drops the `is` prefix). */
+export interface DeckDto {
+  id: string;
+  name: string;
+  formatId: string;
+  userId?: string;
+  private: boolean;
+  pinned?: boolean;
+  colors?: string[];
+  cards: DeckCardEntryDto[] | null;
+  analysisScores?: Record<string, { value: number; key_cards: string[] }> | null;
+  createdAt?: string;
+  updatedAt?: string;
+  likesCount?: number;
+}
+
 // Esta interfaz coincide con el DeckRequestDTO en el backend
 interface DeckPayload {
   name: string;
@@ -175,21 +202,18 @@ export const DeckService = {
     }
   },
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  saveDeck: async (payload: DeckPayload): Promise<any> => {
-    const response = await api.post('/decks', payload);
+  saveDeck: async (payload: DeckPayload): Promise<DeckDto> => {
+    const response = await api.post<DeckDto>('/decks', payload);
     return response.data;
   },
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  updateDeck: async (id: string, payload: DeckPayload): Promise<any> => {
-    const response = await api.put(`/decks/${id}`, payload);
+  updateDeck: async (id: string, payload: DeckPayload): Promise<DeckDto> => {
+    const response = await api.put<DeckDto>(`/decks/${id}`, payload);
     return response.data;
   },
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  getDeckById: async (id: string): Promise<any> => {
-    const response = await api.get(`/decks/${id}`);
+  getDeckById: async (id: string): Promise<DeckDto> => {
+    const response = await api.get<DeckDto>(`/decks/${id}`);
     return response.data;
   },
 
@@ -246,9 +270,8 @@ export const DeckService = {
     return response.data;
   },
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  cloneDeck: async (deckId: string): Promise<any> => {
-    const response = await api.post(`/decks/${deckId}/clone`);
+  cloneDeck: async (deckId: string): Promise<DeckDto> => {
+    const response = await api.post<DeckDto>(`/decks/${deckId}/clone`);
     return response.data;
   },
 
@@ -256,15 +279,13 @@ export const DeckService = {
     await api.delete(`/decks/${deckId}`);
   },
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  pinDeck: async (deckId: string): Promise<any> => {
-    const response = await api.post(`/decks/${deckId}/pin`);
+  pinDeck: async (deckId: string): Promise<DeckDto> => {
+    const response = await api.post<DeckDto>(`/decks/${deckId}/pin`);
     return response.data;
   },
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  unpinDeck: async (deckId: string): Promise<any> => {
-    const response = await api.delete(`/decks/${deckId}/pin`);
+  unpinDeck: async (deckId: string): Promise<DeckDto> => {
+    const response = await api.delete<DeckDto>(`/decks/${deckId}/pin`);
     return response.data;
   },
 

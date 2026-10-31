@@ -54,6 +54,18 @@ describe('CardService', () => {
       expect(card.name).toBe(mockCard.name);
     });
 
+    it('cae a la busqueda general si la exacta responde con error HTTP', async () => {
+      server.use(
+        http.get(`${BASE}/cards/scryfall`, ({ request }) => {
+          const q = new URL(request.url).searchParams.get('q') ?? '';
+          if (q.startsWith('!"')) return new HttpResponse(null, { status: 500 });
+          return HttpResponse.json({ data: [mockCard] });
+        })
+      );
+      const card = await CardService.getCardByName('Bosque');
+      expect(card.name).toBe(mockCard.name);
+    });
+
     it('lanza error si no se encuentran resultados', async () => {
       server.use(http.get(`${BASE}/cards/scryfall`, () => HttpResponse.json({ data: [] })));
       await expect(CardService.getCardByName('XYZNonExistent')).rejects.toThrow();

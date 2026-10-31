@@ -24,7 +24,6 @@ export default defineConfig({
       exclude: [
         'src/main.tsx',
         'src/**/*.mock.*',
-        'src/api/apiClient.js',
         'src/__tests__/**',
         'src/core/models/**',
         'src/components/ui/CardGrid.tsx',
