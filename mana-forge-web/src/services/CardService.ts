@@ -1,15 +1,16 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { API_URL, api } from './api';
+import axios from 'axios';
+import { api } from './api';
 
 export const CardService = {
   autocomplete: async (query: string): Promise<string[]> => {
     if (query.length < 3) return [];
 
     try {
-      const response = await fetch(`${API_URL}/cards/autocomplete?q=${encodeURIComponent(query)}`);
-      if (!response.ok) return [];
-      const json: Record<string, any> = await response.json();
-      return json.data || [];
+      const response = await api.get<Record<string, any>>('/cards/autocomplete', {
+        params: { q: query },
+      });
+      return response.data.data || [];
     } catch (error) {
       console.error('Autocomplete error:', error);
       return [];
@@ -18,30 +19,29 @@ export const CardService = {
 
   getCardByName: async (name: string): Promise<Record<string, any>> => {
     try {
-      const exactQuery = `!"${name}"`;
-      const exactResponse = await fetch(
-        `${API_URL}/cards/scryfall?q=${encodeURIComponent(exactQuery)}`
-      );
-
-      if (exactResponse.ok) {
-        const exactResult: Record<string, any> = await exactResponse.json();
-        if (exactResult.data && exactResult.data.length > 0) {
-          return exactResult.data[0];
+      try {
+        const exact = await api.get<Record<string, any>>('/cards/scryfall', {
+          params: { q: `!"${name}"` },
+        });
+        if (exact.data.data && exact.data.data.length > 0) {
+          return exact.data.data[0];
         }
+      } catch (error) {
+        // An HTTP error on the exact query falls through to the general search;
+        // anything else (network failure) is a real error.
+        if (!axios.isAxiosError(error) || !error.response) throw error;
       }
 
       // 2. Si falla (ej. nombres en español "Bosque"), intentar búsqueda general
-      const response = await fetch(`${API_URL}/cards/scryfall?q=${encodeURIComponent(name)}`);
-      if (!response.ok) throw new Error('Card not found');
-
-      const result: Record<string, any> = await response.json();
+      const response = await api.get<Record<string, any>>('/cards/scryfall', {
+        params: { q: name },
+      });
 
       // El endpoint de búsqueda devuelve una lista, tomamos el primer resultado.
-      if (result.data && result.data.length > 0) {
-        return result.data[0];
-      } else {
-        throw new Error(`Card not found: ${name}`);
+      if (response.data.data && response.data.data.length > 0) {
+        return response.data.data[0];
       }
+      throw new Error(`Card not found: ${name}`);
     } catch (error) {
       console.error('GetCardByName error:', error);
       throw error;
@@ -50,9 +50,8 @@ export const CardService = {
 
   getCardById: async (id: string): Promise<Record<string, any>> => {
     try {
-      const response = await fetch(`${API_URL}/cards/scryfall/${id}`);
-      if (!response.ok) throw new Error('Card not found');
-      return await response.json();
+      const response = await api.get<Record<string, any>>(`/cards/scryfall/${id}`);
+      return response.data;
     } catch (error) {
       console.error('GetCardById error:', error);
       throw error;
@@ -67,11 +66,10 @@ export const CardService = {
    */
   getBannedcards: async (format: string): Promise<Record<string, any>> => {
     try {
-      const response = await fetch(`${API_URL}/cards/banned/${format}`);
-      if (!response.ok) throw new Error('Card not found');
-      return await response.json();
+      const response = await api.get<Record<string, any>>(`/cards/banned/${format}`);
+      return response.data;
     } catch (error) {
-      console.error('GetCardById error:', error);
+      console.error('GetBannedCards error:', error);
       throw error;
     }
   },
@@ -85,13 +83,10 @@ export const CardService = {
         const card = await CardService.getCardById(cardId);
         oid = card.oracle_id;
       }
-      const response = await fetch(`${API_URL}/cards/${cardId}/images`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ oracleId: oid }),
+      const response = await api.post<Record<string, any>>(`/cards/${cardId}/images`, {
+        oracleId: oid,
       });
-      if (!response.ok) throw new Error('Failed to fetch prints');
-      return await response.json();
+      return response.data;
     } catch (error) {
       console.error('getPrintsByOracleId error:', error);
       throw error;
@@ -121,5 +116,4 @@ export const CardService = {
       throw error;
     }
   },
-
 };

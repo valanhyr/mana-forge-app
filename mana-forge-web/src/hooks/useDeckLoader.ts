@@ -34,15 +34,14 @@ export const useDeckLoader = (
         const format = formats.find((f) => f.id === deck.formatId) || null;
 
         const hydrated = await Promise.all(
-          (deck.cards || []).map(async (entry: Record<string, unknown>) => {
+          (deck.cards || []).map(async (entry) => {
             try {
-              const scryfallId = entry.scryfallId as string | undefined;
-              const cardData = scryfallId
-                ? ((await CardService.getCardById(scryfallId)) as Record<string, unknown> | null)
+              const cardData = entry.scryfallId
+                ? ((await CardService.getCardById(entry.scryfallId)) as Record<string, unknown> | null)
                 : null;
               if (!cardData) throw new Error('Card data not found');
 
-              const boardValue = (entry.board as string) || 'main';
+              const boardValue = entry.board || 'main';
               const board = BOARDS.includes(boardValue as DeckBoard)
                 ? (boardValue as DeckBoard)
                 : 'main';
@@ -50,25 +49,24 @@ export const useDeckLoader = (
               return scryfallToDeckCard(cardData, {
                 formatKey: format?.scryfallKey,
                 board,
-                quantity: (entry.quantity as number) || 1,
-                imageUrl: (entry.chosenImageUrl as string | undefined) || undefined,
-                chosenPrintId: (entry.chosenPrintId as string) || undefined,
-                oracleId: (entry.oracleId as string) || undefined,
+                quantity: entry.quantity || 1,
+                imageUrl: entry.chosenImageUrl || undefined,
+                chosenPrintId: entry.chosenPrintId || undefined,
+                oracleId: entry.oracleId || undefined,
               });
             } catch (err) {
-              console.error(`Error cargando carta ${(entry.scryfallId as string) || 'unknown'}:`, err);
+              console.error(`Error cargando carta ${entry.scryfallId || 'unknown'}:`, err);
               return null;
             }
           })
         );
 
-        const raw = deck as unknown as Record<string, unknown>;
         onLoaded({
           name: deck.name,
           formatId: deck.formatId,
           format,
-          // Jackson serializa 'isPrivate' como 'private' por defecto
-          isPrivate: (raw.private as boolean) ?? (raw.isPrivate as boolean) ?? false,
+          // Jackson serializa 'isPrivate' como 'private'
+          isPrivate: deck.private ?? false,
           cards: hydrated.filter((c): c is DeckCard => c !== null),
           scores: deck.analysisScores ?? null,
         });

@@ -101,3 +101,22 @@ queda < ~300 líneas y la suite completa sigue en verde.
 **Corrección de la evidencia F1:** `npx tsc --noEmit` no comprueba nada en este repo (`tsconfig.json` tiene `files: []` y solo referencias). La verificación real es `npx tsc -p tsconfig.app.json --noEmit` (o `tsc -b`, que usa `npm run build`). La afirmación F1 de "sin errores" con `tsc --noEmit` no era válida; con el comando correcto, F1 solo dejaba errores de tipo en `DeckViewer.tsx`, que F2 corrigió.
 
 Notas F2: los tests de `cardOps` y `deckView` se escribieron junto al código y se ejecutaron en verde; no se observó rojo previo por separado. `useDeckLoader` ahora entrega nombre, formato, cartas y puntuaciones de una vez tras hidratar las cartas (antes el nombre y formato se fijaban al llegar el mazo); el overlay de carga cubre el intervalo. Se eliminó la rama muerta del maybeboard (sin cambio observable). `AnalysisModal` usa `?.map` sobre `strengths`, `weaknesses` y `matchups` (opcionales en `DeckAnalysisResult`). El resto de la UI se conserva.
+
+---
+
+# Tareas F3 (aprobada por el usuario el 2026-10-31: "ok", rama `refactor/deck-dtos` apilada sobre `refactor/deck-domain`)
+
+| Hecho | ID | Tarea |
+|---|---|---|
+| [x] | T-19 | `DeckDto` y `DeckCardEntryDto` en `DeckService.ts`; `saveDeck`, `updateDeck`, `getDeckById`, `cloneDeck`, `pinDeck` y `unpinDeck` dejan de devolver `any`; `useDeckLoader` sin casts |
+| [x] | T-20 | Borrar `src/api/` (sin importadores) y su línea en `vite.config.ts` |
+| [x] | T-21 | `CardService` de `fetch` a la instancia `axios` `api` |
+
+## Evidencia F3 (2026-10-31, Windows)
+
+| Comprobación | Resultado |
+|---|---|
+| `npx vitest run` completo (web) | 74 archivos, 486 tests pasan antes del test nuevo; `CardService.test.ts` con el test nuevo: 18 pasan |
+| `npx tsc -p tsconfig.app.json --noEmit`, `npx eslint .`, `npx vite build` | limpios |
+
+Notas: los tests de `CardService` usan MSW, así que cubren `axios` sin cambios; se añadió un test para que un error HTTP en la consulta exacta de `getCardByName` caiga a la búsqueda general (un fallo de red sigue lanzando). Las peticiones de `CardService` ahora envían `Accept-Language` y `withCredentials` (interceptor de `api`); CORS de `SecurityConfig` los permite. `DeckDto` refleja el contrato actual, incluido `private` y `pinned`, sin cambiarlo (bug #2 sigue abierto). `useDeckLoader` ya no lee la clave `isPrivate`, solo `private`. `UserContext` y `AuthService.getUserDecks` siguen con `any`: fuera de este tramo.
