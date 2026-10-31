@@ -1,10 +1,10 @@
 package com.manaforge.api.controller;
 
 import com.manaforge.api.dto.DeckRequestDTO;
+import com.manaforge.api.dto.DeckResponseDTO;
 import com.manaforge.api.dto.DeckSearchResultDTO;
 import com.manaforge.api.dto.DeckViewDTO;
 import com.manaforge.api.dto.FeaturedDeckDTO;
-import com.manaforge.api.model.mongo.Deck;
 import com.manaforge.api.repository.UserRepository;
 import com.manaforge.api.service.AiQuotaService;
 import com.manaforge.api.service.DeckService;
@@ -173,18 +173,18 @@ public class DeckController {
     
 
     @PostMapping
-    public ResponseEntity<Deck> saveDeck(@RequestBody DeckRequestDTO dto) {
+    public ResponseEntity<DeckResponseDTO> saveDeck(@RequestBody DeckRequestDTO dto) {
         String userId = getCurrentUserId();
         if (userId == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        return ResponseEntity.ok(deckService.saveDeck(dto, userId));
+        return ResponseEntity.ok(DeckResponseDTO.from(deckService.saveDeck(dto, userId), userId));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Deck> updateDeck(@PathVariable String id, @RequestBody DeckRequestDTO dto) {
+    public ResponseEntity<DeckResponseDTO> updateDeck(@PathVariable String id, @RequestBody DeckRequestDTO dto) {
         String userId = getCurrentUserId();
         if (userId == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         try {
-            return ResponseEntity.ok(deckService.updateDeck(id, dto, userId));
+            return ResponseEntity.ok(DeckResponseDTO.from(deckService.updateDeck(id, dto, userId), userId));
         } catch (RuntimeException e) {
             if (e.getMessage().contains("Forbidden")) return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
             return ResponseEntity.notFound().build();
@@ -192,9 +192,10 @@ public class DeckController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Deck> getDeckById(@PathVariable String id) {
+    public ResponseEntity<DeckResponseDTO> getDeckById(@PathVariable String id) {
+        String requesterId = getCurrentUserId();
         try {
-            return ResponseEntity.ok(deckService.getDeckById(id, getCurrentUserId()));
+            return ResponseEntity.ok(DeckResponseDTO.from(deckService.getDeckById(id, requesterId), requesterId));
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }
@@ -212,8 +213,11 @@ public class DeckController {
     }
 
     @GetMapping("/user/{userId}")
-    public ResponseEntity<List<Deck>> getDecksByUser(@PathVariable String userId) {
-        return ResponseEntity.ok(deckService.getDecksByUser(userId, getCurrentUserId()));
+    public ResponseEntity<List<DeckResponseDTO>> getDecksByUser(@PathVariable String userId) {
+        String requesterId = getCurrentUserId();
+        return ResponseEntity.ok(deckService.getDecksByUser(userId, requesterId).stream()
+                .map(deck -> DeckResponseDTO.from(deck, requesterId))
+                .toList());
     }
 
     @PostMapping("/scores")
@@ -259,11 +263,11 @@ public class DeckController {
     }
 
     @PostMapping("/{id}/clone")
-    public ResponseEntity<Deck> cloneDeck(@PathVariable String id) {
+    public ResponseEntity<DeckResponseDTO> cloneDeck(@PathVariable String id) {
         String userId = getCurrentUserId();
         if (userId == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         try {
-            return ResponseEntity.ok(deckService.cloneDeck(id, userId));
+            return ResponseEntity.ok(DeckResponseDTO.from(deckService.cloneDeck(id, userId), userId));
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }
@@ -288,11 +292,11 @@ public class DeckController {
     }
 
     @PostMapping("/{id}/pin")
-    public ResponseEntity<Deck> pinDeck(@PathVariable String id) {
+    public ResponseEntity<DeckResponseDTO> pinDeck(@PathVariable String id) {
         String userId = getCurrentUserId();
         if (userId == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         try {
-            return ResponseEntity.ok(deckService.pinDeck(id, userId));
+            return ResponseEntity.ok(DeckResponseDTO.from(deckService.pinDeck(id, userId), userId));
         } catch (RuntimeException e) {
             if (e.getMessage().contains("Forbidden")) return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
             return ResponseEntity.notFound().build();
@@ -300,11 +304,11 @@ public class DeckController {
     }
 
     @DeleteMapping("/{id}/pin")
-    public ResponseEntity<Deck> unpinDeck(@PathVariable String id) {
+    public ResponseEntity<DeckResponseDTO> unpinDeck(@PathVariable String id) {
         String userId = getCurrentUserId();
         if (userId == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         try {
-            return ResponseEntity.ok(deckService.unpinDeck(id, userId));
+            return ResponseEntity.ok(DeckResponseDTO.from(deckService.unpinDeck(id, userId), userId));
         } catch (RuntimeException e) {
             if (e.getMessage().contains("Forbidden")) return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
             return ResponseEntity.notFound().build();

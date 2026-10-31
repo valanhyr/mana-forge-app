@@ -160,6 +160,52 @@ class DeckControllerTest {
     }
 
     @Test
+    void getDeckById_publicDeck_hidesLikedByAndOwnerIdFromAnonymous() throws Exception {
+        Deck deck = new Deck();
+        deck.setId("deck1");
+        deck.setUserId("owner");
+        deck.setCards(List.of());
+        deck.setLikedBy(Set.of("u2"));
+        when(deckService.getDeckById(eq("deck1"), any())).thenReturn(deck);
+
+        mockMvc.perform(get("/api/decks/deck1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.likedBy").doesNotExist())
+                .andExpect(jsonPath("$.userId").doesNotExist());
+    }
+
+    @Test
+    void getDeckById_owner_seesUserIdButNotLikedBy() throws Exception {
+        Deck deck = new Deck();
+        deck.setId("deck1");
+        deck.setUserId("user1");
+        deck.setCards(List.of());
+        deck.setLikedBy(Set.of("u2"));
+        when(deckService.getDeckById(eq("deck1"), eq("user1"))).thenReturn(deck);
+
+        mockMvc.perform(get("/api/decks/deck1").with(authentication(mockAuth())))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.userId").value("user1"))
+                .andExpect(jsonPath("$.likedBy").doesNotExist());
+    }
+
+    @Test
+    void getDecksByUser_appliesTheSameFieldsToEveryDeck() throws Exception {
+        Deck deck = new Deck();
+        deck.setId("deck1");
+        deck.setUserId("owner");
+        deck.setCards(List.of());
+        deck.setLikedBy(Set.of("u2"));
+        when(deckService.getDecksByUser(eq("owner"), any())).thenReturn(List.of(deck));
+
+        mockMvc.perform(get("/api/decks/user/owner"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").value("deck1"))
+                .andExpect(jsonPath("$[0].likedBy").doesNotExist())
+                .andExpect(jsonPath("$[0].userId").doesNotExist());
+    }
+
+    @Test
     void getDeckById_notFound_returns404() throws Exception {
         when(deckService.getDeckById(eq("missing"), any())).thenThrow(new RuntimeException("Deck not found"));
 
