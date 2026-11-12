@@ -25,6 +25,8 @@ import { type Article } from '../../core/models/Article';
 import ManaCost from '../../components/ui/ManaCost';
 import SEO from '../../components/ui/SEO';
 import DeckAnalyzerSection from '../../components/home/DeckAnalyzerSection';
+import FaqSection from '../../components/home/FaqSection';
+import { FaqService } from '../../services/FaqService';
 import { useUser } from '../../services/UserContext';
 import { useToast } from '../../services/ToastContext';
 
@@ -565,6 +567,12 @@ const Dashboard = () => {
           ))}
         </div>
       </section>
+
+      <FaqSection
+        topics={FaqService.getTopics(locale)}
+        title={t('faq.title')}
+        topicsLabel={t('faq.topics')}
+      />
 
       {/* --- Modal del Mazo del Día --- */}
       {isModalOpen && dailyDeck && (

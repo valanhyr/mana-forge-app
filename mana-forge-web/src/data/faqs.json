@@ -1,0 +1,184 @@
+{
+  "es": [
+    {
+      "id": "general",
+      "title": "Primeros pasos",
+      "questions": [
+        {
+          "id": "what-can-i-do",
+          "question": "¿Qué puedo hacer en Mana Forge?",
+          "answer": "Puedes explorar formatos y mazos de la comunidad, construir tus propios mazos y utilizar la IA para analizarlos. En la página de inicio también encontrarás noticias y mazos destacados."
+        },
+        {
+          "id": "need-account",
+          "question": "¿Necesito una cuenta para usar Mana Forge?",
+          "answer": "Puedes explorar mazos y probar el análisis de IA desde la página de inicio sin registrarte. Para crear y guardar mazos, gestionar amistades o enviar mensajes necesitas iniciar sesión."
+        }
+      ]
+    },
+    {
+      "id": "deck-analysis",
+      "title": "Análisis con IA",
+      "questions": [
+        {
+          "id": "try-analysis",
+          "question": "¿Cómo analizo mi mazo con IA?",
+          "answer": "En la página de inicio, pega tu lista en la sección de análisis, elige un formato y pulsa «Analizar mi mazo». El mazo principal debe contener al menos 40 cartas. Si usas la herramienta sin iniciar sesión, es posible que debas completar una verificación de seguridad."
+        },
+        {
+          "id": "list-format",
+          "question": "¿Cómo debo escribir la lista de cartas?",
+          "answer": "Escribe una carta por línea, con la cantidad delante del nombre, por ejemplo: «4 Lightning Bolt». Para separar el banquillo, añade una línea con «Sideboard» antes de sus cartas."
+        },
+        {
+          "id": "analysis-limits",
+          "question": "¿Hay un límite de análisis?",
+          "answer": "El análisis puede tener una cuota diaria tanto para visitantes como para usuarios registrados; los límites dependen de la configuración. Cuando esté disponible, la sección de análisis muestra los usos restantes y cuándo se renueva la cuota."
+        },
+        {
+          "id": "analysis-results",
+          "question": "¿Qué información proporciona el análisis?",
+          "answer": "Puede incluir un resumen, puntos fuertes y débiles, enfrentamientos y sugerencias de cambios. Las respuestas de IA pueden contener errores: revisa las recomendaciones y la legalidad de las cartas antes de utilizarlas."
+        }
+      ]
+    },
+    {
+      "id": "decks",
+      "title": "Mazos",
+      "questions": [
+        {
+          "id": "create-save",
+          "question": "¿Cómo creo y guardo un mazo?",
+          "answer": "Inicia sesión y abre «Forja de Mazo». Elige un formato, ponle nombre y añade cartas. Cuando el mazo cumpla las comprobaciones del formato, podrás guardarlo y encontrarlo en «Mis Mazos»."
+        },
+        {
+          "id": "import-list",
+          "question": "¿Puedo importar una lista de cartas?",
+          "answer": "Sí. En la Forja de Mazo, selecciona «Importar lista de cartas» y pega tu lista en texto. Se buscarán las cartas y se mostrarán las que no se hayan encontrado."
+        },
+        {
+          "id": "save-validation",
+          "question": "¿Por qué no puedo guardar mi mazo?",
+          "answer": "Comprueba que tenga nombre y formato, y revisa los avisos del constructor. Entre las comprobaciones están el tamaño del mazo y del banquillo, la legalidad de las cartas y los límites de copias del formato."
+        },
+        {
+          "id": "explore-clone",
+          "question": "¿Cómo encuentro y copio mazos de la comunidad?",
+          "answer": "En «Explorador» puedes buscar mazos públicos por nombre o formato. Al abrir uno puedes copiar su lista; si has iniciado sesión, también puedes duplicarlo para editar tu propia copia."
+        }
+      ]
+    },
+    {
+      "id": "account-community",
+      "title": "Cuenta y comunidad",
+      "questions": [
+        {
+          "id": "create-account",
+          "question": "¿Cómo creo una cuenta?",
+          "answer": "Abre «Iniciar Sesión» y elige «Registrarse» para crear una cuenta con usuario, nombre visible, correo y contraseña. Después debes verificar el correo con el enlace recibido antes de entrar. También puedes continuar con Google."
+        },
+        {
+          "id": "friends-messages",
+          "question": "¿Cómo añado amistades y envío mensajes?",
+          "answer": "Con la sesión iniciada, abre «Mis Amigos», busca a una persona y envíale una solicitud. Una vez aceptada, podréis conversar desde «Mensajes»."
+        },
+        {
+          "id": "contact-support",
+          "question": "¿Cómo puedo pedir ayuda o contactar con el equipo?",
+          "answer": "Puedes usar el formulario «Contacto» del pie de página sin iniciar sesión. Si tienes una cuenta verificada, también puedes abrir una consulta y seguir la conversación desde «Mensajes» > «Soporte»."
+        }
+      ]
+    }
+  ],
+  "en": [
+    {
+      "id": "general",
+      "title": "Getting started",
+      "questions": [
+        {
+          "id": "what-can-i-do",
+          "question": "What can I do in Mana Forge?",
+          "answer": "You can explore formats and community decks, build your own decks, and use AI to analyze them. The home page also features news and highlighted decks."
+        },
+        {
+          "id": "need-account",
+          "question": "Do I need an account to use Mana Forge?",
+          "answer": "You can explore decks and try the AI analysis on the home page without signing up. You need to sign in to create and save decks, manage friends, or send messages."
+        }
+      ]
+    },
+    {
+      "id": "deck-analysis",
+      "title": "AI analysis",
+      "questions": [
+        {
+          "id": "try-analysis",
+          "question": "How do I analyze my deck with AI?",
+          "answer": "On the home page, paste your decklist into the analysis section, choose a format, and click ‘Analyze my deck’. The main deck must contain at least 40 cards. If you use the tool without signing in, you may need to complete a security check."
+        },
+        {
+          "id": "list-format",
+          "question": "How should I format my decklist?",
+          "answer": "Enter one card per line, with the quantity before its name, for example: ‘4 Lightning Bolt’. To separate your sideboard, add a line containing ‘Sideboard’ before its cards."
+        },
+        {
+          "id": "analysis-limits",
+          "question": "Is there a limit on analyses?",
+          "answer": "Analysis may have a daily quota for both visitors and signed-in users; limits depend on the configuration. When available, the analysis section shows your remaining uses and when the quota resets."
+        },
+        {
+          "id": "analysis-results",
+          "question": "What information does the analysis provide?",
+          "answer": "It can include a summary, strengths and weaknesses, matchups, and suggested changes. AI responses can contain errors, so review the recommendations and card legality before using them."
+        }
+      ]
+    },
+    {
+      "id": "decks",
+      "title": "Decks",
+      "questions": [
+        {
+          "id": "create-save",
+          "question": "How do I create and save a deck?",
+          "answer": "Sign in and open ‘Deck Forge’. Choose a format, give your deck a name, and add cards. Once the deck passes the format checks, you can save it and find it under ‘My Decks’."
+        },
+        {
+          "id": "import-list",
+          "question": "Can I import a decklist?",
+          "answer": "Yes. In Deck Forge, select ‘Import card list’ and paste your list as text. The cards will be looked up, and any that could not be found will be shown."
+        },
+        {
+          "id": "save-validation",
+          "question": "Why can't I save my deck?",
+          "answer": "Check that it has a name and format, and review the builder's warnings. Checks include main deck and sideboard size, card legality, and the format's copy limits."
+        },
+        {
+          "id": "explore-clone",
+          "question": "How do I find and copy community decks?",
+          "answer": "In ‘Explorer’ you can search public decks by name or format. Open a deck to copy its list; if you are signed in, you can also clone it and edit your own copy."
+        }
+      ]
+    },
+    {
+      "id": "account-community",
+      "title": "Account and community",
+      "questions": [
+        {
+          "id": "create-account",
+          "question": "How do I create an account?",
+          "answer": "Open ‘Log in’ and choose ‘Sign up’ to create an account with a username, display name, email address, and password. You must then verify your email using the link you receive before signing in. You can also continue with Google."
+        },
+        {
+          "id": "friends-messages",
+          "question": "How do I add friends and send messages?",
+          "answer": "Once signed in, open ‘My Friends’, search for a person, and send a friend request. Once it is accepted, you can chat under ‘Messages’."
+        },
+        {
+          "id": "contact-support",
+          "question": "How can I get help or contact the team?",
+          "answer": "You can use the ‘Contact’ form in the footer without signing in. If you have a verified account, you can also open a request and follow the conversation under ‘Messages’ > ‘Support’."
+        }
+      ]
+    }
+  ]
+}

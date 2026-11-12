@@ -394,6 +394,10 @@
       "moveToMaybeboard": "Mover a Consideradas",
       "chooseImage": "Elegir imagen"
     },
+    "faq": {
+      "title": "Preguntas frecuentes",
+      "topics": "Temas de preguntas frecuentes"
+    },
     "footer": {
       "description": "La herramienta definitiva de construcción y análisis de mazos de Magic: The Gathering potenciada por IA. Forja tu estrategia ganadora.",
       "product": "Producto",
@@ -1045,6 +1049,10 @@
       "moveToSideboard": "Move to Sideboard",
       "moveToMaybeboard": "Move to Maybeboard",
       "chooseImage": "Choose image"
+    },
+    "faq": {
+      "title": "Frequently asked questions",
+      "topics": "Frequently asked question topics"
     },
     "footer": {
       "description": "The ultimate AI-powered Magic: The Gathering deck building and analysis tool. Forge your winning strategy.",
