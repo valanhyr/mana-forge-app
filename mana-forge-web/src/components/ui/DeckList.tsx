@@ -16,25 +16,13 @@ import {
 } from 'lucide-react';
 import ManaCost from './ManaCost';
 import { useTranslation } from '../../hooks/useTranslation';
+import type { DeckCard } from '../../core/models/Deck';
 
 type SortMode = 'cmc' | 'alpha';
 type SortDir = 'asc' | 'desc';
 type GroupMode = 'type' | 'none';
 
-export interface DeckCard {
-  id: string;
-  name: string;
-  quantity: number;
-  manaCost?: string;
-  cmc?: number;
-  type: string;
-  price?: number;
-  inCollection?: boolean;
-  isValid?: boolean;
-  board?: 'main' | 'side' | 'commander' | 'maybe';
-  isGameChanger?: boolean;
-  image?: string;
-}
+export type { DeckCard };
 
 interface DeckListProps {
   cards: DeckCard[];

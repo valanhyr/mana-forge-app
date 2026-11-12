@@ -1,30 +1,14 @@
-interface CurveEntry {
-  cmc?: number | null;
-  quantity: number;
-}
+import { computeManaCurve, type CurveCard } from '../../utils/deck/manaCurve';
 
 interface ManaCurveProps {
-  cards: CurveEntry[];
-}
-
-const BUCKETS = [0, 1, 2, 3, 4, 5, 6];
-const BUCKET_LABEL = ['0', '1', '2', '3', '4', '5', '6+'];
-
-interface ManaCurveProps {
-  cards: CurveEntry[];
+  cards: CurveCard[];
   className?: string;
 }
 
-const ManaCurve = ({ cards, className = '' }: ManaCurveProps) => {
-  const counts = BUCKETS.map((cmc) => {
-    const bucket =
-      cmc === 6
-        ? cards.filter((c) => (c.cmc ?? 0) >= 6)
-        : cards.filter((c) => Math.floor(c.cmc ?? 0) === cmc);
-    return bucket.reduce((s, c) => s + c.quantity, 0);
-  });
+const BUCKET_LABEL = ['0', '1', '2', '3', '4', '5', '6+'];
 
-  const max = Math.max(...counts, 1);
+const ManaCurve = ({ cards, className = '' }: ManaCurveProps) => {
+  const { curve: counts, maxCount: max } = computeManaCurve(cards, 6);
 
   return (
     <div className={`bg-zinc-900 border border-zinc-800 rounded-xl p-4 flex flex-col ${className}`}>
