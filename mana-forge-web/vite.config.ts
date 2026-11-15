@@ -28,7 +28,6 @@ export default defineConfig({
         'src/__tests__/**',
         'src/core/models/**',
         'src/components/ui/CardGrid.tsx',
-        'src/components/ui/CookieConsent.tsx',
         'src/components/ui/DeckList.tsx',
         'src/components/ui/DeckTable.tsx',
         'src/components/ui/FeedbackModal.tsx',

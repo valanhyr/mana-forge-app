@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import FaqSection from '../../../components/home/FaqSection';
@@ -50,5 +50,22 @@ describe('FaqSection', () => {
       'false'
     );
     expect(screen.queryByText('Answer two')).not.toBeInTheDocument();
+  });
+
+  it('reports openings, not closing or changing tabs, using stable codes', async () => {
+    const user = userEvent.setup();
+    const onOpen = vi.fn();
+    render(<FaqSection topics={[first, second]} title="FAQ" topicsLabel="Topics" onOpen={onOpen} />);
+
+    const firstQuestion = screen.getByRole('button', { name: 'Question one' });
+    await user.click(firstQuestion);
+    expect(onOpen).toHaveBeenCalledExactlyOnceWith('one', 'question');
+    await user.click(firstQuestion);
+    await user.click(screen.getByRole('tab', { name: 'Topic two' }));
+    expect(onOpen).toHaveBeenCalledTimes(1);
+    screen.getByRole('button', { name: 'Question two' }).focus();
+    await user.keyboard('{Enter}');
+    expect(onOpen).toHaveBeenLastCalledWith('two', 'question');
+    expect(onOpen).toHaveBeenCalledTimes(2);
   });
 });

@@ -16,6 +16,7 @@ import AnalysisQuotaSummary from '../ui/AnalysisQuotaSummary';
 import { useUser } from '../../services/UserContext';
 import { useToast } from '../../services/ToastContext';
 import { useTranslation } from '../../hooks/useTranslation';
+import { analyticsUserType, trackAnalysisStarted, trackAnalysisFinished } from '../../services/AnalyticsService';
 import {
   buildAnalysisPayload,
   countCards,
@@ -47,7 +48,7 @@ const MIN_MAIN_DECK = 40;
 
 const DeckAnalyzerSection: React.FC<DeckAnalyzerSectionProps> = ({ formats }) => {
   const { t, locale } = useTranslation();
-  const { isAuthenticated } = useUser();
+  const { isAuthenticated, isSessionLoading } = useUser();
   const { showToast } = useToast();
 
   const [deckText, setDeckText] = useState('');
@@ -86,6 +87,8 @@ const DeckAnalyzerSection: React.FC<DeckAnalyzerSectionProps> = ({ formats }) =>
   const handleAnalyze = useCallback(async () => {
     if (!selectedFormat || isAnalyzing) return;
 
+    const userType = analyticsUserType(isSessionLoading, isAuthenticated);
+    let analysisPending = false;
     setIsAnalyzing(true);
     setUnresolved([]);
     try {
@@ -106,7 +109,11 @@ const DeckAnalyzerSection: React.FC<DeckAnalyzerSectionProps> = ({ formats }) =>
         locale,
       });
 
+      trackAnalysisStarted(userType, 'home');
+      analysisPending = true;
       const analysis = await DeckService.analyzeDeck(payload, turnstileToken || undefined);
+      analysisPending = false;
+      trackAnalysisFinished(userType, 'home', analysis);
 
       if (analysis.quota) setQuota(analysis.quota);
       setUnresolved(missing);
@@ -119,6 +126,7 @@ const DeckAnalyzerSection: React.FC<DeckAnalyzerSectionProps> = ({ formats }) =>
       setResult(analysis);
       setIsResultOpen(true);
     } catch (err: unknown) {
+      if (analysisPending) trackAnalysisFinished(userType, 'home', null);
       const status = (err as { response?: { status?: number } })?.response?.status;
       if (status === 429) {
         showToast(t('home.analyzeQuotaReached'), 'error');
@@ -131,7 +139,7 @@ const DeckAnalyzerSection: React.FC<DeckAnalyzerSectionProps> = ({ formats }) =>
     } finally {
       setIsAnalyzing(false);
     }
-  }, [lines, selectedFormat, locale, turnstileToken, isAnalyzing, showToast, t, setQuota]);
+  }, [lines, selectedFormat, locale, turnstileToken, isAnalyzing, showToast, t, setQuota, isAuthenticated, isSessionLoading]);
 
   const handleLoadSample = () => {
     setDeckText(SAMPLE_DECK);

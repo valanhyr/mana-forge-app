@@ -3,7 +3,7 @@
     {
       "slug": "privacy-policy",
       "title": "Privacy Policy",
-      "lastUpdated": "2026-10-07",
+      "lastUpdated": "2026-11-14",
       "sections": [
         {
           "heading": "Introduction",
@@ -19,7 +19,7 @@
         },
         {
           "heading": "Sharing Your Information",
-          "content": "<p>We do not sell, trade, or otherwise transfer your personally identifiable information to third parties, except in the following limited circumstances:</p><ul><li><strong>Service Providers:</strong> We may share data with trusted third-party vendors (e.g., cloud hosting, AI inference providers) solely to operate our platform.</li><li><strong>Cloudflare:</strong> Delivers our site and provides bot protection. Your IP address and browser signals are shared with Cloudflare only when a Turnstile challenge is solved, in order to validate that a real person is using the form. See the <a href='https://www.cloudflare.com/privacypolicy/' target='_blank' rel='noopener noreferrer'>Cloudflare Privacy Policy</a>.</li><li><strong>Grafana (Faro):</strong> Receives technical telemetry from your browser — console output, errors, performance traces and the paths you visit — used solely to diagnose faults in the platform. It does not receive the contents of your decks or your message text.</li><li><strong>Legal Requirements:</strong> We may disclose your information if required to do so by law or in response to valid legal processes.</li></ul>"
+          "content": "<p>We do not sell, trade, or otherwise transfer your personally identifiable information to third parties, except in the following limited circumstances:</p><ul><li><strong>Service Providers:</strong> We may share data with trusted third-party vendors (e.g., cloud hosting, AI inference providers) solely to operate our platform.</li><li><strong>Cloudflare:</strong> Delivers our site and provides bot protection. Your IP address and browser signals are shared with Cloudflare only when a Turnstile challenge is solved, in order to validate that a real person is using the form. See the <a href='https://www.cloudflare.com/privacypolicy/' target='_blank' rel='noopener noreferrer'>Cloudflare Privacy Policy</a>.</li><li><strong>Google Analytics:</strong> If you consent to statistics, Google receives analytics data about page visits, FAQ openings, deck creation and cloning and use of AI analysis. See the <a href='https://policies.google.com/privacy' target='_blank' rel='noopener noreferrer'>Google Privacy Policy</a>.</li><li><strong>Grafana (Faro):</strong> Receives technical telemetry from your browser — console output, errors, performance traces and the paths you visit — used solely to diagnose faults in the platform. It does not receive the contents of your decks or your message text.</li><li><strong>Legal Requirements:</strong> We may disclose your information if required to do so by law or in response to valid legal processes.</li></ul>"
         },
         {
           "heading": "Data Retention",
@@ -97,7 +97,7 @@
     {
       "slug": "cookie-policy",
       "title": "Cookie Policy",
-      "lastUpdated": "2026-10-07",
+      "lastUpdated": "2026-11-14",
       "sections": [
         {
           "heading": "What Are Cookies?",
@@ -109,7 +109,7 @@
         },
         {
           "heading": "Types of Cookies We Use",
-          "content": "<p>We use the following categories of cookies:</p><ul><li><strong>Strictly Necessary Cookies:</strong> Essential for the platform to function. These include session cookies that keep you authenticated. These cannot be disabled.</li><li><strong>Preference Cookies:</strong> Store your settings such as language and theme. They persist between visits.</li><li><strong>Analytics Cookies:</strong> Help us understand how users interact with Mana Forge (e.g., pages visited, session duration). This data is aggregated and anonymous.</li></ul>"
+          "content": "<p>We use the following categories of cookies and browser storage:</p><ul><li><strong>Strictly Necessary:</strong> Includes session cookies and storage of your consent choice.</li><li><strong>Preferences:</strong> Store settings such as your language.</li><li><strong>Analytics:</strong> Google Analytics helps us measure page visits, FAQ openings, deck creation and cloning and use of AI analysis when you accept statistics.</li></ul>"
         },
         {
           "heading": "Third-Party Cookies",
@@ -121,7 +121,7 @@
         },
         {
           "heading": "Consent",
-          "content": "<p>By continuing to use Mana Forge, you consent to the use of cookies as described in this policy. You may withdraw your consent at any time by adjusting your browser settings or contacting us.</p>"
+          "content": "<p>Google Analytics is loaded only if you accept statistics in the consent banner. You can change or withdraw this choice at any time using the consent button on the site. Your choice is stored in your browser's local storage.</p>"
         },
         {
           "heading": "Updates to This Policy",
@@ -138,7 +138,7 @@
     {
       "slug": "privacy-policy",
       "title": "Política de Privacidad",
-      "lastUpdated": "2026-10-07",
+      "lastUpdated": "2026-11-14",
       "sections": [
         {
           "heading": "Introducción",
@@ -154,7 +154,7 @@
         },
         {
           "heading": "Compartir tu Información",
-          "content": "<p>No vendemos, intercambiamos ni transferimos tu información de identificación personal a terceros, excepto en las siguientes circunstancias limitadas:</p><ul><li><strong>Proveedores de Servicios:</strong> Podemos compartir datos con proveedores externos de confianza (por ejemplo, alojamiento en la nube, proveedores de inferencia de IA) únicamente para operar nuestra plataforma.</li><li><strong>Cloudflare:</strong> Entrega nuestro sitio y aporta la protección antibots. Tu dirección IP y las señales de tu navegador se comparten con Cloudflare solo cuando resuelves un reto de Turnstile, con el fin de comprobar que quien usa el formulario es una persona real. Consulta la <a href='https://www.cloudflare.com/privacypolicy/' target='_blank' rel='noopener noreferrer'>Política de Privacidad de Cloudflare</a>.</li><li><strong>Grafana (Faro):</strong> Recibe telemetría técnica de tu navegador —salidas de consola, errores, trazas de rendimiento y las rutas que visitas— usada únicamente para diagnosticar fallos de la plataforma. No recibe el contenido de tus mazos ni el texto de tus mensajes.</li><li><strong>Requisitos Legales:</strong> Podemos divulgar tu información si así lo exige la ley o en respuesta a procesos legales válidos.</li></ul>"
+          "content": "<p>No vendemos, intercambiamos ni transferimos tu información de identificación personal a terceros, excepto en las siguientes circunstancias limitadas:</p><ul><li><strong>Proveedores de Servicios:</strong> Podemos compartir datos con proveedores externos de confianza (por ejemplo, alojamiento en la nube, proveedores de inferencia de IA) únicamente para operar nuestra plataforma.</li><li><strong>Cloudflare:</strong> Entrega nuestro sitio y aporta la protección antibots. Tu dirección IP y las señales de tu navegador se comparten con Cloudflare solo cuando resuelves un reto de Turnstile, con el fin de comprobar que quien usa el formulario es una persona real. Consulta la <a href='https://www.cloudflare.com/privacypolicy/' target='_blank' rel='noopener noreferrer'>Política de Privacidad de Cloudflare</a>.</li><li><strong>Google Analytics:</strong> Si aceptas las estadísticas, Google recibe datos analíticos sobre visitas a páginas, aperturas de preguntas frecuentes, creación y duplicación de mazos y uso del análisis de IA. Consulta la <a href='https://policies.google.com/privacy' target='_blank' rel='noopener noreferrer'>Política de Privacidad de Google</a>.</li><li><strong>Grafana (Faro):</strong> Recibe telemetría técnica de tu navegador —salidas de consola, errores, trazas de rendimiento y las rutas que visitas— usada únicamente para diagnosticar fallos de la plataforma. No recibe el contenido de tus mazos ni el texto de tus mensajes.</li><li><strong>Requisitos Legales:</strong> Podemos divulgar tu información si así lo exige la ley o en respuesta a procesos legales válidos.</li></ul>"
         },
         {
           "heading": "Retención de Datos",
@@ -232,7 +232,7 @@
     {
       "slug": "cookie-policy",
       "title": "Política de Cookies",
-      "lastUpdated": "2026-10-07",
+      "lastUpdated": "2026-11-14",
       "sections": [
         {
           "heading": "¿Qué son las Cookies?",
@@ -244,7 +244,7 @@
         },
         {
           "heading": "Tipos de Cookies que Utilizamos",
-          "content": "<p>Utilizamos las siguientes categorías de cookies:</p><ul><li><strong>Cookies Estrictamente Necesarias:</strong> Esenciales para el funcionamiento de la plataforma. Incluyen las cookies de sesión que mantienen tu autenticación. No se pueden deshabilitar.</li><li><strong>Cookies de Preferencias:</strong> Almacenan tus configuraciones, como el idioma y el tema. Persisten entre visitas.</li><li><strong>Cookies Analíticas:</strong> Nos ayudan a entender cómo interactúan los usuarios con Mana Forge (por ejemplo, páginas visitadas, duración de la sesión). Estos datos son agregados y anónimos.</li></ul>"
+          "content": "<p>Utilizamos las siguientes categorías de cookies y almacenamiento del navegador:</p><ul><li><strong>Estrictamente necesarias:</strong> Incluyen las cookies de sesión y el almacenamiento de tu elección de consentimiento.</li><li><strong>Preferencias:</strong> Guardan ajustes como el idioma.</li><li><strong>Analítica:</strong> Google Analytics nos ayuda a medir visitas a páginas, aperturas de preguntas frecuentes, creación y duplicación de mazos y uso del análisis de IA cuando aceptas las estadísticas.</li></ul>"
         },
         {
           "heading": "Cookies de Terceros",
@@ -256,7 +256,7 @@
         },
         {
           "heading": "Consentimiento",
-          "content": "<p>Al continuar usando Mana Forge, consientes el uso de cookies según se describe en esta política. Puedes retirar tu consentimiento en cualquier momento ajustando la configuración de tu navegador o poniéndote en contacto con nosotros.</p>"
+          "content": "<p>Google Analytics solo se carga si aceptas las estadísticas en el aviso de consentimiento. Puedes cambiar o retirar tu elección en cualquier momento mediante el botón de consentimiento del sitio. Tu elección se guarda en el almacenamiento local de tu navegador.</p>"
         },
         {
           "heading": "Actualizaciones de esta Política",

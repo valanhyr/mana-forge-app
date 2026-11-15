@@ -9,6 +9,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/content")
@@ -16,6 +18,36 @@ import java.util.List;
 public class ContentController {
 
     private final DirectusService directusService;
+
+    @GetMapping("/faqs")
+    public ResponseEntity<?> getFaqs(
+            @RequestParam(required = false) String locale,
+            @RequestHeader(value = "Accept-Language", required = false) String acceptLanguage) {
+        String language = faqLanguage(locale, acceptLanguage);
+        try {
+            return ResponseEntity.ok().cacheControl(org.springframework.http.CacheControl.noStore())
+                    .body(directusService.getFaqs(language));
+        } catch (Exception e) {
+            return ResponseEntity.status(502).cacheControl(org.springframework.http.CacheControl.noStore())
+                    .body(Map.of("error", "FAQ content unavailable"));
+        }
+    }
+
+    private String faqLanguage(String locale, String acceptLanguage) {
+        if (locale != null && !locale.isBlank()) {
+            return "en".equalsIgnoreCase(locale.trim()) ? "en" : "es";
+        }
+        if (acceptLanguage != null && !acceptLanguage.isBlank()) {
+            try {
+                Locale resolved = Locale.lookup(Locale.LanguageRange.parse(acceptLanguage),
+                        List.of(Locale.forLanguageTag("es"), Locale.forLanguageTag("en")));
+                if (resolved != null) return resolved.getLanguage();
+            } catch (IllegalArgumentException ignored) {
+                // Malformed headers fall back to Spanish.
+            }
+        }
+        return "es";
+    }
 
     // Endpoint para el Footer
     @GetMapping("/footer/{locale}")
