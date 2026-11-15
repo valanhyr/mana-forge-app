@@ -27,6 +27,7 @@ import BetaWelcomeModal from '../ui/BetaWelcomeModal';
 import { useTranslation } from '../../hooks/useTranslation';
 import { MessageService } from '../../services/MessageService';
 import { getAvatarUrl } from '../../core/utils/avatar';
+import { trackPageView } from '../../services/AnalyticsService';
 
 const BETA_BANNER_KEY = 'feedback_banner_v1_dismissed';
 const FEEDBACK_TOOLTIP_KEY = 'feedback_tooltip_shown';
@@ -67,15 +68,8 @@ const Layout = () => {
     return () => clearTimeout(id);
   }, [showFeedbackTooltip]);
 
-  // Google Analytics Page Tracking
   useEffect(() => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    if (typeof (window as any).gtag === 'function') {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (window as any).gtag('config', 'G-YR4GEC9XWL', {
-        page_path: location.pathname + location.search,
-      });
-    }
+    trackPageView(location.pathname + location.search);
   }, [location]);
 
   const menuRef = useRef<HTMLDivElement>(null);

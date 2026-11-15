@@ -13,7 +13,12 @@ import org.springframework.web.client.RestClient;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  *
@@ -21,6 +26,8 @@ import java.util.List;
  */
 @Service
 public class DirectusService {
+
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(DirectusService.class);
 
     private final org.springframework.web.client.RestTemplate restTemplate = new org.springframework.web.client.RestTemplate();
     private final ObjectMapper objectMapper;
@@ -95,6 +102,10 @@ public class DirectusService {
     }
 
     private JsonNode fetchFromDirectus(String endpoint, String query, String acceptLanguage) throws JsonProcessingException {
+        return fetchFromDirectus(endpoint, query, acceptLanguage, true);
+    }
+
+    private JsonNode fetchFromDirectus(String endpoint, String query, String acceptLanguage, boolean logData) throws JsonProcessingException {
         String path = endpoint.startsWith("/") ? endpoint : "/" + endpoint;
                 // Normalize to always include /api prefix for compatibility with stubs that expect /api/items
                 if (!path.startsWith("/api/") && path.startsWith("/items/")) {
@@ -137,7 +148,7 @@ public class DirectusService {
             }
             // Debug: print fetched data for inspection
             try {
-                System.out.println("Directus fetched data for endpoint " + endpoint + ": " + dataNode.toString());
+                if (logData) System.out.println("Directus fetched data for endpoint " + endpoint + ": " + dataNode.toString());
             } catch (Exception ignored) {}
             return dataNode;
         } catch (org.springframework.web.client.HttpClientErrorException.Unauthorized ue) {
@@ -150,6 +161,124 @@ public class DirectusService {
     }
 
     // Following methods unchanged, use fetchFromDirectus
+
+    /** Fetches published FAQ content without caching or a fallback to another language. */
+    public List<FaqTopic> getFaqs(String locale) throws JsonProcessingException {
+        String language = languageFor(locale);
+
+        List<JsonNode> topics = fetchFaqItems("faq_topics", "id,code,status,sort,translations.languages_code,translations.title", language);
+        List<JsonNode> questions = fetchFaqItems("faqs", "id,code,status,sort,topic,translations.languages_code,translations.question,translations.answer", language);
+        Set<String> duplicateTopics = duplicateCodes(topics);
+        Set<String> duplicateQuestions = duplicateCodes(questions);
+
+        Map<String, List<JsonNode>> byTopic = new HashMap<>();
+        for (JsonNode question : questions) {
+            if (!validCode(question, duplicateQuestions)) continue;
+            String topic = text(question, "topic");
+            if (topic == null) {
+                log.warn("Published FAQ has no topic");
+                continue;
+            }
+            byTopic.computeIfAbsent(topic, ignored -> new ArrayList<>()).add(question);
+        }
+
+        Comparator<JsonNode> order = Comparator
+                .comparing((JsonNode node) -> sortValue(node), Comparator.nullsLast(Comparator.naturalOrder()))
+                .thenComparing(node -> text(node, "code"));
+        List<FaqTopic> result = new ArrayList<>();
+        topics.stream().filter(topic -> validCode(topic, duplicateTopics)).sorted(order).forEach(topic -> {
+            String topicId = text(topic, "id");
+            JsonNode translation = faqTranslation(topic, language);
+            String title = translation == null ? null : text(translation, "title");
+            if (topicId == null || title == null) return;
+            List<FaqTopic.FaqQuestion> mapped = new ArrayList<>();
+            byTopic.getOrDefault(topicId, List.of()).stream().sorted(order).forEach(question -> {
+                JsonNode tr = faqTranslation(question, language);
+                if (tr == null) return;
+                String questionText = text(tr, "question");
+                String answer = text(tr, "answer");
+                if (questionText != null && answer != null) {
+                    mapped.add(new FaqTopic.FaqQuestion(text(question, "code"), questionText, answer));
+                }
+            });
+            if (!mapped.isEmpty()) result.add(new FaqTopic(text(topic, "code"), title, mapped));
+        });
+        return result;
+    }
+
+    private String languageFor(String locale) {
+        String language = normalizeLanguageCode(locale);
+        return "en".equals(language) ? "en" : "es";
+    }
+
+    private List<JsonNode> fetchFaqItems(String collection, String fields, String language) throws JsonProcessingException {
+        List<JsonNode> result = new ArrayList<>();
+        Set<String> ids = new HashSet<>();
+        int offset = 0;
+        while (true) {
+            String query = "fields=" + fields + "&filter[status][_eq]=published&sort=id&limit=100&offset=" + offset
+                    + "&deep[translations][_filter][languages_code][_eq]=" + language;
+            JsonNode page = fetchFromDirectus("api/items/" + collection, query, null, false);
+            if (page == null || !page.isArray()) throw new IllegalStateException("Invalid Directus FAQ response");
+            if (page.isEmpty()) break;
+            for (JsonNode node : page) {
+                String id = text(node, "id");
+                if (id == null || !ids.add(id)) throw new IllegalStateException("Invalid Directus FAQ pagination");
+                if ("published".equals(text(node, "status"))) result.add(node);
+            }
+            offset += page.size();
+        }
+        return result;
+    }
+
+    private Set<String> duplicateCodes(List<JsonNode> items) {
+        Set<String> seen = new HashSet<>();
+        Set<String> duplicates = new HashSet<>();
+        for (JsonNode node : items) {
+            String code = text(node, "code");
+            if (code != null && !seen.add(code)) duplicates.add(code);
+        }
+        return duplicates;
+    }
+
+    private boolean validCode(JsonNode node, Set<String> duplicates) {
+        String code = text(node, "code");
+        if (code == null || duplicates.contains(code)) {
+            log.warn("Published FAQ item has a missing or duplicate code");
+            return false;
+        }
+        return true;
+    }
+
+    private Integer sortValue(JsonNode node) {
+        JsonNode value = node.path("sort");
+        if (value.isIntegralNumber() && value.canConvertToInt()) return value.asInt();
+        if (!value.isMissingNode() && !value.isNull()) log.warn("Published FAQ item has an invalid sort value");
+        return null;
+    }
+
+    private String text(JsonNode node, String field) {
+        JsonNode value = node.path(field);
+        if (!value.isTextual() && !value.isIntegralNumber()) return null;
+        String result = value.asText().trim();
+        return result.isEmpty() ? null : result;
+    }
+
+    private JsonNode faqTranslation(JsonNode node, String language) {
+        JsonNode translations = node.path("translations");
+        if (!translations.isArray()) return null;
+        JsonNode match = null;
+        for (JsonNode translation : translations) {
+            if (language.equals(text(translation, "languages_code"))) {
+                if (match != null) {
+                    log.warn("Published FAQ item has duplicate translations");
+                    return null;
+                }
+                match = translation;
+            }
+        }
+        return match;
+    }
 
     @Cacheable(value = "footer", key = "#locale")
     public Footer getFooter(String locale) throws JsonProcessingException {

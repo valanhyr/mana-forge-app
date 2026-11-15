@@ -7,6 +7,7 @@ interface FaqSectionProps {
   topics: FaqTopic[];
   title: string;
   topicsLabel: string;
+  onOpen?: (topicCode: string, faqCode: string) => void;
 }
 
 interface FaqItemProps {
@@ -45,7 +46,7 @@ const FaqItem = ({ item, open, onToggle }: FaqItemProps) => {
   );
 };
 
-const FaqSection = ({ topics, title, topicsLabel }: FaqSectionProps) => {
+const FaqSection = ({ topics, title, topicsLabel, onOpen }: FaqSectionProps) => {
   const headingId = useId();
   const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
   const [openQuestion, setOpenQuestion] = useState<{ topic: string; question: string } | null>(
@@ -64,7 +65,10 @@ const FaqSection = ({ topics, title, topicsLabel }: FaqSectionProps) => {
           key={item.id}
           item={item}
           open={open}
-          onToggle={() => setOpenQuestion(open ? null : { topic: topic.id, question: item.id })}
+          onToggle={() => {
+            if (!open) onOpen?.(topic.id, item.id);
+            setOpenQuestion(open ? null : { topic: topic.id, question: item.id });
+          }}
         />
       );
     });

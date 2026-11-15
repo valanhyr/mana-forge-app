@@ -27,6 +27,9 @@ import SEO from '../../components/ui/SEO';
 import DeckAnalyzerSection from '../../components/home/DeckAnalyzerSection';
 import FaqSection from '../../components/home/FaqSection';
 import { FaqService } from '../../services/FaqService';
+import type { FaqTopic } from '../../core/models/Faq';
+import type { Locale } from '../../services/LanguageContext';
+import { trackFaqOpen } from '../../services/AnalyticsService';
 import { useUser } from '../../services/UserContext';
 import { useToast } from '../../services/ToastContext';
 
@@ -49,6 +52,7 @@ const Dashboard = () => {
   const [featuredDeck, setFeaturedDeck] = useState<FeaturedDeck | null>(null);
   const [popularFormats, setPopularFormats] = useState<FormatSummary[]>([]);
   const [articles, setArticles] = useState<Article[]>([]);
+  const [faqData, setFaqData] = useState<{ locale: Locale; topics: FaqTopic[] } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -60,6 +64,19 @@ const Dashboard = () => {
   const [carouselIndex, setCarouselIndex] = useState(0);
   const [isCarouselHovered, setIsCarouselHovered] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
+
+  useEffect(() => {
+    let active = true;
+    setFaqData(null);
+    FaqService.getTopics(locale)
+      .then((topics) => {
+        if (active) setFaqData({ locale, topics });
+      })
+      .catch(() => {
+        if (active) setFaqData({ locale, topics: [] });
+      });
+    return () => { active = false; };
+  }, [locale]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -569,9 +586,10 @@ const Dashboard = () => {
       </section>
 
       <FaqSection
-        topics={FaqService.getTopics(locale)}
+        topics={faqData?.locale === locale ? faqData.topics : []}
         title={t('faq.title')}
         topicsLabel={t('faq.topics')}
+        onOpen={(topicCode, faqCode) => trackFaqOpen(topicCode, faqCode, locale)}
       />
 
       {/* --- Modal del Mazo del Día --- */}

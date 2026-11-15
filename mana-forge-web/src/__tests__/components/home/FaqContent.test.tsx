@@ -2,12 +2,12 @@ import { describe, expect, it } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import FaqSection from '../../../components/home/FaqSection';
-import { FaqService } from '../../../services/FaqService';
+import faqReference from '../../../data/faqs.json';
 
 describe('FAQ content', () => {
   it('provides translated FAQs covering the actual product workflows', () => {
-    const spanish = FaqService.getTopics('es');
-    const english = FaqService.getTopics('en');
+    const spanish = faqReference.es;
+    const english = faqReference.en;
     expect(spanish.map((topic) => topic.id)).toEqual([
       'general',
       'deck-analysis',
@@ -52,8 +52,8 @@ describe('FAQ content', () => {
 
   it('displays and opens localized FAQs in every topic', async () => {
     const user = userEvent.setup();
-    const spanish = FaqService.getTopics('es');
-    const english = FaqService.getTopics('en');
+    const spanish = faqReference.es;
+    const english = faqReference.en;
     expect(spanish.length).toBeGreaterThan(0);
     expect(english.length).toBeGreaterThan(0);
     const { rerender } = render(

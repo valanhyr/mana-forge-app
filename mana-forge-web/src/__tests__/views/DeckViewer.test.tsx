@@ -8,6 +8,7 @@ import { ToastProvider } from '../../services/ToastContext';
 import { UserProvider } from '../../services/UserContext';
 import { DeckService } from '../../services/DeckService';
 import { ScryfallService } from '../../services/ScryfallService';
+import { trackDeckCloned, trackDeckCreated } from '../../services/AnalyticsService';
 
 // Mock IntersectionObserver used by DeckViewer's sentinel ref
 Object.defineProperty(window, 'IntersectionObserver', {
@@ -33,6 +34,12 @@ vi.mock('../../services/ScryfallService', () => ({
   ScryfallService: {
     getCardByName: vi.fn(),
   },
+}));
+
+vi.mock('../../services/AnalyticsService', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('../../services/AnalyticsService')>()),
+  trackDeckCloned: vi.fn(),
+  trackDeckCreated: vi.fn(),
 }));
 
 const AllProviders = ({ children }: { children: React.ReactNode }) => (
@@ -97,6 +104,8 @@ const renderDeck = (deckId = 'deck-1') =>
 
 describe('DeckViewer', () => {
   beforeEach(() => {
+    vi.clearAllMocks();
+    localStorage.removeItem('mana_forge_session');
     localStorage.setItem('app_locale', 'es');
     vi.mocked(DeckService.getDeckView).mockResolvedValue(deckData);
     vi.mocked(DeckService.likeDeck).mockResolvedValue({
@@ -152,11 +161,31 @@ describe('DeckViewer', () => {
     const cloneButton = screen.getByRole('button', { name: /duplicar/i });
     await user.click(cloneButton);
     await waitFor(() => expect(vi.mocked(DeckService.cloneDeck)).toHaveBeenCalledWith('deck-1'));
+    await waitFor(() => expect(trackDeckCloned).toHaveBeenCalledExactlyOnceWith('authenticated'));
+    expect(trackDeckCreated).not.toHaveBeenCalled();
+  });
+
+  it('does not track a failed clone', async () => {
+    vi.mocked(DeckService.cloneDeck).mockRejectedValue(new Error('offline'));
+    const user = userEvent.setup();
+    renderDeck();
+    await user.click(await screen.findByRole('button', { name: /duplicar/i }));
+    await waitFor(() => expect(DeckService.cloneDeck).toHaveBeenCalled());
+    expect(trackDeckCloned).not.toHaveBeenCalled();
+    expect(trackDeckCreated).not.toHaveBeenCalled();
   });
 
   it('shows copy button', async () => {
     renderDeck();
     await waitFor(() => expect(screen.getByRole('button', { name: /copiar/i })).toBeInTheDocument());
+  });
+
+  it('does not track copying a deck list as a clone or creation', async () => {
+    const user = userEvent.setup();
+    renderDeck();
+    await user.click(await screen.findByRole('button', { name: /copiar/i }));
+    expect(trackDeckCloned).not.toHaveBeenCalled();
+    expect(trackDeckCreated).not.toHaveBeenCalled();
   });
 
   it('renders not-found state when deck is null', async () => {

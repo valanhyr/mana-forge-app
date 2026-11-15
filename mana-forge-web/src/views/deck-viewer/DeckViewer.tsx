@@ -28,6 +28,7 @@ import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
 import { useLanguage } from '../../services/LanguageContext';
 import { useTranslation } from '../../hooks/useTranslation';
+import { analyticsUserType, trackDeckCloned } from '../../services/AnalyticsService';
 
 type GroupMode = 'type' | 'none';
 type SortMode = 'cmc' | 'alpha';
@@ -95,7 +96,7 @@ const DeckViewer = () => {
   const [viewMode, setViewMode] = useState<'list' | 'spoiler'>('list');
   const { locale } = useLanguage();
   const { t } = useTranslation();
-  const { isAuthenticated, user } = useUser();
+  const { isAuthenticated, isSessionLoading, user } = useUser();
   const [liking, setLiking] = useState(false);
   const navigate = useNavigate();
   const [cloning, setCloning] = useState(false);
@@ -219,9 +220,11 @@ const DeckViewer = () => {
 
   const handleCloneDeck = async () => {
     if (!deck || !isAuthenticated || cloning) return;
+    const userType = analyticsUserType(isSessionLoading, isAuthenticated);
     setCloning(true);
     try {
       const cloned = await DeckService.cloneDeck(deck.id);
+      trackDeckCloned(userType);
       navigate(`/deck-builder/${cloned.id}`);
     } catch (error) {
       console.error('Error cloning deck:', error);

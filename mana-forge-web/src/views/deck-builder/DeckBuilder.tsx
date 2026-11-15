@@ -36,6 +36,9 @@ import { useTranslation } from '../../hooks/useTranslation';
 import SEO from '../../components/ui/SEO';
 import { findInBatch, safeNested, safeNumber, safeString } from '../../utils/scryfallHelpers';
 import { parseDecklist, sanitizeDecklistText } from '../../utils/decklistParser';
+import {
+  analyticsUserType, trackDeckCreated, trackAnalysisStarted, trackAnalysisFinished,
+} from '../../services/AnalyticsService';
 
 // Extendemos DeckCard localmente para incluir la imagen hasta que se actualice la definición base
 type DeckCardWithImage = DeckCard & { image: string };
@@ -129,7 +132,7 @@ const ARCHETYPES_DB: Record<string, string[]> = {
 };
 
 const DeckBuilder = () => {
-  const { user } = useUser();
+  const { user, isAuthenticated, isSessionLoading } = useUser();
   const { t, locale } = useTranslation();
   const { showToast } = useToast();
   const navigate = useNavigate();
@@ -640,6 +643,7 @@ const DeckBuilder = () => {
     }
     if (!isDeckValid) return;
 
+    const userType = analyticsUserType(isSessionLoading, isAuthenticated);
     setIsSaving(true);
     try {
       // Obtain scores from analysis modal, saved state, or auto-generate them
@@ -698,6 +702,7 @@ const DeckBuilder = () => {
         showToast(t('deckBuilder.deckUpdated'), 'success');
       } else {
         await DeckService.saveDeck(payload);
+        trackDeckCreated(userType);
         showToast(t('deckBuilder.deckSaved'), 'success');
       }
       if (!stayOpen) navigate('/my-decks');
@@ -711,6 +716,8 @@ const DeckBuilder = () => {
 
   const handleAnalyzeDeck = async () => {
     if (!isDeckValid || !selectedFormat) return;
+    const userType = analyticsUserType(isSessionLoading, isAuthenticated);
+    let analysisPending = false;
     setIsAnalyzing(true);
 
     try {
@@ -730,11 +737,16 @@ const DeckBuilder = () => {
       };
 
       // La llamada ahora pasa por nuestra API de backend, que actúa como proxy
+      trackAnalysisStarted(userType, 'deck_builder');
+      analysisPending = true;
       const data = await DeckService.analyzeDeck(payload);
+      analysisPending = false;
+      trackAnalysisFinished(userType, 'deck_builder', data);
 
       setAnalysisResult(data);
       setIsAnalysisModalOpen(true);
     } catch (error) {
+      if (analysisPending) trackAnalysisFinished(userType, 'deck_builder', null);
       console.error('Error analizando mazo:', error);
       // Aquí podrías mostrar un toast de error
     } finally {

@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Layout from './components/layout/Layout';
 import Dashboard from './views/dashboard/Dashboard';
@@ -19,7 +20,7 @@ import { ToastProvider } from './services/ToastContext';
 import LegalPageView from './views/legal/LegalPage';
 import DeckViewer from './views/deck-viewer/DeckViewer';
 
-import CookieConsent from './components/ui/CookieConsent';
+import KlaroConsent from './components/ui/KlaroConsent';
 import WhatsNewModal from './components/ui/WhatsNewModal';
 import Inbox from './views/messages/Inbox';
 import Unsubscribe from './views/newsletter/Unsubscribe';
@@ -27,6 +28,7 @@ import DeckExplorer from './views/deck-explorer/DeckExplorer';
 import Contact from './views/contact/Contact';
 
 function App() {
+  const [consentResolved, setConsentResolved] = useState(false);
   return (
     <LanguageProvider>
       <UserProvider>
@@ -64,8 +66,8 @@ function App() {
                 <Route path="*" element={<NotFound />} />
               </Route>
             </Routes>
-            <CookieConsent />
-            <WhatsNewModal />
+            <KlaroConsent onConsentResolved={setConsentResolved} />
+            {consentResolved && <WhatsNewModal />}
           </BrowserRouter>
         </ToastProvider>
       </UserProvider>

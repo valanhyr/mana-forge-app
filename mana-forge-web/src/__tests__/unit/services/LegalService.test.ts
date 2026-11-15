@@ -34,4 +34,17 @@ describe('LegalService', () => {
     // Devuelve la versión en inglés o null, pero nunca lanza
     expect(page === null || typeof page === 'object').toBe(true);
   });
+
+  it.each(['es', 'en'])('describes explicit analytics consent in the %s policy', async (locale) => {
+    const cookiePolicy = await LegalService.getBySlug('cookie-policy', locale);
+    const privacyPolicy = await LegalService.getBySlug('privacy-policy', locale);
+    const cookieText = cookiePolicy?.sections.map((section) => section.content).join(' ') ?? '';
+    const privacyText = privacyPolicy?.sections.map((section) => section.content).join(' ') ?? '';
+    expect(cookieText).toContain('Google Analytics');
+    expect(privacyText).toContain('Google Analytics');
+    expect(cookieText).toContain(locale === 'es' ? 'creación y duplicación de mazos y uso del análisis de IA' : 'deck creation and cloning and use of AI analysis');
+    expect(privacyText).toContain(locale === 'es' ? 'creación y duplicación de mazos y uso del análisis de IA' : 'deck creation and cloning and use of AI analysis');
+    expect(cookieText).not.toMatch(/Al continuar usando Mana Forge, consientes|By continuing to use Mana Forge, you consent/i);
+    expect(cookieText).not.toMatch(/datos son agregados y anónimos|data is aggregated and anonymous/i);
+  });
 });
