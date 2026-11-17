@@ -5,6 +5,7 @@ import { useToast } from '../../services/ToastContext';
 import { ContactService, type ContactFormData } from '../../services/ContactService';
 import TurnstileWidget from '../../components/ui/TurnstileWidget';
 import { isTurnstileConfigured } from '../../config/turnstile';
+import { trackContactSubmitted, trackContactSubmitFailed } from '../../services/AnalyticsService';
 
 const SUBJECTS = [
   { value: 'general',  labelKey: 'contact.subject.general'  },
@@ -61,8 +62,10 @@ const Contact = () => {
         website,
         formRenderedAt: renderedAtRef.current,
       });
+      trackContactSubmitted();
       setSent(true);
     } catch (err: unknown) {
+      trackContactSubmitFailed();
       const status = (err as { response?: { status?: number } })?.response?.status;
       if (status === 403) {
         // Either the challenge was not solved/expired or the anti-spam heuristics

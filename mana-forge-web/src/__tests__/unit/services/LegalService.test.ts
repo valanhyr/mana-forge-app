@@ -44,6 +44,20 @@ describe('LegalService', () => {
     expect(privacyText).toContain('Google Analytics');
     expect(cookieText).toContain(locale === 'es' ? 'creación y duplicación de mazos y uso del análisis de IA' : 'deck creation and cloning and use of AI analysis');
     expect(privacyText).toContain(locale === 'es' ? 'creación y duplicación de mazos y uso del análisis de IA' : 'deck creation and cloning and use of AI analysis');
+    const newCategories = locale === 'es'
+      ? 'inicios de sesión, registros, verificaciones de correo, envíos de contacto, copias de listas y errores de uso'
+      : 'sign-ins, registrations, email verifications, contact submissions, deck-list copies and usage errors';
+    expect(cookieText).toContain(newCategories);
+    expect(privacyText).toContain(newCategories);
+    expect(cookieText).toContain(locale === 'es' ? 'marca temporal' : 'temporary marker');
+    expect(privacyText).not.toMatch(/No recibe el contenido de tus mazos|It does not receive the contents of your decks/i);
+    expect(privacyText).toContain(locale === 'es'
+      ? 'La integración de Faro está desactivada en esta versión'
+      : 'The Faro integration is disabled in this version');
+    expect(privacyText).toContain(locale === 'es'
+      ? 'los datos enviados anteriormente pueden conservarse'
+      : 'previously sent data may be retained');
+    expect(cookieText).not.toMatch(/Grafana|Faro/i);
     expect(cookieText).not.toMatch(/Al continuar usando Mana Forge, consientes|By continuing to use Mana Forge, you consent/i);
     expect(cookieText).not.toMatch(/datos son agregados y anónimos|data is aggregated and anonymous/i);
   });

@@ -12,12 +12,6 @@ COPY . .
 ARG VITE_API_URL
 ENV VITE_API_URL=$VITE_API_URL
 
-ARG VITE_FARO_URL
-ENV VITE_FARO_URL=$VITE_FARO_URL
-
-ARG VITE_FARO_APP_NAME
-ENV VITE_FARO_APP_NAME=$VITE_FARO_APP_NAME
-
 # Public Turnstile site key. Safe to bake into the bundle: only the SECRET
 # key protects anything, and that stays server-side in the API.
 ARG VITE_TURNSTILE_SITE_KEY

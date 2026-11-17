@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
@@ -7,6 +7,12 @@ import { server } from '../mocks/server';
 import Contact from '../../views/contact/Contact';
 import { LanguageProvider } from '../../services/LanguageContext';
 import { ToastProvider } from '../../services/ToastContext';
+import { trackContactSubmitted, trackContactSubmitFailed } from '../../services/AnalyticsService';
+
+vi.mock('../../services/AnalyticsService', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('../../services/AnalyticsService')>()),
+  trackContactSubmitted: vi.fn(), trackContactSubmitFailed: vi.fn(),
+}));
 
 const BASE = 'http://localhost:8080';
 
@@ -48,6 +54,7 @@ const fillForm = async (
 };
 
 describe('Contact page', () => {
+  beforeEach(() => vi.clearAllMocks());
   it('renders all form fields', () => {
     renderContact();
     expect(screen.getAllByRole('textbox')).toHaveLength(3); // name, email, textarea
@@ -61,6 +68,7 @@ describe('Contact page', () => {
     await user.click(getSubmitButton());
     await waitFor(() => {
       expect(screen.getByText(/nombre|name is required/i)).toBeInTheDocument();
+      expect(trackContactSubmitFailed).not.toHaveBeenCalled();
     });
   });
 
@@ -105,6 +113,8 @@ describe('Contact page', () => {
     await user.click(getSubmitButton());
     await waitFor(() => {
       expect(screen.getByText(/enviado|sent/i)).toBeInTheDocument();
+      expect(trackContactSubmitted).toHaveBeenCalledExactlyOnceWith();
+      expect(trackContactSubmitFailed).not.toHaveBeenCalled();
     });
   });
 
@@ -118,6 +128,8 @@ describe('Contact page', () => {
     await user.click(getSubmitButton());
     await waitFor(() => {
       expect(screen.getByRole('alert')).toBeInTheDocument();
+      expect(trackContactSubmitFailed).toHaveBeenCalledExactlyOnceWith();
+      expect(trackContactSubmitted).not.toHaveBeenCalled();
     });
   });
 
@@ -139,6 +151,7 @@ describe('Contact page', () => {
     });
     // The message is shown inline, so a toast must not also fire.
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    expect(trackContactSubmitFailed).toHaveBeenCalledExactlyOnceWith();
   });
 
   it('keeps the honeypot out of the accessibility tree', () => {

@@ -8,7 +8,7 @@ import { ToastProvider } from '../../services/ToastContext';
 import { UserProvider } from '../../services/UserContext';
 import { DeckService } from '../../services/DeckService';
 import { ScryfallService } from '../../services/ScryfallService';
-import { trackDeckCloned, trackDeckCreated } from '../../services/AnalyticsService';
+import { trackDeckCloned, trackDeckCreated, trackDeckListCopied } from '../../services/AnalyticsService';
 
 // Mock IntersectionObserver used by DeckViewer's sentinel ref
 Object.defineProperty(window, 'IntersectionObserver', {
@@ -40,6 +40,7 @@ vi.mock('../../services/AnalyticsService', async (importOriginal) => ({
   ...(await importOriginal<typeof import('../../services/AnalyticsService')>()),
   trackDeckCloned: vi.fn(),
   trackDeckCreated: vi.fn(),
+  trackDeckListCopied: vi.fn(),
 }));
 
 const AllProviders = ({ children }: { children: React.ReactNode }) => (
@@ -184,8 +185,17 @@ describe('DeckViewer', () => {
     const user = userEvent.setup();
     renderDeck();
     await user.click(await screen.findByRole('button', { name: /copiar/i }));
+    await waitFor(() => expect(trackDeckListCopied).toHaveBeenCalledExactlyOnceWith());
     expect(trackDeckCloned).not.toHaveBeenCalled();
     expect(trackDeckCreated).not.toHaveBeenCalled();
+  });
+
+  it('does not track a rejected clipboard write', async () => {
+    const user = userEvent.setup();
+    vi.spyOn(navigator.clipboard, 'writeText').mockRejectedValue(new Error('clipboard denied'));
+    renderDeck();
+    await user.click(await screen.findByRole('button', { name: /copiar/i }));
+    expect(trackDeckListCopied).not.toHaveBeenCalled();
   });
 
   it('renders not-found state when deck is null', async () => {

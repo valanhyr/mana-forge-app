@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useEffect, useRef, useState } from 'react';
+import { useLocation, useSearchParams, useNavigate } from 'react-router-dom';
 import { AuthService } from '../../services/AuthService';
 import { useTranslation } from '../../hooks/useTranslation';
 import { Loader2, CheckCircle, XCircle } from 'lucide-react';
+import { trackEmailVerification } from '../../services/AnalyticsService';
 
 type Status = 'loading' | 'success' | 'error';
 
@@ -10,6 +11,8 @@ const VerifyEmail = () => {
   const { t } = useTranslation();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const { key: navigationKey } = useLocation();
+  const trackedNavigations = useRef(new Set<string>());
   const [status, setStatus] = useState<Status>(() =>
     new URLSearchParams(window.location.search).get('token') ? 'loading' : 'error'
   );
@@ -19,11 +22,15 @@ const VerifyEmail = () => {
     if (!token) return;
     AuthService.verifyEmail(token)
       .then(() => {
+        if (!trackedNavigations.current.has(navigationKey)) {
+          trackedNavigations.current.add(navigationKey);
+          trackEmailVerification();
+        }
         setStatus('success');
         setTimeout(() => navigate('/login?verified=true'), 2000);
       })
       .catch(() => setStatus('error'));
-  }, [searchParams, navigate]);
+  }, [searchParams, navigate, navigationKey]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-zinc-950 p-4">

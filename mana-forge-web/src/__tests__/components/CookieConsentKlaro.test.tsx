@@ -40,6 +40,7 @@ describe('Klaro consent', () => {
     await user.click(manage);
     const dialog = await screen.findByRole('dialog', { name: 'Preferencias de privacidad' });
     expect(dialog).toHaveTextContent('creación y duplicación de mazos y uso del análisis de IA');
+    expect(dialog).toHaveTextContent('inicios de sesión, registros, verificaciones de correo, envíos de contacto, copias de listas y errores de uso');
     screen.getByRole('button', { name: 'Cerrar' }).focus();
     await user.tab({ shift: true });
     expect(dialog).toContainElement(document.activeElement);

@@ -61,7 +61,7 @@ Two traps that have already bitten this repo:
 - **Do not append `-SNAPSHOT` to a version you already released.** After releasing 1.0.7, bump `version.txt` to `1.0.8-SNAPSHOT`. Writing `1.0.7-SNAPSHOT` deadlocks the engine: the SNAPSHOT check rejects it, and removing the suffix collides with the existing tag.
 - **APIs skip versions.** `api-v1.0.3` was the last API tag but `pom.xml` is already at 1.0.x, because the version was bumped without a deploy. Check `git tag -l 'api-v*'` before assuming the next number.
 
-The app version reported to Grafana Faro comes from `package.json` via `define.__APP_VERSION__` in `vite.config.ts`. Do not reintroduce a hardcoded version in `observability.ts`.
+Faro is disabled. The frontend's `define.__APP_VERSION__` in `vite.config.ts` still comes from `package.json`; do not introduce a hardcoded app version if observability is added again.
 
 ## Verification
 
@@ -70,7 +70,7 @@ Run the tests for whatever you touched:
 - **Backend**: `./mvnw test` from `mana-forge-api` (or `.\mvnw.cmd test` in PowerShell). Prefer the wrapper over a local `mvn`: it pins the Maven version for everyone. `./mvnw test -Dtest=ClassName` runs one class.
 - **Frontend**: `npx vitest run <path>` for a subset, `npm run lint` and `npx tsc --noEmit` before calling frontend work done.
 
-The backend suite is currently green: `./mvnw test` gives 374 tests, 0 failures. If you see failures, they are almost certainly yours.
+On 2026-11-17, `.\mvnw.cmd test` in this Windows workspace ran 495 tests with two failures also reproduced against the unchanged committed API: `FeedbackControllerTest.submitFeedback_withoutAuth_returns401` and `DeckFlowIntegrationTest.frontdeskTicketNoteModerationAndExistingSessionEnforcement`. The latter depends on the local API `.env`: it passed in an isolated baseline without that file and failed with the same local configuration. Do not assume either failure was introduced by a new change; verify against the relevant baseline.
 
 ## Contact
 For questions about agent behavior or conventions, see the repository README or ask @valanhyr.

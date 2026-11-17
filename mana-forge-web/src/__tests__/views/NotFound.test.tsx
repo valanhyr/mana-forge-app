@@ -1,9 +1,16 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter, useNavigate } from 'react-router-dom';
+import { StrictMode } from 'react';
 import NotFound from '../../views/errors/NotFound';
 import { LanguageProvider } from '../../services/LanguageContext';
+import { trackPageNotFound } from '../../services/AnalyticsService';
+
+vi.mock('../../services/AnalyticsService', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('../../services/AnalyticsService')>()),
+  trackPageNotFound: vi.fn(),
+}));
 
 const renderNotFound = () =>
   render(
@@ -15,6 +22,7 @@ const renderNotFound = () =>
   );
 
 describe('NotFound', () => {
+  beforeEach(() => vi.clearAllMocks());
   afterEach(() => {
     vi.restoreAllMocks();
   });
@@ -22,6 +30,20 @@ describe('NotFound', () => {
   it('renderiza el número decorativo 404', () => {
     renderNotFound();
     expect(screen.getByText('404')).toBeInTheDocument();
+  });
+
+  it('counts once per unknown navigation in Strict Mode without recording the path', async () => {
+    const Navigate = () => {
+      const navigate = useNavigate();
+      return <button onClick={() => navigate('/private-second')}>next</button>;
+    };
+    render(<StrictMode><LanguageProvider><MemoryRouter initialEntries={['/private-first']}>
+      <Navigate /><NotFound />
+    </MemoryRouter></LanguageProvider></StrictMode>);
+    expect(trackPageNotFound).toHaveBeenCalledExactlyOnceWith();
+    await userEvent.setup().click(screen.getByRole('button', { name: 'next' }));
+    expect(trackPageNotFound).toHaveBeenCalledTimes(2);
+    expect(trackPageNotFound).toHaveBeenLastCalledWith();
   });
 
   it('renderiza el título y descripción traducidos', () => {

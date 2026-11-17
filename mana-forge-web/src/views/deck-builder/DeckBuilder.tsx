@@ -37,7 +37,7 @@ import SEO from '../../components/ui/SEO';
 import { findInBatch, safeNested, safeNumber, safeString } from '../../utils/scryfallHelpers';
 import { parseDecklist, sanitizeDecklistText } from '../../utils/decklistParser';
 import {
-  analyticsUserType, trackDeckCreated, trackAnalysisStarted, trackAnalysisFinished,
+  analyticsUserType, trackDeckCreated, trackAnalysisStarted, trackAnalysisFinished, trackDeckSaveFailed,
 } from '../../services/AnalyticsService';
 
 // Extendemos DeckCard localmente para incluir la imagen hasta que se actualice la definición base
@@ -707,6 +707,7 @@ const DeckBuilder = () => {
       }
       if (!stayOpen) navigate('/my-decks');
     } catch (error) {
+      trackDeckSaveFailed();
       console.error('Error al guardar el mazo:', error);
       showToast(t('deckBuilder.saveDeckError'), 'error');
     } finally {

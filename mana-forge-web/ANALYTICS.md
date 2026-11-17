@@ -35,11 +35,15 @@ despliegue**. Las pruebas actuales no acreditan que Google haya recibido eventos
 Klaro guarda la elección en `localStorage`, bajo `mana_forge_klaro`, y la
 sincroniza entre pestañas. La preferencia del banner anterior (`cookie_consent`)
 no se convierte automáticamente en una aceptación; se vuelve a preguntar.
+Las elecciones ya guardadas en Klaro se conservan al ampliar las métricas; está
+pendiente revisar si es necesario solicitar de nuevo el consentimiento antes del
+despliegue.
 El código inicializa los estados de consentimiento de Google como denegados y
 concede `analytics_storage` al aceptar; las opciones publicitarias permanecen
 denegadas. No se usa el modo avanzado de medición sin cookies antes de aceptar.
 
-El gestor no controla la sesión, Cloudflare Turnstile ni Grafana Faro. La
+El gestor no controla la sesión ni Cloudflare Turnstile. Faro está desactivado
+en el código actual, aunque no se ha verificado el despliegue existente. La
 política de cookies y privacidad del sitio se encuentra actualmente en
 [`src/core/mocks/legalPages.mock.json`](src/core/mocks/legalPages.mock.json);
 su texto requiere revisión legal antes de publicar.
@@ -130,6 +134,38 @@ El consentimiento se comprueba por separado al inicio y al final. Si cambia
 durante la petición, es posible recibir únicamente uno de los eventos. Las
 acciones sin consentimiento o con Google bloqueado no se reenvían después.
 
+### Acceso, contacto y errores
+
+| Evento | Cuándo se emite | Parámetros propios |
+|---|---|---|
+| `registration_started` | La persona cambia explícitamente al formulario de registro. | Ninguno. |
+| `sign_up` | La API confirma la creación de una cuenta local. No implica verificación ni sesión iniciada. | `method=local` |
+| `email_verification_completed` | La API confirma una verificación de email. También incluye cambios de dirección; no equivale a un alta nueva. | Ninguno. |
+| `login` | Se confirma el acceso local o se estima un retorno de Google con sesión confirmada. | `method=local` o `google` |
+| `contact_submitted` | La API acepta el envío del formulario. No garantiza la entrega del correo. | Ninguno. |
+| `contact_submit_failed` | La petición de contacto falla o es rechazada. La validación local no cuenta. | Ninguno. |
+| `deck_list_copied` | El portapapeles confirma la copia desde el visualizador. | Ninguno. |
+| `page_not_found` | Se muestra la página genérica 404, una vez por navegación. No cubre recursos inexistentes dentro de rutas válidas. | Ninguno. |
+| `deck_save_failed` | Falla la operación de guardar o actualizar, incluida la obtención previa de puntuaciones. La validación local no cuenta. | Ninguno. |
+
+El login de Google es una **estimación**, no una confirmación del proveedor ni
+de la creación de una cuenta. Solo si hay consentimiento y la sesión ya está
+comprobada como no iniciada, un clic normal en Google guarda en `sessionStorage`
+una marca por pestaña con la hora; no contiene credenciales ni datos de usuario.
+Al volver se consume una vez: si tiene hasta cinco minutos, la sesión está
+confirmada y Google Analytics está listo, se emite `login` con `method=google`.
+Se descarta si falla la comprobación, caduca o se retira el consentimiento.
+No se reenvía más tarde si la etiqueta no estaba lista. Otra autenticación
+concurrente puede causar una atribución errónea y abrir el flujo en otra pestaña
+no se cuenta. Las altas de Google no producen `sign_up`.
+
+Los eventos propios no incluyen datos de usuario, mensajes, rutas solicitadas,
+errores, IDs, nombres ni listas de cartas. Esto no garantiza que los metadatos
+automáticos de Google estén saneados: requieren revisión independiente. Faro
+está desactivado en el código actual; su estado en instalaciones ya desplegadas
+y la posible retención de datos anteriores no se han comprobado.
+El error de análisis se mide con `ai_analysis_finished`, no con un evento nuevo.
+
 ### `page_view`: navegación
 
 [`src/components/layout/Layout.tsx`](src/components/layout/Layout.tsx) informa
@@ -164,7 +200,7 @@ Con autorización para modificar la propiedad correspondiente:
 1. En GA4, abre **Administrar → Definiciones personalizadas**.
 2. Crea dimensiones personalizadas con ámbito **Evento** para los parámetros
    que quieras consultar: `faq_code`, `faq_topic`, `faq_language`, `user_type`,
-   `app_screen` y `analysis_status`.
+   `app_screen`, `analysis_status` y, si se necesita desglosar acceso, `method`.
 3. Después de que se recopilen y procesen los datos, usa los eventos y esas
    dimensiones en Informes o Exploraciones.
 

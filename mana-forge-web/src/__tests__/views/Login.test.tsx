@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { describe, it, expect, vi } from 'vitest';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { http, HttpResponse } from 'msw';
@@ -9,6 +9,13 @@ import { LanguageProvider } from '../../services/LanguageContext';
 import { ToastProvider } from '../../services/ToastContext';
 import { UserProvider } from '../../services/UserContext';
 import { mockUser } from '../mocks/handlers';
+import { trackRegistrationStarted, trackLocalSignUp, trackLogin, startGoogleLoginTracking } from '../../services/AnalyticsService';
+
+vi.mock('../../services/AnalyticsService', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('../../services/AnalyticsService')>()),
+  trackRegistrationStarted: vi.fn(), trackLocalSignUp: vi.fn(), trackLogin: vi.fn(),
+  startGoogleLoginTracking: vi.fn(),
+}));
 
 const BASE = 'http://localhost:8080';
 
@@ -48,6 +55,7 @@ const switchToRegister = async () => {
 
 describe('Login (AuthModal)', () => {
   beforeEach(() => {
+    vi.clearAllMocks();
     // Por defecto checkSession falla para no auto-redirigir
     server.use(http.get(`${BASE}/users/me`, () => new HttpResponse(null, { status: 401 })));
     localStorage.clear();
@@ -61,6 +69,15 @@ describe('Login (AuthModal)', () => {
     });
   });
 
+  it('marks a Google login only on an explicit Google link click', async () => {
+    renderLogin();
+    const link = await screen.findByRole('link', { name: /google/i });
+    expect(startGoogleLoginTracking).not.toHaveBeenCalled();
+    link.addEventListener('click', (event) => event.preventDefault(), { once: true });
+    fireEvent.click(link);
+    expect(startGoogleLoginTracking).toHaveBeenCalledOnce();
+  });
+
   it('cambia al modo registro al hacer click en la pestaña de registro', async () => {
     const user = userEvent.setup();
     renderLogin();
@@ -71,6 +88,7 @@ describe('Login (AuthModal)', () => {
       .find((btn) => btn.textContent?.toLowerCase().includes('regist'));
     if (registerTabBtn) {
       await user.click(registerTabBtn);
+      expect(trackRegistrationStarted).toHaveBeenCalledOnce();
       // En modo registro aparece el campo de email
       await waitFor(() => {
         const inputs = screen.getAllByRole('textbox');
@@ -109,6 +127,7 @@ describe('Login (AuthModal)', () => {
         await user.click(submitBtn);
         await waitFor(() => {
           expect(screen.getByTestId('home')).toBeInTheDocument();
+          expect(trackLogin).toHaveBeenCalledExactlyOnceWith('local');
         });
       }
     }
@@ -182,6 +201,7 @@ describe('Login (AuthModal)', () => {
         })
       );
     });
+    await waitFor(() => expect(trackLocalSignUp).toHaveBeenCalledOnce());
   });
 
   it('muestra mensaje de error si el login falla', async () => {
@@ -203,6 +223,7 @@ describe('Login (AuthModal)', () => {
           // Aparece algún mensaje de error
           const errorEl = document.querySelector('[class*="red"], [class*="error"]');
           expect(errorEl || screen.queryByText(/error|credencial|contraseña/i)).toBeTruthy();
+          expect(trackLogin).not.toHaveBeenCalled();
         });
       }
     }

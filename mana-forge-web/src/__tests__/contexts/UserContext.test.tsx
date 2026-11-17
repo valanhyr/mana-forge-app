@@ -7,6 +7,13 @@ import { server } from '../mocks/server';
 import { UserProvider, useUser } from '../../services/UserContext';
 import { LanguageProvider } from '../../services/LanguageContext';
 import { mockUser } from '../mocks/handlers';
+import { cancelGoogleLoginTracking, finishGoogleLoginTracking } from '../../services/AnalyticsService';
+
+vi.mock('../../services/AnalyticsService', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('../../services/AnalyticsService')>()),
+  finishGoogleLoginTracking: vi.fn(),
+  cancelGoogleLoginTracking: vi.fn(),
+}));
 
 const BASE = 'http://localhost:8080';
 
@@ -34,6 +41,7 @@ const UserDisplay = () => {
 describe('UserContext', () => {
   let consoleErrorSpy: any;
   beforeEach(() => {
+    vi.clearAllMocks();
     // Suppress noisy console.error logs that are intentionally triggered in tests
     consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     localStorage.clear();
@@ -52,7 +60,22 @@ describe('UserContext', () => {
     );
     await waitFor(() => {
       expect(screen.getByTestId('auth').textContent).toBe('false');
+      expect(finishGoogleLoginTracking).toHaveBeenCalledWith(false);
     });
+  });
+
+  it('checks a pending Google return only after a session is confirmed', async () => {
+    server.use(http.get(`${BASE}/users/me`, () => HttpResponse.json(mockUser)));
+    render(<AllProviders><UserDisplay /></AllProviders>);
+    await waitFor(() => expect(finishGoogleLoginTracking).toHaveBeenCalledWith(true));
+  });
+
+  it('clears a pending Google attempt when the browser restores the previous page', () => {
+    render(<AllProviders><UserDisplay /></AllProviders>);
+    const event = new Event('pageshow');
+    Object.defineProperty(event, 'persisted', { value: true });
+    window.dispatchEvent(event);
+    expect(cancelGoogleLoginTracking).toHaveBeenCalledOnce();
   });
 
   it('login establece el usuario y isAuthenticated pasa a true', async () => {

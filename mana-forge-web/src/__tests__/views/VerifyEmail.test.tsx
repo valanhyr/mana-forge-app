@@ -5,6 +5,13 @@ import { http, HttpResponse } from 'msw';
 import { server } from '../mocks/server';
 import VerifyEmail from '../../views/auth/VerifyEmail';
 import { LanguageProvider } from '../../services/LanguageContext';
+import { StrictMode } from 'react';
+import { trackEmailVerification } from '../../services/AnalyticsService';
+
+vi.mock('../../services/AnalyticsService', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('../../services/AnalyticsService')>()),
+  trackEmailVerification: vi.fn(),
+}));
 
 const BASE = 'http://localhost:8080';
 
@@ -21,6 +28,7 @@ const renderVerify = (search = '?token=valid-token') =>
   );
 
 describe('VerifyEmail', () => {
+  beforeEach(() => vi.clearAllMocks());
   it('muestra el estado de carga al iniciar', () => {
     // Retrasar la respuesta para capturar el estado loading
     server.use(
@@ -40,6 +48,7 @@ describe('VerifyEmail', () => {
     renderVerify();
     await waitFor(() => {
       expect(screen.getByRole('heading')).toBeInTheDocument();
+      expect(trackEmailVerification).toHaveBeenCalledOnce();
     });
   });
 
@@ -48,6 +57,7 @@ describe('VerifyEmail', () => {
     await waitFor(() => {
       // Sin token, status pasa a 'error' inmediatamente
       expect(screen.getByRole('button')).toBeInTheDocument();
+      expect(trackEmailVerification).not.toHaveBeenCalled();
     });
   });
 
@@ -56,7 +66,17 @@ describe('VerifyEmail', () => {
     renderVerify('?token=invalid-token');
     await waitFor(() => {
       expect(screen.getByRole('button')).toBeInTheDocument();
+      expect(trackEmailVerification).not.toHaveBeenCalled();
     });
+  });
+
+  it('records only one successful verification under Strict Mode without the token', async () => {
+    server.use(http.get(`${BASE}/users/verify`, () => new HttpResponse(null, { status: 200 })));
+    render(<StrictMode><LanguageProvider><MemoryRouter initialEntries={['/verify-email?token=private']}>
+      <VerifyEmail />
+    </MemoryRouter></LanguageProvider></StrictMode>);
+    await waitFor(() => expect(trackEmailVerification).toHaveBeenCalledOnce());
+    expect(trackEmailVerification).toHaveBeenCalledWith();
   });
 
   it('navega a /login 2s después de una verificación exitosa', async () => {

@@ -1,5 +1,4 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import pkg from '../../package.json';
 
 const initializeFaro = vi.fn();
 const getWebInstrumentations = vi.fn(() => []);
@@ -35,25 +34,15 @@ describe('observability bootstrap', () => {
     expect(initializeFaro).not.toHaveBeenCalled();
   });
 
-  it('initializes Faro when VITE_FARO_URL is present', async () => {
+  it('does not initialize Faro even when VITE_FARO_URL is present', async () => {
     vi.stubEnv('VITE_FARO_URL', 'https://collector.example/collect/app');
     vi.stubEnv('VITE_FARO_APP_NAME', 'mana-forge-web');
     vi.stubEnv('MODE', 'production');
 
     await import('../observability');
 
-    expect(getWebInstrumentations).toHaveBeenCalledWith({ captureConsole: true });
-    expect(TracingInstrumentation).toHaveBeenCalled();
-    expect(initializeFaro).toHaveBeenCalledWith({
-      url: 'https://collector.example/collect/app',
-      app: {
-        name: 'mana-forge-web',
-        // Injected from package.json, so this fails loudly on a version bump
-        // only if the plumbing breaks — not silently reporting a stale build.
-        version: pkg.version,
-        environment: 'production',
-      },
-      instrumentations: [{ name: 'tracing' }],
-    });
+    expect(getWebInstrumentations).not.toHaveBeenCalled();
+    expect(TracingInstrumentation).not.toHaveBeenCalled();
+    expect(initializeFaro).not.toHaveBeenCalled();
   });
 });

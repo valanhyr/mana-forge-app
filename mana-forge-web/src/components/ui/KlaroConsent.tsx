@@ -56,8 +56,8 @@ const config = {
     purposes: ['analytics'],
     translations: {
       zz: { title: 'Google Analytics' },
-      es: { description: 'Mide visitas, aperturas de preguntas frecuentes, creación y duplicación de mazos y uso del análisis de IA.' },
-      en: { description: 'Measures visits, FAQ openings, deck creation and cloning and use of AI analysis.' },
+      es: { description: 'Mide visitas, aperturas de preguntas frecuentes, creación y duplicación de mazos y uso del análisis de IA, inicios de sesión, registros, verificaciones de correo, envíos de contacto, copias de listas y errores de uso.' },
+      en: { description: 'Measures visits, FAQ openings, deck creation and cloning and use of AI analysis, sign-ins, registrations, email verifications, contact submissions, deck-list copies and usage errors.' },
     },
     callback: (allowed: boolean) => setAnalyticsConsent(allowed === true),
   }],

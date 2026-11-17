@@ -2,6 +2,8 @@ import type { Locale } from './LanguageContext';
 
 const MEASUREMENT_ID = 'G-YR4GEC9XWL';
 const DISABLE_KEY = `ga-disable-${MEASUREMENT_ID}`;
+const GOOGLE_LOGIN_MARKER = 'mana_forge_analytics_google_login';
+const GOOGLE_LOGIN_TTL_MS = 5 * 60 * 1000;
 const SAFE_PAGE_TITLE = 'Mana Forge';
 const STATIC_ROUTES = new Set([
   '/', '/login', '/verify-email', '/formats/all-formats', '/explorer', '/contact',
@@ -120,6 +122,7 @@ function loadGoogleTag() {
 export function setAnalyticsConsent(granted: boolean) {
   if (!granted) {
     consent = false;
+    clearGoogleLoginMarker();
     analyticsWindow()[DISABLE_KEY] = true;
     lastNavigation = null;
     if (!ready && script) {
@@ -155,6 +158,56 @@ export function trackPageView(path: string) {
 
 export function trackFaqOpen(topicCode: string, faqCode: string, language: Locale) {
   send('event', 'faq_open', { faq_code: faqCode, faq_topic: topicCode, faq_language: language });
+}
+
+export function trackRegistrationStarted() { send('event', 'registration_started', {}); }
+export function trackLocalSignUp() { send('event', 'sign_up', { method: 'local' }); }
+export function trackEmailVerification() { send('event', 'email_verification_completed', {}); }
+export function trackContactSubmitted() { send('event', 'contact_submitted', {}); }
+export function trackContactSubmitFailed() { send('event', 'contact_submit_failed', {}); }
+export function trackDeckListCopied() { send('event', 'deck_list_copied', {}); }
+export function trackDeckSaveFailed() { send('event', 'deck_save_failed', {}); }
+export function trackPageNotFound() { send('event', 'page_not_found', {}); }
+
+function clearGoogleLoginMarker() {
+  try {
+    sessionStorage.removeItem(GOOGLE_LOGIN_MARKER);
+  } catch {
+    // Storage can be unavailable; analytics must not affect authentication.
+  }
+}
+
+export function cancelGoogleLoginTracking() {
+  clearGoogleLoginMarker();
+}
+
+export function trackLogin(method: 'local' | 'google') {
+  if (method === 'local') clearGoogleLoginMarker();
+  if (method === 'local' || method === 'google') send('event', 'login', { method });
+}
+
+export function startGoogleLoginTracking(isSessionLoading: boolean, isAuthenticated: boolean) {
+  clearGoogleLoginMarker();
+  if (!consent || isSessionLoading || isAuthenticated) return;
+  try {
+    sessionStorage.setItem(GOOGLE_LOGIN_MARKER, String(Date.now()));
+  } catch {
+    // Continue to Google even if session storage is blocked.
+  }
+}
+
+export function finishGoogleLoginTracking(isAuthenticated: boolean) {
+  try {
+    const stored = sessionStorage.getItem(GOOGLE_LOGIN_MARKER);
+    sessionStorage.removeItem(GOOGLE_LOGIN_MARKER);
+    if (!stored || !/^\d+$/.test(stored)) return;
+    const age = Date.now() - Number(stored);
+    if (consent && ready && isAuthenticated && age >= 0 && age <= GOOGLE_LOGIN_TTL_MS) {
+      trackLogin('google');
+    }
+  } catch {
+    // Never block session restoration when storage is unavailable.
+  }
 }
 
 export type AnalyticsUserType = 'guest' | 'authenticated' | 'unknown';

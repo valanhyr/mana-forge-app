@@ -112,34 +112,16 @@ MAIL_ADMIN=info@yourdomain.com
 
 ## 📈 Observability
 
-Mana Forge ships observability behind feature flags so local development still works without Grafana credentials.
+Grafana Faro and the integrated OTLP exporters are disabled in this version of
+the web, API and engine. Former Grafana/OTLP environment variables do not
+enable these integrations. The engine's generic OTLP export is also disabled.
+Local application logs and health endpoints remain available; review local logs
+separately for sensitive information.
 
-### Backend and engine
-
-Set these variables in the root `.env` file:
-
-```env
-GRAFANA_OTEL_ENABLED=true
-OTEL_SDK_DISABLED=false
-GRAFANA_OTLP_ENDPOINT=https://otlp-gateway-prod-eu-west-0.grafana.net/otlp
-GRAFANA_OTLP_AUTH=<base64(instanceId:apiToken)>
-```
-
-### Frontend
-
-The React app reads Faro config at build time, so rebuild the web image after changing these:
-
-```env
-VITE_FARO_URL=https://faro-collector-prod-eu-west-0.grafana.net/collect/<app-key>
-VITE_FARO_APP_NAME=mana-forge-web
-```
-
-Then rebuild and restart:
-
-```bash
-docker compose build web api engine
-docker compose up -d
-```
+An existing deployment may still run an older image or use external collectors.
+This repository change does not deploy a new version or delete historical data.
+Verify deployed configuration and network traffic separately before claiming
+that a running installation no longer sends telemetry.
 
 ### Runtime checks
 

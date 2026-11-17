@@ -5,6 +5,7 @@ import { API_URL } from '../../services/api';
 import { Loader2, Mail } from 'lucide-react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useToast } from '../../services/ToastContext';
+import { startGoogleLoginTracking, trackLocalSignUp, trackLogin, trackRegistrationStarted } from '../../services/AnalyticsService';
 
 interface AuthModalProps {
   isOpen?: boolean;
@@ -13,7 +14,7 @@ interface AuthModalProps {
 
 const AuthModal = ({ isOpen = true, onClose }: AuthModalProps) => {
   const { t } = useTranslation();
-  const { login, register, isAuthenticated } = useUser();
+  const { login, register, isAuthenticated, isSessionLoading } = useUser();
   const { showToast } = useToast();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -71,6 +72,7 @@ const AuthModal = ({ isOpen = true, onClose }: AuthModalProps) => {
     try {
       if (isLogin) {
         await login(username, password);
+        trackLogin('local');
         if (onClose) {
           onClose();
         } else {
@@ -78,6 +80,7 @@ const AuthModal = ({ isOpen = true, onClose }: AuthModalProps) => {
         }
       } else {
         await register(username, email, password, displayName.trim());
+        trackLocalSignUp();
         setRegisteredEmail(email);
         setRegistrationDone(true);
       }
@@ -94,6 +97,7 @@ const AuthModal = ({ isOpen = true, onClose }: AuthModalProps) => {
   };
 
   const handleTabSwitch = (toLogin: boolean) => {
+    if (!toLogin && isLogin) trackRegistrationStarted();
     setIsLogin(toLogin);
     setError('');
     setUsername('');
@@ -288,6 +292,11 @@ const AuthModal = ({ isOpen = true, onClose }: AuthModalProps) => {
 
             <a
               href={`${API_URL}/oauth2/authorization/google`}
+              onClick={(event) => {
+                if (event.button === 0 && !event.ctrlKey && !event.metaKey && !event.shiftKey && !event.altKey) {
+                  startGoogleLoginTracking(isSessionLoading, isAuthenticated);
+                }
+              }}
               className="w-full flex items-center justify-center gap-3 bg-white text-black font-bold py-3 rounded-xl hover:bg-zinc-200 transition-all active:scale-95"
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24">

@@ -1,19 +1,2 @@
-import { getWebInstrumentations, initializeFaro } from '@grafana/faro-web-sdk';
-import { TracingInstrumentation } from '@grafana/faro-web-tracing';
-
-const faroUrl = import.meta.env.VITE_FARO_URL as string | undefined;
-
-if (faroUrl) {
-  initializeFaro({
-    url: faroUrl,
-    app: {
-      name: (import.meta.env.VITE_FARO_APP_NAME as string) || 'mana-forge-web',
-      version: __APP_VERSION__,
-      environment: import.meta.env.MODE,
-    },
-    instrumentations: [
-      ...getWebInstrumentations({ captureConsole: true }),
-      new TracingInstrumentation(),
-    ],
-  });
-}
+// Remote browser telemetry is disabled, including when old Faro build variables exist.
+export {};

@@ -1,9 +1,19 @@
-import { Link } from 'react-router-dom';
+import { useEffect, useRef } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { Sword, Home, ArrowLeft } from 'lucide-react';
 import { useTranslation } from '../../hooks/useTranslation';
+import { trackPageNotFound } from '../../services/AnalyticsService';
 
 export default function NotFound() {
   const { t } = useTranslation();
+  const { key } = useLocation();
+  const trackedNavigation = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (trackedNavigation.current === key) return;
+    trackedNavigation.current = key;
+    trackPageNotFound();
+  }, [key]);
 
   return (
     <div className="min-h-[70vh] flex flex-col items-center justify-center text-center px-4">

@@ -18,8 +18,6 @@ services:
       dockerfile: Dockerfile
       args:
         - VITE_API_URL=/api
-        - VITE_FARO_URL=${VITE_FARO_URL:-}
-        - VITE_FARO_APP_NAME=${VITE_FARO_APP_NAME:-mana-forge-web}
         # Public Turnstile site key (safe to expose; the secret stays server-side)
         - VITE_TURNSTILE_SITE_KEY=${CLOUDFLARE_TS_SITE_KEY:-}
     container_name: mana-forge-web-1
@@ -95,9 +93,6 @@ services:
       - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
       - EMAIL_ENCRYPTION_KEY=${EMAIL_ENCRYPTION_KEY}
       - OAUTH2_REDIRECT_BASE=${OAUTH2_REDIRECT_BASE}
-      - GRAFANA_OTEL_ENABLED=${GRAFANA_OTEL_ENABLED:-false}
-      - GRAFANA_OTLP_ENDPOINT=${GRAFANA_OTLP_ENDPOINT:-}
-      - GRAFANA_OTLP_AUTH=${GRAFANA_OTLP_AUTH:-}
       # Concurrency guard: fail fast with 429 instead of opening unbounded
       # simultaneous provider calls (which would trip Groq/Gemini rate limits).
       - AI_MAX_CONCURRENT_REQUESTS=${AI_MAX_CONCURRENT_REQUESTS:-4}
@@ -153,10 +148,6 @@ services:
       - GROQ_MODEL=${GROQ_MODEL:-groq/compound-mini}
       - GOOGLE_API_KEY=${GOOGLE_API_KEY:-}
       - GOOGLE_MODEL=${GOOGLE_MODEL:-}
-      - OTEL_SDK_DISABLED=${OTEL_SDK_DISABLED:-true}
-      - OTEL_SERVICE_NAME=mana-forge-engine
-      - GRAFANA_OTLP_ENDPOINT=${GRAFANA_OTLP_ENDPOINT:-}
-      - GRAFANA_OTLP_AUTH=${GRAFANA_OTLP_AUTH:-}
     healthcheck:
       test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
       interval: 30s

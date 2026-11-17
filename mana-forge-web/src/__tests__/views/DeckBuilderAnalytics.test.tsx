@@ -7,7 +7,7 @@ import { LanguageProvider } from '../../services/LanguageContext';
 import { ToastProvider } from '../../services/ToastContext';
 import { DeckService } from '../../services/DeckService';
 import { FormatService } from '../../services/FormatService';
-import { trackDeckCreated, trackAnalysisStarted, trackAnalysisFinished } from '../../services/AnalyticsService';
+import { trackDeckCreated, trackAnalysisStarted, trackAnalysisFinished, trackDeckSaveFailed } from '../../services/AnalyticsService';
 
 const session = vi.hoisted(() => ({
   user: { userId: 'private-user-id' }, isAuthenticated: true, isSessionLoading: false,
@@ -21,6 +21,7 @@ vi.mock('../../services/DeckService', () => ({ DeckService: {
 vi.mock('../../services/AnalyticsService', async (importOriginal) => ({
   ...(await importOriginal<typeof import('../../services/AnalyticsService')>()),
   trackDeckCreated: vi.fn(), trackAnalysisStarted: vi.fn(), trackAnalysisFinished: vi.fn(),
+  trackDeckSaveFailed: vi.fn(),
 }));
 
 const format = {
@@ -77,6 +78,7 @@ describe('builder analytics', () => {
     const user = await prepareNewDeck();
     await user.click(screen.getAllByRole('button', { name: 'Guardar y continuar' })[0]);
     await waitFor(() => expect(DeckService.saveDeck).toHaveBeenCalled());
+    await waitFor(() => expect(trackDeckSaveFailed).toHaveBeenCalledExactlyOnceWith());
     expect(trackDeckCreated).not.toHaveBeenCalled();
     view.unmount();
 
@@ -84,6 +86,16 @@ describe('builder analytics', () => {
     await waitFor(() => expect(screen.getByPlaceholderText('Ej: Goblin Aggro')).toHaveValue('Existing deck'));
     await user.click(screen.getAllByRole('button', { name: 'Guardar y continuar' })[0]);
     await waitFor(() => expect(DeckService.updateDeck).toHaveBeenCalled());
+    expect(trackDeckCreated).not.toHaveBeenCalled();
+  });
+
+  it('tracks a failure obtaining scores as a save workflow failure', async () => {
+    vi.mocked(DeckService.getDeckScores).mockRejectedValue(new Error('private error'));
+    renderBuilder();
+    const user = await prepareNewDeck();
+    await user.click(screen.getAllByRole('button', { name: 'Guardar y continuar' })[0]);
+    await waitFor(() => expect(trackDeckSaveFailed).toHaveBeenCalledExactlyOnceWith());
+    expect(DeckService.saveDeck).not.toHaveBeenCalled();
     expect(trackDeckCreated).not.toHaveBeenCalled();
   });
 

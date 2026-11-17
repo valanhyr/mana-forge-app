@@ -4,6 +4,7 @@ import { AuthService } from '../services/AuthService';
 import { FormatService } from '../services/FormatService';
 import { type Deck } from '../components/ui/DeckTable';
 import { useTranslation } from '../hooks/useTranslation';
+import { cancelGoogleLoginTracking, finishGoogleLoginTracking } from './AnalyticsService';
 
 const STORAGE_KEY = 'mana_forge_session';
 
@@ -95,6 +96,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const logout = async () => {
+    cancelGoogleLoginTracking();
     try {
       await AuthService.logout();
     } catch (error) {
@@ -108,10 +110,19 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     document.cookie = 'JSESSIONID=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
   };
 
+  useEffect(() => {
+    const handlePageShow = (event: PageTransitionEvent) => {
+      if (event.persisted) cancelGoogleLoginTracking();
+    };
+    window.addEventListener('pageshow', handlePageShow);
+    return () => window.removeEventListener('pageshow', handlePageShow);
+  }, []);
+
   // Verificar si la sesión es válida en el servidor al cargar la app
   useEffect(() => {
     AuthService.checkSession()
       .then((userData) => {
+        finishGoogleLoginTracking(Boolean(userData));
         if (userData) {
           updateUser(userData);
         } else {
@@ -120,6 +131,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       })
       .catch(() => {
+        finishGoogleLoginTracking(false);
         setUser(null);
         persistSession(null);
       })

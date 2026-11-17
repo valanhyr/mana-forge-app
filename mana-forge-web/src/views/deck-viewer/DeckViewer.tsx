@@ -28,7 +28,7 @@ import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
 import { useLanguage } from '../../services/LanguageContext';
 import { useTranslation } from '../../hooks/useTranslation';
-import { analyticsUserType, trackDeckCloned } from '../../services/AnalyticsService';
+import { analyticsUserType, trackDeckCloned, trackDeckListCopied } from '../../services/AnalyticsService';
 
 type GroupMode = 'type' | 'none';
 type SortMode = 'cmc' | 'alpha';
@@ -213,8 +213,11 @@ const DeckViewer = () => {
     ].join('\n');
 
     navigator.clipboard.writeText(list).then(() => {
+      trackDeckListCopied();
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
+    }).catch(() => {
+      // A rejected clipboard write is not a successful copy.
     });
   };
 
