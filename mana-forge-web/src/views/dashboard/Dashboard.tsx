@@ -281,12 +281,7 @@ const Dashboard = () => {
     }
 
     return (
-      <button
-        type="button"
-        onClick={() => setIsModalOpen(true)}
-        aria-label={t('dashboard.openDailyDeck')}
-        className="group relative block w-full text-left overflow-hidden rounded-2xl shadow-lg cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
-      >
+      <div className="group relative block w-full text-left overflow-hidden rounded-2xl shadow-lg">
         <div className="absolute inset-0 z-0">
           <img
             src={dailyDeck.cardArtUrl}
@@ -295,7 +290,13 @@ const Dashboard = () => {
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
         </div>
-        <div className="relative z-10 flex flex-col justify-between h-80 p-6 text-white">
+        <button
+          type="button"
+          onClick={() => setIsModalOpen(true)}
+          aria-label={t('dashboard.openDailyDeck')}
+          className="absolute inset-0 z-[1] w-full rounded-2xl cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand-500"
+        />
+        <div className="pointer-events-none relative z-10 flex flex-col justify-between h-80 p-6 text-white">
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2">
             <span className="inline-flex shrink-0 items-center gap-2 rounded-full bg-black/60 px-3 py-1 text-xs font-medium text-indigo-400 border border-indigo-500/20 backdrop-blur-sm">
               <Sparkles size={14} /> {t('dashboard.aiDeckOfTheDay')}
@@ -303,7 +304,7 @@ const Dashboard = () => {
 
             {/* Star Rating System On Card */}
             <div
-              className="flex gap-1 bg-black/60 px-2 py-1 rounded-full border border-zinc-500/20 backdrop-blur-sm w-fit"
+              className="pointer-events-auto flex gap-1 bg-black/60 px-2 py-1 rounded-full border border-zinc-500/20 backdrop-blur-sm w-fit"
               onMouseLeave={() => setHoveredStar(0)}
               onClick={(e) => e.stopPropagation()}
             >
@@ -322,7 +323,8 @@ const Dashboard = () => {
                     disabled={ratingLoading}
                     onMouseEnter={() => setHoveredStar(star)}
                     onClick={(e) => handleRateDeck(e, star)}
-                    className="p-0.5 focus:outline-none transition-transform hover:scale-125 disabled:opacity-50"
+                    aria-label={t('dashboard.rateDeck', { number: star })}
+                    className="p-0.5 rounded-lg transition-transform hover:scale-125 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                   >
                     <Star
                       size={18}
@@ -351,7 +353,7 @@ const Dashboard = () => {
             </p>
           </div>
         </div>
-      </button>
+      </div>
     );
   };
 
